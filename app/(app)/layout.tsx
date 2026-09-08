@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ensureNotifications } from "@/lib/notifications/sync";
 import { CommandPalette } from "@/components/navigation/command-palette";
+import { MobileNav } from "@/components/navigation/mobile-nav";
+import { NetworkStatus } from "@/components/ui/network-status";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Tableau de bord", icon: "🏠" },
@@ -44,8 +46,14 @@ export default async function AppLayout({
     .is("read_at", null);
 
   return (
-    <div className="flex min-h-screen bg-canvas">
-      {/* Sidebar Desktop */}
+    <div className="flex min-h-screen bg-canvas flex-col md:flex-row">
+      {/* Moniteur d'état réseau */}
+      <NetworkStatus />
+
+      {/* Header & Bottom Nav Mobile (< 768px) */}
+      <MobileNav unreadCount={unreadCount} />
+
+      {/* Sidebar Desktop (>= 768px) */}
       <aside className="hidden md:flex w-64 shrink-0 flex-col justify-between border-r border-ink-200 bg-canvas-raised px-4 py-6">
         <div className="space-y-6">
           {/* Logo & Titre */}
@@ -110,8 +118,8 @@ export default async function AppLayout({
         </div>
       </aside>
 
-      {/* Contenu principal */}
-      <main className="flex-1 p-6 sm:p-8 max-w-7xl mx-auto overflow-y-auto">
+      {/* Contenu principal avec padding adapté pour la bottom nav mobile */}
+      <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto overflow-y-auto pb-20 md:pb-8">
         {children}
       </main>
     </div>
