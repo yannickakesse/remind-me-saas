@@ -6,6 +6,11 @@ import { ensureCalendarEvents } from "@/lib/calendar/sync";
 import { eventStatusLabel } from "@/lib/validation/calendar";
 import { TASK_PRIORITY_STYLES, taskPriorityLabel } from "@/lib/validation/tasks";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
+import { getFinancesForRange, sumByCurrencyAndStatus } from "@/lib/finances/aggregate";
+import { formatAmount } from "@/lib/finances/format";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 
 function typeLabel(type: string) {
   return ACTIVITY_TYPES.find((t) => t.value === type)?.label ?? type;
@@ -18,7 +23,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   const [{ data: profile }, { data: activities }] = await Promise.all([
-    supabase.from("profiles").select("full_name, timezone").eq("id", user!.id).single(),
+    supabase.from("profiles").select("full_name, timezone, default_currency").eq("id", user!.id).single(),
     supabase
       .from("activities")
       .select("id, name, type, color, activity_compensation(amount, currency, frequency)")
@@ -29,7 +34,11 @@ export default async function DashboardPage() {
 
   const hasActivities = (activities ?? []).length > 0;
   const timezone = profile?.timezone ?? "UTC";
-  const todayISO = DateTime.now().setZone(timezone).toISODate()!;
+  const currency = profile?.default_currency ?? "XOF";
+  const now = DateTime.now().setZone(timezone);
+  const todayISO = now.toISODate()!;
+  const monthStartISO = now.startOf("month").toISODate()!;
+  const monthEndISO = now.endOf("month").toISODate()!;
 
   let todayEvents: {
     id: string;
@@ -56,17 +65,37 @@ export default async function DashboardPage() {
     }));
   }
 
-  const { data: urgentTasks } = await supabase
-    .from("tasks")
-    .select("id, title, priority, due_date")
-    .eq("user_id", user!.id)
-    .in("status", ["todo", "in_progress"])
-    .lte("due_date", todayISO)
-    .not("due_date", "is", null)
-    .order("due_date", { ascending: true })
-    .limit(5);
+  const [{ data: urgentTasks }, { count: totalTaskCount }, { count: totalIncomeCount }] = await Promise.all([
+    supabase
+      .from("tasks")
+      .select("id, title, priority, due_date")
+      .eq("user_id", user!.id)
+      .in("status", ["todo", "in_progress"])
+      .lte("due_date", todayISO)
+      .not("due_date", "is", null)
+      .order("due_date", { ascending: true })
+      .limit(5),
+    supabase.from("tasks").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
+    supabase.from("income").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
+  ]);
 
-  await ensureIncomeEntries(supabase, user!.id, DateTime.fromISO(todayISO).minus({ months: 1 }).startOf("month").toISODate()!, todayISO);
+  await ensureIncomeEntries(supabase, user!.id, monthStartISO, monthEndISO);
+  const { income: monthIncome, expenses: monthExpenses } = await getFinancesForRange(
+    supabase,
+    user!.id,
+    monthStartISO,
+    monthEndISO,
+    todayISO
+  );
+  const incomeTotals = sumByCurrencyAndStatus(monthIncome);
+  const expenseTotals = sumByCurrencyAndStatus(monthExpenses);
+
+  const incomeReceived = incomeTotals.get(`received|${currency}`) ?? 0;
+  const incomeExpected = (incomeTotals.get(`planned|${currency}`) ?? 0) + (incomeTotals.get(`late|${currency}`) ?? 0);
+  const expensesPaid = expenseTotals.get(`received|${currency}`) ?? 0;
+  const expensesDue = (expenseTotals.get(`planned|${currency}`) ?? 0) + (expenseTotals.get(`late|${currency}`) ?? 0);
+  const net = incomeReceived - expensesPaid;
+
   const { data: lateIncome } = await supabase
     .from("income")
     .select("id, label, amount, currency, due_date")
@@ -76,12 +105,57 @@ export default async function DashboardPage() {
     .order("due_date", { ascending: true })
     .limit(5);
 
+  const checklistItems = [
+    { label: "Compte créé", done: true },
+    { label: "Créer votre première activité", done: hasActivities, href: "/activities/new" },
+    { label: "Ajouter une tâche", done: (totalTaskCount ?? 0) > 0, href: "/tasks/new" },
+    { label: "Ajouter un revenu", done: (totalIncomeCount ?? 0) > 0, href: "/finances/income/new" },
+  ];
+  const onboardingComplete = checklistItems.every((item) => item.done);
+
   return (
     <div>
-      <h1 className="mb-1 text-2xl font-semibold text-ink-950">
-        Bonjour {profile?.full_name?.split(" ")[0] ?? ""}
-      </h1>
-      <p className="mb-8 text-ink-500">Voici votre vue d'ensemble.</p>
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="mb-1 text-2xl font-semibold text-ink-950">
+            Bonjour {profile?.full_name?.split(" ")[0] ?? ""} 👋
+          </h1>
+          <p className="text-ink-500">
+            {now.setLocale("fr").toFormat("cccc d LLLL")} — voici votre vue d&apos;ensemble.
+          </p>
+        </div>
+        <QuickActions />
+      </div>
+
+      {!onboardingComplete ? (
+        <div className="mb-8">
+          <OnboardingChecklist items={checklistItems} />
+        </div>
+      ) : null}
+
+      {hasActivities ? (
+        <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard
+            label="Revenus reçus (mois)"
+            value={formatAmount(incomeReceived, currency)}
+            helper={incomeExpected > 0 ? `${formatAmount(incomeExpected, currency)} attendus` : undefined}
+            tone="positive"
+          />
+          <StatCard
+            label="Dépenses payées (mois)"
+            value={formatAmount(expensesPaid, currency)}
+            helper={expensesDue > 0 ? `${formatAmount(expensesDue, currency)} prévues` : undefined}
+            tone="warning"
+          />
+          <StatCard label="Net (mois)" value={formatAmount(net, currency)} tone={net >= 0 ? "positive" : "danger"} />
+          <StatCard
+            label="Tâches urgentes"
+            value={String(urgentTasks?.length ?? 0)}
+            helper="En retard ou dues aujourd'hui"
+            tone={(urgentTasks?.length ?? 0) > 0 ? "danger" : "neutral"}
+          />
+        </div>
+      ) : null}
 
       {urgentTasks && urgentTasks.length > 0 ? (
         <div className="mb-8">
@@ -129,9 +203,7 @@ export default async function DashboardPage() {
                   className="flex items-center justify-between rounded-lg border border-danger/30 bg-canvas-raised px-5 py-3 hover:brightness-95"
                 >
                   <p className="font-medium text-ink-950">{item.label}</p>
-                  <span className="text-sm font-medium text-danger">
-                    {item.amount} {item.currency}
-                  </span>
+                  <span className="text-sm font-medium text-danger">{formatAmount(item.amount, item.currency)}</span>
                 </Link>
               </li>
             ))}
@@ -139,23 +211,7 @@ export default async function DashboardPage() {
         </div>
       ) : null}
 
-      {!hasActivities ? (
-        <div className="rounded-lg border border-dashed border-ink-300 px-6 py-12 text-center">
-          <p className="mb-1 font-medium text-ink-950">
-            Vous n'avez pas encore d'activité
-          </p>
-          <p className="mb-4 text-sm text-ink-500">
-            Commencez par créer votre première activité pour voir apparaître
-            votre planning et vos revenus ici.
-          </p>
-          <Link
-            href="/activities/new"
-            className="inline-block rounded-md bg-signal px-4 py-2 text-sm font-medium text-white hover:bg-signal/90"
-          >
-            + Ajouter une activité
-          </Link>
-        </div>
-      ) : (
+      {hasActivities ? (
         <section>
           <div className="mb-8">
             <div className="mb-3 flex items-center justify-between">
@@ -221,9 +277,7 @@ export default async function DashboardPage() {
                     <p className="text-sm text-ink-500">{typeLabel(activity.type)}</p>
                   </div>
                   {comp ? (
-                    <p className="text-sm font-medium text-ink-700">
-                      {comp.amount} {comp.currency}
-                    </p>
+                    <p className="text-sm font-medium text-ink-700">{formatAmount(comp.amount, comp.currency)}</p>
                   ) : null}
                 </li>
               );
@@ -231,13 +285,12 @@ export default async function DashboardPage() {
           </ul>
 
           <p className="mt-6 text-sm text-ink-500">
-            <Link href="/finances" className="font-medium text-signal hover:underline">
-              Voir le détail des finances
-            </Link>{" "}
-            — les statistiques et rapports rejoindront ce tableau de bord en Phase 6.
+            <Link href="/reports" className="font-medium text-signal hover:underline">
+              Voir les rapports détaillés
+            </Link>
           </p>
         </section>
-      )}
+      ) : null}
     </div>
   );
 }

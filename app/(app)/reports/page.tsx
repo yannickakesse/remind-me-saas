@@ -2,10 +2,7 @@ import { DateTime } from "luxon";
 import { createClient } from "@/lib/supabase/server";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { getFinancesForRange, summarizeByActivity } from "@/lib/finances/aggregate";
-
-function formatAmount(amount: number, currency: string) {
-  return `${amount.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
-}
+import { formatAmount } from "@/lib/finances/format";
 
 export default async function ReportsPage({
   searchParams,

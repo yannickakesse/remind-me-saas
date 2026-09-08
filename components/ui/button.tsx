@@ -29,6 +29,23 @@ const SIZE_CLASSES: Record<ButtonSize, string> = {
 };
 
 /**
+ * Classes utilitaires du bouton, exposées pour styler un élément qui n'est
+ * PAS un <button> (typiquement un `next/link` `<Link>`, qui ne peut pas
+ * être un enfant de <button>) tout en gardant exactement la même
+ * apparence — évite de dupliquer ces classes ailleurs (§101 du prompt maître).
+ */
+export function buttonClasses(
+  variant: ButtonVariant = "primary",
+  size: ButtonSize = "md",
+  fullWidth = false
+): string {
+  const isLink = variant === "link";
+  return `inline-flex items-center justify-center font-medium transition-colors ${
+    isLink ? "" : "rounded-md"
+  } ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${fullWidth ? "w-full" : ""}`;
+}
+
+/**
  * Bouton générique — variants/states du §88 du prompt maître.
  * Toujours un état loading disponible pour toute action déclenchant un
  * appel réseau, afin qu'un bouton ne reste jamais bloqué silencieusement.

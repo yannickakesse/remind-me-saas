@@ -1,4 +1,85 @@
-# Multi-Activity SaaS — Phases 1 à 6 + Fondations + Phase 4 (Compte/Profil/Paramètres)
+# Multi-Activity SaaS — Phases 1 à 6 + Fondations + Phase 4 (Compte/Profil/Paramètres) + Phase 5 (Dashboard premium)
+
+## Phase 5 — Dashboard premium
+
+Rapport §154 du prompt maître. Numérotation du **prompt maître**
+(Compte → Dashboard → …) — à ne pas confondre avec les sections
+« Ce que contient la Phase X » plus bas dans ce fichier, qui utilisent
+l'ancienne numérotation (1 = Auth/Activités, 4 = Tâches, 5 = Finances…)
+posée avant l'arrivée du prompt maître.
+
+**CREATED**
+- `lib/finances/format.ts` : `formatAmount(amount, currency)`, centralise
+  le formatage monétaire jusqu'ici dupliqué dans `/finances` et
+  `/reports` — un seul endroit à faire évoluer si le format change.
+- `components/dashboard/stat-card.tsx` : carte de statistique générique
+  (label + valeur + précision optionnelle), coloration par `BadgeTone`
+  des Fondations pour rester cohérent avec le reste de l'app.
+- `components/dashboard/onboarding-checklist.tsx` : remplace l'ancien
+  message statique « vous n'avez pas d'activité » par une checklist
+  explicite (compte créé / première activité / première tâche / premier
+  revenu) avec bouton d'action vers la première étape non complétée —
+  conforme au §143 du prompt maître (« un nouvel utilisateur ne doit
+  jamais voir un dashboard mort »).
+- `components/dashboard/quick-actions.tsx` : raccourcis « + Activité /
+  + Tâche / + Revenu / + Dépense » dans l'en-tête du dashboard (§27),
+  construits avec `buttonClasses()` pour avoir exactement le style des
+  boutons des Fondations sur des `next/link`.
+
+**MODIFIED**
+- `app/(app)/dashboard/page.tsx` : entièrement réécrite. Nouvel en-tête
+  (salutation + date du jour + actions rapides), checklist d'onboarding
+  affichée tant qu'elle n'est pas complète, grille de 4 statistiques du
+  mois en cours (revenus reçus/attendus, dépenses payées/dues, net,
+  tâches urgentes — calculées via `getFinancesForRange` +
+  `sumByCurrencyAndStatus`, déjà utilisés par `/finances`, donc aucun
+  nouveau calcul financier introduit). Les sections déjà existantes
+  (événements du jour, tâches urgentes, revenus en retard, liste des
+  activités) sont conservées à l'identique, seulement migrées vers
+  `formatAmount` centralisé.
+- `app/(app)/finances/page.tsx`, `app/(app)/reports/page.tsx` :
+  suppression du `formatAmount` local dupliqué, import depuis
+  `lib/finances/format.ts` — sortie strictement identique (même
+  implémentation, juste déplacée).
+- `components/ui/button.tsx` : ajout de l'export `buttonClasses(variant,
+  size, fullWidth)`, qui expose les classes du bouton pour les éléments
+  qui ne peuvent pas être un `<button>` (les `<Link>` de `next/link`, qui
+  ne supportent pas d'être imbriqués dans un `<button>`) — le composant
+  `Button` existant n'est pas modifié dans son comportement.
+
+**PRESERVED** : aucune requête Supabase ni aucun calcul financier modifié
+— seuls l'agencement visuel du dashboard et l'emplacement du code de
+formatage ont changé. Les Phases 1-4 et les Fondations ne sont pas
+touchées.
+
+**DATABASE** : aucune — pas de nouvelle migration pour cette phase.
+
+**SECURITY** : aucun changement — mêmes requêtes filtrées par RLS
+qu'avant, juste réorganisées.
+
+**UX/UI** : dashboard réorganisé autour de trois idées du prompt maître :
+ne jamais laisser un nouvel utilisateur devant un écran vide sans savoir
+quoi faire (checklist d'onboarding), rendre les actions les plus
+fréquentes accessibles en un clic depuis l'écran d'accueil (actions
+rapides), et donner un résumé chiffré immédiat de la situation du mois
+(grille de statistiques) sans avoir à naviguer vers `/finances`.
+
+**TESTED** : `npm run typecheck` (0 erreur) et `npm run build` (25 pages
+générées, dont `/dashboard` — 0 erreur, 0 warning nouveau).
+
+**NOT TESTED** : rendu visuel réel dans un navigateur (aucun accès réseau
+à ton projet Supabase depuis cet environnement) ; comportement de la
+checklist d'onboarding avec de vraies données utilisateur ; bascule
+clair/sombre sur le nouveau dashboard (le mécanisme vient des Fondations,
+déjà vérifié séparément, mais pas re-testé visuellement ici).
+
+**RISKS** : aucun — pas de migration, aucune table ni policy touchée.
+Cette phase est purement front-end/présentation.
+
+**NEXT** : Phase 7 (Finance core — habillage) selon l'ordre recommandé
+dans `AUDIT_PHASE4-14.md`.
+
+---
 
 ## Phase 4 — Compte / Profil / Paramètres
 

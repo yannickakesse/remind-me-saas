@@ -5,14 +5,7 @@ import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { getFinancesForRange, sumByCurrencyAndStatus, splitTotalsKey } from "@/lib/finances/aggregate";
 import { financeStatusLabel, FINANCE_STATUS_STYLES, type FinanceStatus } from "@/lib/validation/finances";
 import { setIncomeReceived, deleteIncome, setExpensePaid, deleteExpense } from "./actions";
-
-// Pas de formatage Intl.NumberFormat({ style: "currency" }) : les codes
-// devise viennent de la table `currencies` alimentée par l'utilisateur et
-// ne sont pas garantis ISO 4217, ce qui ferait planter Intl. Même
-// convention d'affichage simple que le reste de l'app (ex. dashboard).
-function formatAmount(amount: number, currency: string) {
-  return `${amount.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
-}
+import { formatAmount } from "@/lib/finances/format";
 
 export default async function FinancesPage() {
   const supabase = createClient();
