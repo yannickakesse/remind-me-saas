@@ -532,3 +532,35 @@ export type TaskPriority = "low" | "medium" | "high" | "urgent";
 export type NotificationKind = "task_reminder" | "task_overdue" | "finance_overdue";
 
 export type NotificationEntityType = "task" | "income" | "expense";
+
+
+export type ExpenseType = "personal" | "business" | "mixed";
+export type IncomeType = "salary" | "contract" | "freelance" | "sales" | "coaching" | "dividend" | "other";
+export type SavingsCategory = "emergency_fund" | "vacation" | "car" | "business" | "real_estate" | "education" | "equipment" | "other";
+
+export interface Budget {
+  id: string;
+  user_id: string;
+  category: string;
+  monthly_limit: number;
+  currency: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SavingsGoal {
+  id: string;
+  user_id: string;
+  name: string;
+  category: SavingsCategory;
+  target_amount: number;
+  current_amount: number;
+  currency: string;
+  deadline: string | null;
+  monthly_contribution: number | null;
+  color: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}

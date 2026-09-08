@@ -1,85 +1,145 @@
 import { z } from "zod";
 import { DateTime } from "luxon";
 
-// ----------------------------------------------------------------------------
-// Statut dérivé — jamais stocké en base, jamais saisi à la main.
-// "en retard" dépend du jour courant, qui avance sans aucune action de
-// l'utilisateur : un statut stocké deviendrait faux tout seul. On le
-// recalcule donc à chaque lecture, exactement comme /tasks calcule déjà
-// "en retard" en comparant due_date à aujourd'hui plutôt que de le stocker.
-//
-// Répartition prévu / futur : une échéance non reçue/payée tombant dans le
-// mois civil en cours est "prévu" (imminente) ; au-delà, elle est "futur"
-// (horizon plus lointain). Ce découpage sert le tableau de bord
-// prévisionnel du mois vs les revenus/dépenses à venir plus tard.
-// ----------------------------------------------------------------------------
-export type FinanceStatus = "received" | "late" | "planned" | "future";
+export type FinanceStatus = "received" | "paid" | "overdue" | "expected" | "future";
 
 export function deriveFinanceStatus(
-  dueDateISO: string,
-  isSettled: boolean,
-  todayISO: string
+  fulfilledAt: string | null,
+  dueDate: string | null,
+  userTimezone: string = "UTC"
 ): FinanceStatus {
-  if (isSettled) return "received";
-  if (dueDateISO < todayISO) return "late";
+  if (fulfilledAt !== null) {
+    return "received"; // ou "paid"
+  }
+  if (!dueDate) {
+    return "expected";
+  }
 
-  const today = DateTime.fromISO(todayISO);
-  const due = DateTime.fromISO(dueDateISO);
-  const sameMonth = due.hasSame(today, "month") && due.hasSame(today, "year");
+  const now = DateTime.now().setZone(userTimezone);
+  const today = now.toISODate()!;
+  const currentMonth = now.toFormat("yyyy-MM");
+  const dueMonth = dueDate.slice(0, 7);
 
-  return sameMonth ? "planned" : "future";
+  if (dueDate < today) {
+    return "overdue";
+  }
+  if (dueMonth <= currentMonth) {
+    return "expected";
+  }
+  return "future";
 }
+
+export const FINANCE_STATUS_STYLES: Record<FinanceStatus, { border: string; text: string; bg: string }> = {
+  received: { border: "border-positive/30", text: "text-positive", bg: "bg-positive-soft" },
+  paid: { border: "border-positive/30", text: "text-positive", bg: "bg-positive-soft" },
+  overdue: { border: "border-danger/30", text: "text-danger", bg: "bg-danger-soft" },
+  expected: { border: "border-signal/30", text: "text-signal", bg: "bg-signal-soft" },
+  future: { border: "border-ink-300", text: "text-ink-600", bg: "bg-ink-100" },
+};
 
 export function financeStatusLabel(status: FinanceStatus, kind: "income" | "expense"): string {
   switch (status) {
     case "received":
-      return kind === "income" ? "Reçu" : "Payé";
-    case "late":
+      return "Reçu";
+    case "paid":
+      return "Payée";
+    case "overdue":
       return "En retard";
-    case "planned":
-      return "Prévu";
+    case "expected":
+      return "Ce mois-ci (prévu)";
     case "future":
-      return "Futur";
+      return "Plus tard";
   }
 }
 
-export const FINANCE_STATUS_STYLES: Record<FinanceStatus, string> = {
-  received: "border-positive text-positive",
-  late: "border-danger text-danger",
-  planned: "border-signal text-signal",
-  future: "border-ink-300 text-ink-500",
-};
+export const EXPENSE_CATEGORIES = [
+  { value: "software", label: "Logiciels & Abonnements" },
+  { value: "equipment", label: "Matériel & Équipement" },
+  { value: "travel", label: "Déplacements & Transport" },
+  { value: "food", label: "Repas & Restauration" },
+  { value: "housing", label: "Logement & Bureaux" },
+  { value: "utilities", label: "Charges, Eau, Électricité, Internet" },
+  { value: "education", label: "Formation & Livres" },
+  { value: "marketing", label: "Marketing & Publicité" },
+  { value: "services", label: "Prestations & Sous-traitance" },
+  { value: "taxes", label: "Impôts, Taxes & Cotisations" },
+  { value: "health", label: "Santé & Assurances" },
+  { value: "other", label: "Autre dépense" },
+] as const;
 
-// ----------------------------------------------------------------------------
-// Formulaires
-// ----------------------------------------------------------------------------
+export function expenseCategoryLabel(cat: string): string {
+  return EXPENSE_CATEGORIES.find((c) => c.value === cat)?.label ?? cat;
+}
+
+export const PAYMENT_METHODS = [
+  { value: "bank_transfer", label: "Virement bancaire" },
+  { value: "card", label: "Carte bancaire" },
+  { value: "cash", label: "Espèces" },
+  { value: "mobile_money", label: "Mobile Money (Wave, Orange, etc.)" },
+  { value: "check", label: "Chèque" },
+  { value: "other", label: "Autre moyen" },
+] as const;
+
+export const SAVINGS_CATEGORIES = [
+  { value: "emergency_fund", label: "Fonds d'urgence / Sécurité" },
+  { value: "business", label: "Projet professionnel / Business" },
+  { value: "real_estate", label: "Immobilier / Logement" },
+  { value: "car", label: "Véhicule / Transport" },
+  { value: "vacation", label: "Vacances & Voyages" },
+  { value: "education", label: "Formation & Éducation" },
+  { value: "equipment", label: "Matériel informatique & Pro" },
+  { value: "other", label: "Autre projet" },
+] as const;
+
 export const incomeFormSchema = z.object({
   activityId: z.string().uuid().optional().or(z.literal("")),
   label: z.string().min(1, "Le libellé est requis"),
-  amount: z.coerce.number().min(0, "Le montant doit être positif ou nul"),
+  amount: z.coerce.number().positive("Le montant doit être strictement positif"),
   currency: z.string().min(1, "La devise est requise"),
-  dueDate: z.string().min(1, "La date d'échéance est requise"),
+  incomeType: z.enum(["salary", "contract", "freelance", "sales", "coaching", "dividend", "other"]).default("contract"),
+  paymentMethod: z.string().optional(),
+  reference: z.string().optional(),
+  dueDate: z.string().optional().or(z.literal("")),
   notes: z.string().optional(),
 });
-export type IncomeFormValues = z.infer<typeof incomeFormSchema>;
 
 export const expenseFormSchema = z.object({
   activityId: z.string().uuid().optional().or(z.literal("")),
   label: z.string().min(1, "Le libellé est requis"),
-  category: z.string().optional(),
-  amount: z.coerce.number().min(0, "Le montant doit être positif ou nul"),
+  category: z.string().min(1, "La catégorie est requise"),
+  amount: z.coerce.number().positive("Le montant doit être strictement positif"),
   currency: z.string().min(1, "La devise est requise"),
-  dueDate: z.string().min(1, "La date d'échéance est requise"),
+  expenseType: z.enum(["personal", "business", "mixed"]).default("personal"),
+  businessPercentage: z.coerce.number().min(0).max(100).default(100),
+  merchant: z.string().optional(),
+  paymentMethod: z.string().optional(),
+  dueDate: z.string().optional().or(z.literal("")),
   notes: z.string().optional(),
 });
-export type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
 
-export const EXPENSE_CATEGORIES = [
-  "Matériel",
-  "Logiciel / abonnement",
-  "Transport",
-  "Local / loyer",
-  "Marketing",
-  "Impôts / cotisations",
-  "Autre",
-];
+export const budgetFormSchema = z.object({
+  category: z.string().min(1, "La catégorie est requise"),
+  monthlyLimit: z.coerce.number().positive("La limite mensuelle doit être strictement positive"),
+  currency: z.string().min(1, "La devise est requise"),
+  notes: z.string().optional(),
+});
+
+export const savingsGoalFormSchema = z.object({
+  name: z.string().min(1, "Le nom de l'objectif est requis"),
+  category: z.enum([
+    "emergency_fund",
+    "vacation",
+    "car",
+    "business",
+    "real_estate",
+    "education",
+    "equipment",
+    "other",
+  ]).default("other"),
+  targetAmount: z.coerce.number().positive("Le montant cible doit être strictement positif"),
+  currentAmount: z.coerce.number().min(0, "Le montant initial ne peut être négatif").default(0),
+  currency: z.string().min(1, "La devise est requise"),
+  deadline: z.string().optional().or(z.literal("")),
+  monthlyContribution: z.coerce.number().min(0).optional(),
+  notes: z.string().optional(),
+});

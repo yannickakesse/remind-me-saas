@@ -2,179 +2,394 @@ import Link from "next/link";
 import { DateTime } from "luxon";
 import { createClient } from "@/lib/supabase/server";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
-import { getFinancesForRange, sumByCurrencyAndStatus, splitTotalsKey } from "@/lib/finances/aggregate";
-import { financeStatusLabel, FINANCE_STATUS_STYLES, type FinanceStatus } from "@/lib/validation/finances";
+import { getFinancesForRange, sumByCurrencyAndStatus } from "@/lib/finances/aggregate";
+import {
+  financeStatusLabel,
+  FINANCE_STATUS_STYLES,
+  expenseCategoryLabel,
+} from "@/lib/validation/finances";
 import { setIncomeReceived, deleteIncome, setExpensePaid, deleteExpense } from "./actions";
 import { formatAmount } from "@/lib/finances/format";
+import { FinanceTabs } from "@/components/finances/finance-tabs";
+import { BudgetsSection } from "@/components/finances/budgets-section";
+import { SavingsGoalsSection } from "@/components/finances/savings-goals-section";
+import { buttonClasses } from "@/components/ui/button";
 
-export default async function FinancesPage() {
+export default async function FinancesPage({
+  searchParams,
+}: {
+  searchParams?: { tab?: string };
+}) {
+  const currentTab = searchParams?.tab || "overview";
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user!.id).single();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("timezone, default_currency")
+    .eq("id", user!.id)
+    .single();
   const timezone = profile?.timezone ?? "UTC";
-  const today = DateTime.now().setZone(timezone);
-  const todayISO = today.toISODate()!;
+  const mainCurrency = profile?.default_currency ?? "XOF";
 
-  // Fenêtre de matérialisation : mois précédent (pour ne pas rater des
-  // échéances déjà en retard) jusqu'à deux mois plus tard (horizon "futur"
-  // visible sur ce tableau de bord).
-  const rangeStart = today.minus({ months: 1 }).startOf("month").toISODate()!;
-  const rangeEnd = today.plus({ months: 2 }).endOf("month").toISODate()!;
+  const { data: currencies } = await supabase
+    .from("currencies")
+    .select("code, symbol")
+    .order("code");
 
-  await ensureIncomeEntries(supabase, user!.id, rangeStart, rangeEnd);
+  const now = DateTime.now().setZone(timezone);
+  const startOfMonth = now.startOf("month").toISODate()!;
+  const endOfMonth = now.endOf("month").toISODate()!;
 
-  const { income, expenses } = await getFinancesForRange(supabase, user!.id, rangeStart, rangeEnd, todayISO);
+  // Synchronisation des revenus récurrents
+  await ensureIncomeEntries(supabase, user!.id, startOfMonth, endOfMonth, timezone);
 
+  // Données financières du mois
+  const { income, expenses } = await getFinancesForRange(
+    supabase,
+    user!.id,
+    startOfMonth,
+    endOfMonth,
+    timezone
+  );
+
+  // Totaux agrégés
   const incomeTotals = sumByCurrencyAndStatus(income);
   const expenseTotals = sumByCurrencyAndStatus(expenses);
 
-  const STATUS_ORDER: FinanceStatus[] = ["late", "planned", "future", "received"];
+  // Récupération des budgets avec dépenses calculées
+  const { data: budgetsData } = await supabase
+    .from("budgets")
+    .select("*")
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: true });
 
-  function renderTotals(totals: Map<string, number>, kind: "income" | "expense") {
-    const entries = STATUS_ORDER.flatMap((status) =>
-      Array.from(totals.entries())
-        .filter(([key]) => key.startsWith(`${status}|`))
-        .map(([key, amount]) => ({ ...splitTotalsKey(key), amount }))
-    );
-    if (entries.length === 0) return <p className="text-sm text-ink-500">Rien sur cette période.</p>;
-    return (
-      <div className="flex flex-wrap gap-3">
-        {entries.map(({ status, currency, amount }) => (
-          <span
-            key={`${status}-${currency}`}
-            className={`rounded-full border px-3 py-1 text-sm font-medium ${FINANCE_STATUS_STYLES[status]}`}
-          >
-            {financeStatusLabel(status, kind)} : {formatAmount(amount, currency)}
-          </span>
-        ))}
-      </div>
-    );
-  }
+  const budgetsWithSpent = (budgetsData ?? []).map((b) => {
+    const spentForCat = expenses
+      .filter((e) => e.category === b.category && e.currency === b.currency)
+      .reduce((acc, curr) => acc + Number(curr.amount), 0);
+    return {
+      ...b,
+      spent: spentForCat,
+    };
+  });
 
-  function renderIncomeRow(item: (typeof income)[number]) {
-    return (
-      <li
-        key={item.id}
-        className="flex items-center justify-between gap-4 rounded-lg border border-ink-100 bg-canvas-raised px-4 py-3"
-      >
-        <div className="min-w-0">
-          <p className="font-medium text-ink-950">{item.label}</p>
-          <p className="text-sm text-ink-500">
-            {item.activity ? <span className="mr-2">{item.activity.name}</span> : null}
-            Échéance : {DateTime.fromISO(item.due_date, { zone: timezone }).setLocale("fr").toFormat("d MMM yyyy")}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${FINANCE_STATUS_STYLES[item.status]}`}>
-            {financeStatusLabel(item.status, "income")}
-          </span>
-          <span className="font-medium text-ink-950">{formatAmount(item.amount, item.currency)}</span>
-          <form action={setIncomeReceived.bind(null, item.id, !item.received)}>
-            <button type="submit" className="text-sm font-medium text-signal hover:underline">
-              {item.received ? "Marquer non reçu" : "Marquer reçu"}
-            </button>
-          </form>
-          <Link href={`/finances/income/${item.id}/edit`} className="text-sm text-ink-500 hover:underline">
-            Modifier
-          </Link>
-          {!item.compensation_id ? (
-            <form action={deleteIncome.bind(null, item.id)}>
-              <button type="submit" className="text-sm text-ink-500 hover:text-danger hover:underline">
-                Supprimer
-              </button>
-            </form>
-          ) : null}
-        </div>
-      </li>
-    );
-  }
+  // Récupération des objectifs d'épargne
+  const { data: savingsGoals } = await supabase
+    .from("savings_goals")
+    .select("*")
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: true });
 
-  function renderExpenseRow(item: (typeof expenses)[number]) {
-    return (
-      <li
-        key={item.id}
-        className="flex items-center justify-between gap-4 rounded-lg border border-ink-100 bg-canvas-raised px-4 py-3"
-      >
-        <div className="min-w-0">
-          <p className="font-medium text-ink-950">{item.label}</p>
-          <p className="text-sm text-ink-500">
-            {item.activity ? <span className="mr-2">{item.activity.name}</span> : null}
-            {item.category ? <span className="mr-2">{item.category}</span> : null}
-            Échéance : {DateTime.fromISO(item.due_date, { zone: timezone }).setLocale("fr").toFormat("d MMM yyyy")}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${FINANCE_STATUS_STYLES[item.status]}`}>
-            {financeStatusLabel(item.status, "expense")}
-          </span>
-          <span className="font-medium text-ink-950">{formatAmount(item.amount, item.currency)}</span>
-          <form action={setExpensePaid.bind(null, item.id, !item.paid)}>
-            <button type="submit" className="text-sm font-medium text-signal hover:underline">
-              {item.paid ? "Marquer non payé" : "Marquer payé"}
-            </button>
-          </form>
-          <Link href={`/finances/expenses/${item.id}/edit`} className="text-sm text-ink-500 hover:underline">
-            Modifier
-          </Link>
-          <form action={deleteExpense.bind(null, item.id)}>
-            <button type="submit" className="text-sm text-ink-500 hover:text-danger hover:underline">
-              Supprimer
-            </button>
-          </form>
-        </div>
-      </li>
-    );
-  }
+  // Totaux pour la vue d'ensemble
+  const totalIncomeReceived = income
+    .filter((i) => i.status === "received" && i.currency === mainCurrency)
+    .reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+  const totalIncomeExpected = income
+    .filter((i) => i.currency === mainCurrency)
+    .reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+  const totalExpensesPaid = expenses
+    .filter((e) => e.status === "paid" && e.currency === mainCurrency)
+    .reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+  const totalExpensesExpected = expenses
+    .filter((e) => e.currency === mainCurrency)
+    .reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+  const netBalance = totalIncomeReceived - totalExpensesPaid;
 
   return (
-    <div className="flex flex-col gap-10">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* En-tête principal */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-ink-950">Finances</h1>
-          <p className="text-ink-500">Prévisionnel vs réel — du mois dernier à deux mois d&apos;avance.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-ink-950">Finances & Trésorerie</h1>
+          <p className="text-sm text-ink-500">
+            Période : <strong className="text-ink-900">{now.toFormat("MMMM yyyy")}</strong> • Devise principale : {mainCurrency}
+          </p>
         </div>
-        {/* Même fenêtre que celle affichée à l'écran (rangeStart/rangeEnd) :
-            l'export "sans réglage" correspond toujours à ce que l'utilisateur voit. */}
-        <a
-          href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
-          className="rounded-md border border-ink-200 px-3 py-1.5 text-sm font-medium text-ink-700 hover:bg-canvas-raised"
-        >
-          Exporter en CSV
-        </a>
-      </div>
 
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">Revenus</h2>
-          <Link href="/finances/income/new" className="text-sm font-medium text-signal hover:underline">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Link href="/api/finances/export" className={buttonClasses("secondary", "sm")}>
+            Exporter CSV
+          </Link>
+          <Link href="/finances/income/new" className={buttonClasses("primary", "sm")}>
             + Ajouter un revenu
           </Link>
-        </div>
-        <div className="mb-4">{renderTotals(incomeTotals, "income")}</div>
-        {income.length === 0 ? (
-          <p className="text-sm text-ink-500">Aucun revenu sur cette période.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">{income.map(renderIncomeRow)}</ul>
-        )}
-      </section>
-
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">Dépenses</h2>
-          <Link href="/finances/expenses/new" className="text-sm font-medium text-signal hover:underline">
+          <Link href="/finances/expenses/new" className={buttonClasses("secondary", "sm")}>
             + Ajouter une dépense
           </Link>
         </div>
-        <div className="mb-4">{renderTotals(expenseTotals, "expense")}</div>
-        {expenses.length === 0 ? (
-          <p className="text-sm text-ink-500">Aucune dépense sur cette période.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">{expenses.map(renderExpenseRow)}</ul>
-        )}
-      </section>
+      </div>
+
+      {/* Barre d'onglets */}
+      <FinanceTabs />
+
+      {/* 1. VUE D'ENSEMBLE */}
+      {currentTab === "overview" && (
+        <div className="space-y-8">
+          {/* Cartes KPI Synthèse */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-4">
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+                Solde Net Réel
+              </span>
+              <p
+                className={`mt-2 text-2xl font-extrabold ${
+                  netBalance >= 0 ? "text-positive" : "text-danger"
+                }`}
+              >
+                {formatAmount(netBalance, mainCurrency)}
+              </p>
+              <p className="mt-1 text-xs text-ink-500">Revenus reçus - Dépenses payées</p>
+            </div>
+
+            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-4">
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+                Revenus du Mois
+              </span>
+              <p className="mt-2 text-2xl font-extrabold text-signal">
+                {formatAmount(totalIncomeExpected, mainCurrency)}
+              </p>
+              <p className="mt-1 text-xs text-positive font-medium">
+                {formatAmount(totalIncomeReceived, mainCurrency)} déjà encaissés
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-4">
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+                Dépenses du Mois
+              </span>
+              <p className="mt-2 text-2xl font-extrabold text-ink-950">
+                {formatAmount(totalExpensesExpected, mainCurrency)}
+              </p>
+              <p className="mt-1 text-xs text-ink-500 font-medium">
+                {formatAmount(totalExpensesPaid, mainCurrency)} déjà réglées
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-4">
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+                Objectifs d'Épargne
+              </span>
+              <p className="mt-2 text-2xl font-extrabold text-ink-950">
+                {savingsGoals?.length ?? 0}
+              </p>
+              <p className="mt-1 text-xs text-signal font-medium">
+                Poches actives suivies
+              </p>
+            </div>
+          </div>
+
+          {/* Aperçu rapide Budgets & Épargne */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-ink-950 text-base">Budgets Mensuels</h3>
+                <Link href="/finances?tab=budgets" className="text-xs font-semibold text-signal hover:underline">
+                  Voir tout ({budgetsWithSpent.length}) →
+                </Link>
+              </div>
+              {budgetsWithSpent.length === 0 ? (
+                <p className="text-sm text-ink-500 py-4 text-center">Aucun budget défini.</p>
+              ) : (
+                <div className="space-y-3 pt-2">
+                  {budgetsWithSpent.slice(0, 3).map((b) => (
+                    <div key={b.id} className="space-y-1">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span className="text-ink-900">{expenseCategoryLabel(b.category)}</span>
+                        <span className="text-ink-600">
+                          {formatAmount(b.spent, b.currency)} / {formatAmount(b.monthly_limit, b.currency)}
+                        </span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-ink-100 overflow-hidden">
+                        <div
+                          className="h-full bg-signal rounded-full"
+                          style={{
+                            width: `${Math.min(100, Math.round((b.spent / b.monthly_limit) * 100))}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-ink-950 text-base">Épargne & Projets</h3>
+                <Link href="/finances?tab=savings" className="text-xs font-semibold text-signal hover:underline">
+                  Voir tout ({savingsGoals?.length ?? 0}) →
+                </Link>
+              </div>
+              {savingsGoals?.length === 0 ? (
+                <p className="text-sm text-ink-500 py-4 text-center">Aucun objectif d'épargne défini.</p>
+              ) : (
+                <div className="space-y-3 pt-2">
+                  {savingsGoals?.slice(0, 3).map((g) => {
+                    const pct = Math.min(100, Math.round((Number(g.current_amount) / Number(g.target_amount)) * 100));
+                    return (
+                      <div key={g.id} className="space-y-1">
+                        <div className="flex justify-between text-xs font-medium">
+                          <span className="text-ink-900">{g.name}</span>
+                          <span className="text-signal font-semibold">{pct}%</span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-ink-100 overflow-hidden">
+                          <div className="h-full bg-signal rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. ONGLET REVENUS */}
+      {currentTab === "income" && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold tracking-tight text-ink-950">Revenus du Mois</h2>
+            <Link href="/finances/income/new" className={buttonClasses("primary", "sm")}>
+              + Nouveau revenu
+            </Link>
+          </div>
+
+          {income.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-ink-300 p-8 text-center bg-canvas-raised">
+              <p className="font-semibold text-ink-950">Aucun revenu pour ce mois</p>
+              <p className="text-sm text-ink-500 mt-1">Ajoutez un revenu ponctuel ou configurez la rémunération d'une activité.</p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-ink-200 bg-canvas-raised overflow-hidden">
+              <ul className="divide-y divide-ink-100">
+                {income.map((item) => {
+                  const style = FINANCE_STATUS_STYLES[item.status];
+                  return (
+                    <li key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-canvas/50">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-ink-950">{item.label}</span>
+                          <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${style.bg} ${style.border} ${style.text}`}>
+                            {financeStatusLabel(item.status, "income")}
+                          </span>
+                        </div>
+                        <p className="text-xs text-ink-500">
+                          {item.activity ? `Activité : ${item.activity.name} • ` : ""}
+                          {item.due_date ? `Échéance : ${item.due_date}` : "Sans date"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <span className="text-base font-extrabold text-ink-950">
+                          +{formatAmount(item.amount, item.currency)}
+                        </span>
+                        <form action={setIncomeReceived.bind(null, item.id, item.status !== "received")}>
+                          <button type="submit" className="rounded-md border border-ink-200 px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-100">
+                            {item.status === "received" ? "Marquer non reçu" : "Marquer reçu"}
+                          </button>
+                        </form>
+                        <form action={deleteIncome.bind(null, item.id)}>
+                          <button type="submit" className="text-xs text-ink-400 hover:text-danger">
+                            Supprimer
+                          </button>
+                        </form>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 3. ONGLET DÉPENSES */}
+      {currentTab === "expenses" && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold tracking-tight text-ink-950">Dépenses du Mois</h2>
+            <Link href="/finances/expenses/new" className={buttonClasses("primary", "sm")}>
+              + Nouvelle dépense
+            </Link>
+          </div>
+
+          {expenses.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-ink-300 p-8 text-center bg-canvas-raised">
+              <p className="font-semibold text-ink-950">Aucune dépense pour ce mois</p>
+              <p className="text-sm text-ink-500 mt-1">Ajoutez vos dépenses professionnelles ou personnelles.</p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-ink-200 bg-canvas-raised overflow-hidden">
+              <ul className="divide-y divide-ink-100">
+                {expenses.map((item) => {
+                  const style = FINANCE_STATUS_STYLES[item.status];
+                  return (
+                    <li key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-canvas/50">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-ink-950">{item.label}</span>
+                          <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${style.bg} ${style.border} ${style.text}`}>
+                            {financeStatusLabel(item.status, "expense")}
+                          </span>
+                          <span className="rounded bg-ink-100 px-2 py-0.5 text-xs text-ink-600">
+                            {expenseCategoryLabel(item.category)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-ink-500">
+                          {item.activity ? `Activité : ${item.activity.name} • ` : ""}
+                          {item.due_date ? `Échéance : ${item.due_date}` : "Sans date"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <span className="text-base font-extrabold text-danger">
+                          -{formatAmount(item.amount, item.currency)}
+                        </span>
+                        <form action={setExpensePaid.bind(null, item.id, item.status !== "paid")}>
+                          <button type="submit" className="rounded-md border border-ink-200 px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-100">
+                            {item.status === "paid" ? "Marquer non payée" : "Marquer payée"}
+                          </button>
+                        </form>
+                        <form action={deleteExpense.bind(null, item.id)}>
+                          <button type="submit" className="text-xs text-ink-400 hover:text-danger">
+                            Supprimer
+                          </button>
+                        </form>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 4. ONGLET BUDGETS */}
+      {currentTab === "budgets" && (
+        <BudgetsSection
+          budgets={budgetsWithSpent}
+          currencies={currencies ?? []}
+          defaultCurrency={mainCurrency}
+        />
+      )}
+
+      {/* 5. ONGLET ÉPARGNE */}
+      {currentTab === "savings" && (
+        <SavingsGoalsSection
+          goals={savingsGoals ?? []}
+          currencies={currencies ?? []}
+          defaultCurrency={mainCurrency}
+        />
+      )}
     </div>
   );
 }

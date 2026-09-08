@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { incomeFormSchema, expenseFormSchema } from "@/lib/validation/finances";
+import {
+  incomeFormSchema,
+  expenseFormSchema,
+  budgetFormSchema,
+  savingsGoalFormSchema,
+} from "@/lib/validation/finances";
 
 async function requireUser() {
   const supabase = createClient();
@@ -14,56 +19,53 @@ async function requireUser() {
   return { supabase, user };
 }
 
-function parseIncomeForm(formData: FormData) {
-  return incomeFormSchema.parse({
-    activityId: formData.get("activityId") || "",
-    label: formData.get("label"),
-    amount: formData.get("amount"),
-    currency: formData.get("currency"),
-    dueDate: formData.get("dueDate"),
-    notes: formData.get("notes") || undefined,
-  });
-}
-
-function parseExpenseForm(formData: FormData) {
-  return expenseFormSchema.parse({
-    activityId: formData.get("activityId") || "",
-    label: formData.get("label"),
-    category: formData.get("category") || undefined,
-    amount: formData.get("amount"),
-    currency: formData.get("currency"),
-    dueDate: formData.get("dueDate"),
-    notes: formData.get("notes") || undefined,
-  });
-}
-
-// ---- Revenus ----------------------------------------------------------------
-
+// ----------------------------------------------------------------------------
+// REVENUS (Income)
+// ----------------------------------------------------------------------------
 export async function createIncome(formData: FormData) {
   const { supabase, user } = await requireUser();
-  const parsed = parseIncomeForm(formData);
+  const parsed = incomeFormSchema.parse({
+    activityId: formData.get("activityId") || "",
+    label: formData.get("label"),
+    incomeType: formData.get("incomeType") || "contract",
+    amount: formData.get("amount"),
+    currency: formData.get("currency"),
+    paymentMethod: formData.get("paymentMethod") || undefined,
+    reference: formData.get("reference") || undefined,
+    dueDate: formData.get("dueDate") || "",
+    notes: formData.get("notes") || undefined,
+  });
 
   const { error } = await supabase.from("income").insert({
     user_id: user.id,
     activity_id: parsed.activityId || null,
-    compensation_id: null, // toujours manuel depuis ce formulaire
     label: parsed.label,
     amount: parsed.amount,
     currency: parsed.currency,
-    due_date: parsed.dueDate,
+    due_date: parsed.dueDate || null,
     notes: parsed.notes || null,
   });
 
-  if (error) throw new Error("Impossible de créer ce revenu. Vérifiez les champs.");
+  if (error) throw new Error("Impossible d'ajouter le revenu.");
 
   revalidatePath("/finances");
   revalidatePath("/dashboard");
-  redirect("/finances");
+  redirect("/finances?tab=income");
 }
 
-export async function updateIncome(incomeId: string, formData: FormData) {
+export async function updateIncome(id: string, formData: FormData) {
   const { supabase, user } = await requireUser();
-  const parsed = parseIncomeForm(formData);
+  const parsed = incomeFormSchema.parse({
+    activityId: formData.get("activityId") || "",
+    label: formData.get("label"),
+    incomeType: formData.get("incomeType") || "contract",
+    amount: formData.get("amount"),
+    currency: formData.get("currency"),
+    paymentMethod: formData.get("paymentMethod") || undefined,
+    reference: formData.get("reference") || undefined,
+    dueDate: formData.get("dueDate") || "",
+    notes: formData.get("notes") || undefined,
+  });
 
   const { error } = await supabase
     .from("income")
@@ -72,130 +74,281 @@ export async function updateIncome(incomeId: string, formData: FormData) {
       label: parsed.label,
       amount: parsed.amount,
       currency: parsed.currency,
-      due_date: parsed.dueDate,
+      due_date: parsed.dueDate || null,
       notes: parsed.notes || null,
     })
-    .eq("id", incomeId)
+    .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) throw new Error("Impossible de modifier ce revenu.");
+  if (error) throw new Error("Impossible de mettre à jour le revenu.");
 
   revalidatePath("/finances");
-  revalidatePath(`/finances/income/${incomeId}/edit`);
   revalidatePath("/dashboard");
-  redirect("/finances");
+  redirect("/finances?tab=income");
 }
 
-export async function setIncomeReceived(incomeId: string, received: boolean) {
+export async function setIncomeReceived(id: string, received: boolean) {
   const { supabase, user } = await requireUser();
-
   const { error } = await supabase
     .from("income")
-    .update({ received })
-    .eq("id", incomeId)
+    .update({ received_at: received ? new Date().toISOString() : null })
+    .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) throw new Error("Impossible de mettre à jour ce revenu.");
-
+  if (error) throw new Error("Erreur de mise à jour.");
   revalidatePath("/finances");
   revalidatePath("/dashboard");
 }
 
-/**
- * Un revenu généré automatiquement (compensation_id non null) ne peut pas
- * être supprimé : il réapparaîtrait au prochain affichage de la page
- * Finances, la génération paresseuse ne sachant pas qu'il a été retiré
- * volontairement. Même principe que deleteManualEvent côté calendrier, qui
- * filtre sur schedule_id null.
- */
-export async function deleteIncome(incomeId: string) {
+export async function deleteIncome(id: string) {
   const { supabase, user } = await requireUser();
-
-  const { error } = await supabase
-    .from("income")
-    .delete()
-    .eq("id", incomeId)
-    .eq("user_id", user.id)
-    .is("compensation_id", null);
-
-  if (error) throw new Error("Impossible de supprimer ce revenu.");
-
+  const { error } = await supabase.from("income").delete().eq("id", id).eq("user_id", user.id);
+  if (error) throw new Error("Erreur de suppression.");
   revalidatePath("/finances");
   revalidatePath("/dashboard");
 }
 
-// ---- Dépenses -----------------------------------------------------------------
-
+// ----------------------------------------------------------------------------
+// DÉPENSES (Expenses)
+// ----------------------------------------------------------------------------
 export async function createExpense(formData: FormData) {
   const { supabase, user } = await requireUser();
-  const parsed = parseExpenseForm(formData);
+  const parsed = expenseFormSchema.parse({
+    activityId: formData.get("activityId") || "",
+    label: formData.get("label"),
+    category: formData.get("category"),
+    amount: formData.get("amount"),
+    currency: formData.get("currency"),
+    expenseType: formData.get("expenseType") || "personal",
+    businessPercentage: formData.get("businessPercentage") || 100,
+    merchant: formData.get("merchant") || undefined,
+    paymentMethod: formData.get("paymentMethod") || undefined,
+    dueDate: formData.get("dueDate") || "",
+    notes: formData.get("notes") || undefined,
+  });
 
   const { error } = await supabase.from("expenses").insert({
     user_id: user.id,
     activity_id: parsed.activityId || null,
     label: parsed.label,
-    category: parsed.category || null,
+    category: parsed.category,
     amount: parsed.amount,
     currency: parsed.currency,
-    due_date: parsed.dueDate,
+    due_date: parsed.dueDate || null,
     notes: parsed.notes || null,
   });
 
-  if (error) throw new Error("Impossible de créer cette dépense. Vérifiez les champs.");
+  if (error) throw new Error("Impossible d'ajouter la dépense.");
 
   revalidatePath("/finances");
   revalidatePath("/dashboard");
-  redirect("/finances");
+  redirect("/finances?tab=expenses");
 }
 
-export async function updateExpense(expenseId: string, formData: FormData) {
+export async function updateExpense(id: string, formData: FormData) {
   const { supabase, user } = await requireUser();
-  const parsed = parseExpenseForm(formData);
+  const parsed = expenseFormSchema.parse({
+    activityId: formData.get("activityId") || "",
+    label: formData.get("label"),
+    category: formData.get("category"),
+    amount: formData.get("amount"),
+    currency: formData.get("currency"),
+    expenseType: formData.get("expenseType") || "personal",
+    businessPercentage: formData.get("businessPercentage") || 100,
+    merchant: formData.get("merchant") || undefined,
+    paymentMethod: formData.get("paymentMethod") || undefined,
+    dueDate: formData.get("dueDate") || "",
+    notes: formData.get("notes") || undefined,
+  });
 
   const { error } = await supabase
     .from("expenses")
     .update({
       activity_id: parsed.activityId || null,
       label: parsed.label,
-      category: parsed.category || null,
+      category: parsed.category,
       amount: parsed.amount,
       currency: parsed.currency,
-      due_date: parsed.dueDate,
+      due_date: parsed.dueDate || null,
       notes: parsed.notes || null,
     })
-    .eq("id", expenseId)
+    .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) throw new Error("Impossible de modifier cette dépense.");
+  if (error) throw new Error("Impossible de modifier la dépense.");
 
   revalidatePath("/finances");
-  revalidatePath(`/finances/expenses/${expenseId}/edit`);
   revalidatePath("/dashboard");
-  redirect("/finances");
+  redirect("/finances?tab=expenses");
 }
 
-export async function setExpensePaid(expenseId: string, paid: boolean) {
+export async function setExpensePaid(id: string, paid: boolean) {
   const { supabase, user } = await requireUser();
-
   const { error } = await supabase
     .from("expenses")
-    .update({ paid })
-    .eq("id", expenseId)
+    .update({ paid_at: paid ? new Date().toISOString() : null })
+    .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) throw new Error("Impossible de mettre à jour cette dépense.");
-
+  if (error) throw new Error("Erreur de mise à jour.");
   revalidatePath("/finances");
   revalidatePath("/dashboard");
 }
 
-export async function deleteExpense(expenseId: string) {
+export async function deleteExpense(id: string) {
   const { supabase, user } = await requireUser();
+  const { error } = await supabase.from("expenses").delete().eq("id", id).eq("user_id", user.id);
+  if (error) throw new Error("Erreur de suppression.");
+  revalidatePath("/finances");
+  revalidatePath("/dashboard");
+}
 
-  const { error } = await supabase.from("expenses").delete().eq("id", expenseId).eq("user_id", user.id);
+// ----------------------------------------------------------------------------
+// BUDGETS
+// ----------------------------------------------------------------------------
+export async function createBudget(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const parsed = budgetFormSchema.parse({
+    category: formData.get("category"),
+    monthlyLimit: formData.get("monthlyLimit"),
+    currency: formData.get("currency"),
+    notes: formData.get("notes") || undefined,
+  });
 
-  if (error) throw new Error("Impossible de supprimer cette dépense.");
+  const { error } = await supabase.from("budgets").insert({
+    user_id: user.id,
+    category: parsed.category,
+    monthly_limit: parsed.monthlyLimit,
+    currency: parsed.currency,
+    notes: parsed.notes || null,
+  });
 
+  if (error) throw new Error("Ce budget existe déjà pour cette catégorie.");
+  revalidatePath("/finances");
+}
+
+export async function updateBudget(id: string, formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const parsed = budgetFormSchema.parse({
+    category: formData.get("category"),
+    monthlyLimit: formData.get("monthlyLimit"),
+    currency: formData.get("currency"),
+    notes: formData.get("notes") || undefined,
+  });
+
+  const { error } = await supabase
+    .from("budgets")
+    .update({
+      monthly_limit: parsed.monthlyLimit,
+      notes: parsed.notes || null,
+    })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) throw new Error("Impossible de mettre à jour le budget.");
+  revalidatePath("/finances");
+}
+
+export async function deleteBudget(id: string) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase.from("budgets").delete().eq("id", id).eq("user_id", user.id);
+  if (error) throw new Error("Impossible de supprimer le budget.");
+  revalidatePath("/finances");
+}
+
+// ----------------------------------------------------------------------------
+// OBJECTIFS D'ÉPARGNE & POCHES
+// ----------------------------------------------------------------------------
+export async function createSavingsGoal(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const parsed = savingsGoalFormSchema.parse({
+    name: formData.get("name"),
+    category: formData.get("category") || "other",
+    targetAmount: formData.get("targetAmount"),
+    currentAmount: formData.get("currentAmount") || 0,
+    currency: formData.get("currency"),
+    deadline: formData.get("deadline") || "",
+    monthlyContribution: formData.get("monthlyContribution") || undefined,
+    notes: formData.get("notes") || undefined,
+  });
+
+  const { error } = await supabase.from("savings_goals").insert({
+    user_id: user.id,
+    name: parsed.name,
+    category: parsed.category,
+    target_amount: parsed.targetAmount,
+    current_amount: parsed.currentAmount,
+    currency: parsed.currency,
+    deadline: parsed.deadline || null,
+    monthly_contribution: parsed.monthlyContribution || null,
+    notes: parsed.notes || null,
+  });
+
+  if (error) throw new Error("Impossible de créer l'objectif d'épargne.");
+  revalidatePath("/finances");
+  revalidatePath("/dashboard");
+}
+
+export async function updateSavingsGoal(id: string, formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const parsed = savingsGoalFormSchema.parse({
+    name: formData.get("name"),
+    category: formData.get("category") || "other",
+    targetAmount: formData.get("targetAmount"),
+    currentAmount: formData.get("currentAmount") || 0,
+    currency: formData.get("currency"),
+    deadline: formData.get("deadline") || "",
+    monthlyContribution: formData.get("monthlyContribution") || undefined,
+    notes: formData.get("notes") || undefined,
+  });
+
+  const { error } = await supabase
+    .from("savings_goals")
+    .update({
+      name: parsed.name,
+      category: parsed.category,
+      target_amount: parsed.targetAmount,
+      current_amount: parsed.currentAmount,
+      deadline: parsed.deadline || null,
+      monthly_contribution: parsed.monthlyContribution || null,
+      notes: parsed.notes || null,
+    })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) throw new Error("Impossible de modifier l'objectif.");
+  revalidatePath("/finances");
+  revalidatePath("/dashboard");
+}
+
+export async function adjustSavingsGoalAmount(id: string, delta: number) {
+  const { supabase, user } = await requireUser();
+  const { data: goal } = await supabase
+    .from("savings_goals")
+    .select("current_amount")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!goal) throw new Error("Objectif introuvable.");
+
+  const newAmount = Math.max(0, Number(goal.current_amount) + delta);
+
+  const { error } = await supabase
+    .from("savings_goals")
+    .update({ current_amount: newAmount })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) throw new Error("Erreur lors de l'ajustement du solde.");
+  revalidatePath("/finances");
+  revalidatePath("/dashboard");
+}
+
+export async function deleteSavingsGoal(id: string) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase.from("savings_goals").delete().eq("id", id).eq("user_id", user.id);
+  if (error) throw new Error("Impossible de supprimer l'objectif.");
   revalidatePath("/finances");
   revalidatePath("/dashboard");
 }
