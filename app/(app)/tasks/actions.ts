@@ -43,6 +43,7 @@ export async function createTask(formData: FormData) {
       parsed.reminderMinutesBefore === "" || parsed.reminderMinutesBefore === undefined
         ? null
         : parsed.reminderMinutesBefore,
+    status: "todo",
   });
 
   if (error) throw new Error("Impossible de créer la tâche. Vérifiez les champs.");
@@ -55,21 +56,28 @@ export async function createTask(formData: FormData) {
 export async function updateTask(taskId: string, formData: FormData) {
   const { supabase, user } = await requireUser();
   const parsed = parseFormData(formData);
+  const statusValue = formData.get("status") as TaskStatus | null;
+
+  const updatePayload: Record<string, unknown> = {
+    activity_id: parsed.activityId || null,
+    title: parsed.title,
+    description: parsed.description || null,
+    priority: parsed.priority,
+    due_date: parsed.dueDate || null,
+    due_time: parsed.dueTime || null,
+    reminder_minutes_before:
+      parsed.reminderMinutesBefore === "" || parsed.reminderMinutesBefore === undefined
+        ? null
+        : parsed.reminderMinutesBefore,
+  };
+
+  if (statusValue && ["todo", "in_progress", "done", "cancelled"].includes(statusValue)) {
+    updatePayload.status = statusValue;
+  }
 
   const { error } = await supabase
     .from("tasks")
-    .update({
-      activity_id: parsed.activityId || null,
-      title: parsed.title,
-      description: parsed.description || null,
-      priority: parsed.priority,
-      due_date: parsed.dueDate || null,
-      due_time: parsed.dueTime || null,
-      reminder_minutes_before:
-        parsed.reminderMinutesBefore === "" || parsed.reminderMinutesBefore === undefined
-          ? null
-          : parsed.reminderMinutesBefore,
-    })
+    .update(updatePayload)
     .eq("id", taskId)
     .eq("user_id", user.id);
 
@@ -94,6 +102,21 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
 
   revalidatePath("/tasks");
   revalidatePath("/dashboard");
+}
+
+export async function toggleTaskStatus(taskId: string, currentStatus: TaskStatus) {
+  const newStatus: TaskStatus = currentStatus === "done" ? "todo" : "done";
+  return setTaskStatus(taskId, newStatus);
+}
+
+export async function cycleTaskStatus(taskId: string, currentStatus: TaskStatus) {
+  let newStatus: TaskStatus = "todo";
+  if (currentStatus === "todo") newStatus = "in_progress";
+  else if (currentStatus === "in_progress") newStatus = "done";
+  else if (currentStatus === "done") newStatus = "todo";
+  else newStatus = "todo"; // if cancelled, reset to todo
+
+  return setTaskStatus(taskId, newStatus);
 }
 
 export async function deleteTask(taskId: string) {

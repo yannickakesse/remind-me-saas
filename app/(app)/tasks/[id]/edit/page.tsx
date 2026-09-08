@@ -22,19 +22,21 @@ export default async function EditTaskPage({ params }: { params: { id: string } 
   if (!task) notFound();
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-ink-950">Modifier la tâche</h1>
+    <div className="space-y-6 max-w-2xl">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-ink-950">Modifier la tâche</h1>
+        <p className="text-sm text-ink-500">Mettez à jour les informations ou le statut de votre tâche.</p>
       </div>
       <TaskForm
         activities={activities ?? []}
         action={updateTask.bind(null, task.id)}
-        submitLabel="Enregistrer"
+        submitLabel="Enregistrer les modifications"
         initial={{
           title: task.title,
           description: task.description ?? "",
           activityId: task.activity_id ?? "",
           priority: task.priority,
+          status: task.status,
           dueDate: task.due_date ?? "",
           dueTime: task.due_time ?? "",
           reminderMinutesBefore:
