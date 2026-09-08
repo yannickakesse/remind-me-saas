@@ -2,16 +2,17 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ensureNotifications } from "@/lib/notifications/sync";
+import { CommandPalette } from "@/components/navigation/command-palette";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Tableau de bord" },
-  { href: "/activities", label: "Activités" },
-  { href: "/calendar", label: "Calendrier" },
-  { href: "/tasks", label: "Tâches" },
-  { href: "/finances", label: "Finances" },
-  { href: "/clients", label: "Clients" },
-  { href: "/reports", label: "Rapports" },
-  { href: "/settings", label: "Paramètres" },
+  { href: "/dashboard", label: "Tableau de bord", icon: "🏠" },
+  { href: "/activities", label: "Activités", icon: "📁" },
+  { href: "/calendar", label: "Calendrier", icon: "📅" },
+  { href: "/tasks", label: "Tâches", icon: "📝" },
+  { href: "/finances", label: "Finances", icon: "💰" },
+  { href: "/clients", label: "Clients", icon: "👥" },
+  { href: "/reports", label: "Rapports", icon: "📊" },
+  { href: "/settings", label: "Paramètres", icon: "⚙️" },
 ];
 
 export default async function AppLayout({
@@ -28,15 +29,13 @@ export default async function AppLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("onboarding_completed, timezone")
+    .select("onboarding_completed, timezone, full_name, avatar_url")
     .eq("id", user.id)
     .single();
 
   if (!profile?.onboarding_completed) redirect("/onboarding");
 
-  // Génération paresseuse à chaque navigation dans l'app, comme le
-  // calendrier/les revenus — voir lib/notifications/sync.ts. L'index
-  // unique en base rend cet appel répété sans coût de duplication.
+  // Synchronisation des notifications
   await ensureNotifications(supabase, user.id, profile.timezone ?? "UTC");
   const { count: unreadCount } = await supabase
     .from("notifications")
@@ -45,32 +44,76 @@ export default async function AppLayout({
     .is("read_at", null);
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="w-56 shrink-0 border-r border-ink-100 bg-canvas-raised px-4 py-6">
-        <div className="mb-6 flex items-center justify-between px-2">
-          <p className="text-sm font-semibold text-ink-950">Mon activité</p>
-          <Link href="/notifications" aria-label="Notifications" className="relative text-ink-500 hover:text-signal">
-            🔔
-            {unreadCount ? (
-              <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold text-white">
-                {unreadCount}
+    <div className="flex min-h-screen bg-canvas">
+      {/* Sidebar Desktop */}
+      <aside className="hidden md:flex w-64 shrink-0 flex-col justify-between border-r border-ink-200 bg-canvas-raised px-4 py-6">
+        <div className="space-y-6">
+          {/* Logo & Titre */}
+          <div className="flex items-center justify-between px-2">
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-signal font-bold text-white text-sm">
+                M
               </span>
-            ) : null}
+              <span className="font-bold text-base text-ink-950">Multi-Activity</span>
+            </Link>
+
+            <Link
+              href="/notifications"
+              aria-label="Notifications"
+              className="relative p-1.5 rounded-lg text-ink-500 hover:bg-ink-100 hover:text-signal transition-colors"
+            >
+              🔔
+              {unreadCount ? (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white animate-pulse">
+                  {unreadCount}
+                </span>
+              ) : null}
+            </Link>
+          </div>
+
+          {/* Recherche Globale / Command Palette */}
+          <div className="px-1">
+            <CommandPalette />
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex flex-col gap-1">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-signal-soft hover:text-signal transition-colors"
+              >
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        {/* Profil utilisateur en bas */}
+        <div className="border-t border-ink-100 pt-4 px-2">
+          <Link
+            href="/settings"
+            className="flex items-center gap-3 rounded-lg p-2 hover:bg-ink-50 transition-colors"
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-signal-soft text-signal font-bold text-xs">
+              {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-ink-950 truncate">
+                {profile.full_name || "Mon Compte"}
+              </p>
+              <p className="text-[10px] text-ink-500 truncate">{user.email}</p>
+            </div>
           </Link>
         </div>
-        <nav className="flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-md px-2 py-1.5 text-sm text-ink-700 hover:bg-signal-soft hover:text-signal"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
       </aside>
-      <main className="flex-1 px-8 py-8">{children}</main>
+
+      {/* Contenu principal */}
+      <main className="flex-1 p-6 sm:p-8 max-w-7xl mx-auto overflow-y-auto">
+        {children}
+      </main>
     </div>
   );
 }
