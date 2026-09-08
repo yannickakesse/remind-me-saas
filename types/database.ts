@@ -454,6 +454,60 @@ export interface Database {
           }
         ];
       };
+      budgets: {
+        Row: {
+          id: string;
+          user_id: string;
+          category: string;
+          monthly_limit: number;
+          currency: string;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          category: string;
+          monthly_limit: number;
+          currency: string;
+          notes?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["budgets"]["Insert"]>;
+        Relationships: [];
+      };
+      savings_goals: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          category: SavingsCategory;
+          target_amount: number;
+          current_amount: number;
+          currency: string;
+          deadline: string | null;
+          monthly_contribution: number | null;
+          color: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          category?: SavingsCategory;
+          target_amount: number;
+          current_amount?: number;
+          currency: string;
+          deadline?: string | null;
+          monthly_contribution?: number | null;
+          color?: string | null;
+          notes?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["savings_goals"]["Insert"]>;
+        Relationships: [];
+      };
       notifications: {
         Row: {
           id: string;
@@ -564,3 +618,13 @@ export interface SavingsGoal {
   created_at: string;
   updated_at: string;
 }
+
+export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export type Subscription = Database["public"]["Tables"]["subscriptions"]["Row"];
+export type Organization = Database["public"]["Tables"]["organizations"]["Row"];
+export type Contact = Database["public"]["Tables"]["contacts"]["Row"];
+export type Activity = Database["public"]["Tables"]["activities"]["Row"];
+export type CalendarEvent = Database["public"]["Tables"]["calendar_events"]["Row"];
+export type Task = Database["public"]["Tables"]["tasks"]["Row"];
+export type Income = Database["public"]["Tables"]["income"]["Row"];
+export type Expense = Database["public"]["Tables"]["expenses"]["Row"];

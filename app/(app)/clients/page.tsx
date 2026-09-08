@@ -12,14 +12,14 @@ export default async function ClientsPage() {
   const [{ data: organizations }, { data: contacts }, { data: activityCounts }] = await Promise.all([
     supabase
       .from("organizations")
-      .select("id, name, contact_name, phone, email, type")
+      .select("id, name, contact_name, phone, email")
       .eq("user_id", user!.id)
       .order("name", { ascending: true }),
     supabase
       .from("contacts")
-      .select("id, first_name, last_name, phone, email, role, organization_id, organizations(name)")
+      .select("id, name, phone, email, notes, organization_id, organizations(name)")
       .eq("user_id", user!.id)
-      .order("first_name", { ascending: true }),
+      .order("name", { ascending: true }),
     supabase
       .from("activities")
       .select("organization_id")
@@ -105,7 +105,7 @@ export default async function ClientsPage() {
                     <form action={deleteOrganization.bind(null, org.id)}>
                       <button
                         type="submit"
-                        className="text-xs text-ink-400 hover:text-danger px-2 py-1 min-h-[32px] inline-flex items-center"
+                        className="text-xs text-ink-400 hover:text-danger px-2 py-1 min-h-[32px] inline-flex items-center cursor-pointer"
                       >
                         Supprimer
                       </button>
@@ -139,7 +139,6 @@ export default async function ClientsPage() {
               const org = Array.isArray(contact.organizations)
                 ? contact.organizations[0]
                 : contact.organizations;
-              const fullName = `${contact.first_name || ""} ${contact.last_name || ""}`.trim() || "Contact";
 
               return (
                 <div
@@ -148,16 +147,16 @@ export default async function ClientsPage() {
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-ink-950 text-base">{fullName}</h3>
+                      <h3 className="font-bold text-ink-950 text-base">{contact.name}</h3>
                       <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-medium text-ink-600">
                         {org?.name ?? "Indépendant"}
                       </span>
                     </div>
 
                     <div className="text-xs text-ink-600 space-y-0.5">
-                      {contact.role ? <p className="font-medium text-ink-800">{contact.role}</p> : null}
                       {contact.email ? <p className="truncate">✉️ {contact.email}</p> : null}
                       {contact.phone ? <p>📞 {contact.phone}</p> : null}
+                      {contact.notes ? <p className="italic text-ink-400 truncate">📝 {contact.notes}</p> : null}
                     </div>
                   </div>
 
@@ -171,7 +170,7 @@ export default async function ClientsPage() {
                     <form action={deleteContact.bind(null, contact.id)}>
                       <button
                         type="submit"
-                        className="text-xs text-ink-400 hover:text-danger px-2 py-1 min-h-[32px] inline-flex items-center"
+                        className="text-xs text-ink-400 hover:text-danger px-2 py-1 min-h-[32px] inline-flex items-center cursor-pointer"
                       >
                         Supprimer
                       </button>

@@ -4,11 +4,11 @@ import { DateTime } from "luxon";
 export type FinanceStatus = "received" | "paid" | "overdue" | "expected" | "future";
 
 export function deriveFinanceStatus(
-  fulfilledAt: string | null,
-  dueDate: string | null,
+  fulfilled: boolean | string | null | undefined,
+  dueDate: string | null | undefined,
   userTimezone: string = "UTC"
 ): FinanceStatus {
-  if (fulfilledAt !== null) {
+  if (fulfilled === true || (typeof fulfilled === "string" && fulfilled.trim().length > 0)) {
     return "received"; // ou "paid"
   }
   if (!dueDate) {
@@ -67,7 +67,8 @@ export const EXPENSE_CATEGORIES = [
   { value: "other", label: "Autre dépense" },
 ] as const;
 
-export function expenseCategoryLabel(cat: string): string {
+export function expenseCategoryLabel(cat?: string | null): string {
+  if (!cat) return "Autre";
   return EXPENSE_CATEGORIES.find((c) => c.value === cat)?.label ?? cat;
 }
 

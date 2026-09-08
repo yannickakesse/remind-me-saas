@@ -43,7 +43,7 @@ export default async function ReportsPage({
       : defaultEnd;
 
   // Synchronisation paresseuse des revenus
-  await ensureIncomeEntries(supabase, user!.id, rangeStart, rangeEnd, timezone);
+  await ensureIncomeEntries(supabase, user!.id, rangeStart, rangeEnd);
 
   // Rapport complet de rentabilité & analytics
   const {

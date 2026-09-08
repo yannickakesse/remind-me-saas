@@ -5,12 +5,14 @@ import { PLAN_ENTITLEMENTS, type PlanType } from "@/lib/subscriptions/entitlemen
 import { updateSubscriptionPlan } from "@/app/(app)/settings/actions";
 import type { Subscription } from "@/types/database";
 
-interface SubscriptionSectionProps {
-  subscription: Subscription | null;
+export interface SubscriptionSectionProps {
+  subscription?: Subscription | null;
+  plan?: "free" | "pro" | "premium" | string;
+  status?: string;
 }
 
-export function SubscriptionSection({ subscription }: SubscriptionSectionProps) {
-  const currentPlan = (subscription?.plan ?? "free") as PlanType;
+export function SubscriptionSection({ subscription, plan, status }: SubscriptionSectionProps) {
+  const currentPlan = (plan ?? subscription?.plan ?? "free") as PlanType;
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
 

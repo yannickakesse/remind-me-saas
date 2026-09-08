@@ -50,22 +50,22 @@ export async function calculateProfitabilityReport(
       .eq("user_id", userId),
     supabase
       .from("income")
-      .select("id, activity_id, amount, currency, due_date, received_at")
+      .select("id, activity_id, amount, currency, due_date, received")
       .eq("user_id", userId)
       .gte("due_date", startDate)
       .lte("due_date", endDate),
     supabase
       .from("expenses")
-      .select("id, activity_id, category, amount, currency, due_date, paid_at, expense_type, business_percentage")
+      .select("id, activity_id, category, amount, currency, due_date, paid")
       .eq("user_id", userId)
       .gte("due_date", startDate)
       .lte("due_date", endDate),
     supabase
       .from("calendar_events")
-      .select("id, activity_id, start_at, end_at, status")
+      .select("id, activity_id, starts_at, ends_at, status")
       .eq("user_id", userId)
-      .gte("start_at", startDate + "T00:00:00Z")
-      .lte("end_at", endDate + "T23:59:59Z")
+      .gte("starts_at", startDate + "T00:00:00Z")
+      .lte("ends_at", endDate + "T23:59:59Z")
       .neq("status", "cancelled"),
   ]);
 
@@ -77,9 +77,9 @@ export async function calculateProfitabilityReport(
   let totalHoursWorked = 0;
 
   (calendarEvents ?? []).forEach((e) => {
-    if (!e.start_at || !e.end_at) return;
-    const start = DateTime.fromISO(e.start_at);
-    const end = DateTime.fromISO(e.end_at);
+    if (!e.starts_at || !e.ends_at) return;
+    const start = DateTime.fromISO(e.starts_at, { zone: timezone });
+    const end = DateTime.fromISO(e.ends_at, { zone: timezone });
     const durationHours = Math.max(0, end.diff(start, "hours").hours);
 
     const actId = e.activity_id ?? "unassigned";
@@ -89,8 +89,7 @@ export async function calculateProfitabilityReport(
   });
 
   // 3. Agrégation financière par activité et devise
-  type ActKey = string; // "actId::currency"
-  const actStats = new Map<ActKey, { income: number; expenses: number }>();
+  const actStats = new Map<string, { income: number; expenses: number }>();
 
   (incomeEntries ?? []).forEach((i) => {
     const actId = i.activity_id ?? "unassigned";
@@ -106,13 +105,7 @@ export async function calculateProfitabilityReport(
     const curr = e.currency;
     const key = `${actId}::${curr}`;
     const cur = actStats.get(key) ?? { income: 0, expenses: 0 };
-    
-    // Prise en compte du ratio pro si mixte
-    let effectiveExpense = Number(e.amount);
-    if (e.expense_type === "mixed" && e.business_percentage !== undefined) {
-      effectiveExpense = (effectiveExpense * e.business_percentage) / 100;
-    }
-    cur.expenses += effectiveExpense;
+    cur.expenses += Number(e.amount);
     actStats.set(key, cur);
   });
 
@@ -120,7 +113,9 @@ export async function calculateProfitabilityReport(
   const profitabilityList: ActivityProfitability[] = [];
 
   actStats.forEach((val, key) => {
-    const [actId, currency] = key.split("::");
+    const parts = key.split("::");
+    const actId = parts[0] || "unassigned";
+    const currency = parts[1] || "EUR";
     const actInfo = activityMap.get(actId);
     const hours = hoursByActivity.get(actId) ?? 0;
     const netProfit = val.income - val.expenses;
@@ -141,8 +136,9 @@ export async function calculateProfitabilityReport(
 
   // Trier par bénéfice net décroissant
   profitabilityList.sort((a, b) => b.netProfit - a.netProfit);
-  if (profitabilityList.length > 0 && profitabilityList[0].hourlyRate && profitabilityList[0].hourlyRate > 0) {
-    profitabilityList[0].isTopPerformer = true;
+  const topItem = profitabilityList[0];
+  if (topItem && topItem.hourlyRate && topItem.hourlyRate > 0) {
+    topItem.isTopPerformer = true;
   }
 
   // 5. Ventilation des dépenses par catégorie
@@ -161,58 +157,60 @@ export async function calculateProfitabilityReport(
 
   const categoryBreakdown: CategoryBreakdownItem[] = [];
   catTotals.forEach((val, key) => {
-    const [cat] = key.split("::");
-    const pct = totalExpensesOverall > 0 ? Math.round((val.amount / totalExpensesOverall) * 100) : 0;
+    const parts = key.split("::");
+    const cat = parts[0] || "other";
+    const percentage = totalExpensesOverall > 0 ? Math.round((val.amount / totalExpensesOverall) * 100) : 0;
     categoryBreakdown.push({
       category: cat,
       amount: val.amount,
       currency: val.currency,
-      percentage: pct,
+      percentage,
     });
   });
   categoryBreakdown.sort((a, b) => b.amount - a.amount);
 
-  // 6. Évolution mensuelle
-  const monthlyMap = new Map<string, { income: number; expenses: number; currency: string }>();
+  // 6. Évolution mensuelle (sur les 6 derniers mois)
+  const monthlySummaries: MonthlySummaryItem[] = [];
+  const endDT = DateTime.fromISO(endDate, { zone: timezone });
 
-  (incomeEntries ?? []).forEach((i) => {
-    if (!i.due_date) return;
-    const mKey = i.due_date.slice(0, 7);
-    const key = `${mKey}::${i.currency}`;
-    const cur = monthlyMap.get(key) ?? { income: 0, expenses: 0, currency: i.currency };
-    cur.income += Number(i.amount);
-    monthlyMap.set(key, cur);
-  });
+  for (let m = 5; m >= 0; m--) {
+    const mDT = endDT.minus({ months: m });
+    const monthKey = mDT.toFormat("yyyy-MM");
+    const monthLabel = mDT.setLocale("fr").toFormat("MMM yyyy");
 
-  (expenseEntries ?? []).forEach((e) => {
-    if (!e.due_date) return;
-    const mKey = e.due_date.slice(0, 7);
-    const key = `${mKey}::${e.currency}`;
-    const cur = monthlyMap.get(key) ?? { income: 0, expenses: 0, currency: e.currency };
-    cur.expenses += Number(e.amount);
-    monthlyMap.set(key, cur);
-  });
+    let monthInc = 0;
+    let monthExp = 0;
+    let monthCurr = "EUR";
 
-  const monthlyEvolution: MonthlySummaryItem[] = [];
-  monthlyMap.forEach((val, key) => {
-    const [mKey, currency] = key.split("::");
-    const d = DateTime.fromISO(mKey + "-01").setLocale("fr");
-    const label = d.toFormat("MMMM yyyy");
-    monthlyEvolution.push({
-      monthKey: mKey,
-      monthLabel: label.charAt(0).toUpperCase() + label.slice(1),
-      income: val.income,
-      expenses: val.expenses,
-      net: val.income - val.expenses,
-      currency,
+    (incomeEntries ?? []).forEach((i) => {
+      if (i.due_date && i.due_date.startsWith(monthKey)) {
+        monthInc += Number(i.amount);
+        monthCurr = i.currency;
+      }
     });
-  });
-  monthlyEvolution.sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+
+    (expenseEntries ?? []).forEach((e) => {
+      if (e.due_date && e.due_date.startsWith(monthKey)) {
+        monthExp += Number(e.amount);
+        monthCurr = e.currency;
+      }
+    });
+
+    monthlySummaries.push({
+      monthKey,
+      monthLabel,
+      income: monthInc,
+      expenses: monthExp,
+      net: monthInc - monthExp,
+      currency: monthCurr,
+    });
+  }
 
   return {
     profitabilityList,
     categoryBreakdown,
-    monthlyEvolution,
+    monthlySummaries,
+    monthlyEvolution: monthlySummaries,
     totalHoursWorked: Math.round(totalHoursWorked * 10) / 10,
   };
 }

@@ -44,7 +44,7 @@ export default async function FinancesPage({
   const endOfMonth = now.endOf("month").toISODate()!;
 
   // Synchronisation des revenus récurrents
-  await ensureIncomeEntries(supabase, user!.id, startOfMonth, endOfMonth, timezone);
+  await ensureIncomeEntries(supabase, user!.id, startOfMonth, endOfMonth);
 
   // Données financières du mois
   const { income, expenses } = await getFinancesForRange(

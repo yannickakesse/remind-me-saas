@@ -42,7 +42,7 @@ export async function createIncome(formData: FormData) {
     label: parsed.label,
     amount: parsed.amount,
     currency: parsed.currency,
-    due_date: parsed.dueDate || null,
+    due_date: parsed.dueDate || new Date().toISOString().slice(0, 10),
     notes: parsed.notes || null,
   });
 
@@ -74,7 +74,7 @@ export async function updateIncome(id: string, formData: FormData) {
       label: parsed.label,
       amount: parsed.amount,
       currency: parsed.currency,
-      due_date: parsed.dueDate || null,
+      due_date: parsed.dueDate || new Date().toISOString().slice(0, 10),
       notes: parsed.notes || null,
     })
     .eq("id", id)
@@ -91,7 +91,7 @@ export async function setIncomeReceived(id: string, received: boolean) {
   const { supabase, user } = await requireUser();
   const { error } = await supabase
     .from("income")
-    .update({ received_at: received ? new Date().toISOString() : null })
+    .update({ received })
     .eq("id", id)
     .eq("user_id", user.id);
 
@@ -134,7 +134,7 @@ export async function createExpense(formData: FormData) {
     category: parsed.category,
     amount: parsed.amount,
     currency: parsed.currency,
-    due_date: parsed.dueDate || null,
+    due_date: parsed.dueDate || new Date().toISOString().slice(0, 10),
     notes: parsed.notes || null,
   });
 
@@ -169,7 +169,7 @@ export async function updateExpense(id: string, formData: FormData) {
       category: parsed.category,
       amount: parsed.amount,
       currency: parsed.currency,
-      due_date: parsed.dueDate || null,
+      due_date: parsed.dueDate || new Date().toISOString().slice(0, 10),
       notes: parsed.notes || null,
     })
     .eq("id", id)
@@ -186,7 +186,7 @@ export async function setExpensePaid(id: string, paid: boolean) {
   const { supabase, user } = await requireUser();
   const { error } = await supabase
     .from("expenses")
-    .update({ paid_at: paid ? new Date().toISOString() : null })
+    .update({ paid })
     .eq("id", id)
     .eq("user_id", user.id);
 

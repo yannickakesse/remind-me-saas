@@ -1,4 +1,4 @@
-import { NextResponse } from "next/navigation";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
@@ -44,13 +44,13 @@ export async function GET(request: Request) {
       .limit(5),
     supabase
       .from("contacts")
-      .select("id, first_name, last_name, role")
+      .select("id, name, email")
       .eq("user_id", user.id)
-      .or(`first_name.ilike.${query},last_name.ilike.${query},email.ilike.${query}`)
+      .or(`name.ilike.${query},email.ilike.${query}`)
       .limit(5),
     supabase
       .from("organizations")
-      .select("id, name, type")
+      .select("id, name")
       .eq("user_id", user.id)
       .ilike("name", query)
       .limit(5),
@@ -68,7 +68,7 @@ export async function GET(request: Request) {
       .limit(4),
     supabase
       .from("calendar_events")
-      .select("id, title, start_at")
+      .select("id, title, starts_at")
       .eq("user_id", user.id)
       .ilike("title", query)
       .limit(4),
@@ -106,8 +106,8 @@ export async function GET(request: Request) {
       category: "Contacts & Clients",
       items: contacts.map((c) => ({
         id: c.id,
-        title: `${c.first_name} ${c.last_name}`,
-        subtitle: c.role || "Contact",
+        title: c.name,
+        subtitle: c.email || "Contact",
         href: `/clients/contacts/${c.id}/edit`,
       })),
     });
@@ -119,7 +119,7 @@ export async function GET(request: Request) {
       items: organizations.map((o) => ({
         id: o.id,
         title: o.name,
-        subtitle: o.type || "Organisation",
+        subtitle: "Organisation partenaire",
         href: `/clients/organizations/${o.id}/edit`,
       })),
     });
@@ -143,7 +143,7 @@ export async function GET(request: Request) {
       items: expenses.map((e) => ({
         id: e.id,
         title: e.label,
-        subtitle: `-${e.amount} ${e.currency} • ${e.category}`,
+        subtitle: `-${e.amount} ${e.currency} • ${e.category ?? "Général"}`,
         href: `/finances/expenses/${e.id}/edit`,
       })),
     });
@@ -155,7 +155,7 @@ export async function GET(request: Request) {
       items: calendarEvents.map((ev) => ({
         id: ev.id,
         title: ev.title,
-        subtitle: ev.start_at ? new Date(ev.start_at).toLocaleDateString("fr-FR") : "",
+        subtitle: ev.starts_at ? new Date(ev.starts_at).toLocaleDateString("fr-FR") : "",
         href: `/calendar/${ev.id}`,
       })),
     });

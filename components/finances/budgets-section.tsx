@@ -27,7 +27,7 @@ export function BudgetsSection({
   const [error, setError] = useState<string | null>(null);
 
   // Form State
-  const [category, setCategory] = useState(EXPENSE_CATEGORIES[0].value);
+  const [category, setCategory] = useState<string>(EXPENSE_CATEGORIES[0].value);
   const [monthlyLimit, setMonthlyLimit] = useState("");
   const [currency, setCurrency] = useState(defaultCurrency);
 
