@@ -13,13 +13,17 @@ export function EventPill({
   hasConflict?: boolean;
 }) {
   const start = DateTime.fromISO(event.starts_at, { zone: timezone });
-  const color = event.activity?.color ?? "#1E3A5F";
-  const statusStyle = EVENT_STATUS_STYLES[event.status] ?? "border-ink-300 text-ink-950";
+  const color = event.is_scheduled_expense ? "#D97706" : (event.activity?.color ?? "#1E3A5F");
+  const statusStyle = event.is_scheduled_expense
+    ? "border-warning/50 bg-warning-soft text-ink-950 font-medium"
+    : (EVENT_STATUS_STYLES[event.status] ?? "border-ink-300 text-ink-950");
+
+  const href = event.is_scheduled_expense ? "/finances?tab=scheduled" : `/calendar/${event.id}`;
 
   return (
     <Link
-      href={`/calendar/${event.id}`}
-      className={`flex w-full items-center gap-1.5 truncate rounded-md border bg-canvas-raised px-2 py-1 text-xs hover:brightness-95 ${statusStyle} ${
+      href={href}
+      className={`flex w-full items-center gap-1.5 truncate rounded-md border px-2 py-1 text-xs hover:brightness-95 transition-all ${statusStyle} ${
         hasConflict ? "ring-1 ring-danger" : ""
       }`}
       style={{ borderLeftColor: color, borderLeftWidth: 3 }}
@@ -29,7 +33,9 @@ export function EventPill({
           : event.title
       }
     >
-      <span className="shrink-0 font-medium">{start.toFormat("HH:mm")}</span>
+      {!event.is_scheduled_expense && (
+        <span className="shrink-0 font-medium">{start.toFormat("HH:mm")}</span>
+      )}
       <span className="truncate">{event.title}</span>
       {hasConflict ? <span aria-hidden className="shrink-0 text-danger">⚠</span> : null}
     </Link>

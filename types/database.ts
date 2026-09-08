@@ -11,6 +11,67 @@
 export interface Database {
   public: {
     Tables: {
+      scheduled_expenses: {
+        Row: {
+          id: string;
+          user_id: string;
+          activity_id: string | null;
+          name: string;
+          category: string;
+          amount: number;
+          currency: string;
+          frequency: "once" | "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+          start_date: string;
+          end_date: string | null;
+          next_due_date: string;
+          status: "planned" | "due" | "paid" | "cancelled";
+          merchant: string | null;
+          payment_method: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          activity_id?: string | null;
+          name: string;
+          category: string;
+          amount: number;
+          currency: string;
+          frequency?: "once" | "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+          start_date: string;
+          end_date?: string | null;
+          next_due_date: string;
+          status?: "planned" | "due" | "paid" | "cancelled";
+          merchant?: string | null;
+          payment_method?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          activity_id?: string | null;
+          name?: string;
+          category?: string;
+          amount?: number;
+          currency?: string;
+          frequency?: "once" | "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+          start_date?: string;
+          end_date?: string | null;
+          next_due_date?: string;
+          status?: "planned" | "due" | "paid" | "cancelled";
+          merchant?: string | null;
+          payment_method?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+
       countries: {
         Row: {
           code: string;
@@ -628,3 +689,5 @@ export type CalendarEvent = Database["public"]["Tables"]["calendar_events"]["Row
 export type Task = Database["public"]["Tables"]["tasks"]["Row"];
 export type Income = Database["public"]["Tables"]["income"]["Row"];
 export type Expense = Database["public"]["Tables"]["expenses"]["Row"];
+
+export type ScheduledExpense = Database["public"]["Tables"]["scheduled_expenses"]["Row"];

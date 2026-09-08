@@ -158,3 +158,23 @@ export function summarizeByActivity(income: IncomeRow[], expenses: ExpenseRow[])
 
   return Array.from(rows.values()).sort((a, b) => a.activityName.localeCompare(b.activityName));
 }
+
+export function aggregateFinancesForMonth(
+  income: Array<{ amount: number; received?: boolean }>,
+  expenses: Array<{ amount: number; paid?: boolean }>,
+  todayISO: string
+) {
+  const totalIncomeReceived = income.filter(i => i.received).reduce((acc, i) => acc + Number(i.amount), 0);
+  const totalIncomePending = income.filter(i => !i.received).reduce((acc, i) => acc + Number(i.amount), 0);
+  const totalExpensesPaid = expenses.filter(e => e.paid).reduce((acc, e) => acc + Number(e.amount), 0);
+  const totalExpensesPending = expenses.filter(e => !e.paid).reduce((acc, e) => acc + Number(e.amount), 0);
+  const netBalance = totalIncomeReceived - totalExpensesPaid;
+
+  return {
+    totalIncomeReceived,
+    totalIncomePending,
+    totalExpensesPaid,
+    totalExpensesPending,
+    netBalance,
+  };
+}

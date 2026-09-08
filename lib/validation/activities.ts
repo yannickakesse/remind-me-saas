@@ -100,3 +100,20 @@ export const activityFormSchema = z.object({
 });
 
 export type ActivityFormInput = z.infer<typeof activityFormSchema>;
+
+export function activityTypeLabel(type?: string | null): string {
+  switch (type) {
+    case "salaried_job": return "Emploi salarié";
+    case "freelance": return "Freelance";
+    case "contract": return "Contrat";
+    case "mission": return "Mission";
+    case "own_business": return "Entreprise propre";
+    case "commerce": return "Commerce";
+    case "coaching": return "Coaching";
+    case "consulting": return "Consulting";
+    case "teaching": return "Enseignement";
+    case "side_activity": return "Activité secondaire";
+    default: return "Autre";
+  }
+}
+export const typeLabel = activityTypeLabel;

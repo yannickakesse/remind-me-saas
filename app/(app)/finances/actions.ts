@@ -352,3 +352,140 @@ export async function deleteSavingsGoal(id: string) {
   revalidatePath("/finances");
   revalidatePath("/dashboard");
 }
+
+// ============================================================================
+// ACTIONS DÉPENSES PROGRAMMÉES
+// ============================================================================
+export async function createScheduledExpenseAction(formData: FormData) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Non authentifié");
+
+  const name = String(formData.get("name") ?? "").trim();
+  const category = String(formData.get("category") ?? "utilities");
+  const amount = Number(formData.get("amount") ?? 0);
+  const currency = String(formData.get("currency") ?? "XOF");
+  const frequency = String(formData.get("frequency") ?? "monthly") as any;
+  const nextDueDate = String(formData.get("nextDueDate") ?? new Date().toISOString().split("T")[0]);
+  const activityId = formData.get("activityId") ? String(formData.get("activityId")) : null;
+  const notes = formData.get("notes") ? String(formData.get("notes")).trim() : null;
+
+  await supabase.from("scheduled_expenses").insert({
+    user_id: user.id,
+    name,
+    category,
+    amount,
+    currency,
+    frequency,
+    start_date: nextDueDate,
+    next_due_date: nextDueDate,
+    status: "planned",
+    activity_id: activityId,
+    notes,
+  });
+
+  revalidatePath("/finances");
+  revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+}
+
+export async function deleteScheduledExpenseAction(id: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Non authentifié");
+
+  await supabase.from("scheduled_expenses").delete().eq("id", id).eq("user_id", user.id);
+
+  revalidatePath("/finances");
+  revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+}
+
+export async function cancelScheduledExpenseAction(id: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Non authentifié");
+
+  await supabase
+    .from("scheduled_expenses")
+    .update({ status: "cancelled" })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  revalidatePath("/finances");
+  revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+}
+
+export async function markScheduledExpensePaidAction(id: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Non authentifié");
+
+  const { data: item } = await supabase
+    .from("scheduled_expenses")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!item) return;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  // 1. Enregistrer la dépense payée dans la table expenses
+  await supabase.from("expenses").insert({
+    user_id: user.id,
+    label: item.name,
+    category: item.category,
+    amount: item.amount,
+    currency: item.currency,
+    due_date: item.next_due_date,
+    paid: true,
+    paid_at: today,
+    activity_id: item.activity_id,
+    notes: item.notes ? `Issu de la dépense programmée : ${item.notes}` : "Issu d'une dépense programmée",
+  });
+
+  // 2. Mettre à jour l'échéance ou le statut
+  if (item.frequency === "once") {
+    await supabase
+      .from("scheduled_expenses")
+      .update({ status: "paid" })
+      .eq("id", id)
+      .eq("user_id", user.id);
+  } else {
+    // Calculer la prochaine date selon la fréquence
+    const curDate = new Date(item.next_due_date);
+    let nextDate = new Date(curDate);
+
+    if (item.frequency === "daily") nextDate.setDate(nextDate.getDate() + 1);
+    else if (item.frequency === "weekly") nextDate.setDate(nextDate.getDate() + 7);
+    else if (item.frequency === "monthly") nextDate.setMonth(nextDate.getMonth() + 1);
+    else if (item.frequency === "quarterly") nextDate.setMonth(nextDate.getMonth() + 3);
+    else if (item.frequency === "yearly") nextDate.setFullYear(nextDate.getFullYear() + 1);
+
+    const nextDueDateStr = nextDate.toISOString().split("T")[0];
+
+    await supabase
+      .from("scheduled_expenses")
+      .update({
+        next_due_date: nextDueDateStr,
+        status: "planned",
+      })
+      .eq("id", id)
+      .eq("user_id", user.id);
+  }
+
+  revalidatePath("/finances");
+  revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+}

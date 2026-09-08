@@ -12,4 +12,7 @@ export interface CalendarEventView {
   original_starts_at: string | null;
   notes: string | null;
   activity: { color: string | null; name: string } | null;
+  is_scheduled_expense?: boolean;
+  amount?: number;
+  currency?: string;
 }

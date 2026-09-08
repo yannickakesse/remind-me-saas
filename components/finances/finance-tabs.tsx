@@ -1,41 +1,57 @@
 "use client";
 
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
-export function FinanceTabs() {
+export type FinanceTab = "overview" | "income" | "expenses" | "scheduled" | "budgets" | "savings";
+
+interface FinanceTabsProps {
+  currentTab: FinanceTab;
+}
+
+const TABS: Array<{ id: FinanceTab; label: string; icon: string }> = [
+  { id: "overview", label: "Vue globale", icon: "📊" },
+  { id: "income", label: "Revenus", icon: "📈" },
+  { id: "expenses", label: "Dépenses payées", icon: "📉" },
+  { id: "scheduled", label: "Dépenses programmées", icon: "⏰" },
+  { id: "savings", label: "Épargne & Objectifs", icon: "🐷" },
+  { id: "budgets", label: "Budgets mensuels", icon: "🎯" },
+];
+
+export function FinanceTabs({ currentTab }: FinanceTabsProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const currentTab = searchParams.get("tab") || "overview";
 
-  const tabs = [
-    { id: "overview", label: "Vue d'ensemble", icon: "📊" },
-    { id: "income", label: "Revenus", icon: "💰" },
-    { id: "expenses", label: "Dépenses", icon: "💳" },
-    { id: "budgets", label: "Budgets mensuels", icon: "⚖️" },
-    { id: "savings", label: "Épargne & Objectifs", icon: "🎯" },
-  ];
+  function handleTabChange(tabId: FinanceTab) {
+    const params = new URLSearchParams(searchParams ? searchParams.toString() : "");
+    if (tabId === "overview") {
+      params.delete("tab");
+    } else {
+      params.set("tab", tabId);
+    }
+    const query = params.toString();
+    router.push(query ? `/finances?${query}` : "/finances");
+  }
 
   return (
-    <div className="border-b border-ink-200">
-      <nav className="flex space-x-2 overflow-x-auto pb-px" aria-label="Finance Tabs">
-        {tabs.map((t) => {
-          const isActive = currentTab === t.id;
-          return (
-            <Link
-              key={t.id}
-              href={`/finances?tab=${t.id}`}
-              className={`inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-3.5 py-2.5 text-sm font-medium transition-colors ${
-                isActive
-                  ? "border-signal text-signal font-semibold"
-                  : "border-transparent text-ink-500 hover:border-ink-300 hover:text-ink-700"
-              }`}
-            >
-              <span>{t.icon}</span>
-              {t.label}
-            </Link>
-          );
-        })}
-      </nav>
+    <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-ink-200">
+      {TABS.map((tab) => {
+        const isActive = currentTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => handleTabChange(tab.id)}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all min-h-[40px] tap-active ${
+              isActive
+                ? "bg-signal text-white shadow-xs"
+                : "bg-canvas-raised border border-ink-200 text-ink-700 hover:bg-ink-100 hover:text-ink-950"
+            }`}
+          >
+            <span className="text-base leading-none">{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

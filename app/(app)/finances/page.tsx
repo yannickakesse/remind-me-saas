@@ -2,25 +2,21 @@ import Link from "next/link";
 import { DateTime } from "luxon";
 import { createClient } from "@/lib/supabase/server";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
-import { getFinancesForRange, sumByCurrencyAndStatus } from "@/lib/finances/aggregate";
-import {
-  financeStatusLabel,
-  FINANCE_STATUS_STYLES,
-  expenseCategoryLabel,
-} from "@/lib/validation/finances";
-import { setIncomeReceived, deleteIncome, setExpensePaid, deleteExpense } from "./actions";
+import { aggregateFinancesForMonth } from "@/lib/finances/aggregate";
 import { formatAmount } from "@/lib/finances/format";
-import { FinanceTabs } from "@/components/finances/finance-tabs";
+import { deriveFinanceStatus } from "@/lib/validation/finances";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { FinanceTabs, FinanceTab } from "@/components/finances/finance-tabs";
 import { BudgetsSection } from "@/components/finances/budgets-section";
 import { SavingsGoalsSection } from "@/components/finances/savings-goals-section";
+import { ScheduledExpensesSection } from "@/components/finances/scheduled-expenses-section";
 import { buttonClasses } from "@/components/ui/button";
 
 export default async function FinancesPage({
   searchParams,
 }: {
-  searchParams?: { tab?: string };
+  searchParams?: { tab?: string; month?: string };
 }) {
-  const currentTab = searchParams?.tab || "overview";
   const supabase = createClient();
   const {
     data: { user },
@@ -31,188 +27,181 @@ export default async function FinancesPage({
     .select("timezone, default_currency")
     .eq("id", user!.id)
     .single();
+
   const timezone = profile?.timezone ?? "UTC";
-  const mainCurrency = profile?.default_currency ?? "XOF";
+  const defaultCurrency = profile?.default_currency ?? "XOF";
+  const today = DateTime.now().setZone(timezone);
 
-  const { data: currencies } = await supabase
-    .from("currencies")
-    .select("code, symbol")
-    .order("code");
+  const monthParam = searchParams?.month;
+  const currentMonth =
+    monthParam && DateTime.fromFormat(monthParam, "yyyy-MM").isValid
+      ? DateTime.fromFormat(monthParam, "yyyy-MM", { zone: timezone })
+      : today.startOf("month");
 
-  const now = DateTime.now().setZone(timezone);
-  const startOfMonth = now.startOf("month").toISODate()!;
-  const endOfMonth = now.endOf("month").toISODate()!;
+  const rangeStart = currentMonth.startOf("month").toISODate()!;
+  const rangeEnd = currentMonth.endOf("month").toISODate()!;
 
-  // Synchronisation des revenus récurrents
-  await ensureIncomeEntries(supabase, user!.id, startOfMonth, endOfMonth);
+  // 1. Synchronisation paresseuse des revenus pour ce mois
+  await ensureIncomeEntries(supabase, user!.id, rangeStart, rangeEnd);
 
-  // Données financières du mois
-  const { income, expenses } = await getFinancesForRange(
-    supabase,
-    user!.id,
-    startOfMonth,
-    endOfMonth,
-    timezone
+  // 2. Requêtes parallélisées pour optimiser le temps de réponse
+  const [
+    { data: incomeRows },
+    { data: expenseRows },
+    { data: budgets },
+    { data: savingsGoals },
+    { data: scheduledExpenses },
+    { data: activities },
+  ] = await Promise.all([
+    supabase
+      .from("income")
+      .select("*, activity:activities(id, name, color)")
+      .eq("user_id", user!.id)
+      .gte("due_date", rangeStart)
+      .lte("due_date", rangeEnd)
+      .order("due_date", { ascending: true }),
+    supabase
+      .from("expenses")
+      .select("*, activity:activities(id, name, color)")
+      .eq("user_id", user!.id)
+      .gte("due_date", rangeStart)
+      .lte("due_date", rangeEnd)
+      .order("due_date", { ascending: true }),
+    supabase
+      .from("budgets")
+      .select("*")
+      .eq("user_id", user!.id)
+      .order("category", { ascending: true }),
+    supabase
+      .from("savings_goals")
+      .select("*")
+      .eq("user_id", user!.id)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("scheduled_expenses")
+      .select("*")
+      .eq("user_id", user!.id)
+      .order("next_due_date", { ascending: true }),
+    supabase
+      .from("activities")
+      .select("id, name")
+      .eq("user_id", user!.id)
+      .eq("status", "active")
+      .order("name", { ascending: true }),
+  ]);
+
+  // Agrégats du mois
+  
+  // Calcul du dépensé par catégorie pour les budgets
+  const budgetsWithSpent = (budgets ?? []).map((b) => {
+    const spent = (expenseRows ?? [])
+      .filter((e) => e.category === b.category)
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+    return { ...b, spent };
+  });
+  const currenciesList = [
+    { code: "XOF", symbol: "FCFA" },
+    { code: "EUR", symbol: "€" },
+    { code: "USD", symbol: "$" },
+    { code: "GBP", symbol: "£" },
+    { code: "CAD", symbol: "$" },
+    { code: "CHF", symbol: "CHF" },
+  ];
+
+  const aggregates = aggregateFinancesForMonth(
+    incomeRows ?? [],
+    expenseRows ?? [],
+    today.toISODate()!
   );
 
-  // Totaux agrégés
-  const incomeTotals = sumByCurrencyAndStatus(income);
-  const expenseTotals = sumByCurrencyAndStatus(expenses);
-
-  // Récupération des budgets avec dépenses calculées
-  const { data: budgetsData } = await supabase
-    .from("budgets")
-    .select("*")
-    .eq("user_id", user!.id)
-    .order("created_at", { ascending: true });
-
-  const budgetsWithSpent = (budgetsData ?? []).map((b) => {
-    const spentForCat = expenses
-      .filter((e) => e.category === b.category && e.currency === b.currency)
-      .reduce((acc, curr) => acc + Number(curr.amount), 0);
-    return {
-      ...b,
-      spent: spentForCat,
-    };
-  });
-
-  // Récupération des objectifs d'épargne
-  const { data: savingsGoals } = await supabase
-    .from("savings_goals")
-    .select("*")
-    .eq("user_id", user!.id)
-    .order("created_at", { ascending: true });
-
-  // Totaux pour la vue d'ensemble
-  const totalIncomeReceived = income
-    .filter((i) => i.status === "received" && i.currency === mainCurrency)
-    .reduce((acc, curr) => acc + Number(curr.amount), 0);
-
-  const totalIncomeExpected = income
-    .filter((i) => i.currency === mainCurrency)
-    .reduce((acc, curr) => acc + Number(curr.amount), 0);
-
-  const totalExpensesPaid = expenses
-    .filter((e) => e.status === "paid" && e.currency === mainCurrency)
-    .reduce((acc, curr) => acc + Number(curr.amount), 0);
-
-  const totalExpensesExpected = expenses
-    .filter((e) => e.currency === mainCurrency)
-    .reduce((acc, curr) => acc + Number(curr.amount), 0);
-
-  const netBalance = totalIncomeReceived - totalExpensesPaid;
+  const activeTab: FinanceTab = (searchParams?.tab as FinanceTab) || "overview";
 
   return (
-    <div className="space-y-6">
-      {/* En-tête principal */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink-950">Finances & Trésorerie</h1>
-          <p className="text-sm text-ink-500">
-            Période : <strong className="text-ink-900">{now.toFormat("MMMM yyyy")}</strong> • Devise principale : {mainCurrency}
+          <h1 className="text-xl md:text-2xl font-bold text-ink-950">Gestion Financière</h1>
+          <p className="text-xs text-ink-500 mt-0.5">
+            Suivez vos encaissements, vos dépenses, votre épargne et vos échéances programmées.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Link href="/api/finances/export" className={buttonClasses("secondary", "sm")}>
-            Exporter CSV
+        <div className="flex items-center gap-2">
+          <Link
+            href="/finances/income/new"
+            className={buttonClasses("primary", "sm")}
+          >
+            + Revenu
           </Link>
-          <Link href="/finances/income/new" className={buttonClasses("primary", "sm")}>
-            + Ajouter un revenu
-          </Link>
-          <Link href="/finances/expenses/new" className={buttonClasses("secondary", "sm")}>
-            + Ajouter une dépense
+          <Link
+            href="/finances/expenses/new"
+            className={buttonClasses("secondary", "sm")}
+          >
+            + Dépense
           </Link>
         </div>
       </div>
 
-      {/* Barre d'onglets */}
-      <FinanceTabs />
+      {/* Tabs */}
+      <FinanceTabs currentTab={activeTab} />
 
-      {/* 1. VUE D'ENSEMBLE */}
-      {currentTab === "overview" && (
-        <div className="space-y-8">
-          {/* Cartes KPI Synthèse */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-4">
-              <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-                Solde Net Réel
-              </span>
-              <p
-                className={`mt-2 text-2xl font-extrabold ${
-                  netBalance >= 0 ? "text-positive" : "text-danger"
-                }`}
-              >
-                {formatAmount(netBalance, mainCurrency)}
-              </p>
-              <p className="mt-1 text-xs text-ink-500">Revenus reçus - Dépenses payées</p>
-            </div>
-
-            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-4">
-              <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-                Revenus du Mois
-              </span>
-              <p className="mt-2 text-2xl font-extrabold text-signal">
-                {formatAmount(totalIncomeExpected, mainCurrency)}
-              </p>
-              <p className="mt-1 text-xs text-positive font-medium">
-                {formatAmount(totalIncomeReceived, mainCurrency)} déjà encaissés
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-4">
-              <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-                Dépenses du Mois
-              </span>
-              <p className="mt-2 text-2xl font-extrabold text-ink-950">
-                {formatAmount(totalExpensesExpected, mainCurrency)}
-              </p>
-              <p className="mt-1 text-xs text-ink-500 font-medium">
-                {formatAmount(totalExpensesPaid, mainCurrency)} déjà réglées
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-4">
-              <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-                Objectifs d'Épargne
-              </span>
-              <p className="mt-2 text-2xl font-extrabold text-ink-950">
-                {savingsGoals?.length ?? 0}
-              </p>
-              <p className="mt-1 text-xs text-signal font-medium">
-                Poches actives suivies
-              </p>
-            </div>
+      {/* Tab: OVERVIEW */}
+      {activeTab === "overview" && (
+        <div className="space-y-6">
+          {/* Stat Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            <StatCard
+              label="Total Reçu"
+              value={formatAmount(aggregates.totalIncomeReceived, defaultCurrency)}
+              helper="Encaissé ce mois"
+              tone="positive"
+            />
+            <StatCard
+              label="En Attente"
+              value={formatAmount(aggregates.totalIncomePending, defaultCurrency)}
+              helper="Revenus attendus"
+              tone="warning"
+            />
+            <StatCard
+              label="Dépensé"
+              value={formatAmount(aggregates.totalExpensesPaid, defaultCurrency)}
+              helper="Payé ce mois"
+              tone="danger"
+            />
+            <StatCard
+              label="Solde Net"
+              value={formatAmount(aggregates.netBalance, defaultCurrency)}
+              helper="Reçu - Dépensé"
+              tone={aggregates.netBalance >= 0 ? "positive" : "danger"}
+            />
           </div>
 
-          {/* Aperçu rapide Budgets & Épargne */}
+          {/* Quick Sections Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-5 space-y-3">
+            {/* Prochains encaissements */}
+            <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-ink-950 text-base">Budgets Mensuels</h3>
-                <Link href="/finances?tab=budgets" className="text-xs font-semibold text-signal hover:underline">
-                  Voir tout ({budgetsWithSpent.length}) →
+                <h3 className="font-bold text-sm text-ink-950 flex items-center gap-2">
+                  <span>📈</span> Prochains Revenus
+                </h3>
+                <Link href="/finances?tab=income" className="text-xs text-signal hover:underline">
+                  Voir tout
                 </Link>
               </div>
-              {budgetsWithSpent.length === 0 ? (
-                <p className="text-sm text-ink-500 py-4 text-center">Aucun budget défini.</p>
+
+              {(incomeRows ?? []).filter(i => !i.received).slice(0, 4).length === 0 ? (
+                <div className="text-xs text-ink-400 py-4 text-center">Aucun revenu en attente</div>
               ) : (
-                <div className="space-y-3 pt-2">
-                  {budgetsWithSpent.slice(0, 3).map((b) => (
-                    <div key={b.id} className="space-y-1">
-                      <div className="flex justify-between text-xs font-medium">
-                        <span className="text-ink-900">{expenseCategoryLabel(b.category)}</span>
-                        <span className="text-ink-600">
-                          {formatAmount(b.spent, b.currency)} / {formatAmount(b.monthly_limit, b.currency)}
-                        </span>
+                <div className="space-y-2">
+                  {(incomeRows ?? []).filter(i => !i.received).slice(0, 4).map(inc => (
+                    <div key={inc.id} className="flex items-center justify-between p-2 rounded-lg bg-canvas text-xs">
+                      <div>
+                        <div className="font-semibold text-ink-900">{inc.label}</div>
+                        <div className="text-[10px] text-ink-500">Échéance : {inc.due_date}</div>
                       </div>
-                      <div className="h-2 w-full rounded-full bg-ink-100 overflow-hidden">
-                        <div
-                          className="h-full bg-signal rounded-full"
-                          style={{
-                            width: `${Math.min(100, Math.round((b.spent / b.monthly_limit) * 100))}%`,
-                          }}
-                        />
+                      <div className="font-bold text-ink-900">
+                        {formatAmount(inc.amount, inc.currency)}
                       </div>
                     </div>
                   ))}
@@ -220,31 +209,32 @@ export default async function FinancesPage({
               )}
             </div>
 
-            <div className="rounded-xl border border-ink-200 bg-canvas-raised p-5 space-y-3">
+            {/* Dépenses programmées à venir */}
+            <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-ink-950 text-base">Épargne & Projets</h3>
-                <Link href="/finances?tab=savings" className="text-xs font-semibold text-signal hover:underline">
-                  Voir tout ({savingsGoals?.length ?? 0}) →
+                <h3 className="font-bold text-sm text-ink-950 flex items-center gap-2">
+                  <span>⏰</span> Dépenses Programmées
+                </h3>
+                <Link href="/finances?tab=scheduled" className="text-xs text-signal hover:underline">
+                  Voir tout
                 </Link>
               </div>
-              {savingsGoals?.length === 0 ? (
-                <p className="text-sm text-ink-500 py-4 text-center">Aucun objectif d'épargne défini.</p>
+
+              {(scheduledExpenses ?? []).filter(s => s.status === "planned" || s.status === "due").slice(0, 4).length === 0 ? (
+                <div className="text-xs text-ink-400 py-4 text-center">Aucune dépense programmée</div>
               ) : (
-                <div className="space-y-3 pt-2">
-                  {savingsGoals?.slice(0, 3).map((g) => {
-                    const pct = Math.min(100, Math.round((Number(g.current_amount) / Number(g.target_amount)) * 100));
-                    return (
-                      <div key={g.id} className="space-y-1">
-                        <div className="flex justify-between text-xs font-medium">
-                          <span className="text-ink-900">{g.name}</span>
-                          <span className="text-signal font-semibold">{pct}%</span>
-                        </div>
-                        <div className="h-2 w-full rounded-full bg-ink-100 overflow-hidden">
-                          <div className="h-full bg-signal rounded-full" style={{ width: `${pct}%` }} />
-                        </div>
+                <div className="space-y-2">
+                  {(scheduledExpenses ?? []).filter(s => s.status === "planned" || s.status === "due").slice(0, 4).map(sc => (
+                    <div key={sc.id} className="flex items-center justify-between p-2 rounded-lg bg-canvas text-xs">
+                      <div>
+                        <div className="font-semibold text-ink-900">{sc.name}</div>
+                        <div className="text-[10px] text-ink-500">Échéance : {sc.next_due_date}</div>
                       </div>
-                    );
-                  })}
+                      <div className="font-bold text-ink-900">
+                        {formatAmount(sc.amount, sc.currency)}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -252,143 +242,107 @@ export default async function FinancesPage({
         </div>
       )}
 
-      {/* 2. ONGLET REVENUS */}
-      {currentTab === "income" && (
-        <div className="space-y-6">
+      {/* Tab: SCHEDULED EXPENSES */}
+      {activeTab === "scheduled" && (
+        <ScheduledExpensesSection
+          scheduledExpenses={(scheduledExpenses ?? []) as any}
+          defaultCurrency={defaultCurrency}
+          activities={activities ?? []}
+        />
+      )}
+
+      {/* Tab: BUDGETS */}
+      {activeTab === "budgets" && (
+        <BudgetsSection
+          budgets={budgetsWithSpent as any}
+          currencies={currenciesList}
+          defaultCurrency={defaultCurrency}
+        />
+      )}
+
+      {/* Tab: SAVINGS */}
+      {activeTab === "savings" && (
+        <SavingsGoalsSection
+          goals={(savingsGoals ?? []) as any}
+          currencies={currenciesList}
+          defaultCurrency={defaultCurrency}
+        />
+      )}
+
+      {/* Tab: INCOME */}
+      {activeTab === "income" && (
+        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold tracking-tight text-ink-950">Revenus du Mois</h2>
+            <h3 className="font-bold text-sm text-ink-950">Revenus du mois</h3>
             <Link href="/finances/income/new" className={buttonClasses("primary", "sm")}>
               + Nouveau revenu
             </Link>
           </div>
 
-          {income.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-ink-300 p-8 text-center bg-canvas-raised">
-              <p className="font-semibold text-ink-950">Aucun revenu pour ce mois</p>
-              <p className="text-sm text-ink-500 mt-1">Ajoutez un revenu ponctuel ou configurez la rémunération d'une activité.</p>
-            </div>
+          {(incomeRows ?? []).length === 0 ? (
+            <div className="p-8 text-center text-xs text-ink-400">Aucun revenu pour ce mois</div>
           ) : (
-            <div className="rounded-xl border border-ink-200 bg-canvas-raised overflow-hidden">
-              <ul className="divide-y divide-ink-100">
-                {income.map((item) => {
-                  const style = FINANCE_STATUS_STYLES[item.status];
-                  return (
-                    <li key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-canvas/50">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-ink-950">{item.label}</span>
-                          <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${style.bg} ${style.border} ${style.text}`}>
-                            {financeStatusLabel(item.status, "income")}
-                          </span>
-                        </div>
-                        <p className="text-xs text-ink-500">
-                          {item.activity ? `Activité : ${item.activity.name} • ` : ""}
-                          {item.due_date ? `Échéance : ${item.due_date}` : "Sans date"}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <span className="text-base font-extrabold text-ink-950">
-                          +{formatAmount(item.amount, item.currency)}
-                        </span>
-                        <form action={setIncomeReceived.bind(null, item.id, item.status !== "received")}>
-                          <button type="submit" className="rounded-md border border-ink-200 px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-100">
-                            {item.status === "received" ? "Marquer non reçu" : "Marquer reçu"}
-                          </button>
-                        </form>
-                        <form action={deleteIncome.bind(null, item.id)}>
-                          <button type="submit" className="text-xs text-ink-400 hover:text-danger">
-                            Supprimer
-                          </button>
-                        </form>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+            <div className="divide-y divide-ink-100">
+              {(incomeRows ?? []).map((inc) => (
+                <div key={inc.id} className="py-3 flex items-center justify-between">
+                  <div>
+                    <div className="font-bold text-sm text-ink-950">{inc.label}</div>
+                    <div className="text-xs text-ink-500">
+                      Échéance: {inc.due_date} • {inc.received ? "Payé le " + inc.received_at : "En attente"}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-sm text-ink-950">
+                      {formatAmount(inc.amount, inc.currency)}
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      inc.received ? "bg-positive-soft text-positive" : "bg-warning-soft text-warning"
+                    }`}>
+                      {inc.received ? "Reçu" : "En attente"}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
       )}
 
-      {/* 3. ONGLET DÉPENSES */}
-      {currentTab === "expenses" && (
-        <div className="space-y-6">
+      {/* Tab: EXPENSES */}
+      {activeTab === "expenses" && (
+        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold tracking-tight text-ink-950">Dépenses du Mois</h2>
-            <Link href="/finances/expenses/new" className={buttonClasses("primary", "sm")}>
+            <h3 className="font-bold text-sm text-ink-950">Dépenses payées du mois</h3>
+            <Link href="/finances/expenses/new" className={buttonClasses("secondary", "sm")}>
               + Nouvelle dépense
             </Link>
           </div>
 
-          {expenses.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-ink-300 p-8 text-center bg-canvas-raised">
-              <p className="font-semibold text-ink-950">Aucune dépense pour ce mois</p>
-              <p className="text-sm text-ink-500 mt-1">Ajoutez vos dépenses professionnelles ou personnelles.</p>
-            </div>
+          {(expenseRows ?? []).length === 0 ? (
+            <div className="p-8 text-center text-xs text-ink-400">Aucune dépense pour ce mois</div>
           ) : (
-            <div className="rounded-xl border border-ink-200 bg-canvas-raised overflow-hidden">
-              <ul className="divide-y divide-ink-100">
-                {expenses.map((item) => {
-                  const style = FINANCE_STATUS_STYLES[item.status];
-                  return (
-                    <li key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-canvas/50">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-ink-950">{item.label}</span>
-                          <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${style.bg} ${style.border} ${style.text}`}>
-                            {financeStatusLabel(item.status, "expense")}
-                          </span>
-                          <span className="rounded bg-ink-100 px-2 py-0.5 text-xs text-ink-600">
-                            {expenseCategoryLabel(item.category)}
-                          </span>
-                        </div>
-                        <p className="text-xs text-ink-500">
-                          {item.activity ? `Activité : ${item.activity.name} • ` : ""}
-                          {item.due_date ? `Échéance : ${item.due_date}` : "Sans date"}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <span className="text-base font-extrabold text-danger">
-                          -{formatAmount(item.amount, item.currency)}
-                        </span>
-                        <form action={setExpensePaid.bind(null, item.id, item.status !== "paid")}>
-                          <button type="submit" className="rounded-md border border-ink-200 px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-100">
-                            {item.status === "paid" ? "Marquer non payée" : "Marquer payée"}
-                          </button>
-                        </form>
-                        <form action={deleteExpense.bind(null, item.id)}>
-                          <button type="submit" className="text-xs text-ink-400 hover:text-danger">
-                            Supprimer
-                          </button>
-                        </form>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+            <div className="divide-y divide-ink-100">
+              {(expenseRows ?? []).map((exp) => (
+                <div key={exp.id} className="py-3 flex items-center justify-between">
+                  <div>
+                    <div className="font-bold text-sm text-ink-950">{exp.label}</div>
+                    <div className="text-xs text-ink-500">
+                      {exp.category} • {exp.paid ? "Payé le " + exp.paid_at : "Échéance: " + exp.due_date}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-sm text-ink-950">
+                      {formatAmount(exp.amount, exp.currency)}
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-positive-soft text-positive">
+                      {exp.paid ? "Payée" : "À payer"}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
-      )}
-
-      {/* 4. ONGLET BUDGETS */}
-      {currentTab === "budgets" && (
-        <BudgetsSection
-          budgets={budgetsWithSpent}
-          currencies={currencies ?? []}
-          defaultCurrency={mainCurrency}
-        />
-      )}
-
-      {/* 5. ONGLET ÉPARGNE */}
-      {currentTab === "savings" && (
-        <SavingsGoalsSection
-          goals={savingsGoals ?? []}
-          currencies={currencies ?? []}
-          defaultCurrency={mainCurrency}
-        />
       )}
     </div>
   );
