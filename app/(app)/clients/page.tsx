@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { deleteOrganization, deleteContact } from "./actions";
+import { buttonClasses } from "@/components/ui/button";
 
 export default async function ClientsPage() {
   const supabase = createClient();
@@ -11,17 +12,19 @@ export default async function ClientsPage() {
   const [{ data: organizations }, { data: contacts }, { data: activityCounts }] = await Promise.all([
     supabase
       .from("organizations")
-      .select("id, name, contact_name, phone, email")
+      .select("id, name, contact_name, phone, email, type")
       .eq("user_id", user!.id)
       .order("name", { ascending: true }),
     supabase
       .from("contacts")
-      .select("id, name, phone, email, organization_id, organizations(name)")
+      .select("id, first_name, last_name, phone, email, role, organization_id, organizations(name)")
       .eq("user_id", user!.id)
-      .order("name", { ascending: true }),
-    // Décompte des activités par organisation, pour donner un peu de
-    // contexte sans faire une jointure N+1 par organisation affichée.
-    supabase.from("activities").select("organization_id").eq("user_id", user!.id).not("organization_id", "is", null),
+      .order("first_name", { ascending: true }),
+    supabase
+      .from("activities")
+      .select("organization_id")
+      .eq("user_id", user!.id)
+      .not("organization_id", "is", null),
   ]);
 
   const activityCountByOrg = new Map<string, number>();
@@ -30,117 +33,155 @@ export default async function ClientsPage() {
     activityCountByOrg.set(a.organization_id, (activityCountByOrg.get(a.organization_id) ?? 0) + 1);
   }
 
-  const unassignedContacts = (contacts ?? []).filter((c) => !c.organization_id);
-
   return (
-    <div className="flex flex-col gap-10">
-      <div className="flex items-center justify-between">
+    <div className="space-y-10">
+      {/* En-tête */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-ink-950">Clients</h1>
-          <p className="text-ink-500">Organisations et contacts, indépendamment des activités.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-ink-950">Clients & Contacts</h1>
+          <p className="text-sm text-ink-500">
+            Répertoire centralisé de vos organisations partenaires, écoles, clients et contacts.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Link href="/clients/organizations/new" className={buttonClasses("secondary", "sm")}>
+            + Nouvelle organisation
+          </Link>
+          <Link href="/clients/contacts/new" className={buttonClasses("primary", "sm")}>
+            + Nouveau contact
+          </Link>
         </div>
       </div>
 
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
+      {/* 1. ORGANISATIONS */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-ink-950">
             Organisations ({(organizations ?? []).length})
           </h2>
-          <Link href="/clients/organizations/new" className="text-sm font-medium text-signal hover:underline">
-            + Ajouter une organisation
+          <Link href="/clients/organizations/new" className="text-xs font-semibold text-signal hover:underline">
+            + Ajouter
           </Link>
         </div>
-        {(organizations ?? []).length === 0 ? (
-          <p className="text-sm text-ink-500">
-            Aucune organisation pour l&apos;instant — elles se créent aussi automatiquement quand vous en saisissez
-            une sur une activité.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {(organizations ?? []).map((org) => (
-              <li
-                key={org.id}
-                className="flex items-center justify-between gap-4 rounded-lg border border-ink-100 bg-canvas-raised px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium text-ink-950">{org.name}</p>
-                  <p className="text-sm text-ink-500">
-                    {org.contact_name ? <span className="mr-2">{org.contact_name}</span> : null}
-                    {org.phone ? <span className="mr-2">{org.phone}</span> : null}
-                    {org.email ? <span className="mr-2">{org.email}</span> : null}
-                    {activityCountByOrg.get(org.id)
-                      ? `${activityCountByOrg.get(org.id)} activité(s) liée(s)`
-                      : "Aucune activité liée"}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <Link
-                    href={`/clients/organizations/${org.id}/edit`}
-                    className="text-sm font-medium text-signal hover:underline"
-                  >
-                    Modifier
-                  </Link>
-                  <form action={deleteOrganization.bind(null, org.id)}>
-                    <button type="submit" className="text-sm text-ink-500 hover:text-danger hover:underline">
-                      Supprimer
-                    </button>
-                  </form>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
 
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
-            Contacts ({(contacts ?? []).length})
-          </h2>
-          <Link href="/clients/contacts/new" className="text-sm font-medium text-signal hover:underline">
-            + Ajouter un contact
-          </Link>
-        </div>
-        {(contacts ?? []).length === 0 ? (
-          <p className="text-sm text-ink-500">Aucun contact pour l&apos;instant.</p>
+        {(organizations ?? []).length === 0 ? (
+          <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised/50 p-6 text-center text-sm text-ink-500">
+            Aucune organisation enregistrée pour l'instant.
+          </div>
         ) : (
-          <ul className="flex flex-col gap-2">
-            {(contacts ?? []).map((contact) => {
-              const org = Array.isArray(contact.organizations) ? contact.organizations[0] : contact.organizations;
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(organizations ?? []).map((org) => {
+              const actCount = activityCountByOrg.get(org.id) ?? 0;
               return (
-                <li
-                  key={contact.id}
-                  className="flex items-center justify-between gap-4 rounded-lg border border-ink-100 bg-canvas-raised px-4 py-3"
+                <div
+                  key={org.id}
+                  className="flex flex-col justify-between rounded-xl border border-ink-200 bg-canvas-raised p-4 space-y-3 hover:border-ink-300 hover:shadow-xs transition-all"
                 >
-                  <div className="min-w-0">
-                    <p className="font-medium text-ink-950">{contact.name}</p>
-                    <p className="text-sm text-ink-500">
-                      {org?.name ? <span className="mr-2">{org.name}</span> : <span className="mr-2">Indépendant</span>}
-                      {contact.phone ? <span className="mr-2">{contact.phone}</span> : null}
-                      {contact.email ? <span className="mr-2">{contact.email}</span> : null}
-                    </p>
+                  <div className="space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-bold text-ink-950 text-base">{org.name}</h3>
+                      {actCount > 0 ? (
+                        <span className="rounded-full bg-signal-soft px-2 py-0.5 text-[10px] font-bold text-signal">
+                          {actCount} activité{actCount > 1 ? "s" : ""}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div className="text-xs text-ink-600 space-y-0.5">
+                      {org.contact_name ? <p>👤 {org.contact_name}</p> : null}
+                      {org.email ? <p className="truncate">✉️ {org.email}</p> : null}
+                      {org.phone ? <p>📞 {org.phone}</p> : null}
+                    </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-ink-100">
                     <Link
-                      href={`/clients/contacts/${contact.id}/edit`}
-                      className="text-sm font-medium text-signal hover:underline"
+                      href={`/clients/organizations/${org.id}/edit`}
+                      className="text-xs font-semibold text-signal hover:underline px-2 py-1 min-h-[32px] inline-flex items-center"
                     >
                       Modifier
                     </Link>
-                    <form action={deleteContact.bind(null, contact.id)}>
-                      <button type="submit" className="text-sm text-ink-500 hover:text-danger hover:underline">
+                    <form action={deleteOrganization.bind(null, org.id)}>
+                      <button
+                        type="submit"
+                        className="text-xs text-ink-400 hover:text-danger px-2 py-1 min-h-[32px] inline-flex items-center"
+                      >
                         Supprimer
                       </button>
                     </form>
                   </div>
-                </li>
+                </div>
               );
             })}
-          </ul>
+          </div>
         )}
-        {unassignedContacts.length > 0 ? (
-          <p className="mt-2 text-xs text-ink-500">{unassignedContacts.length} contact(s) sans organisation.</p>
-        ) : null}
+      </section>
+
+      {/* 2. CONTACTS */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-ink-950">
+            Contacts ({(contacts ?? []).length})
+          </h2>
+          <Link href="/clients/contacts/new" className="text-xs font-semibold text-signal hover:underline">
+            + Ajouter
+          </Link>
+        </div>
+
+        {(contacts ?? []).length === 0 ? (
+          <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised/50 p-6 text-center text-sm text-ink-500">
+            Aucun contact enregistré pour l'instant.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(contacts ?? []).map((contact) => {
+              const org = Array.isArray(contact.organizations)
+                ? contact.organizations[0]
+                : contact.organizations;
+              const fullName = `${contact.first_name || ""} ${contact.last_name || ""}`.trim() || "Contact";
+
+              return (
+                <div
+                  key={contact.id}
+                  className="flex flex-col justify-between rounded-xl border border-ink-200 bg-canvas-raised p-4 space-y-3 hover:border-ink-300 hover:shadow-xs transition-all"
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-bold text-ink-950 text-base">{fullName}</h3>
+                      <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-medium text-ink-600">
+                        {org?.name ?? "Indépendant"}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-ink-600 space-y-0.5">
+                      {contact.role ? <p className="font-medium text-ink-800">{contact.role}</p> : null}
+                      {contact.email ? <p className="truncate">✉️ {contact.email}</p> : null}
+                      {contact.phone ? <p>📞 {contact.phone}</p> : null}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-ink-100">
+                    <Link
+                      href={`/clients/contacts/${contact.id}/edit`}
+                      className="text-xs font-semibold text-signal hover:underline px-2 py-1 min-h-[32px] inline-flex items-center"
+                    >
+                      Modifier
+                    </Link>
+                    <form action={deleteContact.bind(null, contact.id)}>
+                      <button
+                        type="submit"
+                        className="text-xs text-ink-400 hover:text-danger px-2 py-1 min-h-[32px] inline-flex items-center"
+                      >
+                        Supprimer
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
     </div>
   );

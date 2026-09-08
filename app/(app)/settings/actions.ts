@@ -123,3 +123,20 @@ export async function deleteAccount() {
   await supabase.auth.signOut();
   redirect("/login");
 }
+
+export async function updateSubscriptionPlan(newPlan: "free" | "pro" | "premium") {
+  const { supabase, user } = await requireUser();
+
+  const { error } = await supabase
+    .from("subscriptions")
+    .upsert({
+      user_id: user.id,
+      plan: newPlan,
+      status: "active",
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+
+  if (error) throw new Error("Impossible de mettre à jour le forfait.");
+  revalidatePath("/settings");
+  revalidatePath("/dashboard");
+}

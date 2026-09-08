@@ -1,6 +1,8 @@
 "use client";
 
+import { useTransition, useState } from "react";
 import { PLAN_ENTITLEMENTS, type PlanType } from "@/lib/subscriptions/entitlements";
+import { updateSubscriptionPlan } from "@/app/(app)/settings/actions";
 import type { Subscription } from "@/types/database";
 
 interface SubscriptionSectionProps {
@@ -9,15 +11,35 @@ interface SubscriptionSectionProps {
 
 export function SubscriptionSection({ subscription }: SubscriptionSectionProps) {
   const currentPlan = (subscription?.plan ?? "free") as PlanType;
+  const [isPending, startTransition] = useTransition();
+  const [message, setMessage] = useState<string | null>(null);
+
+  function handlePlanChange(newPlan: PlanType) {
+    setMessage(null);
+    startTransition(async () => {
+      try {
+        await updateSubscriptionPlan(newPlan);
+        setMessage(`Félicitations ! Vous êtes maintenant sur le forfait ${PLAN_ENTITLEMENTS[newPlan].planName}.`);
+      } catch (err) {
+        setMessage(err instanceof Error ? err.message : "Une erreur est survenue.");
+      }
+    });
+  }
 
   return (
     <div className="space-y-8 max-w-4xl">
       <div>
         <h2 className="text-xl font-bold tracking-tight text-ink-950">Abonnement & Entitlements</h2>
         <p className="text-sm text-ink-500">
-          Gérez votre forfait et découvrez les fonctionnalités incluses selon vos besoins.
+          Gérez votre forfait, testez les montées de gamme et découvrez les fonctionnalités incluses.
         </p>
       </div>
+
+      {message ? (
+        <div className="rounded-xl border border-positive/30 bg-positive-soft p-4 text-sm font-semibold text-positive animate-in fade-in">
+          {message}
+        </div>
+      ) : null}
 
       {/* Cartes comparatives des plans */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -115,10 +137,11 @@ export function SubscriptionSection({ subscription }: SubscriptionSectionProps) 
                 ) : (
                   <button
                     type="button"
-                    onClick={() => alert("Le module de paiement Stripe sera actif en production.")}
-                    className="w-full rounded-xl bg-signal py-2.5 text-xs font-bold text-white hover:bg-signal/90 transition-colors shadow-xs"
+                    disabled={isPending}
+                    onClick={() => handlePlanChange(pKey)}
+                    className="w-full rounded-xl bg-signal py-2.5 text-xs font-bold text-white hover:bg-signal/90 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
                   >
-                    Passer à {p.planName}
+                    {isPending ? "Mise à niveau..." : `Passer à ${p.planName}`}
                   </button>
                 )}
               </div>
