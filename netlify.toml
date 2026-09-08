@@ -1,0 +1,16 @@
+# Nécessaire car l'app utilise des Server Actions Next.js, un middleware
+# d'authentification côté serveur et des appels Supabase à chaque requête :
+# ce n'est PAS un site statique. Le plugin @netlify/plugin-nextjs (installé
+# automatiquement par Netlify grâce à la déclaration ci-dessous) est ce qui
+# transforme les routes serveur/Server Actions en fonctions Netlify.
+#
+# Ce fichier ne sert que si le déploiement passe par un dépôt Git connecté
+# ou par `netlify deploy` (CLI) — voir le README, section Déploiement.
+# Un simple glisser-déposer du zip source ne lit jamais ce fichier.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
