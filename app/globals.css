@@ -119,6 +119,10 @@
   --info-soft: 219 244 250;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: rgb(var(--canvas));
   color: rgb(var(--ink-950));

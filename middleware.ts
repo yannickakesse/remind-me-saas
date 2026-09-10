@@ -15,6 +15,11 @@ export async function middleware(request: NextRequest) {
   const { response, user } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
+  // La page d'accueil (Landing Page) "/" est accessible publiquement
+  if (pathname === "/") {
+    return response;
+  }
+
   if (pathname.startsWith(RECOVERY_ROUTE)) {
     return response;
   }

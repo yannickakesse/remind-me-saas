@@ -23,6 +23,10 @@
 .vscode/
 .idea/
 
+# Prompts & instructions internes
+*gemini;md*
+AUDIT_PHASE4-14.md
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

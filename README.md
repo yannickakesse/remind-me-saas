@@ -46,6 +46,13 @@ Plateforme SaaS tout-en-un pour indépendants, pluri-actifs, consultants et cré
 - **Skeletons de chargement instantanés (`loading.tsx`)** : Élimination complète des temps de latence lors de la navigation.
 - **Feedback tactile immédiat (< 100ms)** : Optimisation `touch-action: manipulation` et micro-interactions fluides.
 
+### 8. Vitrine Produit & Landing Page de Conversion (Remind Me)
+- **Positionnement de marque clair** : *"Votre travail, votre temps et votre argent — enfin sous contrôle."*
+- **Démo interactive en temps réel (The Product as the Hero)** : Cockpit multi-activités, détection des conflits en direct, rentabilité par activité et gestion des dépenses programmées.
+- **Comparatif "Le Chaos vs La Clarté"** : Mise en avant des douleurs quotidiennes des pluriactifs et de la réponse Remind Me.
+- **Grille tarifaire dynamique** : Toggle Mensuel / Annuel avec remise -25% et détail des formules (Starter, Pro, Studio).
+- **Parcours d'authentification fluide** : Redirection dynamique selon l'état de session de l'utilisateur (visiteur vs utilisateur connecté).
+
 ---
 
 ## 🛠️ Stack Technique
