@@ -4,7 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { ensureNotifications } from "@/lib/notifications/sync";
 import { CommandPalette } from "@/components/navigation/command-palette";
 import { MobileNav } from "@/components/navigation/mobile-nav";
+import { NotificationBell } from "@/components/navigation/notification-bell";
 import { NetworkStatus } from "@/components/ui/network-status";
+import type { Notification } from "@/types/database";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Tableau de bord", icon: "🏠" },
@@ -37,13 +39,22 @@ export default async function AppLayout({
 
   if (!profile?.onboarding_completed) redirect("/onboarding");
 
-  // Synchronisation des notifications
+  // Synchronisation déterministe des rappels intelligents
   await ensureNotifications(supabase, user.id, profile.timezone ?? "UTC");
-  const { count: unreadCount } = await supabase
-    .from("notifications")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .is("read_at", null);
+
+  const [{ count: unreadCount }, { data: latestNotifications }] = await Promise.all([
+    supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .is("read_at", null),
+    supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(6),
+  ]);
 
   return (
     <div className="flex min-h-screen bg-canvas flex-col md:flex-row">
@@ -59,24 +70,16 @@ export default async function AppLayout({
           {/* Logo & Titre */}
           <div className="flex items-center justify-between px-2">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-signal font-bold text-white text-sm">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-signal font-bold text-white text-sm shadow-xs">
                 M
               </span>
               <span className="font-bold text-base text-ink-950">Multi-Activity</span>
             </Link>
 
-            <Link
-              href="/notifications"
-              aria-label="Notifications"
-              className="relative p-1.5 rounded-lg text-ink-500 hover:bg-ink-100 hover:text-signal transition-colors"
-            >
-              🔔
-              {unreadCount ? (
-                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white animate-pulse">
-                  {unreadCount}
-                </span>
-              ) : null}
-            </Link>
+            <NotificationBell
+              notifications={(latestNotifications as Notification[]) ?? []}
+              unreadCount={unreadCount ?? 0}
+            />
           </div>
 
           {/* Recherche Globale / Command Palette */}

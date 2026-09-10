@@ -50,13 +50,6 @@ export async function updateProfile(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
-/**
- * Enregistre l'URL de l'avatar après upload côté client vers Supabase
- * Storage (le transfert du fichier lui-même se fait directement depuis le
- * navigateur — voir components/settings/profile-section.tsx — pour profiter
- * de la barre de progression native et ne pas faire transiter le binaire
- * par le serveur Next.js).
- */
 export async function updateAvatarUrl(url: string | null) {
   const { supabase, user } = await requireUser();
 
@@ -70,20 +63,48 @@ export async function updateNotificationPrefs(formData: FormData) {
   const { supabase, user } = await requireUser();
 
   const parsed = notifPrefsSchema.safeParse({
-    task_reminder: formData.get("task_reminder") === "on",
-    task_overdue: formData.get("task_overdue") === "on",
-    finance_overdue: formData.get("finance_overdue") === "on",
+    email_enabled: formData.get("email_enabled") === "on",
+    in_app_enabled: formData.get("in_app_enabled") === "on",
+    activity_reminders: formData.get("activity_reminders") === "on",
+    payment_reminders: formData.get("payment_reminders") === "on",
+    expense_reminders: formData.get("expense_reminders") === "on",
+    task_reminders: formData.get("task_reminders") === "on",
+    conflict_alerts: formData.get("conflict_alerts") === "on",
+    quiet_hours_enabled: formData.get("quiet_hours_enabled") === "on",
+    quiet_hours_start: (formData.get("quiet_hours_start") as string) || "22:00",
+    quiet_hours_end: (formData.get("quiet_hours_end") as string) || "08:00",
+    preferred_locale: (formData.get("preferred_locale") as string) || "fr",
   });
+
   if (!parsed.success) throw new Error("Formulaire invalide.");
 
-  const { error } = await supabase
+  // 1. Sauvegarder dans notification_preferences
+  await supabase
+    .from("notification_preferences")
+    .upsert({
+      user_id: user.id,
+      email_enabled: parsed.data.email_enabled,
+      in_app_enabled: parsed.data.in_app_enabled,
+      activity_reminders: parsed.data.activity_reminders,
+      payment_reminders: parsed.data.payment_reminders,
+      expense_reminders: parsed.data.expense_reminders,
+      task_reminders: parsed.data.task_reminders,
+      conflict_alerts: parsed.data.conflict_alerts,
+      quiet_hours_enabled: parsed.data.quiet_hours_enabled,
+      quiet_hours_start: parsed.data.quiet_hours_start,
+      quiet_hours_end: parsed.data.quiet_hours_end,
+      preferred_locale: parsed.data.preferred_locale,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+
+  // 2. Maintien de compatibilité avec user_settings
+  await supabase
     .from("user_settings")
     .update({ notif_prefs: parsed.data })
     .eq("user_id", user.id);
 
-  if (error) throw new Error("Impossible d'enregistrer vos préférences.");
-
   revalidatePath("/settings");
+  revalidatePath("/dashboard");
 }
 
 export async function changePassword(formData: FormData) {
@@ -101,19 +122,12 @@ export async function changePassword(formData: FormData) {
   if (error) throw new Error("Impossible de changer le mot de passe. Réessayez.");
 }
 
-/** §22 du prompt maître — déconnexion de toutes les sessions actives. */
 export async function signOutEverywhere() {
   const { supabase } = await requireUser();
   await supabase.auth.signOut({ scope: "global" });
   redirect("/login");
 }
 
-/**
- * §97 — suppression de compte en libre-service, via la fonction Postgres
- * "security definer" `delete_own_account` (migration 0007) : le client ne
- * détient jamais de droit d'administration, seule cette fonction peut agir,
- * et uniquement sur le compte de l'appelant (auth.uid()).
- */
 export async function deleteAccount() {
   const { supabase } = await requireUser();
 

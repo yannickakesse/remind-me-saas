@@ -5,9 +5,11 @@ import { formatAmount } from "@/lib/finances/format";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
+import { AttentionRequired } from "@/components/dashboard/attention-required";
 import { typeLabel } from "@/lib/validation/activities";
 import { eventStatusLabel } from "@/lib/validation/calendar";
 import { taskPriorityLabel, TASK_PRIORITY_STYLES } from "@/lib/validation/tasks";
+import type { Notification } from "@/types/database";
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -38,6 +40,7 @@ export default async function DashboardPage() {
     { data: monthExpenses },
     { data: lateIncome },
     { data: scheduledExpenses },
+    { data: attentionNotifications },
   ] = await Promise.all([
     supabase
       .from("activities")
@@ -88,6 +91,15 @@ export default async function DashboardPage() {
       .in("status", ["planned", "due"])
       .order("next_due_date", { ascending: true })
       .limit(5),
+    supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user.id)
+      .is("read_at", null)
+      .neq("status", "resolved")
+      .neq("status", "dismissed")
+      .order("created_at", { ascending: false })
+      .limit(6),
   ]);
 
   const todayEvents = (todayEventsRaw ?? []).map((e) => ({
@@ -163,6 +175,11 @@ export default async function DashboardPage() {
           tone={(urgentTasks?.length ?? 0) > 0 ? "danger" : "neutral"}
         />
       </div>
+
+      {/* Smart Reminders Attention Required Widget */}
+      {attentionNotifications && attentionNotifications.length > 0 ? (
+        <AttentionRequired notifications={attentionNotifications as Notification[]} />
+      ) : null}
 
       {/* Grid: Urgences & Prochaines Dépenses */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

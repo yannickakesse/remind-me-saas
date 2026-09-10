@@ -573,27 +573,120 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          kind: NotificationKind;
-          entity_type: NotificationEntityType;
+          kind: string;
+          category: string;
+          priority: NotificationPriority;
+          status: NotificationStatus;
+          entity_type: string;
           entity_id: string;
           title: string;
           body: string;
+          title_key: string | null;
+          body_key: string | null;
+          metadata: Record<string, any>;
           link: string;
+          scheduled_at: string | null;
           read_at: string | null;
+          actioned_at: string | null;
+          resolved_at: string | null;
+          snoozed_until: string | null;
+          idempotency_key: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
-          kind: NotificationKind;
-          entity_type: NotificationEntityType;
-          entity_id: string;
+          kind: string;
+          category?: string;
+          priority?: NotificationPriority;
+          status?: NotificationStatus;
+          entity_type?: string;
+          entity_id?: string;
           title: string;
           body?: string;
-          link: string;
+          title_key?: string | null;
+          body_key?: string | null;
+          metadata?: Record<string, any>;
+          link?: string;
+          scheduled_at?: string | null;
           read_at?: string | null;
+          actioned_at?: string | null;
+          resolved_at?: string | null;
+          snoozed_until?: string | null;
+          idempotency_key?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["notifications"]["Insert"]>;
+        Relationships: [];
+      };
+      notification_preferences: {
+        Row: {
+          user_id: string;
+          email_enabled: boolean;
+          in_app_enabled: boolean;
+          activity_reminders: boolean;
+          payment_reminders: boolean;
+          expense_reminders: boolean;
+          task_reminders: boolean;
+          conflict_alerts: boolean;
+          activity_lead_times: number[];
+          payment_lead_days: number[];
+          expense_lead_days: number[];
+          task_lead_hours: number[];
+          quiet_hours_enabled: boolean;
+          quiet_hours_start: string;
+          quiet_hours_end: string;
+          preferred_locale: SupportedLocale;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          email_enabled?: boolean;
+          in_app_enabled?: boolean;
+          activity_reminders?: boolean;
+          payment_reminders?: boolean;
+          expense_reminders?: boolean;
+          task_reminders?: boolean;
+          conflict_alerts?: boolean;
+          activity_lead_times?: number[];
+          payment_lead_days?: number[];
+          expense_lead_days?: number[];
+          task_lead_hours?: number[];
+          quiet_hours_enabled?: boolean;
+          quiet_hours_start?: string;
+          quiet_hours_end?: string;
+          preferred_locale?: SupportedLocale;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["notification_preferences"]["Insert"]>;
+        Relationships: [];
+      };
+      notification_logs: {
+        Row: {
+          id: string;
+          user_id: string;
+          notification_id: string | null;
+          channel: "in_app" | "email" | "push";
+          recipient: string | null;
+          template: string;
+          locale: string;
+          delivery_status: "queued" | "sent" | "delivered" | "failed" | "simulated_dev";
+          idempotency_key: string | null;
+          error_message: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          notification_id?: string | null;
+          channel: "in_app" | "email" | "push";
+          recipient?: string | null;
+          template: string;
+          locale?: string;
+          delivery_status: "queued" | "sent" | "delivered" | "failed" | "simulated_dev";
+          idempotency_key?: string | null;
+          error_message?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["notification_logs"]["Insert"]>;
         Relationships: [];
       };
     };
@@ -641,13 +734,25 @@ export type CalendarEventStatus =
   | "postponed";
 
 export type TaskStatus = "todo" | "in_progress" | "done" | "cancelled";
-
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
 
-export type NotificationKind = "task_reminder" | "task_overdue" | "finance_overdue";
+export type NotificationPriority = "low" | "normal" | "high" | "critical";
+export type NotificationStatus = "unread" | "read" | "dismissed" | "actioned" | "snoozed" | "resolved";
+export type NotificationCategory =
+  | "activity"
+  | "task"
+  | "payment"
+  | "expense"
+  | "scheduled_expense"
+  | "finance"
+  | "security"
+  | "summary"
+  | "system"
+  | "general";
+export type SupportedLocale = "en" | "fr" | "es" | "de" | "pt";
 
-export type NotificationEntityType = "task" | "income" | "expense";
-
+export type NotificationKind = string;
+export type NotificationEntityType = "task" | "income" | "expense" | "activity" | "scheduled_expense" | "security" | "system";
 
 export type ExpenseType = "personal" | "business" | "mixed";
 export type IncomeType = "salary" | "contract" | "freelance" | "sales" | "coaching" | "dividend" | "other";
@@ -691,3 +796,6 @@ export type Income = Database["public"]["Tables"]["income"]["Row"];
 export type Expense = Database["public"]["Tables"]["expenses"]["Row"];
 
 export type ScheduledExpense = Database["public"]["Tables"]["scheduled_expenses"]["Row"];
+export type Notification = Database["public"]["Tables"]["notifications"]["Row"];
+export type NotificationPreference = Database["public"]["Tables"]["notification_preferences"]["Row"];
+export type NotificationLog = Database["public"]["Tables"]["notification_logs"]["Row"];
