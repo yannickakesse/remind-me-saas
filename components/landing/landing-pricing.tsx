@@ -97,22 +97,22 @@ export function LandingPricing() {
 
             <Link
               href="/register"
-              className="w-full py-3 px-4 rounded-xl border border-ink-300 text-ink-950 font-semibold text-xs text-center hover:bg-ink-100 transition-colors tap-active"
+              className="w-full py-3 px-4 rounded-full border border-ink-300 text-ink-950 font-semibold text-xs text-center hover:bg-ink-100 transition-colors tap-active"
             >
               Commencer gratuitement
             </Link>
           </div>
 
           {/* Tier 2: Pro (Featured) */}
-          <div className="p-8 rounded-2xl bg-canvas border-2 border-signal shadow-xl shadow-signal/10 flex flex-col justify-between space-y-6 relative">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-signal text-white text-[11px] font-bold tracking-wide uppercase shadow-sm">
+          <div className="p-8 rounded-2xl bg-canvas-raised border-2 border-ink-950 shadow-xl shadow-ink-950/10 flex flex-col justify-between space-y-6 relative">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-ink-950 text-white text-[11px] font-bold tracking-wide uppercase shadow-sm">
               ✨ Le plus populaire
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold text-ink-950">Pro</h3>
-                <span className="px-2.5 py-1 rounded text-xs font-semibold bg-signal-soft text-signal">
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-signal-soft text-signal">
                   Complet
                 </span>
               </div>
@@ -121,7 +121,7 @@ export function LandingPricing() {
               </p>
 
               <div className="flex items-baseline gap-1 pt-2">
-                <span className="text-4xl font-extrabold text-signal">
+                <span className="text-4xl font-extrabold text-ink-950">
                   {yearly ? "9 €" : "12 €"}
                 </span>
                 <span className="text-xs text-ink-500 font-medium">/ mois</span>
@@ -162,7 +162,7 @@ export function LandingPricing() {
 
             <Link
               href="/register"
-              className="w-full py-3.5 px-4 rounded-xl bg-signal text-white font-semibold text-xs text-center shadow-md shadow-signal/25 hover:bg-signal/90 hover:shadow-lg transition-all tap-active"
+              className="w-full py-3.5 px-4 rounded-full bg-ink-950 text-white font-semibold text-xs text-center shadow-md shadow-ink-950/20 hover:bg-ink-900 hover:shadow-lg transition-all tap-active"
             >
               Démarrer mon essai de 14 jours
             </Link>
@@ -210,7 +210,7 @@ export function LandingPricing() {
 
             <Link
               href="/register"
-              className="w-full py-3 px-4 rounded-xl border border-ink-300 text-ink-950 font-semibold text-xs text-center hover:bg-ink-100 transition-colors tap-active"
+              className="w-full py-3 px-4 rounded-full border border-ink-300 text-ink-950 font-semibold text-xs text-center hover:bg-ink-100 transition-colors tap-active"
             >
               Contacter pour une démo
             </Link>

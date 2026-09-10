@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { RemindMeLogo } from "./remindme-logo";
 import { useTheme } from "@/components/theme/theme-provider";
 
 interface LandingNavbarProps {
@@ -30,71 +31,46 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-canvas/85 backdrop-blur-md border-b border-ink-100 shadow-sm py-3"
+          ? "bg-canvas/90 backdrop-blur-md border-b border-ink-200/60 shadow-xs py-3.5"
           : "bg-transparent py-5"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-signal via-signal/90 to-signal-soft/40 flex items-center justify-center text-white shadow-md shadow-signal/20 group-hover:scale-105 transition-transform duration-200">
-              <svg
-                className="w-5 h-5 text-white"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-              </svg>
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-lg tracking-tight text-ink-950 font-sans">
-                  Remind<span className="text-signal">Me</span>
-                </span>
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-signal-soft text-signal">
-                  SaaS
-                </span>
-              </div>
-              <span className="text-[11px] text-ink-500 font-medium hidden sm:inline-block">
-                Multi-Activity OS
-              </span>
-            </div>
+          <Link href="/" className="flex items-center group">
+            <RemindMeLogo size="sm" showText={true} />
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-ink-700">
+          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-ink-700 tracking-tight">
             <a
               href="#features"
-              className="hover:text-signal transition-colors duration-150"
+              className="hover:text-ink-950 transition-colors duration-150"
             >
               Fonctionnalités
             </a>
             <a
               href="#how-it-works"
-              className="hover:text-signal transition-colors duration-150"
+              className="hover:text-ink-950 transition-colors duration-150"
             >
               Comment ça marche
             </a>
             <a
               href="#personas"
-              className="hover:text-signal transition-colors duration-150"
+              className="hover:text-ink-950 transition-colors duration-150"
             >
               Pour qui ?
             </a>
             <a
               href="#pricing"
-              className="hover:text-signal transition-colors duration-150"
+              className="hover:text-ink-950 transition-colors duration-150"
             >
               Tarifs
             </a>
             <a
               href="#faq"
-              className="hover:text-signal transition-colors duration-150"
+              className="hover:text-ink-950 transition-colors duration-150"
             >
               FAQ
             </a>
@@ -105,7 +81,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg text-ink-500 hover:text-ink-950 hover:bg-ink-100 transition-colors"
+              className="p-2 rounded-full text-ink-500 hover:text-ink-950 hover:bg-ink-100 transition-colors"
               title={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
               aria-label="Changer le thème"
             >
@@ -136,15 +112,15 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             {user ? (
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-signal text-white font-medium text-sm hover:bg-signal/90 shadow-sm transition-all duration-150 tap-active"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-ink-950 text-white font-semibold text-xs hover:bg-ink-900 shadow-sm transition-all duration-150 tap-active"
               >
                 <span>Accéder au Dashboard</span>
                 <svg
-                  className="w-4 h-4"
+                  className="w-3.5 h-3.5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
-                  strokeWidth="2"
+                  strokeWidth="2.5"
                 >
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
@@ -153,15 +129,15 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
               <>
                 <Link
                   href="/login"
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-ink-700 hover:text-ink-950 hover:bg-ink-100 transition-colors"
+                  className="px-4 py-2 rounded-full text-xs font-semibold text-ink-700 hover:text-ink-950 hover:bg-ink-100/80 transition-colors"
                 >
-                  Se connecter
+                  Connexion
                 </Link>
                 <Link
                   href="/register"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-signal text-white font-medium text-sm hover:bg-signal/90 shadow-sm shadow-signal/25 hover:shadow-md transition-all duration-150 tap-active"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-ink-950 text-white font-semibold text-xs hover:bg-ink-900 shadow-sm shadow-ink-950/20 hover:shadow-md transition-all duration-150 tap-active"
                 >
-                  <span>Démarrer l&apos;essai</span>
+                  <span>Démarrer</span>
                   <svg
                     className="w-3.5 h-3.5"
                     fill="none"
@@ -169,7 +145,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                     stroke="currentColor"
                     strokeWidth="2.5"
                   >
-                    <path d="M5 12h14M12 5l7 7-7 7" />
+                    <path d="M7 17L17 7M17 7H7M17 7V17" />
                   </svg>
                 </Link>
               </>
@@ -180,7 +156,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg text-ink-500 hover:text-ink-950 hover:bg-ink-100 transition-colors"
+              className="p-2 rounded-full text-ink-500 hover:text-ink-950 hover:bg-ink-100 transition-colors"
               aria-label="Changer le thème"
             >
               {theme === "dark" ? (
@@ -197,7 +173,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-ink-700 hover:bg-ink-100 transition-colors"
+              className="p-2 rounded-xl text-ink-700 hover:bg-ink-100 transition-colors"
               aria-label="Ouvrir le menu"
             >
               {mobileMenuOpen ? (
@@ -217,39 +193,39 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
       {/* Mobile Dropdown Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-canvas-raised border-b border-ink-100 px-4 pt-3 pb-6 space-y-4 shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
-          <nav className="flex flex-col space-y-3 font-medium text-ink-700">
+          <nav className="flex flex-col space-y-2.5 font-medium text-xs text-ink-700">
             <a
               href="#features"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-md hover:bg-ink-100 hover:text-signal transition-colors"
+              className="px-3 py-2 rounded-lg hover:bg-ink-100 hover:text-ink-950 transition-colors"
             >
               Fonctionnalités
             </a>
             <a
               href="#how-it-works"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-md hover:bg-ink-100 hover:text-signal transition-colors"
+              className="px-3 py-2 rounded-lg hover:bg-ink-100 hover:text-ink-950 transition-colors"
             >
               Comment ça marche
             </a>
             <a
               href="#personas"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-md hover:bg-ink-100 hover:text-signal transition-colors"
+              className="px-3 py-2 rounded-lg hover:bg-ink-100 hover:text-ink-950 transition-colors"
             >
               Pour qui ?
             </a>
             <a
               href="#pricing"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-md hover:bg-ink-100 hover:text-signal transition-colors"
+              className="px-3 py-2 rounded-lg hover:bg-ink-100 hover:text-ink-950 transition-colors"
             >
               Tarifs
             </a>
             <a
               href="#faq"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-md hover:bg-ink-100 hover:text-signal transition-colors"
+              className="px-3 py-2 rounded-lg hover:bg-ink-100 hover:text-ink-950 transition-colors"
             >
               FAQ
             </a>
@@ -259,7 +235,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
               <Link
                 href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 rounded-lg bg-signal text-white font-medium text-sm shadow"
+                className="w-full text-center py-2.5 rounded-full bg-ink-950 text-white font-semibold text-xs shadow"
               >
                 Accéder au Dashboard →
               </Link>
@@ -268,14 +244,14 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-lg border border-ink-300 text-ink-950 font-medium text-sm hover:bg-ink-100"
+                  className="w-full text-center py-2.5 rounded-full border border-ink-300 text-ink-950 font-semibold text-xs hover:bg-ink-100"
                 >
                   Se connecter
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-lg bg-signal text-white font-medium text-sm shadow shadow-signal/25"
+                  className="w-full text-center py-2.5 rounded-full bg-ink-950 text-white font-semibold text-xs shadow shadow-ink-950/20"
                 >
                   Démarrer gratuitement
                 </Link>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { RemindMeLogo } from "@/components/landing/remindme-logo";
 
 interface MobileNavProps {
   unreadCount?: number | null;
@@ -80,13 +81,8 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
             </svg>
           </button>
 
-          <Link href="/dashboard" className="flex items-center gap-2 tap-active">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-signal font-bold text-white text-xs shadow-xs">
-              M
-            </span>
-            <span className="font-bold text-sm text-ink-950 tracking-tight">
-              Multi-Activity
-            </span>
+          <Link href="/dashboard" className="flex items-center tap-active">
+            <RemindMeLogo size="sm" showText={true} />
           </Link>
         </div>
 
@@ -120,15 +116,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           <div className="relative flex flex-col w-[85%] max-w-[320px] bg-canvas-raised h-full shadow-2xl z-10 border-r border-ink-200 overflow-y-auto">
             {/* Drawer Header */}
             <div className="flex items-center justify-between p-4 border-b border-ink-200 bg-canvas">
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-signal font-bold text-white text-sm">
-                  M
-                </span>
-                <div>
-                  <div className="font-bold text-sm text-ink-950">Multi-Activity</div>
-                  <div className="text-[11px] text-ink-500">Navigation rapide</div>
-                </div>
-              </div>
+              <RemindMeLogo size="sm" showText={true} />
 
               <button
                 type="button"

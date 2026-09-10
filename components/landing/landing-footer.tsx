@@ -1,27 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import { RemindMeLogo } from "./remindme-logo";
 import { useTheme } from "@/components/theme/theme-provider";
 
 export function LandingFooter() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <footer className="bg-canvas border-t border-ink-100 py-16">
+    <footer className="bg-canvas border-t border-ink-200/60 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           {/* Brand Info */}
           <div className="space-y-4 md:col-span-1">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-signal to-signal/80 flex items-center justify-center text-white font-bold text-sm shadow">
-                R
-              </div>
-              <span className="font-bold text-base tracking-tight text-ink-950 font-sans">
-                Remind<span className="text-signal">Me</span>
-              </span>
+            <Link href="/" className="inline-block group">
+              <RemindMeLogo size="sm" showText={true} />
             </Link>
             <p className="text-xs text-ink-500 leading-relaxed">
-              Le premier centre de contrôle tout-en-un pour gérer vos activités multiples, votre temps et vos revenus sous une même interface.
+              Une référence pour les pluriactifs et les indépendants. Votre travail, votre temps et votre argent enfin sous contrôle.
             </p>
             <div className="text-xs text-ink-500 font-mono">
               &copy; {new Date().getFullYear()} Remind Me Inc.

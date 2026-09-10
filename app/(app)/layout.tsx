@@ -5,6 +5,7 @@ import { ensureNotifications } from "@/lib/notifications/sync";
 import { CommandPalette } from "@/components/navigation/command-palette";
 import { MobileNav } from "@/components/navigation/mobile-nav";
 import { NotificationBell } from "@/components/navigation/notification-bell";
+import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { NetworkStatus } from "@/components/ui/network-status";
 import type { Notification } from "@/types/database";
 
@@ -69,11 +70,8 @@ export default async function AppLayout({
         <div className="space-y-6">
           {/* Logo & Titre */}
           <div className="flex items-center justify-between px-2">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-signal font-bold text-white text-sm shadow-xs">
-                M
-              </span>
-              <span className="font-bold text-base text-ink-950">Multi-Activity</span>
+            <Link href="/dashboard" className="flex items-center group">
+              <RemindMeLogo size="sm" showText={true} />
             </Link>
 
             <NotificationBell
