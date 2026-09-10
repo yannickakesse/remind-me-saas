@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { LandingView } from "@/components/landing/landing-view";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Remind Me — Votre travail, votre temps et votre argent sous contrôle",
   description:
