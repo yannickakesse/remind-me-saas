@@ -59,11 +59,11 @@ export function LandingHero() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-14">
           <Link
             href="/register"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full bg-ink-950 text-white font-semibold text-sm sm:text-base shadow-lg shadow-ink-950/20 hover:bg-ink-900 hover:shadow-xl hover:shadow-ink-950/25 transition-all duration-200 tap-active group"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full bg-ink-950 text-white font-semibold text-sm sm:text-base shadow-lg shadow-ink-950/20 hover:bg-ink-900 hover:shadow-xl hover:shadow-ink-950/25 btn-premium tap-active group"
           >
             <span>Démarrer maintenant</span>
             <svg
-              className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
+              className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -75,7 +75,7 @@ export function LandingHero() {
 
           <a
             href="#product-demo"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full bg-canvas-raised border border-ink-200/90 text-ink-950 font-semibold text-sm sm:text-base hover:bg-ink-100 hover:border-ink-300 transition-all duration-200 tap-active shadow-xs"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full bg-canvas-raised border border-ink-200/90 text-ink-950 font-semibold text-sm sm:text-base hover:bg-ink-100 hover:border-ink-300 btn-premium tap-active shadow-xs"
           >
             <svg
               className="w-4 h-4 text-signal"

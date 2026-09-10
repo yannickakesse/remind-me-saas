@@ -17,7 +17,7 @@ export function LandingComparison() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Chaos Side */}
-          <div className="p-6 sm:p-8 rounded-2xl bg-canvas border border-danger/20 shadow-sm relative overflow-hidden">
+          <div className="p-6 sm:p-8 rounded-3xl bg-canvas border border-danger/20 shadow-sm card-interactive relative overflow-hidden">
             <div className="absolute top-0 right-0 px-4 py-1.5 bg-danger/10 text-danger font-semibold text-xs rounded-bl-xl border-l border-b border-danger/20">
               ❌ AVANT (Le chaos quotidien)
             </div>
@@ -71,7 +71,7 @@ export function LandingComparison() {
           </div>
 
           {/* Clarity Side */}
-          <div className="p-6 sm:p-8 rounded-2xl bg-canvas border-2 border-signal/40 shadow-lg shadow-signal/5 relative overflow-hidden">
+          <div className="p-6 sm:p-8 rounded-3xl bg-canvas-raised border-2 border-signal/40 shadow-lg shadow-signal/5 card-interactive relative overflow-hidden">
             <div className="absolute top-0 right-0 px-4 py-1.5 bg-signal text-white font-semibold text-xs rounded-bl-xl shadow-sm">
               ✨ AVEC REMIND ME (La sérénité totale)
             </div>

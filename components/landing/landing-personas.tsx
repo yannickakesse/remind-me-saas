@@ -57,7 +57,7 @@ export function LandingPersonas() {
           {personas.map((persona, idx) => (
             <div
               key={idx}
-              className="p-8 rounded-2xl bg-canvas-raised border border-ink-100 shadow-sm hover:border-signal/30 transition-all space-y-4"
+              className="p-8 rounded-3xl bg-canvas-raised border border-ink-200/70 shadow-sm card-interactive space-y-4"
             >
               <div className="flex items-center justify-between">
                 <span className="px-3 py-1 rounded-full text-xs font-semibold bg-signal-soft text-signal">

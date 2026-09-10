@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FloatingEcosystem } from "./floating-ecosystem";
 
 type PreviewTab = "cockpit" | "calendar" | "finances" | "tasks";
 
@@ -9,9 +10,12 @@ export function LandingProductPreview() {
   const [markedPaid, setMarkedPaid] = useState(false);
 
   return (
-    <section id="product-demo" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+    <section id="product-demo" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-28 relative">
+      {/* Floating Productivity Ecosystem Around the Dashboard */}
+      <FloatingEcosystem />
+
       {/* Container Frame */}
-      <div className="rounded-2xl border border-ink-300 bg-canvas-raised shadow-2xl shadow-signal/10 overflow-hidden transition-all duration-300">
+      <div className="relative z-10 rounded-3xl border border-ink-200/90 bg-canvas-raised shadow-2xl shadow-ink-950/5 overflow-hidden transition-all duration-300">
         {/* Top Cockpit Browser/App Bar */}
         <div className="bg-canvas border-b border-ink-100 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">

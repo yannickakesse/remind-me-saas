@@ -87,7 +87,7 @@ export function LandingFeatures() {
           {features.map((feat) => (
             <div
               key={feat.number}
-              className="p-8 rounded-2xl bg-canvas-raised border border-ink-100 shadow-sm hover:shadow-md hover:border-signal/30 transition-all duration-200 space-y-5 group"
+              className="p-8 rounded-3xl bg-canvas-raised border border-ink-200/70 shadow-sm card-interactive space-y-5 group"
             >
               <div className="flex items-center justify-between">
                 <div className="w-12 h-12 rounded-xl bg-canvas flex items-center justify-center border border-ink-100 group-hover:scale-105 transition-transform">

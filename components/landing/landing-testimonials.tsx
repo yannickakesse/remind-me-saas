@@ -66,7 +66,7 @@ export function LandingTestimonials() {
           {testimonials.map((t, idx) => (
             <div
               key={idx}
-              className="p-6 sm:p-8 rounded-2xl bg-canvas-raised border border-ink-100 shadow-sm flex flex-col justify-between space-y-6"
+              className="p-6 sm:p-8 rounded-3xl bg-canvas-raised border border-ink-200/70 shadow-sm card-interactive flex flex-col justify-between space-y-6"
             >
               <div className="space-y-3">
                 <div className="flex items-center gap-1 text-warning">

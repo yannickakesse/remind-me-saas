@@ -53,7 +53,7 @@ export function LandingFAQ() {
             return (
               <div
                 key={idx}
-                className="rounded-2xl bg-canvas border border-ink-100 overflow-hidden transition-colors"
+                className="rounded-3xl bg-canvas border border-ink-200/70 shadow-xs card-interactive overflow-hidden transition-colors"
               >
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
