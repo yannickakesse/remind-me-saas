@@ -1,3 +1,5 @@
+"use client";
+
 import { useTransition, useState } from "react";
 import { Check, X } from "lucide-react";
 import { PLAN_ENTITLEMENTS, type PlanType } from "@/lib/subscriptions/entitlements";
