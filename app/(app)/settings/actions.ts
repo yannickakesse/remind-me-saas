@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { profileFormSchema, passwordChangeSchema, notifPrefsSchema } from "@/lib/validation/settings";
 
@@ -53,7 +54,16 @@ export async function updateProfile(formData: FormData) {
 export async function updateAvatarUrl(url: string | null) {
   const { supabase, user } = await requireUser();
 
-  const { error } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+  let safeUrl: string | null = null;
+  if (url) {
+    const parsed = z.string().url().refine((val) => /^https?:\/\//i.test(val), "URL non sécurisée").safeParse(url);
+    if (!parsed.success) {
+      throw new Error("Format d'URL d'avatar invalide.");
+    }
+    safeUrl = parsed.data;
+  }
+
+  const { error } = await supabase.from("profiles").update({ avatar_url: safeUrl }).eq("id", user.id);
   if (error) throw new Error("Impossible d'enregistrer la photo de profil.");
 
   revalidatePath("/settings");
@@ -65,9 +75,11 @@ export async function updateNotificationPrefs(formData: FormData) {
   const parsed = notifPrefsSchema.safeParse({
     email_enabled: formData.get("email_enabled") === "on",
     in_app_enabled: formData.get("in_app_enabled") === "on",
+    push_enabled: formData.get("push_enabled") === "on",
     activity_reminders: formData.get("activity_reminders") === "on",
     payment_reminders: formData.get("payment_reminders") === "on",
     expense_reminders: formData.get("expense_reminders") === "on",
+    finance_reminders: formData.get("finance_reminders") === "on",
     task_reminders: formData.get("task_reminders") === "on",
     conflict_alerts: formData.get("conflict_alerts") === "on",
     quiet_hours_enabled: formData.get("quiet_hours_enabled") === "on",

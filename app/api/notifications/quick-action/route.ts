@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+
+const quickActionSchema = z.object({
+  action: z.enum(["mark_received", "mark_paid", "snooze", "mark_read", "dismiss"]),
+  notificationId: z.string().uuid().optional(),
+  entityId: z.string().uuid().optional(),
+  hours: z.number().positive().max(720).optional(),
+});
 
 export async function POST(request: Request) {
   const supabase = createClient();
@@ -12,8 +20,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
-    const { action, notificationId, entityId } = body;
+    const rawBody = await request.json();
+    const parsed = quickActionSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 });
+    }
+
+    const { action, notificationId, entityId, hours } = parsed.data;
     const nowIso = new Date().toISOString();
 
     if (action === "mark_received" && entityId) {
@@ -25,6 +38,10 @@ export async function POST(request: Request) {
         .eq("user_id", user.id);
 
       // 2. Résoudre la notification correspondante ainsi que toutes les notifications associées à ce revenu
+      const filter = notificationId
+        ? `id.eq.${notificationId},entity_id.eq.${entityId}`
+        : `entity_id.eq.${entityId}`;
+
       await supabase
         .from("notifications")
         .update({
@@ -33,7 +50,7 @@ export async function POST(request: Request) {
           read_at: nowIso,
         })
         .eq("user_id", user.id)
-        .or(`id.eq.${notificationId},entity_id.eq.${entityId}`);
+        .or(filter);
 
       return NextResponse.json({ success: true, action: "mark_received" });
     }
@@ -62,6 +79,10 @@ export async function POST(request: Request) {
           .eq("user_id", user.id);
       }
 
+      const filter = notificationId
+        ? `id.eq.${notificationId},entity_id.eq.${entityId}`
+        : `entity_id.eq.${entityId}`;
+
       await supabase
         .from("notifications")
         .update({
@@ -70,14 +91,14 @@ export async function POST(request: Request) {
           read_at: nowIso,
         })
         .eq("user_id", user.id)
-        .or(`id.eq.${notificationId},entity_id.eq.${entityId}`);
+        .or(filter);
 
       return NextResponse.json({ success: true, action: "mark_paid" });
     }
 
     if (action === "snooze" && notificationId) {
-      const hours = body.hours ?? 24;
-      const snoozedUntil = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+      const snoozeHours = hours ?? 24;
+      const snoozedUntil = new Date(Date.now() + snoozeHours * 60 * 60 * 1000).toISOString();
 
       await supabase
         .from("notifications")

@@ -11,19 +11,40 @@ export interface EmailPayload {
 }
 
 /**
+ * Échappe les caractères spéciaux HTML pour prévenir toute injection dans les e-mails.
+ */
+export function escapeHtml(str: string | null | undefined): string {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/**
  * Génère le contenu HTML d'un e-mail transactionnel de la marque Remind Me.
  */
 export function generateEmailHtml(payload: EmailPayload): string {
   const { recipientName, title, body, link, ctaText = "Open in Remind Me" } = payload;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.remindme.io";
-  const fullLink = link.startsWith("http") ? link : `${baseUrl}${link}`;
+  const rawFullLink = link.startsWith("http") ? link : `${baseUrl}${link}`;
+
+  // Sanitize the link (must be http/https)
+  const safeLink = /^https?:\/\//i.test(rawFullLink) ? encodeURI(rawFullLink) : `${baseUrl}/dashboard`;
+
+  const safeTitle = escapeHtml(title);
+  const safeRecipientName = escapeHtml(recipientName);
+  const safeBody = escapeHtml(body);
+  const safeCtaText = escapeHtml(ctaText);
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
+  <title>${safeTitle}</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #F8FAFC; color: #0F172A; margin: 0; padding: 24px; }
     .container { max-width: 560px; margin: 0 auto; background: #FFFFFF; border-radius: 16px; border: 1px solid #E2E8F0; overflow: hidden; }
@@ -43,11 +64,11 @@ export function generateEmailHtml(payload: EmailPayload): string {
       <div class="logo">Remind<span>Me</span></div>
     </div>
     <div class="content">
-      <div class="title">${title}</div>
-      <p class="body-text">Hello ${recipientName},</p>
-      <p class="body-text">${body}</p>
+      <div class="title">${safeTitle}</div>
+      <p class="body-text">Hello ${safeRecipientName},</p>
+      <p class="body-text">${safeBody}</p>
       <div style="margin: 28px 0;">
-        <a href="${fullLink}" class="btn" target="_blank">${ctaText} &rarr;</a>
+        <a href="${safeLink}" class="btn" target="_blank">${safeCtaText} &rarr;</a>
       </div>
     </div>
     <div class="footer">

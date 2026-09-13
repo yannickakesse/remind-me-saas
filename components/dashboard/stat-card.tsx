@@ -24,10 +24,21 @@ const TONE_TEXT_CLASSES: Record<BadgeTone, string> = {
  */
 export function StatCard({ label, value, helper, tone = "neutral" }: StatCardProps) {
   return (
-    <div className="rounded-lg border border-ink-100 bg-canvas-raised px-5 py-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-ink-500">{label}</p>
-      <p className={`mt-1 text-2xl font-semibold ${TONE_TEXT_CLASSES[tone]}`}>{value}</p>
-      {helper ? <p className="mt-1 text-xs text-ink-500">{helper}</p> : null}
+    <div className="rounded-xl border border-ink-100 bg-canvas-raised p-3.5 sm:p-5 min-w-0 w-full shadow-xs flex flex-col justify-between">
+      <div>
+        <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-ink-500 truncate">
+          {label}
+        </p>
+        <p
+          className={`mt-1 text-base sm:text-xl md:text-2xl font-bold tracking-tight truncate ${TONE_TEXT_CLASSES[tone]}`}
+          title={value}
+        >
+          {value}
+        </p>
+      </div>
+      {helper ? (
+        <p className="mt-1 text-[10px] sm:text-xs text-ink-500 truncate">{helper}</p>
+      ) : null}
     </div>
   );
 }

@@ -130,11 +130,11 @@ export default async function DashboardPage() {
   const onboardingComplete = checklistItems.every((item) => item.done);
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
       {/* Top Welcome & Quick Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-ink-950">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 truncate">
             Bonjour {profile?.full_name?.split(" ")[0] ?? ""} 👋
           </h1>
           <p className="text-xs text-ink-500 mt-0.5">
@@ -149,7 +149,7 @@ export default async function DashboardPage() {
       ) : null}
 
       {/* Main KPI Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full min-w-0">
         <StatCard
           label="Revenus reçus"
           value={formatAmount(incomeReceived, currency)}

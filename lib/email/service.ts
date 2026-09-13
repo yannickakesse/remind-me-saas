@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, SupportedLocale } from "@/types/database";
 import { generateEmailHtml, generateEmailText } from "./templates";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 export interface SendEmailOptions {
   userId: string;
@@ -41,7 +42,14 @@ export async function sendNotificationEmail(
     idempotencyKey,
   } = options;
 
-  // 1. Vérification d'idempotence via les logs
+  // 1. Vérification du rate limiting (max 20 e-mails par heure par utilisateur)
+  const rl = checkRateLimit(`email:${userId}`, 20, 3600);
+  if (!rl.success) {
+    console.warn(`[EmailService:RateLimit] User ${userId} a dépassé son quota d'emails.`);
+    return false;
+  }
+
+  // 2. Vérification d'idempotence via les logs
   if (supabase && idempotencyKey) {
     const { data: existingLog } = await supabase
       .from("notification_logs")

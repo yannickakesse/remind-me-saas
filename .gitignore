@@ -9,10 +9,9 @@
 /build
 *.tsbuildinfo
 
-# Variables d'environnement (jamais commitées — contiennent les clés Supabase)
-.env
-.env.local
-.env.*.local
+# Variables d'environnement (jamais commitées — contiennent les clés secrètes)
+.env*
+!.env.example
 
 # Supabase CLI
 .supabase/

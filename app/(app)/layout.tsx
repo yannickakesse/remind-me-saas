@@ -58,7 +58,7 @@ export default async function AppLayout({
   ]);
 
   return (
-    <div className="flex min-h-screen bg-canvas flex-col md:flex-row">
+    <div className="flex min-h-screen bg-canvas flex-col md:flex-row w-full max-w-full overflow-x-hidden">
       {/* Moniteur d'état réseau */}
       <NetworkStatus />
 
@@ -120,7 +120,7 @@ export default async function AppLayout({
       </aside>
 
       {/* Contenu principal avec padding adapté pour la bottom nav mobile */}
-      <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto overflow-y-auto pb-20 md:pb-8">
+      <main className="flex-1 p-3.5 sm:p-6 md:p-8 max-w-7xl mx-auto w-full min-w-0 max-w-full overflow-y-auto pb-24 md:pb-8">
         {children}
       </main>
     </div>

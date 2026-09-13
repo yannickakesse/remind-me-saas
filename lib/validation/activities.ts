@@ -52,7 +52,10 @@ export const activityOrganizationSchema = z.object({
   organizationName: z.string().optional(),
   contactName: z.string().optional(),
   contactPhone: z.string().optional(),
-  contactEmail: z.string().email("Email invalide").optional().or(z.literal("")),
+  contactEmail: z.preprocess((val) => {
+    if (val === "" || val === null || val === undefined) return undefined;
+    return val;
+  }, z.string().email("Email invalide").optional()),
   address: z.string().optional(),
   workMode: z.enum(["remote", "onsite", "hybrid"]).optional(),
   location: z.string().optional(),
@@ -64,7 +67,11 @@ export const activityScheduleEntrySchema = z
     weekday: z.coerce.number().min(0).max(6),
     startTime: z.string().regex(/^\d{2}:\d{2}$/, "Heure invalide"),
     endTime: z.string().regex(/^\d{2}:\d{2}$/, "Heure invalide"),
-    breakMinutes: z.coerce.number().min(0).default(0),
+    breakMinutes: z.preprocess((val) => {
+      if (val === "" || val === undefined || val === null) return 0;
+      const n = Number(val);
+      return isNaN(n) ? 0 : n;
+    }, z.number().min(0).default(0)),
     recurrence: z.enum(["weekly", "biweekly", "custom"]).default("weekly"),
   })
   .refine((data) => data.endTime > data.startTime, {
@@ -81,13 +88,24 @@ export const activityScheduleSchema = z.object({
 
 // ---- Rémunération -------------------------------------------------------
 export const activityCompensationSchema = z.object({
-  amount: z.coerce.number().min(0, "Montant invalide"),
+  amount: z.preprocess((val) => {
+    if (typeof val === "string") {
+      const cleaned = val.replace(/\s+/g, "").replace(",", ".");
+      const num = Number(cleaned);
+      return isNaN(num) ? val : num;
+    }
+    return val;
+  }, z.coerce.number().min(0, "Montant invalide")),
   currency: z.string().length(3, "Sélectionnez une devise"),
   frequency: z.enum([
     "hourly", "daily", "per_session", "weekly", "biweekly", "monthly",
     "per_project", "one_time",
   ]),
-  paymentDay: z.coerce.number().min(1).max(31).optional(),
+  paymentDay: z.preprocess((val) => {
+    if (val === "" || val === undefined || val === null) return undefined;
+    const num = Number(val);
+    return isNaN(num) ? undefined : num;
+  }, z.number().min(1, "Le jour doit être compris entre 1 et 31").max(31, "Le jour doit être compris entre 1 et 31").optional()),
   paymentTerms: z.string().optional(),
 });
 

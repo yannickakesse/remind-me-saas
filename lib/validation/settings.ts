@@ -28,9 +28,11 @@ export const NOTIFICATION_PREF_KEYS = [
   "finance_overdue",
   "email_enabled",
   "in_app_enabled",
+  "push_enabled",
   "activity_reminders",
   "payment_reminders",
   "expense_reminders",
+  "finance_reminders",
   "task_reminders",
   "conflict_alerts",
 ] as const;
@@ -39,9 +41,11 @@ export type NotificationPrefKey = (typeof NOTIFICATION_PREF_KEYS)[number];
 export const notifPrefsSchema = z.object({
   email_enabled: z.boolean().default(true),
   in_app_enabled: z.boolean().default(true),
+  push_enabled: z.boolean().default(false),
   activity_reminders: z.boolean().default(true),
   payment_reminders: z.boolean().default(true),
   expense_reminders: z.boolean().default(true),
+  finance_reminders: z.boolean().default(true),
   task_reminders: z.boolean().default(true),
   conflict_alerts: z.boolean().default(true),
   quiet_hours_enabled: z.boolean().default(false),

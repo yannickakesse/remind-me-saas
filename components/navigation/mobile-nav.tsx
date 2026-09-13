@@ -56,46 +56,22 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
 
   return (
     <>
-      {/* Top Mobile Bar (< 768px) */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-4 py-3 shadow-xs">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setIsOpen(true)}
-            aria-label="Ouvrir le menu principal"
-            aria-expanded={isOpen}
-            className="flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 hover:bg-ink-100 active:scale-95 transition-all focus:outline-none"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
-
-          <Link href="/dashboard" className="flex items-center tap-active">
-            <RemindMeLogo size="sm" showText={true} />
-          </Link>
-        </div>
+      {/* Top Mobile Bar (< 768px) — Header Mobile Moderne & Épuré */}
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-4 py-2.5 shadow-xs w-full max-w-full">
+        <Link href="/dashboard" className="flex items-center tap-active py-0.5">
+          <RemindMeLogo size="sm" showText={true} />
+        </Link>
 
         <div className="flex items-center gap-2">
           <Link
             href="/notifications"
             aria-label="Notifications"
-            className="relative flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 hover:bg-ink-100 active:scale-95 transition-all"
+            className="relative flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 hover:bg-ink-100 active:scale-95 transition-all tap-active"
           >
-            <span className="text-lg">🔔</span>
+            <span className="text-xl">🔔</span>
             {unreadCount ? (
-              <span className="absolute top-1.5 right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white animate-pulse">
-                {unreadCount}
+              <span className="absolute top-1.5 right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white shadow-xs animate-pulse">
+                {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             ) : null}
           </Link>

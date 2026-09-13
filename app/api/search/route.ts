@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q")?.trim();
+  const rawQ = searchParams.get("q")?.trim() ?? "";
 
-  if (!q || q.length < 2) {
+  // Assainissement strict pour neutraliser les caractères de contrôle PostgREST
+  const sanitizedQ = rawQ.replace(/[,().%\\"]/g, " ").trim();
+  if (!sanitizedQ || sanitizedQ.length < 2) {
     return NextResponse.json({ results: [] });
   }
 
@@ -18,7 +21,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const query = `%${q}%`;
+  // Rate limit : max 45 requêtes de recherche par minute par utilisateur
+  const rl = checkRateLimit(`search:${user.id}`, 45, 60);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Trop de requêtes. Veuillez ralentir." },
+      { status: 429, headers: { "Retry-After": "10" } }
+    );
+  }
+
+  const query = `%${sanitizedQ}%`;
 
   // Recherche parallèle sur les tables principales
   const [

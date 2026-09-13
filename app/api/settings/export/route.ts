@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 /**
  * §98 du prompt maître — "Export my data". Un export JSON complet des
@@ -15,6 +16,15 @@ export async function GET() {
 
   if (!user) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+  }
+
+  // Limitation de débit : max 5 exports complets par heure par utilisateur
+  const rl = checkRateLimit(`export_all:${user.id}`, 5, 3600);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Limite d'exports atteinte. Réessayez dans une heure." },
+      { status: 429, headers: { "Retry-After": "3600" } }
+    );
   }
 
   const [

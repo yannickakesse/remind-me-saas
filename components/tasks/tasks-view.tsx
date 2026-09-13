@@ -119,37 +119,41 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 w-full min-w-0 max-w-full">
       {/* En-tête principal */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink-950">Tâches & Actions</h1>
-          <p className="text-sm text-ink-500">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 truncate">
+            Tâches & Actions
+          </h1>
+          <p className="text-xs text-ink-500 mt-0.5 truncate">
             {counts.all} active{counts.all > 1 ? "s" : ""}
             {counts.overdue > 0 ? (
-              <span className="ml-2 font-medium text-danger">
+              <span className="ml-2 font-semibold text-danger">
                 • {counts.overdue} en retard
               </span>
             ) : null}
             {counts.today > 0 ? (
-              <span className="ml-2 font-medium text-warning">
+              <span className="ml-2 font-semibold text-warning">
                 • {counts.today} aujourd'hui
               </span>
             ) : null}
           </p>
         </div>
 
-        <Link href="/tasks/new" className={buttonClasses("primary", "md")}>
-          <svg className="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Nouvelle tâche
-        </Link>
+        <div className="shrink-0">
+          <Link href="/tasks/new" className={buttonClasses("primary", "sm")}>
+            <svg className="mr-1 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Nouvelle tâche
+          </Link>
+        </div>
       </div>
 
-      {/* Onglets de navigation temporelle */}
-      <div className="border-b border-ink-200">
-        <nav className="flex space-x-2 overflow-x-auto pb-px" aria-label="Tabs">
+      {/* Onglets de navigation temporelle défilables sans scrollbar */}
+      <div className="w-full max-w-full overflow-x-auto no-scrollbar border-b border-ink-200 pb-1">
+        <nav className="flex space-x-1.5 min-w-max py-0.5" aria-label="Tabs">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -157,21 +161,21 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-semibold transition-all tap-active ${
                   isActive
-                    ? "border-signal text-signal"
-                    : "border-transparent text-ink-500 hover:border-ink-300 hover:text-ink-700"
+                    ? "bg-signal text-white shadow-xs"
+                    : "bg-canvas-raised border border-ink-200 text-ink-700 hover:bg-ink-100"
                 }`}
               >
-                {tab.label}
+                <span>{tab.label}</span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
                     isActive
                       ? tab.alert
-                        ? "bg-danger-soft text-danger"
-                        : "bg-signal-soft text-signal"
+                        ? "bg-white text-danger font-extrabold"
+                        : "bg-white/20 text-white"
                       : tab.alert
-                      ? "bg-danger-soft text-danger"
+                      ? "bg-danger-soft text-danger font-bold"
                       : "bg-ink-100 text-ink-600"
                   }`}
                 >
@@ -184,15 +188,15 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
       </div>
 
       {/* Barre de filtres & recherche */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full min-w-0">
         {/* Champ de recherche */}
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-w-0">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher une tâche..."
-            className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3.5 py-2 pl-9 text-sm text-ink-950 placeholder-ink-400 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
+            className="w-full rounded-xl border border-ink-300 bg-canvas-raised px-3.5 py-2 pl-9 text-xs sm:text-sm text-ink-950 placeholder-ink-400 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal min-h-[40px]"
           />
           <svg
             className="absolute left-3 top-2.5 h-4 w-4 text-ink-400"
@@ -213,38 +217,39 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
               onClick={() => setSearchQuery("")}
               className="absolute right-2.5 top-2.5 text-xs text-ink-400 hover:text-ink-700"
             >
-              Effacer
+              ✕
             </button>
           ) : null}
         </div>
 
-        {/* Filtre par Activité */}
-        <select
-          value={selectedActivity}
-          onChange={(e) => setSelectedActivity(e.target.value)}
-          className="rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
-        >
-          <option value="all">Toutes les activités</option>
-          <option value="unassigned">Tâches libres (sans activité)</option>
-          {activities.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.name}
-            </option>
-          ))}
-        </select>
+        {/* Filtres Select adaptatifs */}
+        <div className="flex items-center gap-2 min-w-0">
+          <select
+            value={selectedActivity}
+            onChange={(e) => setSelectedActivity(e.target.value)}
+            className="flex-1 sm:w-44 rounded-xl border border-ink-300 bg-canvas-raised px-3 py-2 text-xs text-ink-950 focus:border-signal focus:outline-none min-h-[40px] truncate"
+          >
+            <option value="all">Toutes les activités</option>
+            <option value="unassigned">Sans activité</option>
+            {activities.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+          </select>
 
-        {/* Filtre par Priorité */}
-        <select
-          value={selectedPriority}
-          onChange={(e) => setSelectedPriority(e.target.value)}
-          className="rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
-        >
-          <option value="all">Toutes les priorités</option>
-          <option value="urgent">Urgente</option>
-          <option value="high">Haute</option>
-          <option value="medium">Moyenne</option>
-          <option value="low">Basse</option>
-        </select>
+          <select
+            value={selectedPriority}
+            onChange={(e) => setSelectedPriority(e.target.value)}
+            className="flex-1 sm:w-36 rounded-xl border border-ink-300 bg-canvas-raised px-3 py-2 text-xs text-ink-950 focus:border-signal focus:outline-none min-h-[40px]"
+          >
+            <option value="all">Priorités : toutes</option>
+            <option value="urgent">🔴 Urgente</option>
+            <option value="high">🟠 Haute</option>
+            <option value="medium">🔵 Moyenne</option>
+            <option value="low">⚪ Basse</option>
+          </select>
+        </div>
       </div>
 
       {/* Liste des tâches filtrées */}

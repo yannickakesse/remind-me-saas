@@ -20,6 +20,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   const [inAppEnabled, setInAppEnabled] = useState(
     notificationPreferences?.in_app_enabled ?? (notifPrefs?.in_app_enabled as boolean ?? true)
   );
+  const [pushEnabled, setPushEnabled] = useState(
+    (notifPrefs?.push_enabled as boolean) ?? false
+  );
 
   const [activityReminders, setActivityReminders] = useState(
     notificationPreferences?.activity_reminders ?? (notifPrefs?.activity_reminders as boolean ?? true)
@@ -29,6 +32,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   );
   const [expenseReminders, setExpenseReminders] = useState(
     notificationPreferences?.expense_reminders ?? (notifPrefs?.expense_reminders as boolean ?? true)
+  );
+  const [financeReminders, setFinanceReminders] = useState(
+    (notifPrefs?.finance_reminders as boolean) ?? true
   );
   const [taskReminders, setTaskReminders] = useState(
     notificationPreferences?.task_reminders ?? (notifPrefs?.task_reminders as boolean ?? true)
@@ -60,9 +66,11 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       const formData = new FormData();
       if (emailEnabled) formData.set("email_enabled", "on");
       if (inAppEnabled) formData.set("in_app_enabled", "on");
+      if (pushEnabled) formData.set("push_enabled", "on");
       if (activityReminders) formData.set("activity_reminders", "on");
       if (paymentReminders) formData.set("payment_reminders", "on");
       if (expenseReminders) formData.set("expense_reminders", "on");
+      if (financeReminders) formData.set("finance_reminders", "on");
       if (taskReminders) formData.set("task_reminders", "on");
       if (conflictAlerts) formData.set("conflict_alerts", "on");
 
@@ -72,7 +80,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       formData.set("preferred_locale", preferredLocale);
 
       await updateNotificationPrefs(formData);
-      push("Préférences de rappels enregistrées avec succès.", "success");
+      push("Préférences de notifications enregistrées avec succès.", "success");
     } catch {
       push("Impossible d'enregistrer vos préférences.", "error");
     } finally {
@@ -83,7 +91,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-8">
       <div>
-        <h3 className="text-base font-bold text-ink-950">Rappels intelligents & Notifications</h3>
+        <h3 className="text-base font-bold text-ink-950">Centre de notifications & Alertes</h3>
         <p className="text-xs text-ink-500 mt-1">
           Personnalisez la fréquence, les canaux de diffusion et les alertes automatisées de vos activités.
         </p>
@@ -92,9 +100,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       {/* Section 1: Canaux de diffusion */}
       <div className="space-y-3">
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-600">
-          Canaux de réception
+          Canaux de réception (Channels)
         </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <label className="flex items-start gap-3 p-3.5 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
             <input
               type="checkbox"
@@ -103,9 +111,12 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               className="mt-1 rounded text-signal focus:ring-signal"
             />
             <div>
-              <span className="block text-xs font-bold text-ink-950">🔔 In-App (Badge & Bell)</span>
+              <div className="flex items-center gap-1.5">
+                <span className="block text-xs font-bold text-ink-950">🔔 In-App</span>
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-positive-soft text-positive">Actif</span>
+              </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Notifications instantanées dans l’application et le tableau de bord.
+                Cloche, badges temps réel et panneau « Nécessite votre attention ».
               </span>
             </div>
           </label>
@@ -118,9 +129,30 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               className="mt-1 rounded text-signal focus:ring-signal"
             />
             <div>
-              <span className="block text-xs font-bold text-ink-950">📧 Emails Transactionnels</span>
+              <div className="flex items-center gap-1.5">
+                <span className="block text-xs font-bold text-ink-950">📧 E-mail</span>
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-signal-soft text-signal">Configurable</span>
+              </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Rappels par email pour les paiements en retard et les échéances critiques.
+                Relances pour paiements en retard et échéances critiques.
+              </span>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 p-3.5 rounded-xl border border-dashed border-ink-200 bg-canvas-raised/60 cursor-pointer hover:border-ink-300 transition-colors opacity-80">
+            <input
+              type="checkbox"
+              checked={pushEnabled}
+              onChange={(e) => setPushEnabled(e.target.checked)}
+              className="mt-1 rounded text-signal focus:ring-signal"
+            />
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="block text-xs font-bold text-ink-950">📱 Push Web</span>
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-ink-200 text-ink-700">Phase 3</span>
+              </div>
+              <span className="block text-[11px] text-ink-500 mt-0.5">
+                Notifications push sur mobile & navigateur (requiert Service Worker).
               </span>
             </div>
           </label>
@@ -130,7 +162,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       {/* Section 2: Types d'alertes & Rappels */}
       <div className="space-y-3">
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-600">
-          Catégories d'alertes
+          Catégories d'alertes prises en charge
         </h4>
 
         <div className="space-y-2.5">
@@ -142,39 +174,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               className="mt-1 rounded text-signal focus:ring-signal"
             />
             <div className="flex-1">
-              <span className="block text-xs font-bold text-ink-950">🎯 Sessions d'activités & Événements</span>
+              <span className="block text-xs font-bold text-ink-950">🎯 Activités & Séances de coaching</span>
               <span className="block text-[11px] text-ink-500">
-                Rappels avant chaque session prévue (24h avant et 2h avant l'heure de début).
-              </span>
-            </div>
-          </label>
-
-          <label className="flex items-start gap-3 p-3 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
-            <input
-              type="checkbox"
-              checked={paymentReminders}
-              onChange={(e) => setPaymentReminders(e.target.checked)}
-              className="mt-1 rounded text-signal focus:ring-signal"
-            />
-            <div className="flex-1">
-              <span className="block text-xs font-bold text-ink-950">💰 Paiements clients & Factures</span>
-              <span className="block text-[11px] text-ink-500">
-                Avertissements avant échéance (J-3, J-1, Jour J) et relances en cas de retard (+3j, +7j).
-              </span>
-            </div>
-          </label>
-
-          <label className="flex items-start gap-3 p-3 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
-            <input
-              type="checkbox"
-              checked={expenseReminders}
-              onChange={(e) => setExpenseReminders(e.target.checked)}
-              className="mt-1 rounded text-signal focus:ring-signal"
-            />
-            <div className="flex-1">
-              <span className="block text-xs font-bold text-ink-950">⏰ Dépenses programmées & Abonnements</span>
-              <span className="block text-[11px] text-ink-500">
-                Alertes pour anticiper les prélèvements et factures récurrentes à régler.
+                Rappels programmés avant les créneaux d'activité (J-1, H-2).
               </span>
             </div>
           </label>
@@ -187,9 +189,54 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               className="mt-1 rounded text-signal focus:ring-signal"
             />
             <div className="flex-1">
-              <span className="block text-xs font-bold text-ink-950">📝 Tâches & Projets</span>
+              <span className="block text-xs font-bold text-ink-950">📝 Tâches & Échéances</span>
               <span className="block text-[11px] text-ink-500">
-                Rappels des échéances de tâches et alertes en cas de retard.
+                Rappels des tâches à accomplir aujourd'hui et alertes de retard.
+              </span>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 p-3 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
+            <input
+              type="checkbox"
+              checked={paymentReminders}
+              onChange={(e) => setPaymentReminders(e.target.checked)}
+              className="mt-1 rounded text-signal focus:ring-signal"
+            />
+            <div className="flex-1">
+              <span className="block text-xs font-bold text-ink-950">💰 Paiements attendus & Factures clients</span>
+              <span className="block text-[11px] text-ink-500">
+                Alertes avant échéance (J-7, J-3, Jour J) et signalement des impayés.
+              </span>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 p-3 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
+            <input
+              type="checkbox"
+              checked={expenseReminders}
+              onChange={(e) => setExpenseReminders(e.target.checked)}
+              className="mt-1 rounded text-signal focus:ring-signal"
+            />
+            <div className="flex-1">
+              <span className="block text-xs font-bold text-ink-950">⏰ Dépenses & Factures à régler</span>
+              <span className="block text-[11px] text-ink-500">
+                Alertes pour anticiper les paiements et factures fournisseurs dues.
+              </span>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 p-3 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
+            <input
+              type="checkbox"
+              checked={financeReminders}
+              onChange={(e) => setFinanceReminders(e.target.checked)}
+              className="mt-1 rounded text-signal focus:ring-signal"
+            />
+            <div className="flex-1">
+              <span className="block text-xs font-bold text-ink-950">📊 Finances & Dépenses programmées</span>
+              <span className="block text-[11px] text-ink-500">
+                Alertes d'échéances d'abonnements, charges récurrentes et seuils de trésorerie.
               </span>
             </div>
           </label>
@@ -204,7 +251,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex-1">
               <span className="block text-xs font-bold text-ink-950">⚠️ Détection de conflits d'agenda</span>
               <span className="block text-[11px] text-ink-500">
-                Notification immédiate si deux événements ou activités se chevauchent dans votre calendrier.
+                Notification immédiate si deux créneaux d'activités se chevauchent.
               </span>
             </div>
           </label>
@@ -266,7 +313,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           onChange={(e) => setPreferredLocale(e.target.value)}
           className="w-full sm:w-64 px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas-raised text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal"
         >
-          <option value="fr">🇫🇷 Français (Default)</option>
+          <option value="fr">🇫🇷 Français (Par défaut)</option>
           <option value="en">🇬🇧 English</option>
           <option value="es">🇪🇸 Español</option>
           <option value="de">🇩🇪 Deutsch</option>

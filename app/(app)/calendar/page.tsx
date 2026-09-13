@@ -88,9 +88,11 @@ export default async function CalendarPage({
   const conflictIds = detectConflicts(regularEvents);
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-ink-950">Calendrier & Planning</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 truncate">
+          Calendrier & Planning
+        </h1>
         <p className="text-xs text-ink-500 mt-0.5">
           Vos séances d'activités et vos échéances financières programmées.
         </p>

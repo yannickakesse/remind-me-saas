@@ -117,17 +117,19 @@ export default async function FinancesPage({
   const activeTab: FinanceTab = (searchParams?.tab as FinanceTab) || "overview";
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-ink-950">Gestion Financière</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 truncate">
+            Gestion Financière
+          </h1>
           <p className="text-xs text-ink-500 mt-0.5">
-            Suivez vos encaissements, vos dépenses, votre épargne et vos échéances programmées.
+            Suivez vos encaissements, dépenses et échéances en un coup d'œil.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/finances/income/new"
             className={buttonClasses("primary", "sm")}
@@ -148,9 +150,9 @@ export default async function FinancesPage({
 
       {/* Tab: OVERVIEW */}
       {activeTab === "overview" && (
-        <div className="space-y-6">
+        <div className="space-y-5 w-full min-w-0">
           {/* Stat Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full min-w-0">
             <StatCard
               label="Total Reçu"
               value={formatAmount(aggregates.totalIncomeReceived, defaultCurrency)}
@@ -178,14 +180,14 @@ export default async function FinancesPage({
           </div>
 
           {/* Quick Sections Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full min-w-0">
             {/* Prochains encaissements */}
-            <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
+            <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3 min-w-0">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-sm text-ink-950 flex items-center gap-2">
+                <h3 className="font-bold text-xs sm:text-sm text-ink-950 flex items-center gap-1.5 truncate">
                   <span>📈</span> Prochains Revenus
                 </h3>
-                <Link href="/finances?tab=income" className="text-xs text-signal hover:underline">
+                <Link href="/finances?tab=income" className="text-xs font-semibold text-signal hover:underline shrink-0">
                   Voir tout
                 </Link>
               </div>
@@ -195,12 +197,16 @@ export default async function FinancesPage({
               ) : (
                 <div className="space-y-2">
                   {(incomeRows ?? []).filter(i => !i.received).slice(0, 4).map(inc => (
-                    <div key={inc.id} className="flex items-center justify-between p-2 rounded-lg bg-canvas text-xs">
-                      <div>
-                        <div className="font-semibold text-ink-900">{inc.label}</div>
-                        <div className="text-[10px] text-ink-500">Échéance : {inc.due_date}</div>
+                    <div key={inc.id} className="flex items-center justify-between p-2.5 rounded-lg bg-canvas text-xs gap-2 min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-ink-900 truncate" title={inc.label}>
+                          {inc.label}
+                        </div>
+                        <div className="text-[10px] text-ink-500 truncate">
+                          Échéance : {inc.due_date}
+                        </div>
                       </div>
-                      <div className="font-bold text-ink-900">
+                      <div className="font-bold text-ink-950 shrink-0 text-right">
                         {formatAmount(inc.amount, inc.currency)}
                       </div>
                     </div>
@@ -210,12 +216,12 @@ export default async function FinancesPage({
             </div>
 
             {/* Dépenses programmées à venir */}
-            <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
+            <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3 min-w-0">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-sm text-ink-950 flex items-center gap-2">
+                <h3 className="font-bold text-xs sm:text-sm text-ink-950 flex items-center gap-1.5 truncate">
                   <span>⏰</span> Dépenses Programmées
                 </h3>
-                <Link href="/finances?tab=scheduled" className="text-xs text-signal hover:underline">
+                <Link href="/finances?tab=scheduled" className="text-xs font-semibold text-signal hover:underline shrink-0">
                   Voir tout
                 </Link>
               </div>
@@ -225,12 +231,16 @@ export default async function FinancesPage({
               ) : (
                 <div className="space-y-2">
                   {(scheduledExpenses ?? []).filter(s => s.status === "planned" || s.status === "due").slice(0, 4).map(sc => (
-                    <div key={sc.id} className="flex items-center justify-between p-2 rounded-lg bg-canvas text-xs">
-                      <div>
-                        <div className="font-semibold text-ink-900">{sc.name}</div>
-                        <div className="text-[10px] text-ink-500">Échéance : {sc.next_due_date}</div>
+                    <div key={sc.id} className="flex items-center justify-between p-2.5 rounded-lg bg-canvas text-xs gap-2 min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-ink-900 truncate" title={sc.name}>
+                          {sc.name}
+                        </div>
+                        <div className="text-[10px] text-ink-500 truncate">
+                          Échéance : {sc.next_due_date}
+                        </div>
                       </div>
-                      <div className="font-bold text-ink-900">
+                      <div className="font-bold text-ink-950 shrink-0 text-right">
                         {formatAmount(sc.amount, sc.currency)}
                       </div>
                     </div>
@@ -271,9 +281,9 @@ export default async function FinancesPage({
 
       {/* Tab: INCOME */}
       {activeTab === "income" && (
-        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-sm text-ink-950">Revenus du mois</h3>
+        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-4 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-bold text-sm text-ink-950 truncate">Revenus du mois</h3>
             <Link href="/finances/income/new" className={buttonClasses("primary", "sm")}>
               + Nouveau revenu
             </Link>
@@ -284,18 +294,20 @@ export default async function FinancesPage({
           ) : (
             <div className="divide-y divide-ink-100">
               {(incomeRows ?? []).map((inc) => (
-                <div key={inc.id} className="py-3 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-sm text-ink-950">{inc.label}</div>
-                    <div className="text-xs text-ink-500">
+                <div key={inc.id} className="py-3 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-sm text-ink-950 truncate" title={inc.label}>
+                      {inc.label}
+                    </div>
+                    <div className="text-xs text-ink-500 truncate">
                       Échéance: {inc.due_date} • {inc.received ? "Payé le " + inc.received_at : "En attente"}
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <div className="font-bold text-sm text-ink-950">
                       {formatAmount(inc.amount, inc.currency)}
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-0.5 ${
                       inc.received ? "bg-positive-soft text-positive" : "bg-warning-soft text-warning"
                     }`}>
                       {inc.received ? "Reçu" : "En attente"}
@@ -310,9 +322,9 @@ export default async function FinancesPage({
 
       {/* Tab: EXPENSES */}
       {activeTab === "expenses" && (
-        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-sm text-ink-950">Dépenses payées du mois</h3>
+        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-4 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-bold text-sm text-ink-950 truncate">Dépenses payées du mois</h3>
             <Link href="/finances/expenses/new" className={buttonClasses("secondary", "sm")}>
               + Nouvelle dépense
             </Link>
@@ -323,18 +335,20 @@ export default async function FinancesPage({
           ) : (
             <div className="divide-y divide-ink-100">
               {(expenseRows ?? []).map((exp) => (
-                <div key={exp.id} className="py-3 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-sm text-ink-950">{exp.label}</div>
-                    <div className="text-xs text-ink-500">
+                <div key={exp.id} className="py-3 flex items-center justify-between gap-3 min-w-0">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-sm text-ink-950 truncate" title={exp.label}>
+                      {exp.label}
+                    </div>
+                    <div className="text-xs text-ink-500 truncate">
                       {exp.category} • {exp.paid ? "Payé le " + exp.paid_at : "Échéance: " + exp.due_date}
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <div className="font-bold text-sm text-ink-950">
                       {formatAmount(exp.amount, exp.currency)}
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-positive-soft text-positive">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-positive-soft text-positive inline-block mt-0.5">
                       {exp.paid ? "Payée" : "À payer"}
                     </span>
                   </div>

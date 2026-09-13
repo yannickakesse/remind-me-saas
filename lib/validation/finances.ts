@@ -144,3 +144,17 @@ export const savingsGoalFormSchema = z.object({
   monthlyContribution: z.coerce.number().min(0).optional(),
   notes: z.string().optional(),
 });
+
+export const scheduledExpenseFormSchema = z.object({
+  name: z.string().min(1, "Le nom est requis"),
+  category: z.string().min(1, "La catégorie est requise").default("utilities"),
+  amount: z.coerce.number().positive("Le montant doit être supérieur à 0"),
+  currency: z.string().min(1, "La devise est requise").default("XOF"),
+  frequency: z.enum(["once", "daily", "weekly", "monthly", "quarterly", "yearly"]).default("monthly"),
+  nextDueDate: z.string().min(1, "La date d'échéance est requise"),
+  activityId: z.string().uuid().optional().or(z.literal("")),
+  merchant: z.string().optional(),
+  paymentMethod: z.string().optional(),
+  notes: z.string().optional(),
+});
+

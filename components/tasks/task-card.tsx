@@ -105,7 +105,7 @@ export function TaskCard({ task }: TaskCardProps) {
 
   return (
     <div
-      className={`group relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border bg-canvas-raised p-4 transition-all duration-150 hover:shadow-sm ${
+      className={`group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border bg-canvas-raised p-3.5 sm:p-4 transition-all duration-150 hover:shadow-xs w-full min-w-0 ${
         isDone
           ? "border-ink-200 bg-canvas/60 opacity-65"
           : isOverdue
@@ -113,13 +113,13 @@ export function TaskCard({ task }: TaskCardProps) {
           : "border-ink-200 hover:border-ink-300"
       } ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
-      <div className="flex items-start gap-3.5 flex-1 min-w-0">
-        {/* Checkbox interactive */}
+      <div className="flex items-start gap-3 flex-1 min-w-0">
+        {/* Checkbox interactive avec large cible tactile */}
         <button
           type="button"
           onClick={handleToggleCheck}
           aria-label={isDone ? "Marquer comme non terminée" : "Marquer comme terminée"}
-          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
+          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-all tap-active ${
             isDone
               ? "border-positive bg-positive text-white"
               : isInProgress
@@ -128,7 +128,7 @@ export function TaskCard({ task }: TaskCardProps) {
           }`}
         >
           {isDone ? (
-            <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 20 20">
+            <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -136,15 +136,15 @@ export function TaskCard({ task }: TaskCardProps) {
               />
             </svg>
           ) : isInProgress ? (
-            <span className="h-2 w-2 rounded-full bg-signal" />
+            <span className="h-2.5 w-2.5 rounded-full bg-signal" />
           ) : null}
         </button>
 
         {/* Détails texte & métadonnées */}
         <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span
-              className={`font-medium text-ink-950 text-base leading-snug ${
+              className={`font-semibold text-ink-950 text-sm sm:text-base leading-snug break-words ${
                 isDone ? "line-through text-ink-500" : ""
               }`}
             >
@@ -165,18 +165,18 @@ export function TaskCard({ task }: TaskCardProps) {
           </div>
 
           {task.description ? (
-            <p className="mt-1 text-sm text-ink-600 line-clamp-2">{task.description}</p>
+            <p className="mt-1 text-xs sm:text-sm text-ink-600 line-clamp-2">{task.description}</p>
           ) : null}
 
           {/* Métadonnées : Activité & Échéance */}
-          <div className="mt-2 flex flex-wrap items-center gap-y-1 gap-x-3 text-xs text-ink-500">
+          <div className="mt-2 flex flex-wrap items-center gap-y-1 gap-x-2.5 text-xs text-ink-500">
             {task.activity ? (
-              <span className="inline-flex items-center gap-1.5 font-medium text-ink-700">
+              <span className="inline-flex items-center gap-1.5 font-medium text-ink-700 truncate max-w-[180px]">
                 <span
-                  className="h-2.5 w-2.5 rounded-full shrink-0"
+                  className="h-2 w-2 rounded-full shrink-0"
                   style={{ backgroundColor: task.activity.color ?? "#1E3A5F" }}
                 />
-                {task.activity.name}
+                <span className="truncate">{task.activity.name}</span>
               </span>
             ) : (
               <span className="text-ink-400">Tâche libre</span>
@@ -193,12 +193,12 @@ export function TaskCard({ task }: TaskCardProps) {
       </div>
 
       {/* Actions rapides */}
-      <div className="flex items-center gap-2 sm:self-center shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-ink-100">
+      <div className="flex items-center justify-end gap-2 sm:self-center shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-ink-100">
         {!isDone && !isCancelled ? (
           <button
             type="button"
             onClick={handleCycleStatus}
-            className="rounded-md border border-ink-200 bg-canvas-raised px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50 transition-colors"
+            className="rounded-lg border border-ink-200 bg-canvas-raised px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-50 active:scale-95 transition-all tap-active"
             title="Basculer statut (À faire / En cours)"
           >
             {isInProgress ? "Passer à faire" : "Démarrer"}
@@ -207,7 +207,7 @@ export function TaskCard({ task }: TaskCardProps) {
 
         <Link
           href={`/tasks/${task.id}/edit`}
-          className="rounded-md px-2.5 py-1 text-xs font-medium text-signal hover:bg-signal-soft transition-colors"
+          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal-soft active:scale-95 transition-all tap-active"
         >
           Modifier
         </Link>
@@ -215,9 +215,10 @@ export function TaskCard({ task }: TaskCardProps) {
         <button
           type="button"
           onClick={handleDelete}
-          className="rounded-md px-2.5 py-1 text-xs font-medium text-ink-400 hover:text-danger hover:bg-danger-soft/50 transition-colors"
+          className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-400 hover:text-danger hover:bg-danger-soft/50 active:scale-95 transition-all tap-active"
+          title="Supprimer la tâche"
         >
-          Supprimer
+          🗑️
         </button>
       </div>
     </div>

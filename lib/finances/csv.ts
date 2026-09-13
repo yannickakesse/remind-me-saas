@@ -9,7 +9,14 @@ import type { IncomeRow, ExpenseRow } from "./aggregate";
 const DELIMITER = ";";
 
 function csvField(value: string | number | null | undefined): string {
-  const str = value === null || value === undefined ? "" : String(value);
+  let str = value === null || value === undefined ? "" : String(value);
+
+  // Neutralisation contre l'injection de formules CSV (CWE-1236)
+  // Si une cellule commence par =, +, -, @, \t, ou \r, Excel/Sheets l'interprète comme une formule.
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = `'${str}`;
+  }
+
   if (str.includes(DELIMITER) || str.includes('"') || str.includes("\n") || str.includes("\r")) {
     return `"${str.replace(/"/g, '""')}"`;
   }

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { getFinancesForRange } from "@/lib/finances/aggregate";
 import { buildFinancesCsv } from "@/lib/finances/csv";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 /**
  * Export CSV des revenus + dépenses sur une période. Réutilise
@@ -24,6 +25,15 @@ export async function GET(request: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+  }
+
+  // Limitation de débit : max 10 exports CSV par 10 minutes par utilisateur
+  const rl = checkRateLimit(`export_finances:${user.id}`, 10, 600);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Limite d'exports atteinte. Veuillez patienter quelques minutes." },
+      { status: 429, headers: { "Retry-After": "600" } }
+    );
   }
 
   const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user.id).single();
