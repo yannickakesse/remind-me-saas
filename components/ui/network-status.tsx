@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 export function NetworkStatus() {
   const [isOnline, setIsOnline] = useState(true);
@@ -34,9 +35,10 @@ export function NetworkStatus() {
     return (
       <div
         role="alert"
-        className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-ink-950 font-medium text-xs py-2 px-4 text-center shadow-md animate-in slide-in-from-top duration-200"
+        className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-ink-950 font-semibold text-xs py-2 px-4 text-center shadow-md animate-in slide-in-from-top duration-200 flex items-center justify-center gap-1.5"
       >
-        ⚠️ Vous êtes actuellement hors-ligne. L'application reste consultable.
+        <AlertTriangle className="w-4 h-4 text-ink-950 shrink-0" />
+        <span>Vous êtes actuellement hors-ligne. L'application reste consultable.</span>
       </div>
     );
   }
@@ -45,9 +47,10 @@ export function NetworkStatus() {
     return (
       <div
         role="status"
-        className="fixed top-0 left-0 right-0 z-50 bg-positive text-white font-medium text-xs py-2 px-4 text-center shadow-md animate-in slide-in-from-top duration-200"
+        className="fixed top-0 left-0 right-0 z-50 bg-positive text-white font-semibold text-xs py-2 px-4 text-center shadow-md animate-in slide-in-from-top duration-200 flex items-center justify-center gap-1.5"
       >
-        ✓ Connexion rétablie avec succès.
+        <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
+        <span>Connexion rétablie avec succès.</span>
       </div>
     );
   }

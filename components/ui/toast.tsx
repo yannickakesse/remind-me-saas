@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 
 export type ToastVariant = "success" | "error" | "info";
 
@@ -65,16 +66,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 <div
                   key={t.id}
                   role="status"
-                  className={`flex items-start justify-between gap-3 rounded-lg border px-4 py-3 text-sm font-medium shadow-md ${VARIANT_CLASSES[t.variant]}`}
+                  className={`flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-md ${VARIANT_CLASSES[t.variant]}`}
                 >
                   <span>{t.message}</span>
                   <button
                     type="button"
                     onClick={() => remove(t.id)}
                     aria-label="Fermer la notification"
-                    className="shrink-0 opacity-70 hover:opacity-100"
+                    className="shrink-0 opacity-70 hover:opacity-100 p-0.5 rounded"
                   >
-                    ✕
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               ))}

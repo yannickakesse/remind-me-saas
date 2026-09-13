@@ -78,7 +78,7 @@ export const TRANSLATIONS: Record<SupportedLocale, Record<TranslationKey, string
     "actions.filter_all": "All",
     "actions.filter_unread": "Unread",
     "actions.filter_overdue": "Overdue & Urgent",
-    "actions.empty_title": "You're all caught up 🎉",
+    "actions.empty_title": "You're all caught up",
     "actions.empty_desc": "No notifications requiring your attention at this time.",
   },
 
@@ -159,7 +159,7 @@ export const TRANSLATIONS: Record<SupportedLocale, Record<TranslationKey, string
     "actions.filter_all": "Toutes",
     "actions.filter_unread": "Non lues",
     "actions.filter_overdue": "En retard & Urgentes",
-    "actions.empty_title": "Vous êtes à jour 🎉",
+    "actions.empty_title": "Vous êtes à jour",
     "actions.empty_desc": "Aucune notification ne nécessite votre attention pour le moment.",
   },
 
@@ -240,7 +240,7 @@ export const TRANSLATIONS: Record<SupportedLocale, Record<TranslationKey, string
     "actions.filter_all": "Todas",
     "actions.filter_unread": "No leídas",
     "actions.filter_overdue": "Atrasadas & Urgentes",
-    "actions.empty_title": "Todo al día 🎉",
+    "actions.empty_title": "Todo al día",
     "actions.empty_desc": "No hay notificaciones que requieran tu atención.",
   },
 
@@ -321,7 +321,7 @@ export const TRANSLATIONS: Record<SupportedLocale, Record<TranslationKey, string
     "actions.filter_all": "Alle",
     "actions.filter_unread": "Ungelesen",
     "actions.filter_overdue": "Überfällig & Dringend",
-    "actions.empty_title": "Alles erledigt 🎉",
+    "actions.empty_title": "Alles erledigt",
     "actions.empty_desc": "Keine Benachrichtigungen erfordern derzeit Ihre Aufmerksamkeit.",
   },
 
@@ -402,7 +402,7 @@ export const TRANSLATIONS: Record<SupportedLocale, Record<TranslationKey, string
     "actions.filter_all": "Todas",
     "actions.filter_unread": "Não lidas",
     "actions.filter_overdue": "Em atraso & Urgentes",
-    "actions.empty_title": "Tudo em dia 🎉",
+    "actions.empty_title": "Tudo em dia",
     "actions.empty_desc": "Sem notificações a requerer a sua atenção.",
   },
 };

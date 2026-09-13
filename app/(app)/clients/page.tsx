@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Users, Building2, User, Mail, Phone, FileText, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { deleteOrganization, deleteContact } from "./actions";
 import { buttonClasses } from "@/components/ui/button";
@@ -38,18 +39,23 @@ export default async function ClientsPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink-950">Clients & Contacts</h1>
-          <p className="text-sm text-ink-500">
+          <h1 className="text-2xl font-extrabold tracking-tight text-ink-950 flex items-center gap-2">
+            <span className="bg-signal text-white p-1.5 rounded-xl shadow-xs inline-flex">
+              <Users className="w-5 h-5" />
+            </span>
+            Clients & Contacts
+          </h1>
+          <p className="text-sm text-ink-500 mt-1">
             Répertoire centralisé de vos organisations partenaires, écoles, clients et contacts.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
           <Link href="/clients/organizations/new" className={buttonClasses("secondary", "sm")}>
-            + Nouvelle organisation
+            <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle organisation
           </Link>
           <Link href="/clients/contacts/new" className={buttonClasses("primary", "sm")}>
-            + Nouveau contact
+            <Plus className="w-3.5 h-3.5 mr-1" /> Nouveau contact
           </Link>
         </div>
       </div>
@@ -57,8 +63,8 @@ export default async function ClientsPage() {
       {/* 1. ORGANISATIONS */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-ink-950">
-            Organisations ({(organizations ?? []).length})
+          <h2 className="text-base font-bold text-ink-950 flex items-center gap-1.5">
+            <Building2 className="w-4 h-4 text-signal" /> Organisations ({(organizations ?? []).length})
           </h2>
           <Link href="/clients/organizations/new" className="text-xs font-semibold text-signal hover:underline">
             + Ajouter
@@ -88,10 +94,25 @@ export default async function ClientsPage() {
                       ) : null}
                     </div>
 
-                    <div className="text-xs text-ink-600 space-y-0.5">
-                      {org.contact_name ? <p>👤 {org.contact_name}</p> : null}
-                      {org.email ? <p className="truncate">✉️ {org.email}</p> : null}
-                      {org.phone ? <p>📞 {org.phone}</p> : null}
+                    <div className="text-xs text-ink-600 space-y-1">
+                      {org.contact_name ? (
+                        <p className="flex items-center gap-1.5 text-ink-700">
+                          <User className="w-3.5 h-3.5 text-ink-400 shrink-0" />
+                          <span>{org.contact_name}</span>
+                        </p>
+                      ) : null}
+                      {org.email ? (
+                        <p className="flex items-center gap-1.5 truncate text-ink-600">
+                          <Mail className="w-3.5 h-3.5 text-ink-400 shrink-0" />
+                          <span className="truncate">{org.email}</span>
+                        </p>
+                      ) : null}
+                      {org.phone ? (
+                        <p className="flex items-center gap-1.5 text-ink-600">
+                          <Phone className="w-3.5 h-3.5 text-ink-400 shrink-0" />
+                          <span>{org.phone}</span>
+                        </p>
+                      ) : null}
                     </div>
                   </div>
 
@@ -121,8 +142,8 @@ export default async function ClientsPage() {
       {/* 2. CONTACTS */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-ink-950">
-            Contacts ({(contacts ?? []).length})
+          <h2 className="text-base font-bold text-ink-950 flex items-center gap-1.5">
+            <User className="w-4 h-4 text-signal" /> Contacts ({(contacts ?? []).length})
           </h2>
           <Link href="/clients/contacts/new" className="text-xs font-semibold text-signal hover:underline">
             + Ajouter
@@ -153,10 +174,25 @@ export default async function ClientsPage() {
                       </span>
                     </div>
 
-                    <div className="text-xs text-ink-600 space-y-0.5">
-                      {contact.email ? <p className="truncate">✉️ {contact.email}</p> : null}
-                      {contact.phone ? <p>📞 {contact.phone}</p> : null}
-                      {contact.notes ? <p className="italic text-ink-400 truncate">📝 {contact.notes}</p> : null}
+                    <div className="text-xs text-ink-600 space-y-1">
+                      {contact.email ? (
+                        <p className="flex items-center gap-1.5 truncate text-ink-600">
+                          <Mail className="w-3.5 h-3.5 text-ink-400 shrink-0" />
+                          <span className="truncate">{contact.email}</span>
+                        </p>
+                      ) : null}
+                      {contact.phone ? (
+                        <p className="flex items-center gap-1.5 text-ink-600">
+                          <Phone className="w-3.5 h-3.5 text-ink-400 shrink-0" />
+                          <span>{contact.phone}</span>
+                        </p>
+                      ) : null}
+                      {contact.notes ? (
+                        <p className="flex items-center gap-1.5 text-ink-500 italic truncate">
+                          <FileText className="w-3.5 h-3.5 text-ink-400 shrink-0" />
+                          <span className="truncate">{contact.notes}</span>
+                        </p>
+                      ) : null}
                     </div>
                   </div>
 

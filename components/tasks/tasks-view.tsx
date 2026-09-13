@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { Search, X, CheckCircle2, Plus, CheckSquare } from "lucide-react";
 import { TaskCard, type TaskItemData } from "./task-card";
 import { buttonClasses } from "@/components/ui/button";
 import type { TaskPriority, TaskStatus } from "@/types/database";
@@ -198,26 +199,14 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
             placeholder="Rechercher une tâche..."
             className="w-full rounded-xl border border-ink-300 bg-canvas-raised px-3.5 py-2 pl-9 text-xs sm:text-sm text-ink-950 placeholder-ink-400 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal min-h-[40px]"
           />
-          <svg
-            className="absolute left-3 top-2.5 h-4 w-4 text-ink-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+          <Search className="absolute left-3 top-3 h-4 w-4 text-ink-400" />
           {searchQuery ? (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-2.5 text-xs text-ink-400 hover:text-ink-700"
+              className="absolute right-2.5 top-2.5 p-1 text-xs text-ink-400 hover:text-ink-700"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           ) : null}
         </div>
@@ -244,10 +233,10 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
             className="flex-1 sm:w-36 rounded-xl border border-ink-300 bg-canvas-raised px-3 py-2 text-xs text-ink-950 focus:border-signal focus:outline-none min-h-[40px]"
           >
             <option value="all">Priorités : toutes</option>
-            <option value="urgent">🔴 Urgente</option>
-            <option value="high">🟠 Haute</option>
-            <option value="medium">🔵 Moyenne</option>
-            <option value="low">⚪ Basse</option>
+            <option value="urgent">Urgente</option>
+            <option value="high">Haute</option>
+            <option value="medium">Moyenne</option>
+            <option value="low">Basse</option>
           </select>
         </div>
       </div>
@@ -256,13 +245,11 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
       {filteredTasks.length === 0 ? (
         <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised/50 px-6 py-12 text-center">
           <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-ink-100 text-ink-500">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
+            <CheckSquare className="h-5 w-5 text-signal" strokeWidth={1.8} />
           </div>
           <h3 className="text-base font-semibold text-ink-950">
             {activeTab === "overdue"
-              ? "Aucune tâche en retard 🎉"
+              ? "Aucune tâche en retard"
               : activeTab === "today"
               ? "Rien de planifié pour aujourd'hui"
               : activeTab === "completed"
@@ -278,7 +265,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
           </p>
           <div className="mt-5">
             <Link href="/tasks/new" className={buttonClasses("primary", "sm")}>
-              + Créer une tâche
+              <Plus className="w-3.5 h-3.5 mr-1" /> Créer une tâche
             </Link>
           </div>
         </div>

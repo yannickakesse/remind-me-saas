@@ -51,16 +51,16 @@ export function RemindMeLogo({
           >
             <defs>
               <linearGradient id="bgGrad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#1E293B" />
-                <stop offset="1" stopColor="#0F172A" />
+                <stop stopColor="#1E1E24" />
+                <stop offset="1" stopColor="#0B0F17" />
               </linearGradient>
-              <linearGradient id="blueGlow" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#3B82F6" />
-                <stop offset="1" stopColor="#1D4ED8" />
+              <linearGradient id="goldGlow" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#F59E0B" />
+                <stop offset="1" stopColor="#D97706" />
               </linearGradient>
-              <linearGradient id="cyanGlow" x1="60" y1="60" x2="90" y2="90" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#60A5FA" />
-                <stop offset="1" stopColor="#3B82F6" />
+              <linearGradient id="amberGlow" x1="60" y1="60" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#FCD34D" />
+                <stop offset="1" stopColor="#E5A91E" />
               </linearGradient>
               <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
                 <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000000" floodOpacity="0.4" />
@@ -73,38 +73,38 @@ export function RemindMeLogo({
             {/* Connecting orbital arcs */}
             <path
               d="M 32 45 A 28 28 0 0 1 42 28"
-              stroke="#3B82F6"
+              stroke="#F59E0B"
               strokeWidth="5"
               strokeLinecap="round"
               opacity="0.9"
             />
             <path
               d="M 68 36 A 28 28 0 0 1 76 56"
-              stroke="#60A5FA"
+              stroke="#FCD34D"
               strokeWidth="5"
               strokeLinecap="round"
               opacity="0.85"
             />
             <path
               d="M 66 70 A 28 28 0 0 1 36 68"
-              stroke="#2563EB"
+              stroke="#D97706"
               strokeWidth="5"
               strokeLinecap="round"
               opacity="0.95"
             />
 
             {/* Center black metallic core sphere */}
-            <circle cx="50" cy="50" r="10" fill="#0B0F19" stroke="#1E293B" strokeWidth="1.5" />
-            <circle cx="47" cy="47" r="3.5" fill="#334155" opacity="0.6" />
+            <circle cx="50" cy="50" r="10" fill="#0B0F19" stroke="#334155" strokeWidth="1.5" />
+            <circle cx="47" cy="47" r="3.5" fill="#E5A91E" opacity="0.8" />
 
             {/* Top Node: Activity/Calendar Sphere */}
-            <circle cx="50" cy="24" r="11" fill="url(#blueGlow)" filter="url(#nodeShadow)" />
-            <circle cx="47" cy="21" r="3.5" fill="#93C5FD" opacity="0.75" />
+            <circle cx="50" cy="24" r="11" fill="url(#goldGlow)" filter="url(#nodeShadow)" />
+            <circle cx="47" cy="21" r="3.5" fill="#FEF3C7" opacity="0.9" />
 
             {/* Bottom-Left Node: Semicircle Finance/Income */}
             <path
               d="M 23 64 A 12 12 0 0 1 45 64 Z"
-              fill="url(#blueGlow)"
+              fill="url(#goldGlow)"
               filter="url(#nodeShadow)"
             />
 
@@ -115,7 +115,7 @@ export function RemindMeLogo({
               width="20"
               height="20"
               rx="6"
-              fill="url(#cyanGlow)"
+              fill="url(#amberGlow)"
               filter="url(#nodeShadow)"
             />
           </svg>

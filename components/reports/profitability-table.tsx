@@ -1,5 +1,6 @@
 "use client";
 
+import { Trophy } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
 import type { ActivityProfitability } from "@/lib/reports/profitability";
 
@@ -32,8 +33,8 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
                   <h4 className="font-bold text-ink-950 text-sm truncate">{row.activityName}</h4>
                 </div>
                 {row.isTopPerformer ? (
-                  <span className="rounded-full bg-warning-soft text-warning text-[10px] font-bold px-2 py-0.5 shrink-0">
-                    🏆 Top Rentabilité
+                  <span className="rounded-full bg-gold-soft text-gold-dark text-[10px] font-bold px-2 py-0.5 shrink-0 inline-flex items-center gap-1 border border-gold/30">
+                    <Trophy className="w-3 h-3 text-gold-dark" /> Top Rentabilité
                   </span>
                 ) : null}
               </div>
@@ -112,8 +113,8 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
                       />
                       <span className="font-semibold text-ink-950">{row.activityName}</span>
                       {row.isTopPerformer ? (
-                        <span className="rounded-full bg-warning-soft text-warning text-xs font-bold px-2 py-0.5 ml-1">
-                          🏆 Top Rentabilité
+                        <span className="rounded-full bg-gold-soft text-gold-dark text-xs font-bold px-2 py-0.5 ml-1 inline-flex items-center gap-1 border border-gold/30">
+                          <Trophy className="w-3.5 h-3.5 text-gold-dark" /> Top Rentabilité
                         </span>
                       ) : null}
                     </div>

@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
+import { Trash2 } from "lucide-react";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { taskPriorityLabel, type TASK_PRIORITIES } from "@/lib/validation/tasks";
 import type { TaskStatus, TaskPriority } from "@/types/database";
@@ -215,10 +216,10 @@ export function TaskCard({ task }: TaskCardProps) {
         <button
           type="button"
           onClick={handleDelete}
-          className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-400 hover:text-danger hover:bg-danger-soft/50 active:scale-95 transition-all tap-active"
+          className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-400 hover:text-danger hover:bg-danger-soft/50 active:scale-95 transition-all tap-active inline-flex items-center justify-center"
           title="Supprimer la tâche"
         >
-          🗑️
+          <Trash2 className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

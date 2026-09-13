@@ -9,15 +9,26 @@ import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { NetworkStatus } from "@/components/ui/network-status";
 import type { Notification } from "@/types/database";
 
+import {
+  LayoutDashboard,
+  Briefcase,
+  Calendar,
+  CheckSquare,
+  Wallet,
+  Users,
+  BarChart3,
+  Settings,
+} from "lucide-react";
+
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Tableau de bord", icon: "🏠" },
-  { href: "/activities", label: "Activités", icon: "📁" },
-  { href: "/calendar", label: "Calendrier", icon: "📅" },
-  { href: "/tasks", label: "Tâches", icon: "📝" },
-  { href: "/finances", label: "Finances", icon: "💰" },
-  { href: "/clients", label: "Clients", icon: "👥" },
-  { href: "/reports", label: "Rapports", icon: "📊" },
-  { href: "/settings", label: "Paramètres", icon: "⚙️" },
+  { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
+  { href: "/activities", label: "Activités", icon: Briefcase },
+  { href: "/calendar", label: "Calendrier", icon: Calendar },
+  { href: "/tasks", label: "Tâches", icon: CheckSquare },
+  { href: "/finances", label: "Finances", icon: Wallet },
+  { href: "/clients", label: "Clients", icon: Users },
+  { href: "/reports", label: "Rapports", icon: BarChart3 },
+  { href: "/settings", label: "Paramètres", icon: Settings },
 ];
 
 export default async function AppLayout({
@@ -87,16 +98,19 @@ export default async function AppLayout({
 
           {/* Navigation */}
           <nav className="flex flex-col gap-1">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-signal-soft hover:text-signal transition-colors"
-              >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
-              </Link>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-signal-soft hover:text-signal transition-colors"
+                >
+                  <Icon className="w-4 h-4 text-ink-500 group-hover:text-signal transition-colors shrink-0" strokeWidth={1.8} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
 

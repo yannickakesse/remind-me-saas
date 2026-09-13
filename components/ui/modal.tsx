@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 
 interface ModalProps {
   open: boolean;
@@ -57,11 +58,11 @@ export function Modal({ open, onClose, title, description, children, maxWidthCla
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className={`relative w-full ${maxWidthClassName} rounded-lg border border-ink-100 bg-canvas-raised p-6 shadow-lg`}
+        className={`relative w-full ${maxWidthClassName} rounded-2xl border border-ink-200 bg-canvas-raised p-6 shadow-xl`}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <h2 id="modal-title" className="text-lg font-semibold text-ink-950">
+            <h2 id="modal-title" className="text-lg font-bold text-ink-950">
               {title}
             </h2>
             {description ? <p className="mt-1 text-sm text-ink-500">{description}</p> : null}
@@ -70,9 +71,9 @@ export function Modal({ open, onClose, title, description, children, maxWidthCla
             type="button"
             onClick={onClose}
             aria-label="Fermer"
-            className="shrink-0 rounded-md p-1 text-ink-500 hover:bg-ink-100 hover:text-ink-950"
+            className="shrink-0 rounded-lg p-1 text-ink-500 hover:bg-ink-100 hover:text-ink-950 transition-colors"
           >
-            ✕
+            <X className="w-5 h-5" />
           </button>
         </div>
         {children}

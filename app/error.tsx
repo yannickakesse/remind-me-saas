@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
 
 export default function GlobalError({
@@ -18,8 +19,8 @@ export default function GlobalError({
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
       <div className="mx-auto max-w-md space-y-6 rounded-2xl border border-ink-200 bg-canvas-raised p-8 shadow-sm">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger-soft text-danger text-2xl">
-          ⚠️
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger-soft text-danger">
+          <AlertTriangle className="w-6 h-6" />
         </div>
         <div className="space-y-2">
           <h2 className="text-xl font-bold text-ink-950">Une erreur est survenue</h2>

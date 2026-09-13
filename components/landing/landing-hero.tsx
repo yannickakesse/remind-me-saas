@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Star, ArrowUpRight, Play, Check } from "lucide-react";
 
 export function LandingHero() {
   return (
@@ -29,9 +30,9 @@ export function LandingHero() {
           </div>
 
           {/* Stars */}
-          <div className="flex items-center gap-0.5 text-amber-500 text-xs">
-            {"★★★★★".split("").map((star, i) => (
-              <span key={i}>{star}</span>
+          <div className="flex items-center gap-0.5 text-amber-500">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
             ))}
           </div>
 

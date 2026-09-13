@@ -1,6 +1,14 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
+import {
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  PiggyBank,
+  Target,
+} from "lucide-react";
 
 export type FinanceTab = "overview" | "income" | "expenses" | "scheduled" | "budgets" | "savings";
 
@@ -8,13 +16,13 @@ interface FinanceTabsProps {
   currentTab: FinanceTab;
 }
 
-const TABS: Array<{ id: FinanceTab; label: string; icon: string }> = [
-  { id: "overview", label: "Vue globale", icon: "📊" },
-  { id: "income", label: "Revenus", icon: "📈" },
-  { id: "expenses", label: "Dépenses payées", icon: "📉" },
-  { id: "scheduled", label: "Dépenses programmées", icon: "⏰" },
-  { id: "savings", label: "Épargne & Objectifs", icon: "🐷" },
-  { id: "budgets", label: "Budgets mensuels", icon: "🎯" },
+const TABS = [
+  { id: "overview" as FinanceTab, label: "Vue globale", icon: Wallet },
+  { id: "income" as FinanceTab, label: "Revenus", icon: TrendingUp },
+  { id: "expenses" as FinanceTab, label: "Dépenses payées", icon: TrendingDown },
+  { id: "scheduled" as FinanceTab, label: "Dépenses programmées", icon: Clock },
+  { id: "savings" as FinanceTab, label: "Épargne & Objectifs", icon: PiggyBank },
+  { id: "budgets" as FinanceTab, label: "Budgets mensuels", icon: Target },
 ];
 
 export function FinanceTabs({ currentTab }: FinanceTabsProps) {
@@ -37,18 +45,19 @@ export function FinanceTabs({ currentTab }: FinanceTabsProps) {
       <div className="flex items-center gap-2 min-w-max py-0.5">
         {TABS.map((tab) => {
           const isActive = currentTab === tab.id;
+          const Icon = tab.icon;
           return (
             <button
               key={tab.id}
               type="button"
               onClick={() => handleTabChange(tab.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all min-h-[40px] tap-active ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all min-h-[40px] tap-active ${
                 isActive
-                  ? "bg-signal text-white shadow-xs"
-                  : "bg-canvas-raised border border-ink-200 text-ink-700 hover:bg-ink-100 hover:text-ink-950"
+                  ? "bg-gradient-to-r from-gold to-gold-dark text-white shadow-gold-subtle"
+                  : "bg-canvas-raised border border-ink-200 text-ink-700 hover:border-gold/30 hover:bg-gold-soft/10 hover:text-ink-950"
               }`}
             >
-              <span className="text-base leading-none">{tab.icon}</span>
+              <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-ink-500"}`} strokeWidth={1.8} />
               <span>{tab.label}</span>
             </button>
           );

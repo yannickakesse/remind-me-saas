@@ -5,6 +5,28 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 
+import {
+  LayoutDashboard,
+  Calendar,
+  Briefcase,
+  CheckSquare,
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  PiggyBank,
+  Target,
+  Users,
+  BarChart3,
+  Bell,
+  Settings,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+} from "lucide-react";
+
 interface MobileNavProps {
   unreadCount?: number | null;
 }
@@ -32,26 +54,26 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
   }, [isOpen]);
 
   const navLinks = [
-    { href: "/dashboard", label: "Tableau de bord", icon: "📊" },
-    { href: "/calendar", label: "Calendrier", icon: "📅" },
-    { href: "/activities", label: "Activités", icon: "🎯" },
-    { href: "/tasks", label: "Tâches", icon: "📝" },
+    { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
+    { href: "/calendar", label: "Calendrier", icon: Calendar },
+    { href: "/activities", label: "Activités", icon: Briefcase },
+    { href: "/tasks", label: "Tâches", icon: CheckSquare },
   ];
 
   const financeSubLinks = [
-    { href: "/finances", label: "Vue globale", icon: "💰" },
-    { href: "/finances?tab=income", label: "Revenus", icon: "📈" },
-    { href: "/finances?tab=expenses", label: "Dépenses payées", icon: "📉" },
-    { href: "/finances?tab=scheduled", label: "Dépenses programmées", icon: "⏰" },
-    { href: "/finances?tab=savings", label: "Épargne & Objectifs", icon: "🐷" },
-    { href: "/finances?tab=budgets", label: "Budgets mensuels", icon: "🎯" },
+    { href: "/finances", label: "Vue globale", icon: Wallet },
+    { href: "/finances?tab=income", label: "Revenus", icon: TrendingUp },
+    { href: "/finances?tab=expenses", label: "Dépenses payées", icon: TrendingDown },
+    { href: "/finances?tab=scheduled", label: "Dépenses programmées", icon: Clock },
+    { href: "/finances?tab=savings", label: "Épargne & Objectifs", icon: PiggyBank },
+    { href: "/finances?tab=budgets", label: "Budgets mensuels", icon: Target },
   ];
 
   const secondaryLinks = [
-    { href: "/clients", label: "Clients & Contacts", icon: "👥" },
-    { href: "/reports", label: "Rapports & Rentabilité", icon: "📈" },
-    { href: "/notifications", label: "Notifications", icon: "🔔", badge: unreadCount },
-    { href: "/settings", label: "Paramètres", icon: "⚙️" },
+    { href: "/clients", label: "Clients & Contacts", icon: Users },
+    { href: "/reports", label: "Rapports & Rentabilité", icon: BarChart3 },
+    { href: "/notifications", label: "Notifications", icon: Bell, badge: unreadCount },
+    { href: "/settings", label: "Paramètres", icon: Settings },
   ];
 
   return (
@@ -68,7 +90,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
             aria-label="Notifications"
             className="relative flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 hover:bg-ink-100 active:scale-95 transition-all tap-active"
           >
-            <span className="text-xl">🔔</span>
+            <Bell className="w-5 h-5 text-ink-700" strokeWidth={1.8} />
             {unreadCount ? (
               <span className="absolute top-1.5 right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white shadow-xs animate-pulse">
                 {unreadCount > 99 ? "99+" : unreadCount}
@@ -100,7 +122,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                 aria-label="Fermer le menu"
                 className="flex items-center justify-center h-9 w-9 rounded-lg text-ink-500 hover:bg-ink-100 active:scale-90 transition-transform"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -108,6 +130,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
             <div className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
               {navLinks.map((item) => {
                 const isActive = pathname === item.href;
+                const Icon = item.icon;
                 return (
                   <Link
                     key={item.href}
@@ -119,7 +142,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                         : "text-ink-700 hover:bg-ink-100 active:bg-ink-200"
                     }`}
                   >
-                    <span className="text-lg">{item.icon}</span>
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-ink-500"}`} strokeWidth={1.8} />
                     <span>{item.label}</span>
                   </Link>
                 );
@@ -133,17 +156,20 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                   className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold uppercase tracking-wider text-ink-500 hover:text-ink-800"
                 >
                   <span className="flex items-center gap-2">
-                    <span>💰</span> FINANCES
+                    <Wallet className="w-3.5 h-3.5 text-gold-dark" /> FINANCES
                   </span>
-                  <span>{financesOpen ? "▾" : "▸"}</span>
+                  <span>
+                    {financesOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                  </span>
                 </button>
 
                 {financesOpen && (
-                  <div className="pl-3 mt-1 space-y-1 border-l-2 border-ink-200 ml-3">
+                  <div className="pl-3 mt-1 space-y-1 border-l-2 border-gold/30 ml-3">
                     {financeSubLinks.map((sub) => {
                       const isActive = pathname === "/finances" && (
                         sub.href === "/finances" ? !window?.location?.search : false
                       );
+                      const SubIcon = sub.icon;
                       return (
                         <Link
                           key={sub.href}
@@ -151,7 +177,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                           onClick={() => setIsOpen(false)}
                           className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-ink-700 hover:bg-ink-100 active:bg-ink-200 transition-colors min-h-[40px]"
                         >
-                          <span className="text-base">{sub.icon}</span>
+                          <SubIcon className="w-3.5 h-3.5 text-gold-dark shrink-0" strokeWidth={1.8} />
                           <span>{sub.label}</span>
                         </Link>
                       );
@@ -166,6 +192,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                 </div>
                 {secondaryLinks.map((item) => {
                   const isActive = pathname === item.href;
+                  const Icon = item.icon;
                   return (
                     <Link
                       key={item.href}
@@ -178,7 +205,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-lg">{item.icon}</span>
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-ink-500"}`} strokeWidth={1.8} />
                         <span>{item.label}</span>
                       </div>
                       {item.badge ? (
@@ -199,7 +226,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                 onClick={() => setIsOpen(false)}
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-signal text-white text-xs font-semibold shadow-xs active:scale-98 transition-transform"
               >
-                <span>+</span> Nouvelle Tâche
+                <Plus className="w-4 h-4" /> Nouvelle Tâche
               </Link>
             </div>
           </div>
@@ -219,7 +246,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
               : "text-ink-500 hover:text-ink-800 font-medium"
           }`}
         >
-          <span className="text-xl leading-none mb-0.5">📊</span>
+          <LayoutDashboard className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname === "/dashboard" ? 2.2 : 1.8} />
           <span className="text-[10px] leading-tight">Accueil</span>
         </Link>
 
@@ -231,7 +258,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
               : "text-ink-500 hover:text-ink-800 font-medium"
           }`}
         >
-          <span className="text-xl leading-none mb-0.5">📅</span>
+          <Calendar className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname.startsWith("/calendar") ? 2.2 : 1.8} />
           <span className="text-[10px] leading-tight">Calendrier</span>
         </Link>
 
@@ -243,7 +270,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
               : "text-ink-500 hover:text-ink-800 font-medium"
           }`}
         >
-          <span className="text-xl leading-none mb-0.5">📝</span>
+          <CheckSquare className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname.startsWith("/tasks") ? 2.2 : 1.8} />
           <span className="text-[10px] leading-tight">Tâches</span>
         </Link>
 
@@ -255,7 +282,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
               : "text-ink-500 hover:text-ink-800 font-medium"
           }`}
         >
-          <span className="text-xl leading-none mb-0.5">💰</span>
+          <Wallet className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname.startsWith("/finances") ? 2.2 : 1.8} />
           <span className="text-[10px] leading-tight">Finances</span>
         </Link>
 
@@ -264,7 +291,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           onClick={() => setIsOpen(true)}
           className="flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] text-ink-500 hover:text-ink-800 font-medium tap-active focus:outline-none"
         >
-          <span className="text-xl leading-none mb-0.5">☰</span>
+          <Menu className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={1.8} />
           <span className="text-[10px] leading-tight">Menu</span>
         </button>
       </nav>

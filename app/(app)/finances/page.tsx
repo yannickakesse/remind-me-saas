@@ -1,5 +1,14 @@
 import Link from "next/link";
 import { DateTime } from "luxon";
+import {
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  Clock,
+  Plus,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { aggregateFinancesForMonth } from "@/lib/finances/aggregate";
@@ -90,8 +99,6 @@ export default async function FinancesPage({
       .order("name", { ascending: true }),
   ]);
 
-  // Agrégats du mois
-  
   // Calcul du dépensé par catégorie pour les budgets
   const budgetsWithSpent = (budgets ?? []).map((b) => {
     const spent = (expenseRows ?? [])
@@ -121,7 +128,10 @@ export default async function FinancesPage({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 truncate">
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 truncate flex items-center gap-2">
+            <span className="bg-gradient-to-r from-gold to-gold-dark text-white p-1.5 rounded-xl shadow-gold-subtle inline-flex">
+              <Wallet className="w-5 h-5" />
+            </span>
             Gestion Financière
           </h1>
           <p className="text-xs text-ink-500 mt-0.5">
@@ -134,13 +144,13 @@ export default async function FinancesPage({
             href="/finances/income/new"
             className={buttonClasses("primary", "sm")}
           >
-            + Revenu
+            <Plus className="w-3.5 h-3.5 mr-1" /> Revenu
           </Link>
           <Link
             href="/finances/expenses/new"
             className={buttonClasses("secondary", "sm")}
           >
-            + Dépense
+            <Plus className="w-3.5 h-3.5 mr-1" /> Dépense
           </Link>
         </div>
       </div>
@@ -158,24 +168,28 @@ export default async function FinancesPage({
               value={formatAmount(aggregates.totalIncomeReceived, defaultCurrency)}
               helper="Encaissé ce mois"
               tone="positive"
+              icon={TrendingUp}
             />
             <StatCard
               label="En Attente"
               value={formatAmount(aggregates.totalIncomePending, defaultCurrency)}
               helper="Revenus attendus"
               tone="warning"
+              icon={Clock}
             />
             <StatCard
               label="Dépensé"
               value={formatAmount(aggregates.totalExpensesPaid, defaultCurrency)}
               helper="Payé ce mois"
               tone="danger"
+              icon={TrendingDown}
             />
             <StatCard
               label="Solde Net"
               value={formatAmount(aggregates.netBalance, defaultCurrency)}
               helper="Reçu - Dépensé"
               tone={aggregates.netBalance >= 0 ? "positive" : "danger"}
+              icon={Wallet}
             />
           </div>
 
@@ -185,10 +199,10 @@ export default async function FinancesPage({
             <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3 min-w-0">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-xs sm:text-sm text-ink-950 flex items-center gap-1.5 truncate">
-                  <span>📈</span> Prochains Revenus
+                  <TrendingUp className="w-4 h-4 text-positive" /> Prochains Revenus
                 </h3>
-                <Link href="/finances?tab=income" className="text-xs font-semibold text-signal hover:underline shrink-0">
-                  Voir tout
+                <Link href="/finances?tab=income" className="text-xs font-semibold text-signal hover:underline shrink-0 flex items-center gap-0.5">
+                  Voir tout <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
 
@@ -197,7 +211,7 @@ export default async function FinancesPage({
               ) : (
                 <div className="space-y-2">
                   {(incomeRows ?? []).filter(i => !i.received).slice(0, 4).map(inc => (
-                    <div key={inc.id} className="flex items-center justify-between p-2.5 rounded-lg bg-canvas text-xs gap-2 min-w-0">
+                    <div key={inc.id} className="flex items-center justify-between p-2.5 rounded-lg bg-canvas text-xs gap-2 min-w-0 border border-ink-100">
                       <div className="min-w-0 flex-1">
                         <div className="font-semibold text-ink-900 truncate" title={inc.label}>
                           {inc.label}
@@ -219,10 +233,10 @@ export default async function FinancesPage({
             <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3 min-w-0">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-xs sm:text-sm text-ink-950 flex items-center gap-1.5 truncate">
-                  <span>⏰</span> Dépenses Programmées
+                  <Clock className="w-4 h-4 text-amber-600" /> Dépenses Programmées
                 </h3>
-                <Link href="/finances?tab=scheduled" className="text-xs font-semibold text-signal hover:underline shrink-0">
-                  Voir tout
+                <Link href="/finances?tab=scheduled" className="text-xs font-semibold text-signal hover:underline shrink-0 flex items-center gap-0.5">
+                  Voir tout <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
 
@@ -231,7 +245,7 @@ export default async function FinancesPage({
               ) : (
                 <div className="space-y-2">
                   {(scheduledExpenses ?? []).filter(s => s.status === "planned" || s.status === "due").slice(0, 4).map(sc => (
-                    <div key={sc.id} className="flex items-center justify-between p-2.5 rounded-lg bg-canvas text-xs gap-2 min-w-0">
+                    <div key={sc.id} className="flex items-center justify-between p-2.5 rounded-lg bg-canvas text-xs gap-2 min-w-0 border border-ink-100">
                       <div className="min-w-0 flex-1">
                         <div className="font-semibold text-ink-900 truncate" title={sc.name}>
                           {sc.name}

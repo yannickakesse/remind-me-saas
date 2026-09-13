@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DateTime } from "luxon";
+import { AlertTriangle } from "lucide-react";
 import { EVENT_STATUS_STYLES, eventStatusLabel } from "@/lib/validation/calendar";
 import type { CalendarEventView } from "./types";
 
@@ -73,10 +74,15 @@ export function AgendaView({
                       } ${hasConflict ? "ring-1 ring-danger" : ""}`}
                     >
                       <div>
-                        <p className="font-medium text-ink-950">
-                          {event.title}
-                          {hasConflict ? <span className="ml-2 text-xs text-danger">⚠ conflit d'horaire</span> : null}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-ink-950">{event.title}</p>
+                          {hasConflict ? (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-danger-soft px-1.5 py-0.5 text-[11px] font-medium text-danger border border-danger/20">
+                              <AlertTriangle className="h-3 w-3" />
+                              Conflit d'horaire
+                            </span>
+                          ) : null}
+                        </div>
                         <p className="text-sm text-ink-500">
                           {startTime.toFormat("HH:mm")} – {endTime.toFormat("HH:mm")}
                         </p>

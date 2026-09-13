@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sparkles, ArrowUpRight } from "lucide-react";
 
 export function LandingCTA() {
   return (
@@ -11,7 +12,8 @@ export function LandingCTA() {
 
           <div className="relative z-10 max-w-3xl mx-auto space-y-6">
             <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-white text-xs font-semibold backdrop-blur-sm">
-              🚀 Prise en main en 2 minutes chrono
+              <Sparkles className="w-3.5 h-3.5 text-gold-light" />
+              Prise en main en 2 minutes chrono
             </span>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-sans">

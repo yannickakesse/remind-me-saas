@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { Wallet, CheckSquare, Bell, Check, Circle } from "lucide-react";
 
 export function FloatingEcosystem() {
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
@@ -101,7 +102,9 @@ export function FloatingEcosystem() {
         className="hidden lg:flex absolute top-1/4 -left-10 xl:-left-16 animate-float-3 flex-col p-3 rounded-2xl bg-canvas-raised/95 border border-ink-200/80 shadow-lg backdrop-blur-md w-44"
       >
         <div className="flex items-center justify-between">
-          <span className="text-sm">💰</span>
+          <div className="w-6 h-6 rounded-lg bg-gold-soft flex items-center justify-center text-gold-dark">
+            <Wallet className="w-3.5 h-3.5" />
+          </div>
           <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-positive-soft text-positive">
             +18% ce mois
           </span>
@@ -153,20 +156,23 @@ export function FloatingEcosystem() {
         className="hidden md:flex absolute -bottom-6 left-6 lg:left-14 animate-float-2 flex-col p-3 rounded-2xl bg-canvas-raised/95 border border-ink-200/80 shadow-md backdrop-blur-md w-44"
       >
         <div className="text-[10px] font-bold text-ink-950 uppercase tracking-wider flex items-center justify-between mb-1.5">
-          <span>📝 Tâches du jour</span>
+          <span className="inline-flex items-center gap-1">
+            <CheckSquare className="w-3 h-3 text-signal" />
+            Tâches du jour
+          </span>
           <span className="text-signal font-mono text-[9px]">3/4</span>
         </div>
         <div className="space-y-1 text-[10px] text-ink-700">
           <div className="flex items-center gap-1.5 text-positive font-medium">
-            <span>✓</span>
+            <Check className="w-3 h-3 text-positive" strokeWidth={3} />
             <span className="line-through text-ink-400 truncate">Audit Cloud Alpha</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-warning">○</span>
+            <Circle className="w-2.5 h-2.5 text-warning fill-warning/30" />
             <span className="truncate">Préparer examen M2</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-ink-400">○</span>
+            <Circle className="w-2.5 h-2.5 text-ink-300" />
             <span className="truncate">Envoyer facture #104</span>
           </div>
         </div>
@@ -182,7 +188,9 @@ export function FloatingEcosystem() {
         }}
         className="hidden md:flex absolute -bottom-8 right-6 lg:right-16 animate-float-1 items-start gap-2.5 p-3 rounded-2xl bg-canvas-raised/95 border border-warning/40 shadow-lg backdrop-blur-md w-52"
       >
-        <span className="text-base shrink-0 mt-0.5">🔔</span>
+        <div className="w-7 h-7 rounded-lg bg-warning-soft flex items-center justify-center text-warning shrink-0 mt-0.5">
+          <Bell className="w-4 h-4" />
+        </div>
         <div className="text-left min-w-0">
           <div className="flex items-center justify-between gap-1">
             <span className="text-xs font-bold text-ink-950">Rappel Smart</span>

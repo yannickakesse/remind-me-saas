@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Briefcase, Building2, Wallet, Plus, Edit3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ACTIVITY_TYPES } from "@/lib/validation/activities";
 import { archiveActivity, restoreActivity } from "./actions";
@@ -37,14 +38,15 @@ export default async function ActivitiesPage() {
           </p>
         </div>
         <Link href="/activities/new" className={buttonClasses("primary", "md")}>
-          + Ajouter une activité
+          <Plus className="h-4 w-4 mr-1.5" />
+          Ajouter une activité
         </Link>
       </div>
 
       {active.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-ink-300 bg-canvas-raised/50 p-10 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-signal-soft text-signal text-xl">
-            💼
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-signal-soft text-signal">
+            <Briefcase className="h-6 w-6" />
           </div>
           <h3 className="text-base font-bold text-ink-950">Vous n'avez pas encore d'activité</h3>
           <p className="text-sm text-ink-500 mt-1 max-w-sm mx-auto">
@@ -52,7 +54,8 @@ export default async function ActivitiesPage() {
           </p>
           <div className="mt-5">
             <Link href="/activities/new" className={buttonClasses("primary", "sm")}>
-              + Créer une activité
+              <Plus className="h-4 w-4 mr-1" />
+              Créer une activité
             </Link>
           </div>
         </div>
@@ -87,14 +90,16 @@ export default async function ActivitiesPage() {
 
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-600">
                     {org?.name ? (
-                      <span className="inline-flex items-center gap-1 font-medium text-ink-800">
-                        🏢 {org.name}
+                      <span className="inline-flex items-center gap-1.5 font-medium text-ink-800">
+                        <Building2 className="h-3.5 w-3.5 text-ink-500" />
+                        {org.name}
                       </span>
                     ) : null}
 
                     {comp ? (
-                      <span className="inline-flex items-center gap-1 font-semibold text-signal">
-                        💰 {formatAmount(comp.amount, comp.currency)} / {comp.frequency === "monthly" ? "mois" : comp.frequency === "hourly" ? "h" : comp.frequency}
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-signal">
+                        <Wallet className="h-3.5 w-3.5 text-signal" />
+                        {formatAmount(comp.amount, comp.currency)} / {comp.frequency === "monthly" ? "mois" : comp.frequency === "hourly" ? "h" : comp.frequency}
                       </span>
                     ) : null}
 

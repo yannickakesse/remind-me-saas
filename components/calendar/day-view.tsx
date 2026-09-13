@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DateTime } from "luxon";
+import { AlertTriangle } from "lucide-react";
 import { EVENT_STATUS_STYLES, eventStatusLabel } from "@/lib/validation/calendar";
 import { HOUR_HEIGHT_PX, TIMELINE_HEIGHT_PX, TIMELINE_HOURS, timelinePosition } from "@/lib/calendar/timeline";
 import type { CalendarEventView } from "./types";
@@ -55,10 +56,12 @@ export function DayView({
                   EVENT_STATUS_STYLES[event.status] ?? "border-ink-300"
                 } ${hasConflict ? "ring-1 ring-danger" : ""}`}
               >
-                <p className="truncate font-medium">
-                  {start.toFormat("HH:mm")}–{end.toFormat("HH:mm")} · {event.title}
-                  {hasConflict ? " ⚠" : ""}
-                </p>
+                <div className="flex items-center gap-1">
+                  <p className="truncate font-medium">
+                    {start.toFormat("HH:mm")}–{end.toFormat("HH:mm")} · {event.title}
+                  </p>
+                  {hasConflict ? <AlertTriangle className="h-3 w-3 shrink-0 text-danger" /> : null}
+                </div>
                 <p className="truncate text-ink-500">{eventStatusLabel(event.status)}</p>
               </Link>
             );

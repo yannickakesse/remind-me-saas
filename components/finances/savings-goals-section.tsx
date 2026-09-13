@@ -1,6 +1,18 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import {
+  Target,
+  Plus,
+  Trash2,
+  Edit3,
+  CheckCircle2,
+  TrendingUp,
+  Coins,
+  ArrowUpRight,
+  ArrowDownRight,
+  Sparkles,
+} from "lucide-react";
 import { SAVINGS_CATEGORIES } from "@/lib/validation/finances";
 import { formatAmount } from "@/lib/finances/format";
 import { calculateGoalProjection } from "@/lib/finances/goals";
@@ -259,6 +271,9 @@ export function SavingsGoalsSection({
       {/* Liste des objectifs */}
       {goals.length === 0 && !isAdding ? (
         <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised/50 p-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gold-soft text-gold-dark mb-3">
+            <Coins className="h-6 w-6" />
+          </div>
           <p className="font-semibold text-ink-950">Aucun objectif d'épargne pour l'instant</p>
           <p className="text-sm text-ink-500 mt-1 max-w-md mx-auto">
             Créez des poches d'épargne dédiées pour visualiser votre progression et anticiper la réalisation de vos projets.
@@ -266,9 +281,10 @@ export function SavingsGoalsSection({
           <button
             type="button"
             onClick={() => setIsAdding(true)}
-            className="mt-4 rounded-lg bg-signal px-4 py-2 text-sm font-medium text-white hover:bg-signal/90"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-4 py-2 text-sm font-semibold text-white shadow-gold-subtle hover:brightness-105"
           >
-            + Définir un premier objectif
+            <Plus className="h-4 w-4" />
+            Définir un premier objectif
           </button>
         </div>
       ) : (
@@ -280,8 +296,8 @@ export function SavingsGoalsSection({
             return (
               <div
                 key={g.id}
-                className={`rounded-xl border bg-canvas-raised p-5 transition-shadow hover:shadow-sm ${
-                  isCompleted ? "border-positive/40 bg-positive/[0.02]" : "border-ink-200"
+                className={`rounded-xl border bg-canvas-raised p-5 transition-shadow hover:shadow-md ${
+                  isCompleted ? "border-positive/40 bg-positive/[0.02]" : "border-ink-200 hover:border-gold/30"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -307,16 +323,18 @@ export function SavingsGoalsSection({
                         setMonthlyContribution(g.monthly_contribution ? String(g.monthly_contribution) : "");
                         setIsAdding(false);
                       }}
-                      className="rounded px-2 py-1 text-xs font-medium text-signal hover:bg-signal-soft"
+                      className="rounded p-1.5 text-ink-500 hover:text-gold-dark hover:bg-gold-soft transition-colors"
+                      title="Modifier"
                     >
-                      Modifier
+                      <Edit3 className="h-4 w-4" />
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(g.id)}
-                      className="rounded px-2 py-1 text-xs font-medium text-ink-400 hover:text-danger hover:bg-danger-soft/50"
+                      className="rounded p-1.5 text-ink-400 hover:text-danger hover:bg-danger-soft/50 transition-colors"
+                      title="Supprimer"
                     >
-                      Supprimer
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
@@ -330,7 +348,7 @@ export function SavingsGoalsSection({
                       </span>
                       <span className="text-xs text-ink-500 ml-1.5">épargnés</span>
                     </div>
-                    <span className="font-bold text-sm text-signal">
+                    <span className="font-bold text-sm text-gold-dark">
                       {proj.progressPercentage}%
                     </span>
                   </div>
@@ -338,7 +356,7 @@ export function SavingsGoalsSection({
                   <div className="h-3 w-full overflow-hidden rounded-full bg-ink-100">
                     <div
                       className={`h-full transition-all duration-300 rounded-full ${
-                        isCompleted ? "bg-positive" : "bg-signal"
+                        isCompleted ? "bg-positive" : "bg-gradient-to-r from-gold to-gold-dark"
                       }`}
                       style={{ width: `${proj.progressPercentage}%` }}
                     />
@@ -348,7 +366,10 @@ export function SavingsGoalsSection({
                 {/* Projections et alertes intelligentes */}
                 <div className="mt-3 text-xs text-ink-600 bg-canvas/70 rounded-lg p-2.5">
                   {isCompleted ? (
-                    <span className="font-semibold text-positive">🎉 Objectif 100% atteint !</span>
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-positive">
+                      <CheckCircle2 className="h-4 w-4 text-positive" />
+                      Objectif 100% atteint !
+                    </span>
                   ) : proj.estimatedCompletionDate ? (
                     <div className="flex items-center justify-between">
                       <span>

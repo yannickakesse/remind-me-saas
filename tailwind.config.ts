@@ -28,9 +28,16 @@ const config: Config = {
           raised: "rgb(var(--canvas-raised) / <alpha-value>)",
         },
         signal: {
-          // couleur d'accent unique : bleu profond, sobre, pas de terracotta/vert acide
+          // Couleur d'accent signature : Or chaud / Ambre Spel-Rebel
           DEFAULT: "rgb(var(--signal) / <alpha-value>)",
           soft: "rgb(var(--signal-soft) / <alpha-value>)",
+          dark: "rgb(var(--signal-dark) / <alpha-value>)",
+        },
+        gold: {
+          DEFAULT: "rgb(var(--gold) / <alpha-value>)",
+          dark: "rgb(var(--gold-dark) / <alpha-value>)",
+          light: "rgb(var(--gold-light) / <alpha-value>)",
+          soft: "rgb(var(--gold-soft) / <alpha-value>)",
         },
         positive: {
           DEFAULT: "rgb(var(--positive) / <alpha-value>)",
@@ -50,13 +57,19 @@ const config: Config = {
         }, // messages informatifs neutres
       },
       fontFamily: {
-        sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+        sans: ["'IBM Plex Sans'", "system-ui", "-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "sans-serif"],
         mono: ["'IBM Plex Mono'", "monospace"],
       },
       borderRadius: {
-        sm: "4px",
-        md: "8px",
-        lg: "12px",
+        sm: "6px",
+        md: "10px",
+        lg: "14px",
+        xl: "18px",
+        "2xl": "22px",
+      },
+      boxShadow: {
+        gold: "0 10px 25px -5px rgba(229, 169, 30, 0.25), 0 8px 10px -6px rgba(229, 169, 30, 0.15)",
+        "gold-subtle": "0 4px 14px 0 rgba(229, 169, 30, 0.12)",
       },
     },
   },

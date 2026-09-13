@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DateTime } from "luxon";
+import { AlertTriangle } from "lucide-react";
 import { EVENT_STATUS_STYLES } from "@/lib/validation/calendar";
 import type { CalendarEventView } from "./types";
 
@@ -37,7 +38,7 @@ export function EventPill({
         <span className="shrink-0 font-medium">{start.toFormat("HH:mm")}</span>
       )}
       <span className="truncate">{event.title}</span>
-      {hasConflict ? <span aria-hidden className="shrink-0 text-danger">⚠</span> : null}
+      {hasConflict ? <AlertTriangle className="h-3 w-3 shrink-0 text-danger" /> : null}
     </Link>
   );
 }

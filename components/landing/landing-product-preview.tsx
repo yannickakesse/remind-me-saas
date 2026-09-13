@@ -1,6 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import {
+  LayoutDashboard,
+  Calendar,
+  Wallet,
+  CheckSquare,
+  Sparkles,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  Zap,
+} from "lucide-react";
 import { FloatingEcosystem } from "./floating-ecosystem";
 
 type PreviewTab = "cockpit" | "calendar" | "finances" | "tasks";
@@ -33,43 +44,47 @@ export function LandingProductPreview() {
           <div className="flex items-center bg-ink-100 p-1 rounded-xl gap-1 text-xs font-medium">
             <button
               onClick={() => setActiveTab("cockpit")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === "cockpit"
                   ? "bg-canvas-raised text-signal font-semibold shadow-sm"
                   : "text-ink-700 hover:text-ink-950"
               }`}
             >
-              📊 Vue Globale
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              Vue Globale
             </button>
             <button
               onClick={() => setActiveTab("calendar")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === "calendar"
                   ? "bg-canvas-raised text-signal font-semibold shadow-sm"
                   : "text-ink-700 hover:text-ink-950"
               }`}
             >
-              📅 Calendrier &amp; Conflits
+              <Calendar className="w-3.5 h-3.5" />
+              Calendrier &amp; Conflits
             </button>
             <button
               onClick={() => setActiveTab("finances")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === "finances"
-                  ? "bg-canvas-raised text-signal font-semibold shadow-sm"
+                  ? "bg-canvas-raised text-gold-dark font-semibold shadow-sm"
                   : "text-ink-700 hover:text-ink-950"
               }`}
             >
-              💰 Trésorerie &amp; Rentabilité
+              <Wallet className="w-3.5 h-3.5 text-gold-dark" />
+              Trésorerie &amp; Rentabilité
             </button>
             <button
               onClick={() => setActiveTab("tasks")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === "tasks"
                   ? "bg-canvas-raised text-signal font-semibold shadow-sm"
                   : "text-ink-700 hover:text-ink-950"
               }`}
             >
-              ✅ Tâches par Activité
+              <CheckSquare className="w-3.5 h-3.5" />
+              Tâches par Activité
             </button>
           </div>
 
@@ -91,7 +106,7 @@ export function LandingProductPreview() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-ink-950">
-                  Bonjour, Yannick 👋
+                  Bonjour, Yannick
                 </h2>
                 <p className="text-sm text-ink-500">
                   Voici le statut consolidé de vos 3 activités pour aujourd&apos;hui.
@@ -119,7 +134,7 @@ export function LandingProductPreview() {
 
               <div className="p-4 rounded-xl bg-canvas-raised border border-ink-100 shadow-sm">
                 <span className="text-xs text-ink-500 font-medium">Revenus en Attente</span>
-                <div className="text-2xl font-bold text-warning mt-1">1 250 €</div>
+                <div className="text-2xl font-bold text-gold-dark mt-1">1 250 €</div>
                 <div className="text-xs text-ink-500 mt-1">2 factures à encaisser</div>
               </div>
 
@@ -142,7 +157,8 @@ export function LandingProductPreview() {
               <div className="lg:col-span-2 p-5 rounded-xl bg-canvas-raised border border-ink-100 shadow-sm space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-ink-950 text-sm flex items-center gap-2">
-                    <span>🗓️ Programme du jour</span>
+                    <Calendar className="w-4 h-4 text-signal" />
+                    <span>Programme du jour</span>
                     <span className="text-xs text-ink-500 font-normal">(Jeudi 10 Septembre)</span>
                   </h3>
                   <span className="text-xs font-medium text-signal">3 créneaux prévus</span>
@@ -183,8 +199,8 @@ export function LandingProductPreview() {
                     </span>
                   </div>
 
-                  <div className="flex items-start gap-3 p-3 rounded-lg border-l-4 border-warning bg-warning-soft/30 border-y border-r border-ink-100">
-                    <div className="text-xs font-mono text-warning font-semibold w-24">
+                  <div className="flex items-start gap-3 p-3 rounded-lg border-l-4 border-gold-dark bg-gold-soft/30 border-y border-r border-ink-100">
+                    <div className="text-xs font-mono text-gold-dark font-semibold w-24">
                       17:30 - 19:00
                     </div>
                     <div className="flex-1">
@@ -195,7 +211,7 @@ export function LandingProductPreview() {
                         Projet Personnel • Objectif MRR
                       </div>
                     </div>
-                    <span className="text-xs font-medium text-warning px-2 py-0.5 rounded bg-warning-soft">
+                    <span className="text-xs font-medium text-gold-dark px-2 py-0.5 rounded bg-gold-soft">
                       1.5 h
                     </span>
                   </div>
@@ -206,7 +222,8 @@ export function LandingProductPreview() {
               <div className="p-5 rounded-xl bg-canvas-raised border border-ink-100 shadow-sm space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-ink-950 text-sm flex items-center gap-2">
-                    <span>⚡ Dépenses Programmées</span>
+                    <Clock className="w-4 h-4 text-gold-dark" />
+                    <span>Dépenses Programmées</span>
                   </h3>
                   <span className="text-[11px] text-ink-500">Cycle Auto</span>
                 </div>
@@ -219,17 +236,24 @@ export function LandingProductPreview() {
                     </div>
                     <div className="flex items-center justify-between text-[11px] text-ink-500">
                       <span>Échéance : 15 Septembre</span>
-                      <span className="text-warning font-medium">Due dans 5j</span>
+                      <span className="text-gold-dark font-medium">Due dans 5j</span>
                     </div>
                     <button
                       onClick={() => setMarkedPaid(!markedPaid)}
-                      className={`w-full py-1.5 px-3 rounded-lg text-xs font-medium transition-all ${
+                      className={`inline-flex items-center justify-center gap-1.5 w-full py-1.5 px-3 rounded-lg text-xs font-medium transition-all ${
                         markedPaid
                           ? "bg-positive-soft text-positive border border-positive/30"
                           : "bg-signal-soft text-signal hover:bg-signal hover:text-white"
                       }`}
                     >
-                      {markedPaid ? "✓ Payée & Enregistrée en compta" : "Marquer comme payée"}
+                      {markedPaid ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Payée &amp; Enregistrée
+                        </>
+                      ) : (
+                        "Marquer comme payée"
+                      )}
                     </button>
                   </div>
 
@@ -256,7 +280,7 @@ export function LandingProductPreview() {
             <div className="p-4 rounded-xl bg-danger-soft border border-danger/30 flex items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-danger text-white flex items-center justify-center font-bold">
-                  ⚠️
+                  <AlertTriangle className="w-4 h-4 text-white" />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-danger">
@@ -298,7 +322,7 @@ export function LandingProductPreview() {
                         </>
                       )}
                       {idx === 2 && (
-                        <div className="p-2 rounded bg-warning-soft text-warning text-left text-xs font-medium border border-warning/20">
+                        <div className="p-2 rounded bg-gold-soft text-gold-dark text-left text-xs font-medium border border-gold/20">
                           09h-18h : Sprint Produit
                         </div>
                       )}
@@ -313,8 +337,9 @@ export function LandingProductPreview() {
                         </>
                       )}
                       {idx === 4 && (
-                        <div className="p-2 rounded bg-danger-soft text-danger text-left text-xs font-bold border border-danger/40 animate-pulse">
-                          ⚡ 14h-16h : CONFLIT DÉTECTÉ
+                        <div className="inline-flex items-center gap-1.5 p-2 rounded bg-danger-soft text-danger text-left text-xs font-bold border border-danger/40 animate-pulse w-full">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                          <span>14h-16h : CONFLIT DÉTECTÉ</span>
                         </div>
                       )}
                     </div>
@@ -341,7 +366,7 @@ export function LandingProductPreview() {
               </div>
               <div className="p-4 rounded-xl bg-canvas-raised border border-ink-100">
                 <span className="text-xs text-ink-500">Bénéfice Net Réel</span>
-                <div className="text-2xl font-bold text-signal mt-1">4 536.00 €</div>
+                <div className="text-2xl font-bold text-gold-dark mt-1">4 536.00 €</div>
                 <div className="text-xs text-positive font-semibold mt-1">Marge nette : 84%</div>
               </div>
             </div>
@@ -350,7 +375,7 @@ export function LandingProductPreview() {
             <div className="rounded-xl border border-ink-100 bg-canvas-raised overflow-hidden">
               <div className="px-4 py-3 border-b border-ink-100 bg-canvas flex items-center justify-between">
                 <span className="text-xs font-semibold text-ink-950">Rentabilité par Activité</span>
-                <span className="text-xs text-signal font-medium">Export CSV disponible</span>
+                <span className="text-xs text-gold-dark font-medium">Export CSV disponible</span>
               </div>
               <div className="divide-y divide-ink-100 text-xs">
                 <div className="grid grid-cols-4 p-3 font-semibold text-ink-500 bg-canvas">
@@ -366,7 +391,7 @@ export function LandingProductPreview() {
                   </div>
                   <div>42 h</div>
                   <div className="font-mono font-semibold text-positive">+3 250 €</div>
-                  <div className="text-right font-mono font-bold text-signal">77.38 €/h</div>
+                  <div className="text-right font-mono font-bold text-gold-dark">77.38 €/h</div>
                 </div>
                 <div className="grid grid-cols-4 p-3 items-center">
                   <div className="font-semibold text-ink-950 flex items-center gap-2">
@@ -375,16 +400,16 @@ export function LandingProductPreview() {
                   </div>
                   <div>24 h</div>
                   <div className="font-mono font-semibold text-positive">+1 320 €</div>
-                  <div className="text-right font-mono font-bold text-signal">55.00 €/h</div>
+                  <div className="text-right font-mono font-bold text-gold-dark">55.00 €/h</div>
                 </div>
                 <div className="grid grid-cols-4 p-3 items-center">
                   <div className="font-semibold text-ink-950 flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-warning" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-gold" />
                     Coaching &amp; Projets
                   </div>
                   <div>12 h</div>
                   <div className="font-mono font-semibold text-positive">+830 €</div>
-                  <div className="text-right font-mono font-bold text-signal">69.16 €/h</div>
+                  <div className="text-right font-mono font-bold text-gold-dark">69.16 €/h</div>
                 </div>
               </div>
             </div>
@@ -411,7 +436,8 @@ export function LandingProductPreview() {
                   Rendre le rapport d&apos;audit sécurité Alpha
                 </div>
                 <div className="text-xs text-ink-500 flex items-center gap-1.5">
-                  <span>📅 Échéance : Aujourd&apos;hui 18h00</span>
+                  <Clock className="w-3 h-3 text-ink-400" />
+                  <span>Échéance : Aujourd&apos;hui 18h00</span>
                 </div>
               </div>
 
@@ -425,8 +451,9 @@ export function LandingProductPreview() {
                 <div className="text-sm font-semibold text-ink-950">
                   Préparer les sujets de l&apos;examen final M2
                 </div>
-                <div className="text-xs text-ink-500">
-                  <span>📅 Échéance : Demain 12h00</span>
+                <div className="text-xs text-ink-500 flex items-center gap-1.5">
+                  <Clock className="w-3 h-3 text-ink-400" />
+                  <span>Échéance : Demain 12h00</span>
                 </div>
               </div>
             </div>

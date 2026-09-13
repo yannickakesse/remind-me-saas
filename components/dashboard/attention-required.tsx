@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AlertTriangle, AlertCircle, Wallet, Clock, Check, ArrowRight } from "lucide-react";
 import type { Notification } from "@/types/database";
 
 interface AttentionRequiredProps {
@@ -53,9 +54,9 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
         </div>
         <Link
           href="/notifications"
-          className="text-xs font-semibold text-signal hover:underline"
+          className="text-xs font-semibold text-signal hover:underline flex items-center gap-1"
         >
-          Tout gérer &rarr;
+          Tout gérer <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -69,11 +70,19 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
           return (
             <div
               key={item.id}
-              className="p-3.5 rounded-xl border border-ink-100 bg-canvas-raised shadow-xs flex flex-col justify-between space-y-3"
+              className="p-3.5 rounded-xl border border-ink-200 bg-canvas-raised shadow-xs flex flex-col justify-between space-y-3"
             >
               <div className="flex items-start gap-2.5">
-                <span className="text-base shrink-0 mt-0.5">
-                  {isOverdue ? "🔴" : isPayment ? "💰" : isExpense ? "⏰" : "⚠️"}
+                <span className="shrink-0 mt-0.5">
+                  {isOverdue ? (
+                    <AlertCircle className="w-4 h-4 text-danger" />
+                  ) : isPayment ? (
+                    <Wallet className="w-4 h-4 text-gold-dark" />
+                  ) : isExpense ? (
+                    <Clock className="w-4 h-4 text-warning" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-warning" />
+                  )}
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1">
@@ -105,9 +114,9 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     type="button"
                     disabled={isBusy}
                     onClick={() => handleQuickAction("mark_received", item.id, item.entity_id)}
-                    className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs"
+                    className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1"
                   >
-                    {isBusy ? "Mise à jour..." : "✓ Marquer comme reçu"}
+                    <Check className="w-3.5 h-3.5" /> {isBusy ? "Mise à jour..." : "Marquer comme reçu"}
                   </button>
                 )}
 
@@ -116,9 +125,9 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     type="button"
                     disabled={isBusy}
                     onClick={() => handleQuickAction("mark_paid", item.id, item.entity_id)}
-                    className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 transition-all disabled:opacity-50 tap-active shadow-xs"
+                    className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1"
                   >
-                    {isBusy ? "Mise à jour..." : "✓ Marquer comme payé"}
+                    <Check className="w-3.5 h-3.5" /> {isBusy ? "Mise à jour..." : "Marquer comme payé"}
                   </button>
                 )}
 

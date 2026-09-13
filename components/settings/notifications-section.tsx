@@ -1,6 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import {
+  Bell,
+  Mail,
+  Smartphone,
+  Briefcase,
+  CheckSquare,
+  Wallet,
+  Clock,
+  BarChart3,
+  AlertTriangle,
+  Moon,
+  Globe,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { updateNotificationPrefs } from "@/app/(app)/settings/actions";
@@ -112,7 +125,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="block text-xs font-bold text-ink-950">🔔 In-App</span>
+                <Bell className="w-3.5 h-3.5 text-signal" />
+                <span className="block text-xs font-bold text-ink-950">In-App</span>
                 <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-positive-soft text-positive">Actif</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
@@ -130,7 +144,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="block text-xs font-bold text-ink-950">📧 E-mail</span>
+                <Mail className="w-3.5 h-3.5 text-signal" />
+                <span className="block text-xs font-bold text-ink-950">E-mail</span>
                 <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-signal-soft text-signal">Configurable</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
@@ -148,7 +163,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="block text-xs font-bold text-ink-950">📱 Push Web</span>
+                <Smartphone className="w-3.5 h-3.5 text-ink-500" />
+                <span className="block text-xs font-bold text-ink-950">Push Web</span>
                 <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-ink-200 text-ink-700">Phase 3</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
@@ -174,8 +190,11 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               className="mt-1 rounded text-signal focus:ring-signal"
             />
             <div className="flex-1">
-              <span className="block text-xs font-bold text-ink-950">🎯 Activités & Séances de coaching</span>
-              <span className="block text-[11px] text-ink-500">
+              <div className="flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5 text-signal" />
+                <span className="block text-xs font-bold text-ink-950">Activités & Séances de coaching</span>
+              </div>
+              <span className="block text-[11px] text-ink-500 mt-0.5">
                 Rappels programmés avant les créneaux d'activité (J-1, H-2).
               </span>
             </div>
@@ -189,8 +208,11 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               className="mt-1 rounded text-signal focus:ring-signal"
             />
             <div className="flex-1">
-              <span className="block text-xs font-bold text-ink-950">📝 Tâches & Échéances</span>
-              <span className="block text-[11px] text-ink-500">
+              <div className="flex items-center gap-1.5">
+                <CheckSquare className="w-3.5 h-3.5 text-signal" />
+                <span className="block text-xs font-bold text-ink-950">Tâches & Échéances</span>
+              </div>
+              <span className="block text-[11px] text-ink-500 mt-0.5">
                 Rappels des tâches à accomplir aujourd'hui et alertes de retard.
               </span>
             </div>
@@ -204,8 +226,11 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               className="mt-1 rounded text-signal focus:ring-signal"
             />
             <div className="flex-1">
-              <span className="block text-xs font-bold text-ink-950">💰 Paiements attendus & Factures clients</span>
-              <span className="block text-[11px] text-ink-500">
+              <div className="flex items-center gap-1.5">
+                <Wallet className="w-3.5 h-3.5 text-gold-dark" />
+                <span className="block text-xs font-bold text-ink-950">Paiements attendus & Factures clients</span>
+              </div>
+              <span className="block text-[11px] text-ink-500 mt-0.5">
                 Alertes avant échéance (J-7, J-3, Jour J) et signalement des impayés.
               </span>
             </div>
@@ -219,8 +244,11 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               className="mt-1 rounded text-signal focus:ring-signal"
             />
             <div className="flex-1">
-              <span className="block text-xs font-bold text-ink-950">⏰ Dépenses & Factures à régler</span>
-              <span className="block text-[11px] text-ink-500">
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-warning" />
+                <span className="block text-xs font-bold text-ink-950">Dépenses & Factures à régler</span>
+              </div>
+              <span className="block text-[11px] text-ink-500 mt-0.5">
                 Alertes pour anticiper les paiements et factures fournisseurs dues.
               </span>
             </div>
@@ -234,8 +262,11 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               className="mt-1 rounded text-signal focus:ring-signal"
             />
             <div className="flex-1">
-              <span className="block text-xs font-bold text-ink-950">📊 Finances & Dépenses programmées</span>
-              <span className="block text-[11px] text-ink-500">
+              <div className="flex items-center gap-1.5">
+                <BarChart3 className="w-3.5 h-3.5 text-signal" />
+                <span className="block text-xs font-bold text-ink-950">Finances & Dépenses programmées</span>
+              </div>
+              <span className="block text-[11px] text-ink-500 mt-0.5">
                 Alertes d'échéances d'abonnements, charges récurrentes et seuils de trésorerie.
               </span>
             </div>
@@ -249,8 +280,11 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               className="mt-1 rounded text-signal focus:ring-signal"
             />
             <div className="flex-1">
-              <span className="block text-xs font-bold text-ink-950">⚠️ Détection de conflits d'agenda</span>
-              <span className="block text-[11px] text-ink-500">
+              <div className="flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-warning" />
+                <span className="block text-xs font-bold text-ink-950">Détection de conflits d'agenda</span>
+              </div>
+              <span className="block text-[11px] text-ink-500 mt-0.5">
                 Notification immédiate si deux créneaux d'activités se chevauchent.
               </span>
             </div>
@@ -262,8 +296,11 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       <div className="p-4 rounded-2xl border border-ink-100 bg-canvas-raised space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <span className="block text-xs font-bold text-ink-950">🌙 Heures silencieuses (Quiet Hours)</span>
-            <span className="block text-[11px] text-ink-500">
+            <div className="flex items-center gap-1.5">
+              <Moon className="w-3.5 h-3.5 text-ink-700" />
+              <span className="block text-xs font-bold text-ink-950">Heures silencieuses (Quiet Hours)</span>
+            </div>
+            <span className="block text-[11px] text-ink-500 mt-0.5">
               Suspendre l'envoi d'emails durant votre période de repos nocturne.
             </span>
           </div>
@@ -305,19 +342,22 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
 
       {/* Section 4: Langue des notifications */}
       <div className="space-y-2">
-        <label className="block text-xs font-bold text-ink-950">
-          🌐 Langue des alertes & messages (i18n)
-        </label>
+        <div className="flex items-center gap-1.5">
+          <Globe className="w-3.5 h-3.5 text-ink-700" />
+          <label className="block text-xs font-bold text-ink-950">
+            Langue des alertes & messages (i18n)
+          </label>
+        </div>
         <select
           value={preferredLocale}
           onChange={(e) => setPreferredLocale(e.target.value)}
           className="w-full sm:w-64 px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas-raised text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal"
         >
-          <option value="fr">🇫🇷 Français (Par défaut)</option>
-          <option value="en">🇬🇧 English</option>
-          <option value="es">🇪🇸 Español</option>
-          <option value="de">🇩🇪 Deutsch</option>
-          <option value="pt">🇵🇹 Português</option>
+          <option value="fr">Français (Par défaut)</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="de">Deutsch</option>
+          <option value="pt">Português</option>
         </select>
       </div>
 

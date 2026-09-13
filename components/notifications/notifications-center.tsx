@@ -4,6 +4,20 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DateTime } from "luxon";
+import {
+  Bell,
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
+  Wallet,
+  Clock,
+  CheckSquare,
+  Briefcase,
+  Check,
+  Trash2,
+  X,
+  ArrowRight,
+} from "lucide-react";
 import type { Notification, NotificationPriority } from "@/types/database";
 import {
   markNotificationRead,
@@ -109,13 +123,13 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
   };
 
   const getCategoryIcon = (category: string, kind: string) => {
-    if (kind.includes("overdue")) return "🔴";
-    if (category === "payment") return "💰";
-    if (category === "expense") return "⏰";
-    if (category === "task") return "📝";
-    if (category === "activity") return "🎯";
-    if (category === "conflict") return "⚠️";
-    return "🔔";
+    if (kind.includes("overdue")) return <AlertCircle className="w-5 h-5 text-danger" />;
+    if (category === "payment") return <Wallet className="w-5 h-5 text-gold-dark" />;
+    if (category === "expense") return <Clock className="w-5 h-5 text-warning" />;
+    if (category === "task") return <CheckSquare className="w-5 h-5 text-signal" />;
+    if (category === "activity") return <Briefcase className="w-5 h-5 text-signal" />;
+    if (category === "conflict") return <AlertTriangle className="w-5 h-5 text-warning" />;
+    return <Bell className="w-5 h-5 text-ink-500" />;
   };
 
   return (
@@ -143,9 +157,9 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
             type="button"
             disabled={isPending}
             onClick={handleMarkAllRead}
-            className="inline-flex items-center justify-center px-3.5 py-2 rounded-xl bg-canvas-raised border border-ink-200 text-xs font-semibold text-ink-700 hover:bg-ink-100 active:scale-95 transition-all disabled:opacity-50 shadow-xs shrink-0 tap-active"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-canvas-raised border border-ink-200 text-xs font-semibold text-ink-700 hover:bg-ink-100 active:scale-95 transition-all disabled:opacity-50 shadow-xs shrink-0 tap-active"
           >
-            ✓ Tout marquer comme lu
+            <Check className="w-3.5 h-3.5" /> Tout marquer comme lu
           </button>
         )}
       </div>
@@ -201,7 +215,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
               onClick={() => setSearchQuery("")}
               className="absolute right-2.5 top-2.5 text-xs text-ink-400 hover:text-ink-700"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -210,7 +224,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
       {/* Notifications List */}
       {filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-ink-200 p-12 text-center bg-canvas-raised/50">
-          <span className="text-4xl block mb-2">🎉</span>
+          <CheckCircle2 className="w-10 h-10 text-positive mx-auto mb-2" />
           <h3 className="text-sm font-bold text-ink-950">Aucune notification à afficher</h3>
           <p className="text-xs text-ink-500 max-w-sm mx-auto mt-1">
             {searchQuery
@@ -238,15 +252,15 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                     ? "border-ink-100 bg-canvas-raised/50 opacity-60"
                     : isUnread
                     ? item.priority === "critical"
-                      ? "border-danger/40 bg-danger-soft/10 shadow-xs ring-1 ring-danger/20"
-                      : "border-signal/30 bg-signal-soft/10 shadow-xs"
+                    ? "border-danger/40 bg-danger-soft/10 shadow-xs ring-1 ring-danger/20"
+                    : "border-signal/30 bg-signal-soft/10 shadow-xs"
                     : "border-ink-200 bg-canvas-raised"
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 min-w-0">
                   {/* Left: Icon & Content */}
                   <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <span className="text-xl shrink-0 mt-0.5">
+                    <span className="shrink-0 mt-0.5">
                       {getCategoryIcon(item.category, item.kind)}
                     </span>
 
@@ -264,13 +278,13 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                           <span className="w-2 h-2 rounded-full bg-signal shrink-0" />
                         )}
                         {isResolved && (
-                          <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-positive-soft text-positive">
-                            ✓ Résolu
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-positive-soft text-positive inline-flex items-center gap-1">
+                            <Check className="w-3 h-3" /> Résolu
                           </span>
                         )}
                         {isSnoozed && (
-                          <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-warning-soft text-warning">
-                            ⏰ Reporté
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-warning-soft text-warning inline-flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> Reporté
                           </span>
                         )}
                       </div>
@@ -292,7 +306,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                               href={item.link}
                               className="font-medium text-signal hover:underline inline-flex items-center gap-1"
                             >
-                              Consulter &rarr;
+                              Consulter <ArrowRight className="w-3 h-3" />
                             </Link>
                           </>
                         )}
@@ -308,9 +322,9 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         type="button"
                         disabled={isBusy}
                         onClick={() => handleResolve(item.id, "income", item.entity_id)}
-                        className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active"
+                        className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1"
                       >
-                        ✓ Reçu
+                        <Check className="w-3.5 h-3.5" /> Reçu
                       </button>
                     )}
 
@@ -319,9 +333,9 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         type="button"
                         disabled={isBusy}
                         onClick={() => handleResolve(item.id, "expense", item.entity_id)}
-                        className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active"
+                        className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1"
                       >
-                        ✓ Payé
+                        <Check className="w-3.5 h-3.5" /> Payé
                       </button>
                     )}
 
@@ -343,10 +357,10 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                           type="button"
                           disabled={isBusy}
                           onClick={() => handleSnooze(item.id, 24)}
-                          className="px-2 py-1.5 rounded-lg text-xs font-semibold text-ink-600 hover:text-ink-950 hover:bg-ink-100 active:scale-95 transition-all tap-active"
+                          className="px-2 py-1.5 rounded-lg text-xs font-semibold text-ink-600 hover:text-ink-950 hover:bg-ink-100 active:scale-95 transition-all tap-active flex items-center gap-1"
                           title="Reporter de 24 heures"
                         >
-                          ⏰ +24h
+                          <Clock className="w-3 h-3" /> +24h
                         </button>
                       )}
 
@@ -354,10 +368,10 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         type="button"
                         disabled={isBusy}
                         onClick={() => handleDelete(item.id)}
-                        className="px-2 py-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-danger hover:bg-danger-soft/20 active:scale-95 transition-all tap-active"
+                        className="p-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-danger hover:bg-danger-soft/20 active:scale-95 transition-all tap-active inline-flex items-center justify-center"
                         title="Supprimer la notification"
                       >
-                        🗑️
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>

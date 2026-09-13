@@ -2,6 +2,21 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import {
+  CheckSquare,
+  TrendingUp,
+  TrendingDown,
+  Briefcase,
+  User,
+  Wallet,
+  PiggyBank,
+  BarChart3,
+  Calendar,
+  Settings,
+  Search,
+  X,
+  LucideIcon,
+} from "lucide-react";
 
 interface SearchResultItem {
   id: string;
@@ -16,17 +31,27 @@ interface SearchCategory {
   items: SearchResultItem[];
 }
 
-const QUICK_ACTIONS = [
-  { id: "task-new", title: "Nouvelle tâche", subtitle: "Ajouter une tâche à faire", href: "/tasks/new", icon: "📝" },
-  { id: "income-new", title: "Nouveau revenu", subtitle: "Saisir un paiement attendu ou reçu", href: "/finances/income/new", icon: "💰" },
-  { id: "expense-new", title: "Nouvelle dépense", subtitle: "Enregistrer une dépense perso ou pro", href: "/finances/expenses/new", icon: "💳" },
-  { id: "activity-new", title: "Nouvelle activité", subtitle: "Créer une activité et ses horaires", href: "/activities/new", icon: "📁" },
-  { id: "contact-new", title: "Nouveau contact", subtitle: "Ajouter un client ou collaborateur", href: "/clients/contacts/new", icon: "👤" },
-  { id: "budgets-view", title: "Gérer les budgets", subtitle: "Consulter les plafonds mensuels", href: "/finances?tab=budgets", icon: "⚖️" },
-  { id: "savings-view", title: "Objectifs d'épargne", subtitle: "Suivre vos projets et réserves", href: "/finances?tab=savings", icon: "🎯" },
-  { id: "reports-view", title: "Rapports & Rentabilité", subtitle: "Voir le taux horaire net par activité", href: "/reports", icon: "📊" },
-  { id: "calendar-view", title: "Ouvrir le calendrier", subtitle: "Voir votre planning du mois", href: "/calendar", icon: "📅" },
-  { id: "settings-view", title: "Paramètres du compte", subtitle: "Profil, devise, sécurité, abonnement", href: "/settings", icon: "⚙️" },
+interface QuickActionItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  href: string;
+  icon: LucideIcon;
+  iconColor: string;
+  iconBg: string;
+}
+
+const QUICK_ACTIONS: QuickActionItem[] = [
+  { id: "task-new", title: "Nouvelle tâche", subtitle: "Ajouter une tâche à faire", href: "/tasks/new", icon: CheckSquare, iconColor: "text-amber-700", iconBg: "bg-amber-100/70" },
+  { id: "income-new", title: "Nouveau revenu", subtitle: "Saisir un paiement attendu ou reçu", href: "/finances/income/new", icon: TrendingUp, iconColor: "text-emerald-700", iconBg: "bg-emerald-100/70" },
+  { id: "expense-new", title: "Nouvelle dépense", subtitle: "Enregistrer une dépense perso ou pro", href: "/finances/expenses/new", icon: TrendingDown, iconColor: "text-rose-700", iconBg: "bg-rose-100/70" },
+  { id: "activity-new", title: "Nouvelle activité", subtitle: "Créer une activité et ses horaires", href: "/activities/new", icon: Briefcase, iconColor: "text-indigo-700", iconBg: "bg-indigo-100/70" },
+  { id: "contact-new", title: "Nouveau contact", subtitle: "Ajouter un client ou collaborateur", href: "/clients/contacts/new", icon: User, iconColor: "text-cyan-700", iconBg: "bg-cyan-100/70" },
+  { id: "budgets-view", title: "Gérer les budgets", subtitle: "Consulter les plafonds mensuels", href: "/finances?tab=budgets", icon: Wallet, iconColor: "text-gold-dark", iconBg: "bg-gold-soft" },
+  { id: "savings-view", title: "Objectifs d'épargne", subtitle: "Suivre vos projets et réserves", href: "/finances?tab=savings", icon: PiggyBank, iconColor: "text-gold-dark", iconBg: "bg-gold-soft" },
+  { id: "reports-view", title: "Rapports & Rentabilité", subtitle: "Voir le taux horaire net par activité", href: "/reports", icon: BarChart3, iconColor: "text-gold-dark", iconBg: "bg-gold-soft" },
+  { id: "calendar-view", title: "Ouvrir le calendrier", subtitle: "Voir votre planning du mois", href: "/calendar", icon: Calendar, iconColor: "text-blue-700", iconBg: "bg-blue-100/70" },
+  { id: "settings-view", title: "Paramètres du compte", subtitle: "Profil, devise, sécurité, abonnement", href: "/settings", icon: Settings, iconColor: "text-ink-700", iconBg: "bg-ink-100" },
 ];
 
 export function CommandPalette() {
@@ -195,20 +220,25 @@ export function CommandPalette() {
                 Actions Rapides & Navigation
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 pt-1">
-                {QUICK_ACTIONS.map((action) => (
-                  <button
-                    key={action.id}
-                    type="button"
-                    onClick={() => handleSelect(action.href)}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-canvas transition-colors border border-transparent hover:border-ink-200"
-                  >
-                    <span className="text-base">{action.icon}</span>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-ink-950">{action.title}</p>
-                      <p className="text-[10px] text-ink-500 truncate">{action.subtitle}</p>
-                    </div>
-                  </button>
-                ))}
+                {QUICK_ACTIONS.map((action) => {
+                  const Icon = action.icon;
+                  return (
+                    <button
+                      key={action.id}
+                      type="button"
+                      onClick={() => handleSelect(action.href)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-canvas transition-colors border border-transparent hover:border-ink-200"
+                    >
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${action.iconBg} ${action.iconColor}`}>
+                        <Icon className="h-4 w-4" strokeWidth={2} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-ink-950">{action.title}</p>
+                        <p className="text-[10px] text-ink-500 truncate">{action.subtitle}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

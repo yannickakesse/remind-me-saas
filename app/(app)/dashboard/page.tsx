@@ -1,5 +1,16 @@
 import Link from "next/link";
 import { DateTime } from "luxon";
+import {
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  AlertCircle,
+  AlertTriangle,
+  Clock,
+  Calendar,
+  Briefcase,
+  ArrowRight,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatAmount } from "@/lib/finances/format";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -134,8 +145,8 @@ export default async function DashboardPage() {
       {/* Top Welcome & Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 truncate">
-            Bonjour {profile?.full_name?.split(" ")[0] ?? ""} 👋
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 truncate">
+            Bonjour {profile?.full_name?.split(" ")[0] ?? ""}
           </h1>
           <p className="text-xs text-ink-500 mt-0.5">
             {now.setLocale("fr").toFormat("cccc d LLLL yyyy")} — Vue d'ensemble de vos activités
@@ -155,24 +166,28 @@ export default async function DashboardPage() {
           value={formatAmount(incomeReceived, currency)}
           helper={incomeExpected > 0 ? `+${formatAmount(incomeExpected, currency)} attendus` : "À jour"}
           tone="positive"
+          icon={TrendingUp}
         />
         <StatCard
           label="Dépenses payées"
           value={formatAmount(expensesPaid, currency)}
           helper={expensesDue > 0 ? `${formatAmount(expensesDue, currency)} prévues` : undefined}
           tone="warning"
+          icon={TrendingDown}
         />
         <StatCard
           label="Solde Net"
           value={formatAmount(net, currency)}
           helper="Reçu - Dépensé"
           tone={net >= 0 ? "positive" : "danger"}
+          icon={Wallet}
         />
         <StatCard
           label="Tâches urgentes"
           value={String(urgentTasks?.length ?? 0)}
           helper="En retard ou aujourd'hui"
           tone={(urgentTasks?.length ?? 0) > 0 ? "danger" : "neutral"}
+          icon={AlertCircle}
         />
       </div>
 
@@ -188,10 +203,10 @@ export default async function DashboardPage() {
           <div className="p-4 rounded-xl border border-danger/30 bg-canvas-raised space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wider text-danger flex items-center gap-1.5">
-                <span>⚠️</span> Tâches urgentes ({urgentTasks.length})
+                <AlertTriangle className="w-3.5 h-3.5" /> Tâches urgentes ({urgentTasks.length})
               </h2>
-              <Link href="/tasks" className="text-xs text-signal hover:underline">
-                Voir tout
+              <Link href="/tasks" className="text-xs text-signal hover:underline flex items-center gap-0.5">
+                Voir tout <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
             <ul className="space-y-2">
@@ -217,10 +232,10 @@ export default async function DashboardPage() {
           <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wider text-ink-600 flex items-center gap-1.5">
-                <span>⏰</span> Prochaines dépenses programmées
+                <Clock className="w-3.5 h-3.5 text-amber-600" /> Prochaines dépenses programmées
               </h2>
-              <Link href="/finances?tab=scheduled" className="text-xs text-signal hover:underline">
-                Gérer ({scheduledExpenses.length})
+              <Link href="/finances?tab=scheduled" className="text-xs text-signal hover:underline flex items-center gap-0.5">
+                Gérer ({scheduledExpenses.length}) <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
             <ul className="space-y-2">
@@ -272,10 +287,10 @@ export default async function DashboardPage() {
         <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-ink-600 flex items-center gap-1.5">
-              <span>📅</span> Aujourd'hui
+              <Calendar className="w-3.5 h-3.5 text-signal" /> Aujourd'hui
             </h2>
-            <Link href="/calendar" className="text-xs text-signal hover:underline">
-              Calendrier
+            <Link href="/calendar" className="text-xs text-signal hover:underline flex items-center gap-0.5">
+              Calendrier <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
@@ -313,10 +328,10 @@ export default async function DashboardPage() {
         <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-ink-600 flex items-center gap-1.5">
-              <span>🎯</span> Vos activités ({activities?.length ?? 0})
+              <Briefcase className="w-3.5 h-3.5 text-signal" /> Vos activités ({activities?.length ?? 0})
             </h2>
-            <Link href="/activities" className="text-xs text-signal hover:underline">
-              Gérer
+            <Link href="/activities" className="text-xs text-signal hover:underline flex items-center gap-0.5">
+              Gérer <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 

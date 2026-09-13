@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DateTime } from "luxon";
+import { AlertTriangle } from "lucide-react";
 import { EVENT_STATUS_STYLES } from "@/lib/validation/calendar";
 import { HOUR_HEIGHT_PX, TIMELINE_HEIGHT_PX, TIMELINE_HOURS, timelinePosition } from "@/lib/calendar/timeline";
 import type { CalendarEventView } from "./types";
@@ -71,11 +72,12 @@ export function WeekView({
                     key={event.id}
                     href={`/calendar/${event.id}`}
                     style={{ top: topPx, height: heightPx, borderLeftColor: color, borderLeftWidth: 3 }}
-                    className={`absolute left-1 right-1 overflow-hidden rounded border bg-canvas-raised px-1 py-0.5 text-[11px] leading-tight hover:brightness-95 ${
+                    className={`absolute left-1 right-1 overflow-hidden rounded border bg-canvas-raised px-1 py-0.5 text-[11px] leading-tight hover:brightness-95 flex items-center justify-between ${
                       EVENT_STATUS_STYLES[event.status] ?? "border-ink-300"
                     } ${hasConflict ? "ring-1 ring-danger" : ""}`}
                   >
-                    <span className="truncate">{event.title}{hasConflict ? " ⚠" : ""}</span>
+                    <span className="truncate">{event.title}</span>
+                    {hasConflict ? <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-danger ml-0.5" /> : null}
                   </Link>
                 );
               })}

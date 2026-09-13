@@ -1,6 +1,5 @@
-"use client";
-
 import { useTransition, useState } from "react";
+import { Check, X } from "lucide-react";
 import { PLAN_ENTITLEMENTS, type PlanType } from "@/lib/subscriptions/entitlements";
 import { updateSubscriptionPlan } from "@/app/(app)/settings/actions";
 import type { Subscription } from "@/types/database";
@@ -77,49 +76,55 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
 
                 <ul className="mt-6 space-y-2.5 text-xs text-ink-700">
                   <li className="flex items-center gap-2">
-                    <span className="text-positive font-bold">✓</span>
+                    <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
                     <span>
                       Jusqu'à <strong>{p.maxActivities === Infinity ? "Illimitées" : p.maxActivities}</strong> activités
                     </span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="text-positive font-bold">✓</span>
+                    <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
                     <span>
                       Jusqu'à <strong>{p.maxClients === Infinity ? "Illimités" : p.maxClients}</strong> contacts & clients
                     </span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="text-positive font-bold">✓</span>
+                    <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
                     <span>
                       Jusqu'à <strong>{p.maxGoals === Infinity ? "Illimités" : p.maxGoals}</strong> objectifs d'épargne
                     </span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="text-positive font-bold">✓</span>
+                    <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
                     <span>
                       Jusqu'à <strong>{p.maxBudgets === Infinity ? "Illimités" : p.maxBudgets}</strong> budgets mensuels
                     </span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className={p.advancedReports ? "text-positive font-bold" : "text-ink-300"}>
-                      {p.advancedReports ? "✓" : "✕"}
-                    </span>
+                    {p.advancedReports ? (
+                      <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                    ) : (
+                      <X className="w-3.5 h-3.5 text-ink-300 shrink-0" />
+                    )}
                     <span className={p.advancedReports ? "font-medium text-ink-900" : "text-ink-400"}>
                       Rapports de rentabilité horaire
                     </span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className={p.multiCurrency ? "text-positive font-bold" : "text-ink-300"}>
-                      {p.multiCurrency ? "✓" : "✕"}
-                    </span>
+                    {p.multiCurrency ? (
+                      <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                    ) : (
+                      <X className="w-3.5 h-3.5 text-ink-300 shrink-0" />
+                    )}
                     <span className={p.multiCurrency ? "font-medium text-ink-900" : "text-ink-400"}>
                       Gestion multi-devises unifiée
                     </span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className={p.aiAssistant ? "text-positive font-bold" : "text-ink-300"}>
-                      {p.aiAssistant ? "✓" : "✕"}
-                    </span>
+                    {p.aiAssistant ? (
+                      <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                    ) : (
+                      <X className="w-3.5 h-3.5 text-ink-300 shrink-0" />
+                    )}
                     <span className={p.aiAssistant ? "font-medium text-ink-900" : "text-ink-400"}>
                       Assistant IA & Insights prédictifs
                     </span>

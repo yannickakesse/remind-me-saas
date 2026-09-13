@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Bell, CheckCircle2, AlertCircle, Wallet, Clock, Pin, ArrowRight } from "lucide-react";
 import type { Notification } from "@/types/database";
 
 interface NotificationBellProps {
@@ -45,14 +46,7 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
         aria-label="Notifications"
         aria-expanded={open}
       >
-        {/* Bell Icon */}
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-          />
-        </svg>
+        <Bell className="w-5 h-5" strokeWidth={1.8} />
 
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white ring-2 ring-canvas-raised animate-pulse">
@@ -63,7 +57,7 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
 
       {/* Dropdown Popover */}
       {open && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-canvas-raised border border-ink-100 shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-canvas-raised border border-ink-200 shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
           <div className="p-3.5 border-b border-ink-100 flex items-center justify-between bg-canvas">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-ink-950">Notifications</span>
@@ -76,16 +70,16 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
             <Link
               href="/notifications"
               onClick={() => setOpen(false)}
-              className="text-[11px] text-signal font-semibold hover:underline"
+              className="text-[11px] text-signal font-semibold hover:underline flex items-center gap-1"
             >
-              Centre complet &rarr;
+              Centre complet <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
           <div className="divide-y divide-ink-100 max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="p-6 text-center text-xs text-ink-500">
-                <span className="text-2xl block mb-1">🎉</span>
+                <CheckCircle2 className="w-6 h-6 text-positive mx-auto mb-1.5" />
                 Tout est à jour ! Aucune alerte en attente.
               </div>
             ) : (
@@ -102,8 +96,16 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
                     }`}
                   >
                     <div className="flex items-start gap-2.5">
-                      <span className="text-sm shrink-0 mt-0.5">
-                        {isOverdue ? "🔴" : n.category === "payment" ? "💰" : n.category === "expense" ? "⏰" : "📌"}
+                      <span className="shrink-0 mt-0.5">
+                        {isOverdue ? (
+                          <AlertCircle className="w-4 h-4 text-danger" />
+                        ) : n.category === "payment" ? (
+                          <Wallet className="w-4 h-4 text-gold-dark" />
+                        ) : n.category === "expense" ? (
+                          <Clock className="w-4 h-4 text-warning" />
+                        ) : (
+                          <Pin className="w-4 h-4 text-signal" />
+                        )}
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">

@@ -67,7 +67,7 @@ export default async function CalendarPage({
       id: `scheduled-${sc.id}`,
       activity_id: sc.activity_id ?? "",
       schedule_id: null,
-      title: `💸 ${sc.name} (${sc.amount} ${sc.currency})`,
+      title: `${sc.name} (${sc.amount} ${sc.currency})`,
       starts_at: dt.toUTC().toISO()!,
       ends_at: dt.plus({ hours: 1 }).toUTC().toISO()!,
       status: (sc.status === "paid" ? "completed" : "planned") as any,

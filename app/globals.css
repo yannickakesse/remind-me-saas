@@ -12,83 +12,102 @@
   --ink-700: 68 64 60;
   --ink-500: 120 113 108;
   --ink-300: 214 208 198;
-  --ink-100: 238 233 224;
+  --ink-100: 241 238 231;
 
-  --canvas: 247 244 238;
+  --canvas: 248 246 242;
   --canvas-raised: 255 255 255;
 
-  --signal: 30 58 95;
-  --signal-soft: 228 236 245;
+  /* Signature Brand Gold / Amber (Spel-Rebel Style) */
+  --signal: 217 119 6;
+  --signal-soft: 254 243 199;
+  --signal-dark: 180 83 9;
 
-  --positive: 31 122 77;
-  --positive-soft: 228 243 235;
+  --gold: 229 169 30;
+  --gold-dark: 180 130 18;
+  --gold-light: 251 191 36;
+  --gold-soft: 254 243 199;
 
-  --warning: 181 117 27;
-  --warning-soft: 248 236 218;
+  --positive: 16 185 129;
+  --positive-soft: 236 253 245;
 
-  --danger: 163 44 44;
-  --danger-soft: 246 228 228;
+  --warning: 245 158 11;
+  --warning-soft: 254 243 199;
 
-  --info: 8 145 178;
-  --info-soft: 219 244 250;
+  --danger: 239 68 68;
+  --danger-soft: 254 242 242;
+
+  --info: 14 165 233;
+  --info-soft: 240 249 255;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --ink-950: 241 243 245;
-    --ink-700: 199 204 211;
-    --ink-500: 148 157 168;
-    --ink-300: 74 81 92;
-    --ink-100: 34 38 46;
+    --ink-950: 248 250 252;
+    --ink-700: 203 213 225;
+    --ink-500: 148 163 184;
+    --ink-300: 71 85 105;
+    --ink-100: 30 41 59;
 
-    --canvas: 15 17 21;
-    --canvas-raised: 24 27 34;
+    --canvas: 11 15 23;
+    --canvas-raised: 18 24 38;
 
-    --signal: 79 134 207;
-    --signal-soft: 28 42 61;
+    --signal: 245 158 11;
+    --signal-soft: 69 38 12;
+    --signal-dark: 217 119 6;
 
-    --positive: 46 160 105;
-    --positive-soft: 24 48 37;
+    --gold: 245 158 11;
+    --gold-dark: 217 119 6;
+    --gold-light: 252 211 77;
+    --gold-soft: 69 38 12;
 
-    --warning: 217 149 53;
-    --warning-soft: 56 42 24;
+    --positive: 16 185 129;
+    --positive-soft: 6 78 59;
 
-    --danger: 217 76 76;
-    --danger-soft: 56 26 26;
+    --warning: 245 158 11;
+    --warning-soft: 69 38 12;
 
-    --info: 34 184 209;
-    --info-soft: 22 47 54;
+    --danger: 239 68 68;
+    --danger-soft: 69 10 10;
+
+    --info: 56 189 248;
+    --info-soft: 12 74 96;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --ink-950: 241 243 245;
-  --ink-700: 199 204 211;
-  --ink-500: 148 157 168;
-  --ink-300: 74 81 92;
-  --ink-100: 34 38 46;
+  --ink-950: 248 250 252;
+  --ink-700: 203 213 225;
+  --ink-500: 148 163 184;
+  --ink-300: 71 85 105;
+  --ink-100: 30 41 59;
 
-  --canvas: 15 17 21;
-  --canvas-raised: 24 27 34;
+  --canvas: 11 15 23;
+  --canvas-raised: 18 24 38;
 
-  --signal: 79 134 207;
-  --signal-soft: 28 42 61;
+  --signal: 245 158 11;
+  --signal-soft: 69 38 12;
+  --signal-dark: 217 119 6;
 
-  --positive: 46 160 105;
-  --positive-soft: 24 48 37;
+  --gold: 245 158 11;
+  --gold-dark: 217 119 6;
+  --gold-light: 252 211 77;
+  --gold-soft: 69 38 12;
 
-  --warning: 217 149 53;
-  --warning-soft: 56 42 24;
+  --positive: 16 185 129;
+  --positive-soft: 6 78 59;
 
-  --danger: 217 76 76;
-  --danger-soft: 56 26 26;
+  --warning: 245 158 11;
+  --warning-soft: 69 38 12;
 
-  --info: 34 184 209;
-  --info-soft: 22 47 54;
+  --danger: 239 68 68;
+  --danger-soft: 69 10 10;
+
+  --info: 56 189 248;
+  --info-soft: 12 74 96;
 }
 
 :root[data-theme="light"] {
@@ -98,25 +117,31 @@
   --ink-700: 68 64 60;
   --ink-500: 120 113 108;
   --ink-300: 214 208 198;
-  --ink-100: 238 233 224;
+  --ink-100: 241 238 231;
 
-  --canvas: 247 244 238;
+  --canvas: 248 246 242;
   --canvas-raised: 255 255 255;
 
-  --signal: 30 58 95;
-  --signal-soft: 228 236 245;
+  --signal: 217 119 6;
+  --signal-soft: 254 243 199;
+  --signal-dark: 180 83 9;
 
-  --positive: 31 122 77;
-  --positive-soft: 228 243 235;
+  --gold: 229 169 30;
+  --gold-dark: 180 130 18;
+  --gold-light: 251 191 36;
+  --gold-soft: 254 243 199;
 
-  --warning: 181 117 27;
-  --warning-soft: 248 236 218;
+  --positive: 16 185 129;
+  --positive-soft: 236 253 245;
 
-  --danger: 163 44 44;
-  --danger-soft: 246 228 228;
+  --warning: 245 158 11;
+  --warning-soft: 254 243 199;
 
-  --info: 8 145 178;
-  --info-soft: 219 244 250;
+  --danger: 239 68 68;
+  --danger-soft: 254 242 242;
+
+  --info: 14 165 233;
+  --info-soft: 240 249 255;
 }
 
 html {
@@ -291,10 +316,53 @@ button, a, input, select, textarea {
 .card-interactive:hover {
   transform: translateY(-3px);
   box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.08), 0 8px 12px -4px rgba(0, 0, 0, 0.04);
-  border-color: rgba(30, 58, 95, 0.25);
+  border-color: rgba(229, 169, 30, 0.35);
 }
 
-/* 4. Accessibility: Prefers Reduced Motion */
+/* 4. Fintech Gold Luxury & Glassmorphic Utilities (Spel-Rebel Brand) */
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #E5A91E 0%, #D97706 100%);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #E5A91E 0%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.card-gold {
+  border: 1px solid rgba(229, 169, 30, 0.3);
+  background: radial-gradient(circle at top left, rgba(254, 243, 199, 0.6) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+[data-theme="dark"] .card-gold,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .card-gold {
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    background: radial-gradient(circle at top left, rgba(69, 38, 12, 0.4) 0%, rgba(18, 24, 38, 0.95) 100%);
+  }
+}
+
+.glow-gold {
+  box-shadow: 0 0 25px -3px rgba(229, 169, 30, 0.25);
+}
+
+.badge-gold {
+  background-color: rgba(229, 169, 30, 0.12);
+  color: rgb(180, 83, 9);
+  border: 1px solid rgba(229, 169, 30, 0.25);
+}
+
+[data-theme="dark"] .badge-gold,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .badge-gold {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: rgb(252, 211, 77);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+}
+
+/* 5. Accessibility: Prefers Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-float-1,
   .animate-float-2,
