@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Bell,
   Mail,
@@ -13,11 +13,22 @@ import {
   AlertTriangle,
   Moon,
   Globe,
+  Share,
+  PlusSquare,
+  Send,
+  CheckCircle2,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { updateNotificationPrefs } from "@/app/(app)/settings/actions";
+import { urlBase64ToUint8Array } from "@/lib/push/client";
 import type { NotificationPreference } from "@/types/database";
+
+const VAPID_PUBLIC_KEY =
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+  "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
 
 interface NotificationsSectionProps {
   notifPrefs: Record<string, unknown> | null;
@@ -34,7 +45,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
     notificationPreferences?.in_app_enabled ?? (notifPrefs?.in_app_enabled as boolean ?? true)
   );
   const [pushEnabled, setPushEnabled] = useState(
-    (notifPrefs?.push_enabled as boolean) ?? false
+    (notificationPreferences as any)?.push_enabled ?? (notifPrefs?.push_enabled as boolean ?? false)
   );
 
   const [activityReminders, setActivityReminders] = useState(
@@ -71,6 +82,138 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   );
 
   const [saving, setSaving] = useState(false);
+
+  // Push Web State
+  const [isPushSupported, setIsPushSupported] = useState(true);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showIOSPrompt, setShowIOSPrompt] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [registeringPush, setRegisteringPush] = useState(false);
+  const [testingPush, setTestingPush] = useState(false);
+
+  // Détection de l'environnement PWA & Push
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const iosDevice = /iphone|ipad|ipod/.test(userAgent);
+    setIsIOS(iosDevice);
+
+    const standaloneMode =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true;
+    setIsStandalone(standaloneMode);
+
+    const pushSupported =
+      "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+    setIsPushSupported(pushSupported);
+
+    if (pushSupported && "serviceWorker" in navigator) {
+      navigator.serviceWorker.ready
+        .then((reg) => reg.pushManager.getSubscription())
+        .then((sub) => {
+          if (sub) {
+            setPushSubscribed(true);
+            setPushEnabled(true);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  // Déclencheur d'activation Web Push explicite (User Gesture)
+  async function handleEnablePush() {
+    if (!isPushSupported) {
+      push("Les notifications push ne sont pas supportées sur ce navigateur.", "error");
+      return;
+    }
+
+    // Sur iOS, Web Push requiert impérativement que l'application soit installée sur l'écran d'accueil
+    if (isIOS && !isStandalone) {
+      setShowIOSPrompt(true);
+      return;
+    }
+
+    setRegisteringPush(true);
+    try {
+      // 1. Demande de permission native au navigateur
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        push("Autorisation refusée pour les notifications.", "error");
+        setPushSubscribed(false);
+        setPushEnabled(false);
+        setRegisteringPush(false);
+        return;
+      }
+
+      // 2. Récupération de l'enregistrement Service Worker
+      const reg = await navigator.serviceWorker.ready;
+
+      // 3. Création de la souscription PushManager avec clé VAPID
+      const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      const subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedVapidKey,
+      });
+
+      // 4. Envoi de la souscription à Supabase via l'API
+      const rawKeys = subscription.toJSON();
+      const response = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: rawKeys.keys?.p256dh,
+            auth: rawKeys.keys?.auth,
+          },
+          platform: isIOS ? "iOS" : "Web",
+          browser: navigator.userAgent.includes("Chrome")
+            ? "Chrome"
+            : navigator.userAgent.includes("Safari")
+            ? "Safari"
+            : "Browser",
+          device_name: isIOS ? "iPhone / iPad" : "Appareil connecté",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Impossible d'enregistrer la souscription sur le serveur.");
+      }
+
+      setPushSubscribed(true);
+      setPushEnabled(true);
+      push("Notifications push activées avec succès !", "success");
+    } catch (err: any) {
+      console.error("[Push] Erreur activation:", err);
+      push(err?.message || "Erreur lors de l'activation des notifications push.", "error");
+    } finally {
+      setRegisteringPush(false);
+    }
+  }
+
+  // Test immédiat de notification push
+  async function handleTestPush() {
+    setTestingPush(true);
+    try {
+      const response = await fetch("/api/push/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        push("Notification push de test envoyée !", "success");
+      } else {
+        push(data.error || "Impossible d'envoyer la notification de test.", "error");
+      }
+    } catch {
+      push("Erreur réseau lors du test de notification.", "error");
+    } finally {
+      setTestingPush(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -110,12 +253,47 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         </p>
       </div>
 
+      {/* Modal / Bandeau d'installation iPhone PWA pour Push */}
+      {showIOSPrompt && (
+        <div className="p-4 rounded-2xl border-2 border-signal bg-signal-soft/30 space-y-3 animate-in fade-in">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2 text-signal font-bold text-sm">
+              <Smartphone className="w-4 h-4" />
+              <span>Activation requise sur iPhone</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowIOSPrompt(false)}
+              className="text-ink-400 hover:text-ink-700"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <p className="text-xs text-ink-700 font-medium leading-relaxed">
+            Pour recevoir les notifications push sur votre iPhone, ajoutez d'abord Remind Me à votre écran d'accueil :
+          </p>
+
+          <ol className="text-xs text-ink-600 space-y-1.5 pl-4 list-decimal">
+            <li className="flex items-center gap-1.5">
+              <span>Appuyez sur le bouton Partager</span> <Share className="w-3.5 h-3.5 text-signal inline" /> <span>dans Safari</span>
+            </li>
+            <li className="flex items-center gap-1.5">
+              <span>Sélectionnez</span> <span className="font-semibold text-ink-950">« Sur l'écran d'accueil »</span> <PlusSquare className="w-3.5 h-3.5 text-signal inline" />
+            </li>
+            <li>Ouvrez l'application depuis la nouvelle icône <strong>Remind Me</strong></li>
+            <li>Revenez dans les Paramètres et appuyez sur <strong>Activer les notifications push</strong></li>
+          </ol>
+        </div>
+      )}
+
       {/* Section 1: Canaux de diffusion */}
       <div className="space-y-3">
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-600">
           Canaux de réception (Channels)
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* In-App */}
           <label className="flex items-start gap-3 p-3.5 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
             <input
               type="checkbox"
@@ -135,6 +313,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             </div>
           </label>
 
+          {/* E-mail */}
           <label className="flex items-start gap-3 p-3.5 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
             <input
               type="checkbox"
@@ -154,24 +333,57 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             </div>
           </label>
 
-          <label className="flex items-start gap-3 p-3.5 rounded-xl border border-dashed border-ink-200 bg-canvas-raised/60 cursor-pointer hover:border-ink-300 transition-colors opacity-80">
-            <input
-              type="checkbox"
-              checked={pushEnabled}
-              onChange={(e) => setPushEnabled(e.target.checked)}
-              className="mt-1 rounded text-signal focus:ring-signal"
-            />
-            <div>
+          {/* Web Push */}
+          <div className={`p-3.5 rounded-xl border transition-all ${
+            pushSubscribed
+              ? "border-positive/40 bg-positive-soft/20"
+              : "border-ink-200 bg-canvas-raised"
+          }`}>
+            <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <Smartphone className="w-3.5 h-3.5 text-ink-500" />
-                <span className="block text-xs font-bold text-ink-950">Push Web</span>
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-ink-200 text-ink-700">Phase 3</span>
+                <Smartphone className="w-3.5 h-3.5 text-signal" />
+                <span className="block text-xs font-bold text-ink-950">Push Mobile</span>
               </div>
-              <span className="block text-[11px] text-ink-500 mt-0.5">
-                Notifications push sur mobile & navigateur (requiert Service Worker).
-              </span>
+              {pushSubscribed ? (
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-positive-soft text-positive flex items-center gap-1">
+                  <CheckCircle2 className="w-2.5 h-2.5" /> Actif
+                </span>
+              ) : (
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-ink-100 text-ink-700">
+                  Désactivé
+                </span>
+              )}
             </div>
-          </label>
+            <span className="block text-[11px] text-ink-500 mt-1">
+              Rappels instantanés sur iPhone, Android et Mac/PC.
+            </span>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {!pushSubscribed ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="primary"
+                  loading={registeringPush}
+                  onClick={handleEnablePush}
+                  className="w-full text-xs py-1.5"
+                >
+                  <Smartphone className="w-3.5 h-3.5 mr-1.5" /> Activer Push
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  loading={testingPush}
+                  onClick={handleTestPush}
+                  className="w-full text-xs py-1.5"
+                >
+                  <Send className="w-3 h-3 mr-1.5" /> Tester la notification
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -192,10 +404,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <Briefcase className="w-3.5 h-3.5 text-signal" />
-                <span className="block text-xs font-bold text-ink-950">Activités & Séances de coaching</span>
+                <span className="block text-xs font-bold text-ink-950">Activités & Séances</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Rappels programmés avant les créneaux d'activité (J-1, H-2).
+                Rappels programmés avant les créneaux d'activité (J-1, H-3, H-1, 30m, 15m).
               </span>
             </div>
           </label>
@@ -213,7 +425,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <span className="block text-xs font-bold text-ink-950">Tâches & Échéances</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Rappels des tâches à accomplir aujourd'hui et alertes de retard.
+                Rappels des tâches imminentes, échéances du jour et alertes de retard.
               </span>
             </div>
           </label>
@@ -231,7 +443,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <span className="block text-xs font-bold text-ink-950">Paiements attendus & Factures clients</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Alertes avant échéance (J-7, J-3, Jour J) et signalement des impayés.
+                Alertes séquentielles avant échéance (J-7, J-3, J-1, Jour J) et signalement des impayés (+1j, +3j, +7j).
               </span>
             </div>
           </label>
@@ -249,7 +461,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <span className="block text-xs font-bold text-ink-950">Dépenses & Factures à régler</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Alertes pour anticiper les paiements et factures fournisseurs dues.
+                Alertes pour anticiper les paiements et charges d'activités dues.
               </span>
             </div>
           </label>
@@ -267,7 +479,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <span className="block text-xs font-bold text-ink-950">Finances & Dépenses programmées</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Alertes d'échéances d'abonnements, charges récurrentes et seuils de trésorerie.
+                Alertes d'échéances d'abonnements, charges récurrentes et objectifs d'épargne.
               </span>
             </div>
           </label>
@@ -301,7 +513,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               <span className="block text-xs font-bold text-ink-950">Heures silencieuses (Quiet Hours)</span>
             </div>
             <span className="block text-[11px] text-ink-500 mt-0.5">
-              Suspendre l'envoi d'emails durant votre période de repos nocturne.
+              Suspendre l'envoi d'alertes durant votre période de repos nocturne.
             </span>
           </div>
           <input

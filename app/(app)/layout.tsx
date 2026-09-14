@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ensureNotifications } from "@/lib/notifications/sync";
 import { CommandPalette } from "@/components/navigation/command-palette";
 import { MobileNav } from "@/components/navigation/mobile-nav";
 import { NotificationBell } from "@/components/navigation/notification-bell";
+import { NotificationSyncTrigger } from "@/components/notifications/notification-sync-trigger";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { NetworkStatus } from "@/components/ui/network-status";
 import type { Notification } from "@/types/database";
@@ -43,18 +43,12 @@ export default async function AppLayout({
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("onboarding_completed, timezone, full_name, avatar_url")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.onboarding_completed) redirect("/onboarding");
-
-  // Synchronisation déterministe des rappels intelligents
-  await ensureNotifications(supabase, user.id, profile.timezone ?? "UTC");
-
-  const [{ count: unreadCount }, { data: latestNotifications }] = await Promise.all([
+  const [{ data: profile }, { count: unreadCount }, { data: latestNotifications }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("onboarding_completed, timezone, full_name, avatar_url")
+      .eq("id", user.id)
+      .single(),
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
@@ -68,10 +62,13 @@ export default async function AppLayout({
       .limit(6),
   ]);
 
+  if (!profile?.onboarding_completed) redirect("/onboarding");
+
   return (
     <div className="flex min-h-screen bg-canvas flex-col md:flex-row w-full max-w-full overflow-x-hidden">
-      {/* Moniteur d'état réseau */}
+      {/* Moniteur d'état réseau & synchronisation asynchrone */}
       <NetworkStatus />
+      <NotificationSyncTrigger />
 
       {/* Header & Bottom Nav Mobile (< 768px) */}
       <MobileNav unreadCount={unreadCount} />
@@ -104,6 +101,7 @@ export default async function AppLayout({
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={true}
                   className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-signal-soft hover:text-signal transition-colors"
                 >
                   <Icon className="w-4 h-4 text-ink-500 group-hover:text-signal transition-colors shrink-0" strokeWidth={1.8} />

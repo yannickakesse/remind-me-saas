@@ -135,6 +135,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={true}
                     onClick={() => setIsOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all min-h-[44px] ${
                       isActive
@@ -174,6 +175,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                         <Link
                           key={sub.href}
                           href={sub.href}
+                          prefetch={true}
                           onClick={() => setIsOpen(false)}
                           className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-ink-700 hover:bg-ink-100 active:bg-ink-200 transition-colors min-h-[40px]"
                         >
@@ -197,6 +199,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                     <Link
                       key={item.href}
                       href={item.href}
+                      prefetch={true}
                       onClick={() => setIsOpen(false)}
                       className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all min-h-[44px] ${
                         isActive
@@ -223,6 +226,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
             <div className="p-3 border-t border-ink-200 bg-canvas space-y-2">
               <Link
                 href="/tasks/new"
+                prefetch={true}
                 onClick={() => setIsOpen(false)}
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-signal text-white text-xs font-semibold shadow-xs active:scale-98 transition-transform"
               >
@@ -240,6 +244,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
       >
         <Link
           href="/dashboard"
+          prefetch={true}
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname === "/dashboard"
               ? "text-signal font-bold"
@@ -252,6 +257,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
 
         <Link
           href="/calendar"
+          prefetch={true}
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname.startsWith("/calendar")
               ? "text-signal font-bold"
@@ -264,6 +270,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
 
         <Link
           href="/tasks"
+          prefetch={true}
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname.startsWith("/tasks")
               ? "text-signal font-bold"
@@ -276,6 +283,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
 
         <Link
           href="/finances"
+          prefetch={true}
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname.startsWith("/finances")
               ? "text-signal font-bold"

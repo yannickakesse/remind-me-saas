@@ -1,41 +1,48 @@
-"use client";
-
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function Loading() {
+export default function CalendarLoading() {
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto animate-pulse">
-      {/* Header skeleton */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-64" />
+    <div className="space-y-6 animate-pulse">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-40 rounded-lg" />
+          <Skeleton className="h-4 w-60 rounded-md" />
         </div>
-        <Skeleton className="h-10 w-32 rounded-lg" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-9 w-28 rounded-xl" />
+          <Skeleton className="h-9 w-32 rounded-xl" />
+        </div>
       </div>
 
-      {/* Metric/Card skeletons */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
-            <div className="flex justify-between items-center">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-6 w-6 rounded-full" />
+      {/* Calendar navigation & views */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-9 w-9 rounded-xl" />
+          <Skeleton className="h-6 w-36 rounded-md" />
+          <Skeleton className="h-9 w-9 rounded-xl" />
+        </div>
+        <div className="flex items-center gap-1">
+          <Skeleton className="h-8 w-16 rounded-lg" />
+          <Skeleton className="h-8 w-16 rounded-lg" />
+          <Skeleton className="h-8 w-16 rounded-lg" />
+        </div>
+      </div>
+
+      {/* Calendar grid skeleton */}
+      <div className="rounded-2xl border border-ink-100 bg-canvas-raised p-4 shadow-xs">
+        <div className="grid grid-cols-7 gap-2 mb-3">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <Skeleton key={i} className="h-4 w-full rounded" />
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-2">
+          {Array.from({ length: 35 }).map((_, i) => (
+            <div key={i} className="h-20 sm:h-24 p-1.5 rounded-xl border border-ink-100/50 bg-ink-50/20 space-y-1">
+              <Skeleton className="h-3 w-5 rounded" />
+              {i % 4 === 0 && <Skeleton className="h-4 w-full rounded-md" />}
             </div>
-            <Skeleton className="h-7 w-32" />
-            <Skeleton className="h-3 w-40" />
-          </div>
-        ))}
-      </div>
-
-      {/* Main Content skeleton */}
-      <div className="p-4 md:p-6 rounded-xl border border-ink-200 bg-canvas-raised space-y-4">
-        <Skeleton className="h-6 w-40" />
-        <div className="space-y-3">
-          <Skeleton className="h-12 w-full rounded-lg" />
-          <Skeleton className="h-12 w-full rounded-lg" />
-          <Skeleton className="h-12 w-full rounded-lg" />
-          <Skeleton className="h-12 w-full rounded-lg" />
+          ))}
         </div>
       </div>
     </div>
