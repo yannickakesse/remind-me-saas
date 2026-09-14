@@ -8,6 +8,7 @@ import {
   Plus,
   ArrowRight,
   Sparkles,
+  Download,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
@@ -140,6 +141,14 @@ export default async function FinancesPage({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <a
+            href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
+            download
+            className={buttonClasses("secondary", "sm")}
+            title="Exporter les données financières au format CSV"
+          >
+            <Download className="w-3.5 h-3.5 mr-1" /> Exporter
+          </a>
           <Link
             href="/finances/income/new"
             className={buttonClasses("primary", "sm")}
