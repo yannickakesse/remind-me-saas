@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Remind Me",
     short_name: "Remind Me",
     description: "Centre de contrôle d'activités multiples, gestion du temps, finances et rappels intelligents.",
-    start_url: "/dashboard",
+    start_url: "/",
     display: "standalone",
     background_color: "#0B0F17",
     theme_color: "#0B0F17",

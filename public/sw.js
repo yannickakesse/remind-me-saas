@@ -1,8 +1,7 @@
 // Service Worker — Remind Me PWA & Push Notification Service
-const CACHE_NAME = "remindme-v1.0.0";
+const CACHE_NAME = "remindme-v1.0.1";
 const STATIC_ASSETS = [
   "/",
-  "/dashboard",
   "/manifest.webmanifest",
   "/icons/apple-touch-icon.png",
   "/icons/icon-192x192.png",
@@ -75,7 +74,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(request).catch(() => {
       return caches.match(request).then((cached) => {
-        return cached || caches.match("/dashboard");
+        return cached || caches.match("/");
       });
     })
   );
