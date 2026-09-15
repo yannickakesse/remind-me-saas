@@ -17,7 +17,7 @@ export function LandingFooter() {
               <RemindMeLogo size="sm" showText={true} />
             </Link>
             <p className="text-xs text-ink-500 leading-relaxed">
-              Une référence pour les pluriactifs et les indépendants. Votre travail, votre temps et votre argent enfin sous contrôle.
+              Une référence pour les pluriactifs et les indépendants. Gérez votre travail, votre temps et votre argent. Au même endroit.
             </p>
             <div className="text-xs text-ink-500 font-mono">
               &copy; {new Date().getFullYear()} Remind Me Inc.
