@@ -45,7 +45,7 @@ export function LandingHero() {
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[72px] font-extrabold tracking-tight text-ink-950 font-sans max-w-5xl mx-auto leading-[1.08] mb-6">
           Gérez votre travail, votre temps et votre argent.{" "}
           <span className="block mt-1 sm:mt-2 text-ink-950/90 font-extrabold">
-            Au même endroit.
+            En parfait contrôle.
           </span>
         </h1>
 

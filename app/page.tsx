@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Remind Me — Gérez votre travail, votre temps et votre argent. Au même endroit.",
+  title: "Remind Me — Gérez votre travail, votre temps et votre argent. En parfait contrôle.",
   description:
     "Le premier centre de contrôle tout-en-un pour indépendants, consultants, enseignants et pluriactifs. Gestion multi-activités, calendrier intelligent avec détection des conflits, trésorerie et dépenses programmées.",
 };
