@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { LandingNavbar } from "./landing-navbar";
 import { LandingHero } from "./landing-hero";
 import { LandingProductPreview } from "./landing-product-preview";
@@ -18,6 +19,13 @@ interface LandingViewProps {
 }
 
 export function LandingView({ user }: LandingViewProps) {
+  useEffect(() => {
+    // S'assure que le visiteur commence toujours tout en haut de la page d'accueil
+    if (typeof window !== "undefined" && !window.location.hash) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-canvas text-ink-950 flex flex-col font-sans selection:bg-signal selection:text-white">
       {/* Navbar with auth status */}

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { EXPENSE_CATEGORIES, expenseCategoryLabel } from "@/lib/validation/finances";
 import { formatAmount } from "@/lib/finances/format";
+import { useToast } from "@/components/ui/toast";
 import { createBudget, updateBudget, deleteBudget } from "@/app/(app)/finances/actions";
 import type { Budget } from "@/types/database";
 
@@ -21,10 +22,16 @@ export function BudgetsSection({
   currencies,
   defaultCurrency,
 }: BudgetsSectionProps) {
+  const toast = useToast();
+  const [localBudgets, setLocalBudgets] = useState<BudgetWithSpent[]>(budgets);
   const [isPending, startTransition] = useTransition();
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLocalBudgets(budgets);
+  }, [budgets]);
 
   // Form State
   const [category, setCategory] = useState<string>(EXPENSE_CATEGORIES[0].value);
@@ -47,24 +54,43 @@ export function BudgetsSection({
     formData.append("monthlyLimit", monthlyLimit);
     formData.append("currency", currency);
 
+    const targetId = editingId;
+    const limitNum = Number(monthlyLimit);
+
     startTransition(async () => {
       try {
-        if (editingId) {
-          await updateBudget(editingId, formData);
+        if (targetId) {
+          setLocalBudgets((prev) =>
+            prev.map((b) =>
+              b.id === targetId ? { ...b, monthly_limit: limitNum, currency } : b
+            )
+          );
+          await updateBudget(targetId, formData);
+          toast.push("Budget mis à jour.", "success");
         } else {
           await createBudget(formData);
+          toast.push("Budget créé avec succès.", "success");
         }
         resetForm();
       } catch (err) {
+        setLocalBudgets(budgets);
         setError(err instanceof Error ? err.message : "Erreur lors de l'enregistrement");
+        toast.push("Erreur lors de l'enregistrement du budget.", "error");
       }
     });
   }
 
   function handleDelete(id: string) {
     if (confirm("Supprimer ce budget mensuel ?")) {
+      setLocalBudgets((prev) => prev.filter((b) => b.id !== id));
       startTransition(async () => {
-        await deleteBudget(id);
+        try {
+          await deleteBudget(id);
+          toast.push("Budget supprimé.", "info");
+        } catch (err) {
+          setLocalBudgets(budgets);
+          toast.push("Erreur lors de la suppression.", "error");
+        }
       });
     }
   }
@@ -172,7 +198,7 @@ export function BudgetsSection({
       ) : null}
 
       {/* Liste des budgets */}
-      {budgets.length === 0 && !isAdding ? (
+      {localBudgets.length === 0 && !isAdding ? (
         <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised/50 p-8 text-center">
           <p className="font-semibold text-ink-950">Aucun budget défini</p>
           <p className="text-sm text-ink-500 mt-1 max-w-md mx-auto">
@@ -188,7 +214,7 @@ export function BudgetsSection({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {budgets.map((b) => {
+          {localBudgets.map((b) => {
             const limit = Number(b.monthly_limit);
             const spent = Number(b.spent) || 0;
             const remaining = Math.max(0, limit - spent);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import {
   Target,
   Plus,
@@ -16,6 +16,7 @@ import {
 import { SAVINGS_CATEGORIES } from "@/lib/validation/finances";
 import { formatAmount } from "@/lib/finances/format";
 import { calculateGoalProjection } from "@/lib/finances/goals";
+import { useToast } from "@/components/ui/toast";
 import {
   createSavingsGoal,
   updateSavingsGoal,
@@ -35,6 +36,8 @@ export function SavingsGoalsSection({
   currencies,
   defaultCurrency,
 }: SavingsGoalsSectionProps) {
+  const toast = useToast();
+  const [localGoals, setLocalGoals] = useState<SavingsGoal[]>(goals);
   const [isPending, startTransition] = useTransition();
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -42,6 +45,10 @@ export function SavingsGoalsSection({
   const [adjustAmount, setAdjustAmount] = useState("");
   const [adjustMode, setAdjustMode] = useState<"add" | "withdraw">("add");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLocalGoals(goals);
+  }, [goals]);
 
   // Form State
   const [name, setName] = useState("");
@@ -77,16 +84,39 @@ export function SavingsGoalsSection({
     formData.append("deadline", deadline);
     formData.append("monthlyContribution", monthlyContribution);
 
+    const targetId = editingId;
+    const targetAmtNum = Number(targetAmount);
+    const currAmtNum = Number(currentAmount);
+
     startTransition(async () => {
       try {
-        if (editingId) {
-          await updateSavingsGoal(editingId, formData);
+        if (targetId) {
+          setLocalGoals((prev) =>
+            prev.map((g) =>
+              g.id === targetId
+                ? {
+                    ...g,
+                    name,
+                    category,
+                    target_amount: targetAmtNum,
+                    current_amount: currAmtNum,
+                    currency,
+                    deadline: deadline || null,
+                  }
+                : g
+            )
+          );
+          await updateSavingsGoal(targetId, formData);
+          toast.push("Objectif d'épargne mis à jour.", "success");
         } else {
           await createSavingsGoal(formData);
+          toast.push("Objectif d'épargne créé avec succès.", "success");
         }
         resetForm();
       } catch (err) {
+        setLocalGoals(goals);
         setError(err instanceof Error ? err.message : "Erreur lors de l'enregistrement");
+        toast.push("Erreur lors de l'enregistrement de l'objectif.", "error");
       }
     });
   }
@@ -95,22 +125,42 @@ export function SavingsGoalsSection({
     const val = Number(adjustAmount);
     if (!val || val <= 0) return;
     const delta = adjustMode === "add" ? val : -val;
+    const newAmount = Math.max(0, current + delta);
+
+    // Mise à jour optimiste immédiate (0ms)
+    setLocalGoals((prev) =>
+      prev.map((g) => (g.id === goalId ? { ...g, current_amount: newAmount } : g))
+    );
+    setAdjustingId(null);
+    setAdjustAmount("");
 
     startTransition(async () => {
       try {
         await adjustSavingsGoalAmount(goalId, delta);
-        setAdjustingId(null);
-        setAdjustAmount("");
+        toast.push(
+          delta > 0
+            ? `+${val} ajoutés à votre objectif.`
+            : `-${val} retirés de votre objectif.`,
+          "success"
+        );
       } catch (err) {
-        alert(err instanceof Error ? err.message : "Erreur");
+        setLocalGoals(goals);
+        toast.push("Erreur lors de l'ajustement du solde.", "error");
       }
     });
   }
 
   function handleDelete(id: string) {
     if (confirm("Supprimer cette poche d'épargne ?")) {
+      setLocalGoals((prev) => prev.filter((g) => g.id !== id));
       startTransition(async () => {
-        await deleteSavingsGoal(id);
+        try {
+          await deleteSavingsGoal(id);
+          toast.push("Poche d'épargne supprimée.", "info");
+        } catch (err) {
+          setLocalGoals(goals);
+          toast.push("Erreur lors de la suppression.", "error");
+        }
       });
     }
   }
@@ -269,7 +319,7 @@ export function SavingsGoalsSection({
       ) : null}
 
       {/* Liste des objectifs */}
-      {goals.length === 0 && !isAdding ? (
+      {localGoals.length === 0 && !isAdding ? (
         <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised/50 p-8 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gold-soft text-gold-dark mb-3">
             <Coins className="h-6 w-6" />
@@ -289,7 +339,7 @@ export function SavingsGoalsSection({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {goals.map((g) => {
+          {localGoals.map((g) => {
             const proj = calculateGoalProjection(g);
             const isCompleted = proj.remainingAmount === 0;
 

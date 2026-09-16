@@ -14,6 +14,7 @@ export type FinanceTab = "overview" | "income" | "expenses" | "scheduled" | "bud
 
 interface FinanceTabsProps {
   currentTab: FinanceTab;
+  onTabChange?: (tab: FinanceTab) => void;
 }
 
 const TABS = [
@@ -25,11 +26,16 @@ const TABS = [
   { id: "budgets" as FinanceTab, label: "Budgets mensuels", icon: Target },
 ];
 
-export function FinanceTabs({ currentTab }: FinanceTabsProps) {
+export function FinanceTabs({ currentTab, onTabChange }: FinanceTabsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   function handleTabChange(tabId: FinanceTab) {
+    if (onTabChange) {
+      onTabChange(tabId);
+      return;
+    }
+
     const params = new URLSearchParams(searchParams ? searchParams.toString() : "");
     if (tabId === "overview") {
       params.delete("tab");

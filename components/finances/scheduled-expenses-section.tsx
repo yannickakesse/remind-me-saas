@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Clock, Check, Trash2, X, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Clock, Check, Trash2, X, AlertCircle, Loader2 } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
 import { scheduledStatusLabel, frequencyLabel } from "@/lib/validation/scheduled-expenses";
+import { useToast } from "@/components/ui/toast";
 import {
   createScheduledExpenseAction,
   deleteScheduledExpenseAction,
@@ -39,51 +40,106 @@ export function ScheduledExpensesSection({
   defaultCurrency,
   activities,
 }: Props) {
+  const toast = useToast();
+  const [items, setItems] = useState<ScheduledExpenseItem[]>(scheduledExpenses);
   const [filter, setFilter] = useState<"all" | "planned" | "due" | "paid" | "cancelled">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
+  // Synchronisation avec les props serveur
+  useEffect(() => {
+    setItems(scheduledExpenses);
+  }, [scheduledExpenses]);
+
   // Filtered list
-  const filtered = scheduledExpenses.filter((item) => {
+  const filtered = items.filter((item) => {
     if (filter === "all") return item.status !== "cancelled";
     return item.status === filter;
   });
 
   // Calculate totals
-  const totalPlannedThisMonth = scheduledExpenses
+  const totalPlannedThisMonth = items
     .filter((e) => e.status === "planned" || e.status === "due")
     .reduce((acc, curr) => acc + Number(curr.amount), 0);
 
   async function handleMarkPaid(id: string) {
+    if (actionLoadingId) return;
     setActionLoadingId(id);
-    await markScheduledExpensePaidAction(id);
-    setActionLoadingId(null);
-  }
 
-  async function handleCancel(id: string) {
-    if (confirm("Voulez-vous vraiment annuler cette dépense programmée ?")) {
-      setActionLoadingId(id);
-      await cancelScheduledExpenseAction(id);
+    // Mise à jour optimiste immédiate (0ms)
+    setItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, status: "paid" as const } : it))
+    );
+
+    try {
+      await markScheduledExpensePaidAction(id);
+      toast.push("Dépense marquée comme payée et enregistrée.", "success");
+    } catch (err) {
+      // Rollback en cas d'erreur
+      setItems(scheduledExpenses);
+      toast.push("Erreur lors de l'enregistrement du paiement.", "error");
+    } finally {
       setActionLoadingId(null);
     }
   }
 
+  async function handleCancel(id: string) {
+    if (actionLoadingId) return;
+    if (confirm("Voulez-vous vraiment annuler cette dépense programmée ?")) {
+      setActionLoadingId(id);
+
+      // Mise à jour optimiste immédiate
+      setItems((prev) =>
+        prev.map((it) => (it.id === id ? { ...it, status: "cancelled" as const } : it))
+      );
+
+      try {
+        await cancelScheduledExpenseAction(id);
+        toast.push("Dépense programmée annulée.", "info");
+      } catch (err) {
+        setItems(scheduledExpenses);
+        toast.push("Erreur lors de l'annulation.", "error");
+      } finally {
+        setActionLoadingId(null);
+      }
+    }
+  }
+
   async function handleDelete(id: string) {
+    if (actionLoadingId) return;
     if (confirm("Voulez-vous supprimer définitivement cette dépense programmée ?")) {
       setActionLoadingId(id);
-      await deleteScheduledExpenseAction(id);
-      setActionLoadingId(null);
+
+      // Suppression optimiste immédiate
+      setItems((prev) => prev.filter((it) => it.id !== id));
+
+      try {
+        await deleteScheduledExpenseAction(id);
+        toast.push("Dépense programmée supprimée.", "info");
+      } catch (err) {
+        setItems(scheduledExpenses);
+        toast.push("Erreur lors de la suppression.", "error");
+      } finally {
+        setActionLoadingId(null);
+      }
     }
   }
 
   async function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
     const formData = new FormData(e.currentTarget);
-    await createScheduledExpenseAction(formData);
-    setSubmitting(false);
-    setIsModalOpen(false);
+    try {
+      await createScheduledExpenseAction(formData);
+      toast.push("Dépense programmée avec succès.", "success");
+      setIsModalOpen(false);
+    } catch (err) {
+      toast.push("Erreur lors de la programmation de la dépense.", "error");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (

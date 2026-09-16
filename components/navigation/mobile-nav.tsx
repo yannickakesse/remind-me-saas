@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 
 import {
@@ -33,6 +33,7 @@ interface MobileNavProps {
 
 export function MobileNav({ unreadCount }: MobileNavProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [financesOpen, setFinancesOpen] = useState(true);
 
@@ -167,9 +168,10 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                 {financesOpen && (
                   <div className="pl-3 mt-1 space-y-1 border-l-2 border-gold/30 ml-3">
                     {financeSubLinks.map((sub) => {
-                      const isActive = pathname === "/finances" && (
-                        sub.href === "/finances" ? !window?.location?.search : false
-                      );
+                      const tabParam = searchParams?.get("tab");
+                      const isOverview = sub.href === "/finances" && !tabParam;
+                      const isSubTab = tabParam && sub.href === `/finances?tab=${tabParam}`;
+                      const isActive = pathname === "/finances" && (isOverview || isSubTab);
                       const SubIcon = sub.icon;
                       return (
                         <Link
@@ -177,7 +179,11 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                           href={sub.href}
                           prefetch={true}
                           onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-ink-700 hover:bg-ink-100 active:bg-ink-200 transition-colors min-h-[40px]"
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors min-h-[40px] ${
+                            isActive
+                              ? "bg-gold-soft/40 text-gold-dark font-bold"
+                              : "text-ink-700 hover:bg-ink-100 active:bg-ink-200"
+                          }`}
                         >
                           <SubIcon className="w-3.5 h-3.5 text-gold-dark shrink-0" strokeWidth={1.8} />
                           <span>{sub.label}</span>
