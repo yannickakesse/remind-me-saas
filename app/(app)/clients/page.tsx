@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { Users, Building2, User, Mail, Phone, FileText, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { requireCurrentUser } from "@/lib/supabase/auth";
 import { deleteOrganization, deleteContact } from "./actions";
 import { buttonClasses } from "@/components/ui/button";
 
 export default async function ClientsPage() {
+  const user = await requireCurrentUser();
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const [{ data: organizations }, { data: contacts }, { data: activityCounts }] = await Promise.all([
     supabase

@@ -1,11 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireCurrentUser } from "@/lib/supabase/auth";
 import { TasksView } from "@/components/tasks/tasks-view";
 
 export default async function TasksPage() {
+  const user = await requireCurrentUser();
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const [{ data: tasks }, { data: activities }] = await Promise.all([
     supabase

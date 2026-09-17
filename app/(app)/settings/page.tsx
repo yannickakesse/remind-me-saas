@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireCurrentUser } from "@/lib/supabase/auth";
 import { Tabs } from "@/components/ui/tabs";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { AppearanceSection } from "@/components/settings/appearance-section";
@@ -10,10 +11,8 @@ import { DataSection } from "@/components/settings/data-section";
 import type { NotificationPreference } from "@/types/database";
 
 export default async function SettingsPage() {
+  const user = await requireCurrentUser();
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const [
     { data: profile },

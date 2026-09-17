@@ -31,24 +31,18 @@ const NAV_ITEMS = [
   { href: "/settings", label: "Paramètres", icon: Settings },
 ];
 
+import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
+
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await requireCurrentUser();
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
-
-  const [{ data: profile }, { count: unreadCount }, { data: latestNotifications }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("onboarding_completed, timezone, full_name, avatar_url")
-      .eq("id", user.id)
-      .single(),
+  const [profile, { count: unreadCount }, { data: latestNotifications }] = await Promise.all([
+    getCurrentProfile(),
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })

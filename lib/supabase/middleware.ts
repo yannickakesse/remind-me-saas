@@ -11,6 +11,16 @@ export async function updateSession(request: NextRequest) {
     return { response, user: null };
   }
 
+  // Optimisation de latence critique : si aucun cookie de session Supabase n'est présent,
+  // on évite l'appel réseau bloquant (200-500ms) vers l'API Supabase Auth.
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") || c.name.includes("auth-token"));
+
+  if (!hasAuthCookie) {
+    return { response, user: null };
+  }
+
   try {
     const supabase = createServerClient(
       supabaseUrl,

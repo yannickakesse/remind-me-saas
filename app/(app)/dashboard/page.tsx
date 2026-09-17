@@ -17,24 +17,19 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { AttentionRequired } from "@/components/dashboard/attention-required";
+import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { typeLabel } from "@/lib/validation/activities";
 import { eventStatusLabel } from "@/lib/validation/calendar";
 import { taskPriorityLabel, TASK_PRIORITY_STYLES } from "@/lib/validation/tasks";
 import type { Notification } from "@/types/database";
 
 export default async function DashboardPage() {
+  const [user, profile] = await Promise.all([
+    requireCurrentUser(),
+    getCurrentProfile(),
+  ]);
+
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, timezone, default_currency")
-    .eq("id", user.id)
-    .single();
-
   const timezone = profile?.timezone ?? "UTC";
   const currency = profile?.default_currency ?? "XOF";
   const now = DateTime.now().setZone(timezone);

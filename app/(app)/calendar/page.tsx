@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import { createClient } from "@/lib/supabase/server";
 import { ensureCalendarEvents } from "@/lib/calendar/sync";
+import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { detectConflicts } from "@/lib/calendar/conflicts";
 import { isCalendarView, resolveViewRange, todayISODate, type CalendarView } from "@/lib/calendar/view-range";
 import { CalendarToolbar } from "@/components/calendar/calendar-toolbar";
@@ -15,18 +16,13 @@ export default async function CalendarPage({
 }: {
   searchParams: { view?: string; date?: string };
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const [user, profile] = await Promise.all([
+    requireCurrentUser(),
+    getCurrentProfile(),
+  ]);
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("timezone")
-    .eq("id", user.id)
-    .single();
   const timezone = profile?.timezone ?? "UTC";
+  const supabase = createClient();
 
   const view: CalendarView = isCalendarView(searchParams.view) ? searchParams.view : "month";
   const anchorDate = searchParams.date ?? todayISODate(timezone);

@@ -8,6 +8,7 @@ import {
   Download,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { calculateProfitabilityReport } from "@/lib/reports/profitability";
 import { formatAmount } from "@/lib/finances/format";
@@ -22,20 +23,15 @@ export default async function ReportsPage({
 }: {
   searchParams?: { from?: string; to?: string };
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("timezone, default_currency")
-    .eq("id", user!.id)
-    .single();
+  const [user, profile] = await Promise.all([
+    requireCurrentUser(),
+    getCurrentProfile(),
+  ]);
 
   const timezone = profile?.timezone ?? "UTC";
   const defaultCurrency = profile?.default_currency ?? "XOF";
   const today = DateTime.now().setZone(timezone);
+  const supabase = createClient();
 
   // Période par défaut : année civile en cours (YTD)
   const defaultStart = today.startOf("year").toISODate()!;

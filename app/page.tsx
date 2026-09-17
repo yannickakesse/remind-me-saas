@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { LandingView } from "@/components/landing/landing-view";
 import type { Metadata } from "next";
@@ -12,19 +13,27 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   let user: { id: string; email?: string } | null = null;
-  
-  try {
-    const supabase = createClient();
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
 
-    if (authUser) {
-      user = { id: authUser.id, email: authUser.email };
+  // Optimisation de vitesse : si aucun cookie Supabase n'est présent,
+  // ne pas faire d'appel réseau distant vers Supabase Auth.
+  const cookieStore = cookies();
+  const hasAuthCookie = cookieStore
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") || c.name.includes("auth-token"));
+
+  if (hasAuthCookie) {
+    try {
+      const supabase = createClient();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+
+      if (authUser) {
+        user = { id: authUser.id, email: authUser.email };
+      }
+    } catch {
+      user = null;
     }
-  } catch {
-    // Mode hors connexion ou non connecté
-    user = null;
   }
 
   return <LandingView user={user} />;

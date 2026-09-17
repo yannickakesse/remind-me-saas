@@ -35,7 +35,10 @@ export function ContactForm({
     const formData = new FormData(e.currentTarget);
     try {
       await action(formData);
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.digest?.startsWith("NEXT_REDIRECT") || err?.message === "NEXT_REDIRECT") {
+        return;
+      }
       setSubmitting(false);
       setError(err instanceof Error ? err.message : "Une erreur est survenue.");
     }

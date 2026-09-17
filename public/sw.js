@@ -1,7 +1,6 @@
 // Service Worker — Remind Me PWA & Push Notification Service
-const CACHE_NAME = "remindme-v1.0.1";
+const CACHE_NAME = "remindme-v1.0.2";
 const STATIC_ASSETS = [
-  "/",
   "/manifest.webmanifest",
   "/icons/apple-touch-icon.png",
   "/icons/icon-192x192.png",
@@ -10,7 +9,7 @@ const STATIC_ASSETS = [
   "/icons/favicon-32x32.png",
 ];
 
-// 1. Installation & Pre-caching
+// 1. Installation & Pre-caching des icônes uniquement (ne pas pré-cacher "/")
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
@@ -36,22 +35,12 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// 3. Fetch strategy: Network-first for dynamic routes, Cache-first for static icons
+// 3. Fetch strategy: Ne PAS intercepter les navigations Next.js, RSC, API ou actions serveur
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Ignorer les requêtes non GET et les appels API/Supabase/Auth directs
-  if (
-    request.method !== "GET" ||
-    url.pathname.startsWith("/api/") ||
-    url.pathname.startsWith("/auth/") ||
-    url.hostname.includes("supabase")
-  ) {
-    return;
-  }
-
-  // Pour les icônes et assets statiques: Cache-First avec fallback Network
+  // Uniquement pour les icônes et logos statiques : Cache-First
   if (url.pathname.startsWith("/icons/") || url.pathname.startsWith("/brand/")) {
     event.respondWith(
       caches.match(request).then((cached) => {
@@ -70,14 +59,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Pour les pages de navigation: Network-First avec fallback Cache
-  event.respondWith(
-    fetch(request).catch(() => {
-      return caches.match(request).then((cached) => {
-        return cached || caches.match("/");
-      });
-    })
-  );
+  // Laisser le navigateur et Next.js gérer directement toutes les autres requêtes à pleine vitesse
 });
 
 // 4. Web Push Event Handler (Système de notifications Push Mobile & Desktop)
@@ -129,7 +111,6 @@ self.addEventListener("notificationclick", (event) => {
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
-      // Si une fenêtre est déjà ouverte sur le domaine, la focaliser et naviguer
       for (const client of windowClients) {
         if ("focus" in client) {
           client.focus();
@@ -139,7 +120,6 @@ self.addEventListener("notificationclick", (event) => {
           return;
         }
       }
-      // Sinon, ouvrir une nouvelle fenêtre vers l'URL cible
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }

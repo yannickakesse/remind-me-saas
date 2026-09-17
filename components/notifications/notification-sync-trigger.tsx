@@ -15,19 +15,34 @@ export function NotificationSyncTrigger() {
       return;
     }
 
-    // Exécution différée en arrière-plan (non-bloquante)
+    // Exécution différée en arrière-plan lorsque le thread principal est totalement libre
     const timeoutId = setTimeout(() => {
-      fetch("/api/notifications/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      })
-        .then(() => {
-          sessionStorage.setItem(LAST_SYNC_KEY, Date.now().toString());
-        })
-        .catch((err) => {
-          console.debug("[SyncTrigger] Background sync silent failure:", err);
+      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+        window.requestIdleCallback(() => {
+          fetch("/api/notifications/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          })
+            .then(() => {
+              sessionStorage.setItem(LAST_SYNC_KEY, Date.now().toString());
+            })
+            .catch((err) => {
+              console.debug("[SyncTrigger] Background sync silent failure:", err);
+            });
         });
-    }, 2500); // 2.5 secondes après le chargement complet pour préserver la réactivité
+      } else {
+        fetch("/api/notifications/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        })
+          .then(() => {
+            sessionStorage.setItem(LAST_SYNC_KEY, Date.now().toString());
+          })
+          .catch((err) => {
+            console.debug("[SyncTrigger] Background sync silent failure:", err);
+          });
+      }
+    }, 8000); // 8 secondes après le chargement pour garantir une réactivité immédiate
 
     return () => clearTimeout(timeoutId);
   }, []);

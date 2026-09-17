@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Briefcase, Building2, Wallet, Plus, Edit3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { requireCurrentUser } from "@/lib/supabase/auth";
 import { ACTIVITY_TYPES } from "@/lib/validation/activities";
 import { archiveActivity, restoreActivity } from "./actions";
 import { buttonClasses } from "@/components/ui/button";
@@ -11,10 +12,8 @@ function typeLabel(type: string) {
 }
 
 export default async function ActivitiesPage() {
+  const user = await requireCurrentUser();
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const { data: activities } = await supabase
     .from("activities")

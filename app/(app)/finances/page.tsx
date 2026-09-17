@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import { createClient } from "@/lib/supabase/server";
+import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { aggregateFinancesForMonth } from "@/lib/finances/aggregate";
 import { FinancesView } from "@/components/finances/finances-view";
@@ -12,16 +13,10 @@ export default async function FinancesPage({
 }: {
   searchParams?: { tab?: string; month?: string };
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("timezone, default_currency")
-    .eq("id", user!.id)
-    .single();
+  const [user, profile] = await Promise.all([
+    requireCurrentUser(),
+    getCurrentProfile(),
+  ]);
 
   const timezone = profile?.timezone ?? "UTC";
   const defaultCurrency = profile?.default_currency ?? "XOF";
@@ -36,10 +31,12 @@ export default async function FinancesPage({
   const rangeStart = currentMonth.startOf("month").toISODate()!;
   const rangeEnd = currentMonth.endOf("month").toISODate()!;
 
-  // 1. Synchronisation paresseuse des revenus pour ce mois
-  await ensureIncomeEntries(supabase, user!.id, rangeStart, rangeEnd);
+  const supabase = createClient();
 
-  // 2. Requêtes parallélisées pour optimiser le temps de réponse
+  // 1. Synchronisation rapide des revenus
+  await ensureIncomeEntries(supabase, user.id, rangeStart, rangeEnd);
+
+  // 2. Requêtes parallélisées optimisées
   const [
     { data: incomeRows },
     { data: expenseRows },
@@ -51,36 +48,36 @@ export default async function FinancesPage({
     supabase
       .from("income")
       .select("*, activity:activities(id, name, color)")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .gte("due_date", rangeStart)
       .lte("due_date", rangeEnd)
       .order("due_date", { ascending: true }),
     supabase
       .from("expenses")
       .select("*, activity:activities(id, name, color)")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .gte("due_date", rangeStart)
       .lte("due_date", rangeEnd)
       .order("due_date", { ascending: true }),
     supabase
       .from("budgets")
       .select("*")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .order("category", { ascending: true }),
     supabase
       .from("savings_goals")
       .select("*")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: true }),
     supabase
       .from("scheduled_expenses")
       .select("*")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .order("next_due_date", { ascending: true }),
     supabase
       .from("activities")
       .select("id, name")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .eq("status", "active")
       .order("name", { ascending: true }),
   ]);
