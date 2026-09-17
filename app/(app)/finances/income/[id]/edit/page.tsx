@@ -2,19 +2,18 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { IncomeForm } from "@/components/shared/income-form";
 import { updateIncome } from "../../../actions";
+import { requireCurrentUser } from "@/lib/supabase/auth";
 
 export default async function EditIncomePage({ params }: { params: { id: string } }) {
+  const user = await requireCurrentUser();
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const [{ data: income }, { data: activities }, { data: currencies }] = await Promise.all([
-    supabase.from("income").select("*").eq("id", params.id).eq("user_id", user!.id).single(),
+    supabase.from("income").select("*").eq("id", params.id).eq("user_id", user.id).single(),
     supabase
       .from("activities")
       .select("id, name, color")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .eq("status", "active")
       .order("name", { ascending: true }),
     supabase.from("currencies").select("code, symbol").order("code"),

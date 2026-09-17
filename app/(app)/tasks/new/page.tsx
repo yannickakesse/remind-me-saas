@@ -1,17 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { TaskForm } from "@/components/shared/task-form";
 import { createTask } from "../actions";
+import { requireCurrentUser } from "@/lib/supabase/auth";
 
 export default async function NewTaskPage() {
+  const user = await requireCurrentUser();
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const { data: activities } = await supabase
     .from("activities")
     .select("id, name, color")
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .eq("status", "active")
     .order("name", { ascending: true });
 

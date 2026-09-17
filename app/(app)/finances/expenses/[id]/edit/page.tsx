@@ -2,19 +2,18 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ExpenseForm } from "@/components/shared/expense-form";
 import { updateExpense } from "../../../actions";
+import { requireCurrentUser } from "@/lib/supabase/auth";
 
 export default async function EditExpensePage({ params }: { params: { id: string } }) {
+  const user = await requireCurrentUser();
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const [{ data: expense }, { data: activities }, { data: currencies }] = await Promise.all([
-    supabase.from("expenses").select("*").eq("id", params.id).eq("user_id", user!.id).single(),
+    supabase.from("expenses").select("*").eq("id", params.id).eq("user_id", user.id).single(),
     supabase
       .from("activities")
       .select("id, name, color")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .eq("status", "active")
       .order("name", { ascending: true }),
     supabase.from("currencies").select("code, symbol").order("code"),

@@ -2,18 +2,17 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationForm } from "@/components/shared/organization-form";
 import { updateOrganization } from "../../../actions";
+import { requireCurrentUser } from "@/lib/supabase/auth";
 
 export default async function EditOrganizationPage({ params }: { params: { id: string } }) {
+  const user = await requireCurrentUser();
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const { data: organization } = await supabase
     .from("organizations")
     .select("id, name, contact_name, phone, email, address")
     .eq("id", params.id)
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .single();
 
   if (!organization) notFound();

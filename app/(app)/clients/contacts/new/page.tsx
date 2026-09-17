@@ -1,17 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { ContactForm } from "@/components/shared/contact-form";
 import { createContact } from "../../actions";
+import { requireCurrentUser } from "@/lib/supabase/auth";
 
 export default async function NewContactPage() {
+  const user = await requireCurrentUser();
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const { data: organizations } = await supabase
     .from("organizations")
     .select("id, name")
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .order("name", { ascending: true });
 
   return (

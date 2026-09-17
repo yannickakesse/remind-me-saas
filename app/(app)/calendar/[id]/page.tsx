@@ -7,19 +7,15 @@ import { EventActions } from "@/components/calendar/event-actions";
 import { setEventStatus, rescheduleEvent, deleteManualEvent } from "../actions";
 import type { CalendarEventStatus } from "@/types/database";
 
-export default async function EventDetailPage({ params }: { params: { id: string } }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("timezone")
-    .eq("id", user.id)
-    .single();
+export default async function EventDetailPage({ params }: { params: { id: string } }) {
+  const [user, profile] = await Promise.all([
+    requireCurrentUser(),
+    getCurrentProfile(),
+  ]);
   const timezone = profile?.timezone ?? "UTC";
+  const supabase = createClient();
 
   const { data: event } = await supabase
     .from("calendar_events")

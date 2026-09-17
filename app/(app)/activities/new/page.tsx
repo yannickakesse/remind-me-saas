@@ -1,21 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
 import { ActivityForm } from "@/components/shared/activity-form";
 import { createActivity } from "../actions";
+import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 
 export default async function NewActivityPage({
   searchParams,
 }: {
   searchParams: { onboarding?: string };
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const [{ data: currencies }, { data: profile }] = await Promise.all([
-    supabase.from("currencies").select("code, name, symbol").order("name"),
-    supabase.from("profiles").select("default_currency").eq("id", user!.id).single(),
+  const [user, profile] = await Promise.all([
+    requireCurrentUser(),
+    getCurrentProfile(),
   ]);
+  const supabase = createClient();
+
+  const { data: currencies } = await supabase
+    .from("currencies")
+    .select("code, name, symbol")
+    .order("name");
 
   const isFirstActivity = searchParams.onboarding === "1";
 

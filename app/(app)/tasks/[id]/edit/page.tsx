@@ -2,19 +2,18 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { TaskForm } from "@/components/shared/task-form";
 import { updateTask } from "../../actions";
+import { requireCurrentUser } from "@/lib/supabase/auth";
 
 export default async function EditTaskPage({ params }: { params: { id: string } }) {
+  const user = await requireCurrentUser();
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const [{ data: task }, { data: activities }] = await Promise.all([
-    supabase.from("tasks").select("*").eq("id", params.id).eq("user_id", user!.id).single(),
+    supabase.from("tasks").select("*").eq("id", params.id).eq("user_id", user.id).single(),
     supabase
       .from("activities")
       .select("id, name, color")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .eq("status", "active")
       .order("name", { ascending: true }),
   ]);
