@@ -1,3 +1,5 @@
+import { Spinner } from "@/components/ui/spinner";
+
 interface FieldProps {
   label: string;
   htmlFor: string;
@@ -27,22 +29,33 @@ export function TextInput(
   return (
     <input
       {...props}
-      className={`w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950 placeholder:text-ink-500 focus:border-signal ${
+      className={`w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950 placeholder:text-ink-500 focus:border-signal transition-colors ${
         props.className ?? ""
       }`}
     />
   );
 }
 
-export function PrimaryButton(
-  props: React.ButtonHTMLAttributes<HTMLButtonElement>
-) {
+interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  loading?: boolean;
+}
+
+export function PrimaryButton({
+  loading = false,
+  disabled,
+  children,
+  className = "",
+  ...props
+}: PrimaryButtonProps) {
   return (
     <button
       {...props}
-      className={`w-full rounded-md bg-signal px-4 py-2.5 font-medium text-white transition-colors hover:bg-signal/90 disabled:cursor-not-allowed disabled:opacity-60 ${
-        props.className ?? ""
-      }`}
-    />
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={`inline-flex items-center justify-center gap-2 rounded-md bg-signal px-4 py-2.5 font-medium text-white transition-all duration-150 active:scale-[0.98] hover:bg-signal/90 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 ${className}`}
+    >
+      {loading ? <Spinner size={16} /> : null}
+      {children}
+    </button>
   );
 }

@@ -29,6 +29,7 @@ export function ContactForm({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submitting) return;
     setError(null);
     setSubmitting(true);
 
@@ -55,7 +56,7 @@ export function ContactForm({
           id="organizationId"
           name="organizationId"
           defaultValue={initial?.organizationId ?? ""}
-          className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2"
+          className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950"
         >
           <option value="">Aucune — contact indépendant</option>
           {organizations.map((o) => (
@@ -66,7 +67,7 @@ export function ContactForm({
         </select>
       </Field>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Téléphone (optionnel)" htmlFor="phone">
           <TextInput id="phone" name="phone" type="tel" defaultValue={initial?.phone} />
         </Field>
@@ -81,7 +82,7 @@ export function ContactForm({
           name="notes"
           defaultValue={initial?.notes}
           rows={3}
-          className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2"
+          className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950"
         />
       </Field>
 
@@ -95,11 +96,12 @@ export function ContactForm({
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-md border border-ink-300 px-4 py-2.5 font-medium text-ink-700"
+          disabled={submitting}
+          className="rounded-md border border-ink-300 px-4 py-2.5 font-medium text-ink-700 hover:bg-ink-50 transition-colors disabled:opacity-50"
         >
           Annuler
         </button>
-        <PrimaryButton type="submit" disabled={submitting} className="w-auto px-6">
+        <PrimaryButton type="submit" loading={submitting} disabled={submitting} className="w-auto px-6">
           {submitting ? "Enregistrement..." : submitLabel}
         </PrimaryButton>
       </div>

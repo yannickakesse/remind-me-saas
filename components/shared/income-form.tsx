@@ -36,6 +36,7 @@ export function IncomeForm({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submitting) return;
     setError(null);
     setSubmitting(true);
 
@@ -183,11 +184,12 @@ export function IncomeForm({
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-lg border border-ink-300 px-4 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50 transition-colors"
+          disabled={submitting}
+          className="rounded-lg border border-ink-300 px-4 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50 transition-colors disabled:opacity-50"
         >
           Annuler
         </button>
-        <PrimaryButton type="submit" disabled={submitting} className="w-auto px-6">
+        <PrimaryButton type="submit" loading={submitting} disabled={submitting} className="w-auto px-6">
           {submitting ? "Enregistrement..." : submitLabel}
         </PrimaryButton>
       </div>

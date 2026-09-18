@@ -38,57 +38,59 @@ export function MonthView({
   const weekdayLabels = days.slice(0, 7).map((d) => d.setLocale("fr").toFormat("ccc"));
 
   return (
-    <div className="overflow-hidden rounded-lg border border-ink-100">
-      <div className="grid grid-cols-7 border-b border-ink-100 bg-canvas-raised">
-        {weekdayLabels.map((label) => (
-          <div key={label} className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-ink-500">
-            {label}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7">
-        {days.map((day) => {
-          const iso = day.toISODate()!;
-          const isCurrentMonth = day.month === anchor.month;
-          const isToday = iso === today;
-          const dayEvents = (eventsByDay.get(iso) ?? []).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
-          const overflow = dayEvents.length - MAX_VISIBLE_PER_DAY;
+    <div className="overflow-x-auto rounded-lg border border-ink-100 shadow-xs">
+      <div className="min-w-[640px]">
+        <div className="grid grid-cols-7 border-b border-ink-100 bg-canvas-raised">
+          {weekdayLabels.map((label) => (
+            <div key={label} className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-ink-500">
+              {label}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7">
+          {days.map((day) => {
+            const iso = day.toISODate()!;
+            const isCurrentMonth = day.month === anchor.month;
+            const isToday = iso === today;
+            const dayEvents = (eventsByDay.get(iso) ?? []).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+            const overflow = dayEvents.length - MAX_VISIBLE_PER_DAY;
 
-          return (
-            <div
-              key={iso}
-              className={`min-h-[110px] border-b border-r border-ink-100 p-1.5 last:border-r-0 ${
-                isCurrentMonth ? "bg-canvas-raised" : "bg-canvas"
-              }`}
-            >
-              <Link
-                href={`/calendar?view=day&date=${iso}`}
-                className={`mb-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-                  isToday
-                    ? "bg-signal font-semibold text-white"
-                    : isCurrentMonth
-                      ? "text-ink-950"
-                      : "text-ink-300"
+            return (
+              <div
+                key={iso}
+                className={`min-h-[110px] border-b border-r border-ink-100 p-1.5 last:border-r-0 ${
+                  isCurrentMonth ? "bg-canvas-raised" : "bg-canvas"
                 }`}
               >
-                {day.day}
-              </Link>
-              <div className="flex flex-col gap-1">
-                {dayEvents.slice(0, MAX_VISIBLE_PER_DAY).map((event) => (
-                  <EventPill key={event.id} event={event} timezone={timezone} hasConflict={conflictIds.has(event.id)} />
-                ))}
-                {overflow > 0 ? (
-                  <Link
-                    href={`/calendar?view=day&date=${iso}`}
-                    className="px-1 text-xs font-medium text-signal hover:underline"
-                  >
-                    +{overflow} de plus
-                  </Link>
-                ) : null}
+                <Link
+                  href={`/calendar?view=day&date=${iso}`}
+                  className={`mb-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
+                    isToday
+                      ? "bg-signal font-semibold text-white"
+                      : isCurrentMonth
+                        ? "text-ink-950"
+                        : "text-ink-300"
+                  }`}
+                >
+                  {day.day}
+                </Link>
+                <div className="flex flex-col gap-1">
+                  {dayEvents.slice(0, MAX_VISIBLE_PER_DAY).map((event) => (
+                    <EventPill key={event.id} event={event} timezone={timezone} hasConflict={conflictIds.has(event.id)} />
+                  ))}
+                  {overflow > 0 ? (
+                    <Link
+                      href={`/calendar?view=day&date=${iso}`}
+                      className="px-1 text-xs font-medium text-signal hover:underline"
+                    >
+                      +{overflow} de plus
+                    </Link>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

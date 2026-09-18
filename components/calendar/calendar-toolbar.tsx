@@ -28,7 +28,7 @@ export function CalendarToolbar({
 
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 max-w-full flex-wrap">
         <Link
           href={`/calendar?view=${view}&date=${prev}`}
           className="rounded-md border border-ink-300 px-2.5 py-1.5 text-sm text-ink-700 hover:bg-signal-soft"
@@ -49,14 +49,14 @@ export function CalendarToolbar({
         >
           →
         </Link>
-        <p className="ml-2 text-sm font-medium capitalize text-ink-950">{label}</p>
+        <p className="ml-1 text-sm font-medium capitalize text-ink-950 truncate max-w-[200px] sm:max-w-none">{label}</p>
       </div>
-      <div className="flex items-center gap-1 rounded-md border border-ink-300 p-0.5">
+      <div className="flex items-center gap-1 rounded-md border border-ink-300 p-0.5 max-w-full overflow-x-auto no-scrollbar">
         {CALENDAR_VIEWS.map((v) => (
           <Link
             key={v.value}
             href={`/calendar?view=${v.value}&date=${anchorDate}`}
-            className={`rounded px-3 py-1.5 text-sm font-medium ${
+            className={`rounded px-3 py-1.5 text-sm font-medium shrink-0 whitespace-nowrap ${
               v.value === view ? "bg-signal text-white" : "text-ink-700 hover:bg-signal-soft"
             }`}
           >

@@ -54,6 +54,7 @@ export function OnboardingWizard({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
     setError(null);
 
@@ -185,14 +186,15 @@ export function OnboardingWizard({
             <button
               type="button"
               onClick={goBack}
-              className="rounded-md border border-ink-300 px-4 py-2.5 font-medium text-ink-700"
+              disabled={submitting}
+              className="rounded-md border border-ink-300 px-4 py-2.5 font-medium text-ink-700 hover:bg-ink-50 transition-colors disabled:opacity-50"
             >
               Retour
             </button>
           ) : null}
 
           {isLastStep ? (
-            <PrimaryButton type="submit" disabled={submitting}>
+            <PrimaryButton type="submit" loading={submitting} disabled={submitting}>
               {submitting ? "Enregistrement..." : "Terminer"}
             </PrimaryButton>
           ) : (

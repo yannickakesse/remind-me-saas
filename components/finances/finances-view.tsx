@@ -10,6 +10,7 @@ import {
   Plus,
   ArrowRight,
   Download,
+  Calendar,
 } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -67,6 +68,13 @@ export function FinancesView({
       window.history.replaceState(null, "", url.toString());
     }
   }, []);
+
+  const hasNoData =
+    (incomeRows ?? []).length === 0 &&
+    (expenseRows ?? []).length === 0 &&
+    (scheduledExpenses ?? []).length === 0 &&
+    (budgetsWithSpent ?? []).length === 0 &&
+    (savingsGoals ?? []).length === 0;
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
@@ -146,6 +154,27 @@ export function FinancesView({
             />
           </div>
 
+          {/* Si utilisateur nouveau sans aucune donnée financière */}
+          {hasNoData && (
+            <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised p-6 sm:p-8 text-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-gold-soft text-gold-dark flex items-center justify-center mx-auto shadow-xs">
+                <Wallet className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-base text-ink-950">Aucune donnée financière pour le moment</h3>
+              <p className="text-xs text-ink-500 max-w-md mx-auto">
+                Toutes les métriques affichées proviennent de vos transactions réelles. Ajoutez votre premier revenu ou votre première dépense pour commencer le suivi.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <Link href="/finances/income/new" className={buttonClasses("primary", "sm")}>
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Enregistrer un premier revenu
+                </Link>
+                <Link href="/finances/expenses/new" className={buttonClasses("secondary", "sm")}>
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Déclarer une dépense
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* Quick Sections Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full min-w-0">
             {/* Prochains encaissements */}
@@ -164,7 +193,12 @@ export function FinancesView({
               </div>
 
               {(incomeRows ?? []).filter((i) => !i.received).slice(0, 4).length === 0 ? (
-                <div className="text-xs text-ink-400 py-4 text-center">Aucun revenu en attente</div>
+                <div className="py-6 text-center space-y-2 rounded-lg bg-canvas border border-ink-100">
+                  <p className="text-xs text-ink-500">Aucun revenu en attente ce mois-ci</p>
+                  <Link href="/finances/income/new" className="inline-flex items-center text-xs font-semibold text-signal hover:underline">
+                    + Ajouter un revenu
+                  </Link>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {(incomeRows ?? []).filter((i) => !i.received).slice(0, 4).map((inc) => (
@@ -202,7 +236,16 @@ export function FinancesView({
               </div>
 
               {(scheduledExpenses ?? []).filter((s) => s.status === "planned" || s.status === "due").slice(0, 4).length === 0 ? (
-                <div className="text-xs text-ink-400 py-4 text-center">Aucune dépense programmée</div>
+                <div className="py-6 text-center space-y-2 rounded-lg bg-canvas border border-ink-100">
+                  <p className="text-xs text-ink-500">Aucune charge ou abonnement programmé</p>
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange("scheduled")}
+                    className="inline-flex items-center text-xs font-semibold text-signal hover:underline"
+                  >
+                    + Programmer une charge
+                  </button>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {(scheduledExpenses ?? []).filter((s) => s.status === "planned" || s.status === "due").slice(0, 4).map((sc) => (
@@ -262,16 +305,27 @@ export function FinancesView({
 
       {/* Tab: INCOME */}
       {activeTab === "income" && (
-        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-4 min-w-0 animate-in fade-in-50 duration-150">
+        <div className="p-4 sm:p-6 rounded-xl border border-ink-200 bg-canvas-raised space-y-4 min-w-0 animate-in fade-in-50 duration-150">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="font-bold text-sm text-ink-950 truncate">Revenus du mois</h3>
+            <h3 className="font-bold text-sm sm:text-base text-ink-950 truncate">Revenus du mois</h3>
             <Link href="/finances/income/new" className={buttonClasses("primary", "sm")}>
               + Nouveau revenu
             </Link>
           </div>
 
           {(incomeRows ?? []).length === 0 ? (
-            <div className="p-8 text-center text-xs text-ink-400">Aucun revenu pour ce mois</div>
+            <div className="p-8 text-center rounded-xl border border-dashed border-ink-300 bg-canvas space-y-3">
+              <div className="w-10 h-10 rounded-full bg-positive-soft text-positive flex items-center justify-center mx-auto">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+              <p className="font-semibold text-ink-950 text-sm">Aucun revenu pour ce mois</p>
+              <p className="text-xs text-ink-500 max-w-sm mx-auto">
+                Ajoutez vos prestations, contrats ou salaires pour suivre vos encaissements et votre chiffre d'affaires.
+              </p>
+              <Link href="/finances/income/new" className={buttonClasses("primary", "sm")}>
+                <Plus className="w-3.5 h-3.5 mr-1" /> Ajouter un revenu
+              </Link>
+            </div>
           ) : (
             <div className="divide-y divide-ink-100">
               {(incomeRows ?? []).map((inc) => (
@@ -281,7 +335,7 @@ export function FinancesView({
                       {inc.label}
                     </div>
                     <div className="text-xs text-ink-500 truncate">
-                      Échéance: {inc.due_date} • {inc.received ? "Payé le " + inc.received_at : "En attente"}
+                      Échéance : {inc.due_date} • {inc.received ? "Payé le " + inc.received_at : "En attente"}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
@@ -305,16 +359,27 @@ export function FinancesView({
 
       {/* Tab: EXPENSES */}
       {activeTab === "expenses" && (
-        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-4 min-w-0 animate-in fade-in-50 duration-150">
+        <div className="p-4 sm:p-6 rounded-xl border border-ink-200 bg-canvas-raised space-y-4 min-w-0 animate-in fade-in-50 duration-150">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="font-bold text-sm text-ink-950 truncate">Dépenses payées du mois</h3>
+            <h3 className="font-bold text-sm sm:text-base text-ink-950 truncate">Dépenses payées du mois</h3>
             <Link href="/finances/expenses/new" className={buttonClasses("secondary", "sm")}>
               + Nouvelle dépense
             </Link>
           </div>
 
           {(expenseRows ?? []).length === 0 ? (
-            <div className="p-8 text-center text-xs text-ink-400">Aucune dépense pour ce mois</div>
+            <div className="p-8 text-center rounded-xl border border-dashed border-ink-300 bg-canvas space-y-3">
+              <div className="w-10 h-10 rounded-full bg-danger-soft text-danger flex items-center justify-center mx-auto">
+                <TrendingDown className="w-5 h-5" />
+              </div>
+              <p className="font-semibold text-ink-950 text-sm">Aucune dépense pour ce mois</p>
+              <p className="text-xs text-ink-500 max-w-sm mx-auto">
+                Enregistrez vos frais professionnels et personnels pour calculer votre solde net réel.
+              </p>
+              <Link href="/finances/expenses/new" className={buttonClasses("secondary", "sm")}>
+                <Plus className="w-3.5 h-3.5 mr-1" /> Ajouter une dépense
+              </Link>
+            </div>
           ) : (
             <div className="divide-y divide-ink-100">
               {(expenseRows ?? []).map((exp) => (
@@ -324,7 +389,7 @@ export function FinancesView({
                       {exp.label}
                     </div>
                     <div className="text-xs text-ink-500 truncate">
-                      {exp.category} • {exp.paid ? "Payé le " + exp.paid_at : "Échéance: " + exp.due_date}
+                      {exp.category} • {exp.paid ? "Payé le " + exp.paid_at : "Échéance : " + exp.due_date}
                     </div>
                   </div>
                   <div className="text-right shrink-0">

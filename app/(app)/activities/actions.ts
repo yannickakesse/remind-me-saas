@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { activityFormSchema } from "@/lib/validation/activities";
+import { assertNoScheduleConflicts } from "@/lib/activities/schedules";
 
 /**
  * Trouve une organisation existante par nom exact pour cet utilisateur,
@@ -129,6 +130,15 @@ export async function createActivity(formData: FormData) {
 
   const parsed = parseFormData(formData);
 
+  // Vérifier l'absence de chevauchement d'horaires AVANT d'insérer en base
+  if (!parsed.schedule.variableHours && parsed.schedule.schedules.length > 0) {
+    await assertNoScheduleConflicts({
+      supabase,
+      userId: user.id,
+      schedules: parsed.schedule.schedules,
+    });
+  }
+
   const organizationId = await findOrCreateOrganization(
     supabase,
     user.id,
@@ -207,6 +217,16 @@ export async function updateActivity(activityId: string, formData: FormData) {
   if (!user) redirect("/login");
 
   const parsed = parseFormData(formData);
+
+  // Vérifier l'absence de chevauchement d'horaires AVANT d'insérer ou mettre à jour en base
+  if (!parsed.schedule.variableHours && parsed.schedule.schedules.length > 0) {
+    await assertNoScheduleConflicts({
+      supabase,
+      userId: user.id,
+      schedules: parsed.schedule.schedules,
+      excludeActivityId: activityId,
+    });
+  }
 
   const organizationId = await findOrCreateOrganization(
     supabase,

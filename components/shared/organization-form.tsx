@@ -23,6 +23,7 @@ export function OrganizationForm({ action, initial, submitLabel = "Créer l'orga
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submitting) return;
     setError(null);
     setSubmitting(true);
 
@@ -48,7 +49,7 @@ export function OrganizationForm({ action, initial, submitLabel = "Créer l'orga
         <TextInput id="contactName" name="contactName" defaultValue={initial?.contactName} />
       </Field>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Téléphone (optionnel)" htmlFor="phone">
           <TextInput id="phone" name="phone" type="tel" defaultValue={initial?.phone} />
         </Field>
@@ -63,7 +64,7 @@ export function OrganizationForm({ action, initial, submitLabel = "Créer l'orga
           name="address"
           defaultValue={initial?.address}
           rows={2}
-          className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2"
+          className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950"
         />
       </Field>
 
@@ -77,11 +78,12 @@ export function OrganizationForm({ action, initial, submitLabel = "Créer l'orga
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-md border border-ink-300 px-4 py-2.5 font-medium text-ink-700"
+          disabled={submitting}
+          className="rounded-md border border-ink-300 px-4 py-2.5 font-medium text-ink-700 hover:bg-ink-50 transition-colors disabled:opacity-50"
         >
           Annuler
         </button>
-        <PrimaryButton type="submit" disabled={submitting} className="w-auto px-6">
+        <PrimaryButton type="submit" loading={submitting} disabled={submitting} className="w-auto px-6">
           {submitting ? "Enregistrement..." : submitLabel}
         </PrimaryButton>
       </div>
