@@ -22,8 +22,8 @@ interface ScheduleRow {
 interface ActivityFormProps {
   currencies: { code: string; name: string; symbol: string }[];
   defaultCurrency?: string;
-  action: (formData: FormData) => Promise<void>;
-  deleteAction?: () => Promise<void>;
+  action: (formData: FormData) => Promise<{ success?: boolean; error?: string } | void>;
+  deleteAction?: () => Promise<{ success?: boolean; error?: string } | void>;
   initial?: {
     name: string;
     description: string;
@@ -144,7 +144,14 @@ export function ActivityForm({
     formData.set("schedulesJson", JSON.stringify(schedules));
 
     try {
-      await action(formData);
+      const res = await action(formData);
+      if (res && res.error) {
+        setError(res.error);
+        setSubmitting(false);
+        return;
+      }
+      router.push("/activities");
+      router.refresh();
     } catch (err: any) {
       if (err?.digest?.startsWith("NEXT_REDIRECT") || err?.message === "NEXT_REDIRECT") {
         return;
@@ -529,9 +536,20 @@ export function ActivityForm({
                     onClick={async () => {
                       setDeleting(true);
                       try {
-                        await deleteAction();
+                        const res = await deleteAction();
+                        if (res && res.error) {
+                          setError(res.error);
+                          setDeleting(false);
+                          setShowDeleteConfirm(false);
+                          return;
+                        }
+                        router.push("/activities");
+                        router.refresh();
                       } catch (err: any) {
-                        setError(err.message || "Erreur lors de la suppression.");
+                        if (err?.digest?.startsWith("NEXT_REDIRECT") || err?.message === "NEXT_REDIRECT") {
+                          return;
+                        }
+                        setError(err?.message || "Erreur lors de la suppression.");
                         setDeleting(false);
                         setShowDeleteConfirm(false);
                       }

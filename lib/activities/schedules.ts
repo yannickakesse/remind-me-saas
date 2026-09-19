@@ -87,7 +87,7 @@ export async function assertNoScheduleConflicts({
       start_time,
       end_time,
       variable_hours,
-      activity:activities (
+      activities (
         id,
         name,
         status
@@ -111,7 +111,7 @@ export async function assertNoScheduleConflicts({
     if (excludeActivityId && row.activity_id === excludeActivityId) {
       return false;
     }
-    const act = Array.isArray(row.activity) ? row.activity[0] : row.activity;
+    const act = Array.isArray(row.activities) ? row.activities[0] : row.activities;
     // Ignorer les activités archivées ou sans horaires fixes
     if (act?.status === "archived" || row.variable_hours) {
       return false;
@@ -132,9 +132,9 @@ export async function assertNoScheduleConflicts({
           )
         ) {
           const day = getWeekdayLabel(candidate.weekday);
-          const act = Array.isArray(existing.activity)
-            ? existing.activity[0]
-            : existing.activity;
+          const act = Array.isArray((existing as any).activities)
+            ? (existing as any).activities[0]
+            : (existing as any).activities;
           const activityName = act?.name || "une autre activité";
           const eStart = normalizeTime(existing.start_time);
           const eEnd = normalizeTime(existing.end_time);
