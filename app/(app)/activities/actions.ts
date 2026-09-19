@@ -330,3 +330,50 @@ export async function restoreActivity(activityId: string) {
   revalidatePath("/activities");
   revalidatePath("/dashboard");
 }
+
+export async function deleteActivity(activityId: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // 1. Supprimer les horaires associés
+  await supabase
+    .from("activity_schedules")
+    .delete()
+    .eq("activity_id", activityId)
+    .eq("user_id", user.id);
+
+  // 2. Supprimer les rémunérations associées
+  await supabase
+    .from("activity_compensation")
+    .delete()
+    .eq("activity_id", activityId)
+    .eq("user_id", user.id);
+
+  // 3. Supprimer les événements calendrier liés
+  await supabase
+    .from("calendar_events")
+    .delete()
+    .eq("activity_id", activityId)
+    .eq("user_id", user.id);
+
+  // 4. Supprimer l'activité
+  const { error } = await supabase
+    .from("activities")
+    .delete()
+    .eq("id", activityId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    throw new Error("Impossible de supprimer cette activité.");
+  }
+
+  revalidatePath("/activities");
+  revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+  revalidatePath("/finances");
+  revalidatePath("/reports");
+  redirect("/activities");
+}

@@ -246,11 +246,13 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
       {/* Bottom Navigation Bar (< 768px) */}
       <nav
         aria-label="Navigation mobile principale"
+        data-tour="mobile-nav-bar"
         className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-1 py-1 shadow-lg safe-area-bottom"
       >
         <Link
           href="/dashboard"
           prefetch={true}
+          data-tour="nav-dashboard"
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname === "/dashboard"
               ? "text-signal font-bold"
@@ -264,6 +266,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
         <Link
           href="/calendar"
           prefetch={true}
+          data-tour="nav-calendar"
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname.startsWith("/calendar")
               ? "text-signal font-bold"
@@ -277,6 +280,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
         <Link
           href="/tasks"
           prefetch={true}
+          data-tour="nav-tasks"
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname.startsWith("/tasks")
               ? "text-signal font-bold"
@@ -290,6 +294,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
         <Link
           href="/finances"
           prefetch={true}
+          data-tour="nav-finances"
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname.startsWith("/finances")
               ? "text-signal font-bold"
@@ -303,6 +308,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
+          data-tour="nav-menu"
           className="flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] text-ink-500 hover:text-ink-800 font-medium tap-active focus:outline-none"
         >
           <Menu className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={1.8} />

@@ -117,13 +117,15 @@ export function FinancesView({
       </div>
 
       {/* Tabs avec basculement instantané à 0ms */}
-      <FinanceTabs currentTab={activeTab} onTabChange={handleTabChange} />
+      <div data-tour="finances-tabs">
+        <FinanceTabs currentTab={activeTab} onTabChange={handleTabChange} />
+      </div>
 
       {/* Tab: OVERVIEW */}
       {activeTab === "overview" && (
         <div className="space-y-5 w-full min-w-0 animate-in fade-in-50 duration-150">
           {/* Stat Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full min-w-0">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full min-w-0" data-tour="finances-kpi">
             <StatCard
               label="Total Reçu"
               value={formatAmount(aggregates.totalIncomeReceived, defaultCurrency)}
@@ -139,16 +141,16 @@ export function FinancesView({
               icon={Clock}
             />
             <StatCard
-              label="Dépensé"
+              label="Dépenses Payées"
               value={formatAmount(aggregates.totalExpensesPaid, defaultCurrency)}
               helper="Payé ce mois"
               tone="danger"
               icon={TrendingDown}
             />
             <StatCard
-              label="Solde Net"
+              label="Solde Réel (Net)"
               value={formatAmount(aggregates.netBalance, defaultCurrency)}
-              helper="Reçu - Dépensé"
+              helper="Reçus − Dépenses payées"
               tone={aggregates.netBalance >= 0 ? "positive" : "danger"}
               icon={Wallet}
             />

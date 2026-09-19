@@ -138,7 +138,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
       {/* Top Welcome & Quick Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" data-tour="dashboard-header">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 truncate">
             Bonjour {profile?.full_name?.split(" ")[0] ?? ""}
@@ -147,15 +147,19 @@ export default async function DashboardPage() {
             {now.setLocale("fr").toFormat("cccc d LLLL yyyy")} — Vue d'ensemble de vos activités
           </p>
         </div>
-        <QuickActions />
+        <div data-tour="dashboard-quick-actions">
+          <QuickActions />
+        </div>
       </div>
 
       {!onboardingComplete ? (
-        <OnboardingChecklist items={checklistItems} />
+        <div data-tour="dashboard-onboarding">
+          <OnboardingChecklist items={checklistItems} />
+        </div>
       ) : null}
 
       {/* Main KPI Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full min-w-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full min-w-0" data-tour="dashboard-kpi">
         <StatCard
           label="Revenus reçus"
           value={formatAmount(incomeReceived, currency)}
@@ -171,9 +175,9 @@ export default async function DashboardPage() {
           icon={TrendingDown}
         />
         <StatCard
-          label="Solde Net"
+          label="Solde Réel (Net)"
           value={formatAmount(net, currency)}
-          helper="Reçu - Dépensé"
+          helper="Reçus − Dépenses payées"
           tone={net >= 0 ? "positive" : "danger"}
           icon={Wallet}
         />
@@ -188,14 +192,16 @@ export default async function DashboardPage() {
 
       {/* Smart Reminders Attention Required Widget */}
       {attentionNotifications && attentionNotifications.length > 0 ? (
-        <AttentionRequired notifications={attentionNotifications as Notification[]} />
+        <div data-tour="dashboard-attention">
+          <AttentionRequired notifications={attentionNotifications as Notification[]} />
+        </div>
       ) : null}
 
       {/* Grid: Urgences & Prochaines Dépenses */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Tâches urgentes */}
         {urgentTasks && urgentTasks.length > 0 ? (
-          <div className="p-4 rounded-xl border border-danger/30 bg-canvas-raised space-y-3">
+          <div className="p-4 rounded-xl border border-danger/30 bg-canvas-raised space-y-3" data-tour="dashboard-urgent-tasks">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wider text-danger flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5" /> Tâches urgentes ({urgentTasks.length})
@@ -224,7 +230,7 @@ export default async function DashboardPage() {
 
         {/* Prochaines Dépenses Programmées */}
         {scheduledExpenses && scheduledExpenses.length > 0 ? (
-          <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
+          <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3" data-tour="dashboard-scheduled-expenses">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wider text-ink-600 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-amber-600" /> Prochaines dépenses programmées
@@ -279,7 +285,7 @@ export default async function DashboardPage() {
       {/* Today Schedule & Activities */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Aujourd'hui */}
-        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
+        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3" data-tour="dashboard-today">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-ink-600 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-signal" /> Aujourd'hui
@@ -320,7 +326,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Vos Activités */}
-        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
+        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3" data-tour="dashboard-activities">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-ink-600 flex items-center gap-1.5">
               <Briefcase className="w-3.5 h-3.5 text-signal" /> Vos activités ({activities?.length ?? 0})

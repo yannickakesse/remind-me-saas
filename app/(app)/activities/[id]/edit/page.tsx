@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ActivityForm } from "@/components/shared/activity-form";
-import { updateActivity } from "../../actions";
+import { updateActivity, deleteActivity } from "../../actions";
 import { requireCurrentUser } from "@/lib/supabase/auth";
 
 export default async function EditActivityPage({
@@ -40,7 +40,7 @@ export default async function EditActivityPage({
   const contact = Array.isArray(activity.contacts) ? activity.contacts[0] : activity.contacts;
 
   return (
-    <div>
+    <div data-tour="edit-activity-container">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-ink-950">Modifier {activity.name}</h1>
       </div>
@@ -48,6 +48,7 @@ export default async function EditActivityPage({
       <ActivityForm
         currencies={currencies ?? []}
         action={updateActivity.bind(null, activity.id)}
+        deleteAction={deleteActivity.bind(null, activity.id)}
         submitLabel="Enregistrer les modifications"
         initial={{
           name: activity.name,

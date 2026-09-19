@@ -6,11 +6,16 @@ export interface ActivityProfitability {
   activityName: string;
   activityColor: string | null;
   currency: string;
+  incomeReceived: number;
+  incomeExpected: number;
   totalIncome: number;
+  expensesPaid: number;
+  expensesPlanned: number;
   totalExpenses: number;
-  netProfit: number;
+  netRealProfit: number; // Reçus - Payées (Solde Réel)
+  netProfit: number; // Total Revenus - Total Dépenses (Projection)
   totalHours: number;
-  hourlyRate: number | null; // Net Profit / totalHours
+  hourlyRate: number | null; // Net Real Profit / totalHours (si heures > 0)
   isTopPerformer?: boolean;
 }
 
@@ -24,8 +29,13 @@ export interface CategoryBreakdownItem {
 export interface MonthlySummaryItem {
   monthKey: string; // "2026-03"
   monthLabel: string; // "Mars 2026"
+  incomeReceived: number;
+  incomeExpected: number;
   income: number;
+  expensesPaid: number;
+  expensesPlanned: number;
   expenses: number;
+  netReal: number;
   net: number;
   currency: string;
 }
@@ -37,7 +47,7 @@ export async function calculateProfitabilityReport(
   endDate: string,
   timezone: string = "UTC"
 ) {
-  // 1. Récupérer activités, revenus, dépenses et événements calendrier
+  // 1. Récupérer activités, revenus, dépenses et événements calendrier réels
   const [
     { data: activities },
     { data: incomeEntries },
@@ -72,7 +82,7 @@ export async function calculateProfitabilityReport(
   const activityMap = new Map<string, { name: string; color: string | null }>();
   (activities ?? []).forEach((a) => activityMap.set(a.id, { name: a.name, color: a.color }));
 
-  // 2. Calcul des heures travaillées par activité depuis calendar_events
+  // 2. Calcul des heures travaillées réelles par activité depuis calendar_events
   const hoursByActivity = new Map<string, number>();
   let totalHoursWorked = 0;
 
@@ -88,15 +98,32 @@ export async function calculateProfitabilityReport(
     totalHoursWorked += durationHours;
   });
 
-  // 3. Agrégation financière par activité et devise
-  const actStats = new Map<string, { income: number; expenses: number }>();
+  // 3. Agrégation financière par activité et devise (avec séparation stricte Reçus / Attendus et Payées / Prévues)
+  const actStats = new Map<
+    string,
+    {
+      incomeReceived: number;
+      incomeExpected: number;
+      expensesPaid: number;
+      expensesPlanned: number;
+    }
+  >();
 
   (incomeEntries ?? []).forEach((i) => {
     const actId = i.activity_id ?? "unassigned";
     const curr = i.currency;
     const key = `${actId}::${curr}`;
-    const cur = actStats.get(key) ?? { income: 0, expenses: 0 };
-    cur.income += Number(i.amount);
+    const cur = actStats.get(key) ?? {
+      incomeReceived: 0,
+      incomeExpected: 0,
+      expensesPaid: 0,
+      expensesPlanned: 0,
+    };
+    if (i.received) {
+      cur.incomeReceived += Number(i.amount);
+    } else {
+      cur.incomeExpected += Number(i.amount);
+    }
     actStats.set(key, cur);
   });
 
@@ -104,62 +131,83 @@ export async function calculateProfitabilityReport(
     const actId = e.activity_id ?? "unassigned";
     const curr = e.currency;
     const key = `${actId}::${curr}`;
-    const cur = actStats.get(key) ?? { income: 0, expenses: 0 };
-    cur.expenses += Number(e.amount);
+    const cur = actStats.get(key) ?? {
+      incomeReceived: 0,
+      incomeExpected: 0,
+      expensesPaid: 0,
+      expensesPlanned: 0,
+    };
+    if (e.paid) {
+      cur.expensesPaid += Number(e.amount);
+    } else {
+      cur.expensesPlanned += Number(e.amount);
+    }
     actStats.set(key, cur);
   });
 
-  // 4. Construction de la liste de rentabilité
+  // 4. Construction de la liste de rentabilité par activité
   const profitabilityList: ActivityProfitability[] = [];
 
   actStats.forEach((val, key) => {
     const parts = key.split("::");
     const actId = parts[0] || "unassigned";
-    const currency = parts[1] || "EUR";
+    const currency = parts[1] || "XOF";
     const actInfo = activityMap.get(actId);
     const hours = hoursByActivity.get(actId) ?? 0;
-    const netProfit = val.income - val.expenses;
-    const hourlyRate = hours > 0 ? Math.round(netProfit / hours) : null;
+    const totalIncome = val.incomeReceived + val.incomeExpected;
+    const totalExpenses = val.expensesPaid + val.expensesPlanned;
+    const netRealProfit = val.incomeReceived - val.expensesPaid; // Solde Réel strict
+    const netProfit = totalIncome - totalExpenses; // Projection
+    const hourlyRate = hours > 0 ? Math.round(netRealProfit / hours) : null;
 
     profitabilityList.push({
       activityId: actId === "unassigned" ? null : actId,
       activityName: actInfo ? actInfo.name : "Général / Libre",
       activityColor: actInfo ? actInfo.color : null,
       currency,
-      totalIncome: val.income,
-      totalExpenses: val.expenses,
+      incomeReceived: val.incomeReceived,
+      incomeExpected: val.incomeExpected,
+      totalIncome,
+      expensesPaid: val.expensesPaid,
+      expensesPlanned: val.expensesPlanned,
+      totalExpenses,
+      netRealProfit,
       netProfit,
       totalHours: Math.round(hours * 10) / 10,
       hourlyRate,
     });
   });
 
-  // Trier par bénéfice net décroissant
-  profitabilityList.sort((a, b) => b.netProfit - a.netProfit);
+  // Trier par bénéfice réel décroissant
+  profitabilityList.sort((a, b) => b.netRealProfit - a.netRealProfit);
   const topItem = profitabilityList[0];
   if (topItem && topItem.hourlyRate && topItem.hourlyRate > 0) {
     topItem.isTopPerformer = true;
   }
 
-  // 5. Ventilation des dépenses par catégorie
+  // 5. Ventilation des dépenses réelles payées par catégorie
   const catTotals = new Map<string, { amount: number; currency: string }>();
-  let totalExpensesOverall = 0;
+  let totalExpensesPaidOverall = 0;
 
   (expenseEntries ?? []).forEach((e) => {
     const cat = e.category || "other";
     const curr = e.currency;
     const key = `${cat}::${curr}`;
     const cur = catTotals.get(key) ?? { amount: 0, currency: curr };
-    cur.amount += Number(e.amount);
+    const amount = Number(e.amount);
+    cur.amount += amount;
     catTotals.set(key, cur);
-    totalExpensesOverall += Number(e.amount);
+    if (e.paid) {
+      totalExpensesPaidOverall += amount;
+    }
   });
 
   const categoryBreakdown: CategoryBreakdownItem[] = [];
   catTotals.forEach((val, key) => {
     const parts = key.split("::");
     const cat = parts[0] || "other";
-    const percentage = totalExpensesOverall > 0 ? Math.round((val.amount / totalExpensesOverall) * 100) : 0;
+    const percentage =
+      totalExpensesPaidOverall > 0 ? Math.round((val.amount / totalExpensesPaidOverall) * 100) : 0;
     categoryBreakdown.push({
       category: cat,
       amount: val.amount,
@@ -178,33 +226,58 @@ export async function calculateProfitabilityReport(
     const monthKey = mDT.toFormat("yyyy-MM");
     const monthLabel = mDT.setLocale("fr").toFormat("MMM yyyy");
 
-    let monthInc = 0;
-    let monthExp = 0;
-    let monthCurr = "EUR";
+    let monthIncRec = 0;
+    let monthIncExp = 0;
+    let monthExpPaid = 0;
+    let monthExpPlan = 0;
+    let monthCurr = "XOF";
 
     (incomeEntries ?? []).forEach((i) => {
       if (i.due_date && i.due_date.startsWith(monthKey)) {
-        monthInc += Number(i.amount);
+        if (i.received) {
+          monthIncRec += Number(i.amount);
+        } else {
+          monthIncExp += Number(i.amount);
+        }
         monthCurr = i.currency;
       }
     });
 
     (expenseEntries ?? []).forEach((e) => {
       if (e.due_date && e.due_date.startsWith(monthKey)) {
-        monthExp += Number(e.amount);
+        if (e.paid) {
+          monthExpPaid += Number(e.amount);
+        } else {
+          monthExpPlan += Number(e.amount);
+        }
         monthCurr = e.currency;
       }
     });
 
+    const monthTotalInc = monthIncRec + monthIncExp;
+    const monthTotalExp = monthExpPaid + monthExpPlan;
+
     monthlySummaries.push({
       monthKey,
       monthLabel,
-      income: monthInc,
-      expenses: monthExp,
-      net: monthInc - monthExp,
+      incomeReceived: monthIncRec,
+      incomeExpected: monthIncExp,
+      income: monthTotalInc,
+      expensesPaid: monthExpPaid,
+      expensesPlanned: monthExpPlan,
+      expenses: monthTotalExp,
+      netReal: monthIncRec - monthExpPaid,
+      net: monthTotalInc - monthTotalExp,
       currency: monthCurr,
     });
   }
+
+  // Totaux globaux réels vs attendus
+  const totalIncomeReceived = profitabilityList.reduce((acc, curr) => acc + curr.incomeReceived, 0);
+  const totalIncomeExpected = profitabilityList.reduce((acc, curr) => acc + curr.incomeExpected, 0);
+  const totalExpensesPaid = profitabilityList.reduce((acc, curr) => acc + curr.expensesPaid, 0);
+  const totalExpensesPlanned = profitabilityList.reduce((acc, curr) => acc + curr.expensesPlanned, 0);
+  const realNetBalance = totalIncomeReceived - totalExpensesPaid; // SOLDE RÉEL = REÇUS - DÉPENSES PAYÉES
 
   return {
     profitabilityList,
@@ -212,5 +285,10 @@ export async function calculateProfitabilityReport(
     monthlySummaries,
     monthlyEvolution: monthlySummaries,
     totalHoursWorked: Math.round(totalHoursWorked * 10) / 10,
+    totalIncomeReceived,
+    totalIncomeExpected,
+    totalExpensesPaid,
+    totalExpensesPlanned,
+    realNetBalance,
   };
 }

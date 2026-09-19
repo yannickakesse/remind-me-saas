@@ -55,17 +55,18 @@ export default async function ReportsPage({
     categoryBreakdown,
     monthlyEvolution,
     totalHoursWorked,
+    totalIncomeReceived,
+    totalIncomeExpected,
+    totalExpensesPaid,
+    totalExpensesPlanned,
+    realNetBalance,
   } = await calculateProfitabilityReport(supabase, user!.id, rangeStart, rangeEnd, timezone);
 
-  // Totaux globaux
-  const totalRevenue = profitabilityList.reduce((acc, curr) => acc + curr.totalIncome, 0);
-  const totalExpenses = profitabilityList.reduce((acc, curr) => acc + curr.totalExpenses, 0);
-  const netIncome = totalRevenue - totalExpenses;
   const averageHourlyRate =
-    totalHoursWorked > 0 ? Math.round(netIncome / totalHoursWorked) : null;
+    totalHoursWorked > 0 ? Math.round(realNetBalance / totalHoursWorked) : null;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-tour="reports-container">
       {/* En-tête de page */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -76,7 +77,7 @@ export default async function ReportsPage({
             Rapports & Rentabilité
           </h1>
           <p className="text-sm text-ink-500 mt-1">
-            Analysez la profitabilité de vos activités, vos heures investies et vos flux de trésorerie.
+            Analysez la profitabilité réelle de vos activités, vos heures investies et vos flux de trésorerie.
           </p>
         </div>
 
@@ -84,6 +85,7 @@ export default async function ReportsPage({
           <a
             href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
             className={buttonClasses("secondary", "sm")}
+            data-tour="reports-export-btn"
           >
             <Download className="w-3.5 h-3.5 mr-1" /> Exporter CSV
           </a>
@@ -94,54 +96,58 @@ export default async function ReportsPage({
       <PeriodFilter from={rangeStart} to={rangeEnd} />
 
       {/* Cartes KPI Synthèse */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-tour="reports-kpi">
         <div className="rounded-2xl border border-ink-200 bg-canvas-raised p-5 shadow-xs hover:border-gold/40 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-              Chiffre d'Affaires Total
+              Revenus Reçus (Encaissés)
             </span>
             <TrendingUp className="w-4 h-4 text-gold-dark" />
           </div>
           <p className="mt-2 text-2xl font-extrabold text-gold-dark dark:text-gold-light">
-            {formatAmount(totalRevenue, defaultCurrency)}
+            {formatAmount(totalIncomeReceived, defaultCurrency)}
           </p>
-          <p className="mt-1 text-xs text-ink-500">Sur la période sélectionnée</p>
+          <p className="mt-1 text-xs text-ink-500">
+            {totalIncomeExpected > 0 ? `+${formatAmount(totalIncomeExpected, defaultCurrency)} attendus` : "Aucun revenu en attente"}
+          </p>
         </div>
 
         <div className="rounded-2xl border border-ink-200 bg-canvas-raised p-5 shadow-xs hover:border-gold/40 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-              Frais & Dépenses Totales
+              Dépenses Payées
             </span>
             <TrendingDown className="w-4 h-4 text-ink-500" />
           </div>
           <p className="mt-2 text-2xl font-extrabold text-ink-950">
-            {formatAmount(totalExpenses, defaultCurrency)}
+            {formatAmount(totalExpensesPaid, defaultCurrency)}
           </p>
-          <p className="mt-1 text-xs text-ink-500">Déductions directes & mixtes</p>
+          <p className="mt-1 text-xs text-ink-500">
+            {totalExpensesPlanned > 0 ? `${formatAmount(totalExpensesPlanned, defaultCurrency)} prévues` : "Toutes payées"}
+          </p>
         </div>
 
         <div className="rounded-2xl border border-ink-200 bg-canvas-raised p-5 shadow-xs hover:border-gold/40 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-              Bénéfice Net Réalisé
+              Solde Réel (Net)
             </span>
             <Wallet className="w-4 h-4 text-positive" />
           </div>
           <p
             className={`mt-2 text-2xl font-extrabold ${
-              netIncome >= 0 ? "text-positive" : "text-danger"
+              realNetBalance >= 0 ? "text-positive" : "text-danger"
             }`}
           >
-            {formatAmount(netIncome, defaultCurrency)}
+            {formatAmount(realNetBalance, defaultCurrency)}
           </p>
-          <p className="mt-1 text-xs text-ink-500">Revenus - Dépenses</p>
+          <p className="mt-1 text-xs text-ink-500">Reçus − Dépenses Payées</p>
         </div>
 
         <div className="rounded-2xl border border-ink-200 bg-canvas-raised p-5 shadow-xs hover:border-gold/40 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
-              Rentabilité Horaire Moyenne
+              Rentabilité Horaire
             </span>
             <Clock className="w-4 h-4 text-signal" />
           </div>

@@ -18,7 +18,7 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
       {/* Version Mobile (< 768px) : Cartes d'activités & rentabilité */}
       <div className="block md:hidden space-y-3">
         {items.map((row, idx) => {
-          const isProfit = row.netProfit >= 0;
+          const isProfit = row.netRealProfit >= 0;
           return (
             <div
               key={`mobile-${row.activityId ?? "none"}-${row.currency}-${idx}`}
@@ -41,23 +41,29 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
 
               <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-ink-100">
                 <div>
-                  <span className="text-[10px] uppercase font-semibold text-ink-500">Revenus</span>
+                  <span className="text-[10px] uppercase font-semibold text-ink-500">Reçus (Encaissés)</span>
                   <div className="font-semibold text-ink-950">
-                    {formatAmount(row.totalIncome, row.currency)}
+                    {formatAmount(row.incomeReceived, row.currency)}
                   </div>
+                  {row.incomeExpected > 0 ? (
+                    <span className="text-[10px] text-ink-400">+{formatAmount(row.incomeExpected, row.currency)} attendus</span>
+                  ) : null}
                 </div>
 
                 <div className="text-right">
-                  <span className="text-[10px] uppercase font-semibold text-ink-500">Dépenses</span>
+                  <span className="text-[10px] uppercase font-semibold text-ink-500">Dépenses Payées</span>
                   <div className="font-medium text-ink-600">
-                    {formatAmount(row.totalExpenses, row.currency)}
+                    {formatAmount(row.expensesPaid, row.currency)}
                   </div>
+                  {row.expensesPlanned > 0 ? (
+                    <span className="text-[10px] text-ink-400">+{formatAmount(row.expensesPlanned, row.currency)} prévues</span>
+                  ) : null}
                 </div>
 
                 <div>
-                  <span className="text-[10px] uppercase font-semibold text-ink-500">Bénéfice Net</span>
+                  <span className="text-[10px] uppercase font-semibold text-ink-500">Solde Réel</span>
                   <div className={`font-bold ${isProfit ? "text-positive" : "text-danger"}`}>
-                    {formatAmount(row.netProfit, row.currency)}
+                    {formatAmount(row.netRealProfit, row.currency)}
                   </div>
                 </div>
 
@@ -76,7 +82,7 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
                       </span>
                     ) : (
                       <span className="text-[10px] text-ink-400">
-                        {row.totalHours > 0 ? `${row.totalHours}h (taux non calculable)` : "—"}
+                        {row.totalHours > 0 ? `${row.totalHours}h` : "—"}
                       </span>
                     )}
                   </div>
@@ -93,16 +99,16 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
           <thead>
             <tr className="border-b border-ink-100 bg-canvas text-xs uppercase tracking-wider text-ink-500">
               <th className="px-4 py-3 font-semibold">Activité</th>
-              <th className="px-4 py-3 font-semibold text-right">Revenus</th>
-              <th className="px-4 py-3 font-semibold text-right">Dépenses directes</th>
-              <th className="px-4 py-3 font-semibold text-right">Bénéfice Net</th>
+              <th className="px-4 py-3 font-semibold text-right">Revenus Reçus</th>
+              <th className="px-4 py-3 font-semibold text-right">Dépenses Payées</th>
+              <th className="px-4 py-3 font-semibold text-right">Solde Réel (Net)</th>
               <th className="px-4 py-3 font-semibold text-right">Heures passées</th>
               <th className="px-4 py-3 font-semibold text-right">Rentabilité / Heure</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-ink-100">
             {items.map((row, idx) => {
-              const isProfit = row.netProfit >= 0;
+              const isProfit = row.netRealProfit >= 0;
               return (
                 <tr key={`${row.activityId ?? "none"}-${row.currency}-${idx}`} className="hover:bg-canvas/40 transition-colors">
                   <td className="px-4 py-3.5">
@@ -120,17 +126,23 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
                     </div>
                   </td>
                   <td className="px-4 py-3.5 text-right font-medium text-ink-950">
-                    {formatAmount(row.totalIncome, row.currency)}
+                    <div>{formatAmount(row.incomeReceived, row.currency)}</div>
+                    {row.incomeExpected > 0 ? (
+                      <div className="text-[11px] text-ink-400 font-normal">+{formatAmount(row.incomeExpected, row.currency)} attendus</div>
+                    ) : null}
                   </td>
                   <td className="px-4 py-3.5 text-right text-ink-600">
-                    {formatAmount(row.totalExpenses, row.currency)}
+                    <div>{formatAmount(row.expensesPaid, row.currency)}</div>
+                    {row.expensesPlanned > 0 ? (
+                      <div className="text-[11px] text-ink-400 font-normal">+{formatAmount(row.expensesPlanned, row.currency)} prévues</div>
+                    ) : null}
                   </td>
                   <td
                     className={`px-4 py-3.5 text-right font-bold ${
                       isProfit ? "text-positive" : "text-danger"
                     }`}
                   >
-                    {formatAmount(row.netProfit, row.currency)}
+                    {formatAmount(row.netRealProfit, row.currency)}
                   </td>
                   <td className="px-4 py-3.5 text-right text-ink-700">
                     {row.totalHours > 0 ? `${row.totalHours} h` : "—"}

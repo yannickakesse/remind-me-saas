@@ -23,6 +23,7 @@ interface ActivityFormProps {
   currencies: { code: string; name: string; symbol: string }[];
   defaultCurrency?: string;
   action: (formData: FormData) => Promise<void>;
+  deleteAction?: () => Promise<void>;
   initial?: {
     name: string;
     description: string;
@@ -58,6 +59,7 @@ export function ActivityForm({
   currencies,
   defaultCurrency,
   action,
+  deleteAction,
   initial,
   submitLabel = "Créer l'activité",
 }: ActivityFormProps) {
@@ -85,6 +87,8 @@ export function ActivityForm({
   );
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   function addSchedule() {
     setSchedules((rows) => [
@@ -466,25 +470,78 @@ export function ActivityForm({
         </div>
       ) : null}
 
-      <div className="flex flex-col-reverse sm:flex-row items-center gap-3 pt-2">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => router.back()}
-          disabled={submitting}
-          className="w-full sm:w-auto"
-        >
-          Annuler
-        </Button>
-        <Button
-          type="submit"
-          variant="primary"
-          loading={submitting}
-          disabled={submitting}
-          className="w-full sm:w-auto sm:min-w-[180px]"
-        >
-          {submitting ? "Enregistrement..." : submitLabel}
-        </Button>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-ink-100">
+        <div>
+          {deleteAction ? (
+            <div>
+              {!showDeleteConfirm ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={submitting || deleting}
+                  className="text-danger hover:bg-danger/10 border-danger/20 w-full sm:w-auto"
+                >
+                  <Trash2 className="w-4 h-4 mr-1.5" /> Supprimer cette activité
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2 bg-danger/5 border border-danger/20 p-2 rounded-xl">
+                  <span className="text-xs text-danger font-medium">Confirmer la suppression ?</span>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    loading={deleting}
+                    disabled={deleting}
+                    onClick={async () => {
+                      setDeleting(true);
+                      try {
+                        await deleteAction();
+                      } catch (err: any) {
+                        setError(err.message || "Erreur lors de la suppression.");
+                        setDeleting(false);
+                        setShowDeleteConfirm(false);
+                      }
+                    }}
+                  >
+                    Oui, supprimer
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={deleting}
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
+                    Annuler
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => router.back()}
+            disabled={submitting || deleting}
+            className="w-full sm:w-auto"
+          >
+            Annuler
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            loading={submitting}
+            disabled={submitting || deleting}
+            data-tour="activity-form-submit"
+            className="w-full sm:w-auto sm:min-w-[180px]"
+          >
+            {submitting ? "Enregistrement..." : submitLabel}
+          </Button>
+        </div>
       </div>
     </form>
   );
