@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Briefcase, Building2, Wallet, Plus, Edit3 } from "lucide-react";
+import { Briefcase, Building2, Wallet, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireCurrentUser } from "@/lib/supabase/auth";
 import { ACTIVITY_TYPES } from "@/lib/validation/activities";
-import { archiveActivity, restoreActivity } from "./actions";
 import { buttonClasses } from "@/components/ui/button";
 import { formatAmount } from "@/lib/finances/format";
+import { ActivityItemActions } from "@/components/shared/activity-item-actions";
 
 function typeLabel(type: string) {
   return ACTIVITY_TYPES.find((t) => t.value === type)?.label ?? type;
@@ -110,21 +110,12 @@ export default async function ActivitiesPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-ink-100">
-                  <Link
-                    href={`/activities/${activity.id}/edit`}
-                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-signal hover:bg-signal-soft transition-colors min-h-[36px] inline-flex items-center"
-                  >
-                    Modifier
-                  </Link>
-                  <form action={archiveActivity.bind(null, activity.id)}>
-                    <button
-                      type="submit"
-                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-ink-400 hover:text-danger hover:bg-danger-soft/50 transition-colors min-h-[36px] inline-flex items-center"
-                    >
-                      Archiver
-                    </button>
-                  </form>
+                <div className="flex items-center justify-end pt-3 border-t border-ink-100">
+                  <ActivityItemActions
+                    activityId={activity.id}
+                    activityName={activity.name}
+                    isArchived={false}
+                  />
                 </div>
               </div>
             );
@@ -138,21 +129,24 @@ export default async function ActivitiesPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
             Activités archivées ({archived.length})
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 opacity-75">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 opacity-80">
             {archived.map((activity) => (
               <div
                 key={activity.id}
-                className="flex items-center justify-between rounded-xl border border-ink-200 bg-canvas p-4"
+                className="flex items-center justify-between gap-3 rounded-xl border border-ink-200 bg-canvas p-4"
               >
-                <span className="font-medium text-ink-700 text-sm">{activity.name}</span>
-                <form action={restoreActivity.bind(null, activity.id)}>
-                  <button
-                    type="submit"
-                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-signal hover:underline min-h-[36px] inline-flex items-center"
-                  >
-                    Restaurer
-                  </button>
-                </form>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span
+                    className="h-3 w-3 shrink-0 rounded-full opacity-60"
+                    style={{ backgroundColor: activity.color ?? "#1E3A5F" }}
+                  />
+                  <span className="font-medium text-ink-700 text-sm truncate">{activity.name}</span>
+                </div>
+                <ActivityItemActions
+                  activityId={activity.id}
+                  activityName={activity.name}
+                  isArchived={true}
+                />
               </div>
             ))}
           </div>

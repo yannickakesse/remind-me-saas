@@ -334,37 +334,55 @@ export async function updateActivity(activityId: string, formData: FormData) {
 }
 
 export async function archiveActivity(activityId: string) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Non authentifié." };
 
-  await supabase
-    .from("activities")
-    .update({ status: "archived" })
-    .eq("id", activityId)
-    .eq("user_id", user.id);
+    const { error } = await supabase
+      .from("activities")
+      .update({ status: "archived" })
+      .eq("id", activityId)
+      .eq("user_id", user.id);
 
-  revalidatePath("/activities");
-  revalidatePath("/dashboard");
+    if (error) {
+      return { error: "Impossible d'archiver l'activité : " + error.message };
+    }
+
+    revalidatePath("/activities");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err?.message || "Erreur lors de l'archivage." };
+  }
 }
 
 export async function restoreActivity(activityId: string) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Non authentifié." };
 
-  await supabase
-    .from("activities")
-    .update({ status: "active" })
-    .eq("id", activityId)
-    .eq("user_id", user.id);
+    const { error } = await supabase
+      .from("activities")
+      .update({ status: "active" })
+      .eq("id", activityId)
+      .eq("user_id", user.id);
 
-  revalidatePath("/activities");
-  revalidatePath("/dashboard");
+    if (error) {
+      return { error: "Impossible de restaurer l'activité : " + error.message };
+    }
+
+    revalidatePath("/activities");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err?.message || "Erreur lors de la restauration." };
+  }
 }
 
 export async function deleteActivity(activityId: string) {
@@ -377,28 +395,50 @@ export async function deleteActivity(activityId: string) {
       return { error: "Non authentifié. Veuillez vous reconnecter." };
     }
 
-    // 1. Supprimer les horaires associés
-    await supabase
-      .from("activity_schedules")
-      .delete()
-      .eq("activity_id", activityId)
-      .eq("user_id", user.id);
+    // 1. Détacher les références dans les tables liées pour éviter les violations de clés étrangères
+    await Promise.allSettled([
+      supabase
+        .from("tasks")
+        .update({ activity_id: null })
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("income")
+        .update({ activity_id: null })
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("expenses")
+        .update({ activity_id: null })
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("scheduled_expenses")
+        .update({ activity_id: null })
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+    ]);
 
-    // 2. Supprimer les rémunérations associées
-    await supabase
-      .from("activity_compensation")
-      .delete()
-      .eq("activity_id", activityId)
-      .eq("user_id", user.id);
+    // 2. Supprimer les données dépendantes
+    await Promise.allSettled([
+      supabase
+        .from("activity_schedules")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("activity_compensation")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("calendar_events")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+    ]);
 
-    // 3. Supprimer les événements calendrier liés
-    await supabase
-      .from("calendar_events")
-      .delete()
-      .eq("activity_id", activityId)
-      .eq("user_id", user.id);
-
-    // 4. Supprimer l'activité
+    // 3. Supprimer définitivement l'activité
     const { error } = await supabase
       .from("activities")
       .delete()
@@ -406,7 +446,8 @@ export async function deleteActivity(activityId: string) {
       .eq("user_id", user.id);
 
     if (error) {
-      return { error: "Impossible de supprimer cette activité." };
+      console.error("Erreur suppression activité:", error);
+      return { error: "Impossible de supprimer cette activité : " + error.message };
     }
 
     revalidatePath("/activities");
@@ -414,6 +455,7 @@ export async function deleteActivity(activityId: string) {
     revalidatePath("/calendar");
     revalidatePath("/finances");
     revalidatePath("/reports");
+    revalidatePath("/tasks");
     return { success: true };
   } catch (err: any) {
     console.error("deleteActivity error:", err);
