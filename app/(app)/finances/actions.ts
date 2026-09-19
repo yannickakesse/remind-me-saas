@@ -360,36 +360,55 @@ export async function deleteSavingsGoal(id: string) {
 export async function createScheduledExpenseAction(formData: FormData) {
   const { supabase, user } = await requireUser();
 
+  const rawActivityId = formData.get("activityId");
+  const activityId =
+    typeof rawActivityId === "string" && rawActivityId.trim().length > 0 && rawActivityId !== "null" && rawActivityId !== "undefined"
+      ? rawActivityId.trim()
+      : null;
+
+  const rawName = formData.get("name")?.toString().trim() || "";
+  const rawAmount = formData.get("amount");
+  const rawCurrency = formData.get("currency")?.toString().trim() || "XOF";
+  const rawFrequency = (formData.get("frequency")?.toString().trim() || "monthly") as any;
+  const rawNextDueDate = formData.get("nextDueDate")?.toString().trim() || new Date().toISOString().split("T")[0];
+  const rawCategory = formData.get("category")?.toString().trim() || "other";
+  const rawMerchant = formData.get("merchant")?.toString().trim() || null;
+  const rawPaymentMethod = formData.get("paymentMethod")?.toString().trim() || null;
+  const rawNotes = formData.get("notes")?.toString().trim() || null;
+
   const parsed = scheduledExpenseFormSchema.parse({
-    name: formData.get("name"),
-    category: formData.get("category") || "utilities",
-    amount: formData.get("amount"),
-    currency: formData.get("currency") || "XOF",
-    frequency: formData.get("frequency") || "monthly",
-    nextDueDate: formData.get("nextDueDate") || new Date().toISOString().split("T")[0],
-    activityId: formData.get("activityId") || undefined,
-    merchant: formData.get("merchant") || undefined,
-    paymentMethod: formData.get("paymentMethod") || undefined,
-    notes: formData.get("notes") || undefined,
+    name: rawName,
+    category: rawCategory,
+    amount: rawAmount,
+    currency: rawCurrency,
+    frequency: rawFrequency,
+    nextDueDate: rawNextDueDate,
+    activityId: activityId ?? undefined,
+    merchant: rawMerchant ?? undefined,
+    paymentMethod: rawPaymentMethod ?? undefined,
+    notes: rawNotes ?? undefined,
   });
 
   const { error } = await supabase.from("scheduled_expenses").insert({
     user_id: user.id,
     name: parsed.name,
-    category: parsed.category,
+    category: parsed.category || "other",
     amount: parsed.amount,
     currency: parsed.currency,
     frequency: parsed.frequency,
     start_date: parsed.nextDueDate,
     next_due_date: parsed.nextDueDate,
     status: "planned",
-    activity_id: parsed.activityId || null,
-    merchant: parsed.merchant || null,
-    payment_method: parsed.paymentMethod || null,
-    notes: parsed.notes || null,
+    activity_id: activityId,
+    merchant: rawMerchant,
+    payment_method: rawPaymentMethod,
+    notes: rawNotes,
   });
 
-  if (error) throw new Error("Impossible de créer la dépense programmée.");
+  if (error) {
+    console.error("Erreur insertion scheduled_expenses :", error);
+    throw new Error(error.message || "Impossible de créer la dépense programmée.");
+  }
 
   revalidatePath("/finances");
   revalidatePath("/dashboard");

@@ -61,52 +61,22 @@ export function ExpenseForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-5">
-      <Field label="Libellé de la dépense" htmlFor="label">
+      <input type="hidden" name="category" value={initial?.category ?? "other"} />
+      <input type="hidden" name="activityId" value={initial?.activityId ?? ""} />
+
+      <Field label="Libellé de la dépense *" htmlFor="label">
         <TextInput
           id="label"
           name="label"
           defaultValue={initial?.label}
-          placeholder="Ex : Abonnement Notion, Matériel de bureau, Train..."
+          placeholder="Ex : Loyer, Abonnement, Matériel, Transport..."
           required
         />
       </Field>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Catégorie" htmlFor="category">
-          <select
-            id="category"
-            name="category"
-            defaultValue={initial?.category ?? EXPENSE_CATEGORIES[0].value}
-            className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
-          >
-            {EXPENSE_CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <Field label="Activité liée (optionnel)" htmlFor="activityId">
-          <select
-            id="activityId"
-            name="activityId"
-            defaultValue={initial?.activityId ?? ""}
-            className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
-          >
-            <option value="">Aucune — dépense générale</option>
-            {activities.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="sm:col-span-2">
-          <Field label="Montant" htmlFor="amount">
+          <Field label="Montant *" htmlFor="amount">
             <TextInput
               id="amount"
               name="amount"
@@ -120,7 +90,7 @@ export function ExpenseForm({
           </Field>
         </div>
         <div>
-          <Field label="Devise" htmlFor="currency">
+          <Field label="Devise *" htmlFor="currency">
             <select
               id="currency"
               name="currency"
@@ -137,7 +107,34 @@ export function ExpenseForm({
         </div>
       </div>
 
-      {/* Qualification Pro / Perso / Mixte (§48) */}
+      {/* Date et Moyen de paiement */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Date d'échéance ou de paiement" htmlFor="dueDate">
+          <TextInput
+            id="dueDate"
+            name="dueDate"
+            type="date"
+            defaultValue={initial?.dueDate || new Date().toISOString().slice(0, 10)}
+          />
+        </Field>
+
+        <Field label="Moyen de paiement" htmlFor="paymentMethod">
+          <select
+            id="paymentMethod"
+            name="paymentMethod"
+            defaultValue={initial?.paymentMethod ?? "card"}
+            className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
+          >
+            {PAYMENT_METHODS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+
+      {/* Qualification Pro / Perso / Mixte */}
       <div className="rounded-xl border border-ink-200 bg-canvas/40 p-4 space-y-3">
         <label className="block text-xs font-semibold text-ink-900 uppercase tracking-wide">
           Affectation de la dépense
@@ -195,47 +192,6 @@ export function ExpenseForm({
           <input type="hidden" name="businessPercentage" value={expenseType === "business" ? "100" : "0"} />
         )}
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Commerçant / Fournisseur (optionnel)" htmlFor="merchant">
-          <TextInput
-            id="merchant"
-            name="merchant"
-            defaultValue={initial?.merchant}
-            placeholder="Ex : Amazon, Apple, SNCF, Total..."
-          />
-        </Field>
-
-        <Field label="Moyen de paiement" htmlFor="paymentMethod">
-          <select
-            id="paymentMethod"
-            name="paymentMethod"
-            defaultValue={initial?.paymentMethod ?? "card"}
-            className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
-          >
-            {PAYMENT_METHODS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div>
-
-      <Field label="Date d'échéance ou de paiement" htmlFor="dueDate">
-        <TextInput id="dueDate" name="dueDate" type="date" defaultValue={initial?.dueDate} />
-      </Field>
-
-      <Field label="Notes & Références (optionnel)" htmlFor="notes">
-        <textarea
-          id="notes"
-          name="notes"
-          defaultValue={initial?.notes}
-          rows={2}
-          placeholder="Numéro de facture, commentaire de justification..."
-          className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
-        />
-      </Field>
 
       {error ? (
         <p role="alert" className="text-sm font-medium text-danger">

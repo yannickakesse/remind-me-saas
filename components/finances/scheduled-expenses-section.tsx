@@ -135,8 +135,8 @@ export function ScheduledExpensesSection({
       await createScheduledExpenseAction(formData);
       toast.push("Dépense programmée avec succès.", "success");
       setIsModalOpen(false);
-    } catch (err) {
-      toast.push("Erreur lors de la programmation de la dépense.", "error");
+    } catch (err: any) {
+      toast.push(err?.message || "Erreur lors de la programmation de la dépense.", "error");
     } finally {
       setSubmitting(false);
     }

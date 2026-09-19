@@ -107,7 +107,7 @@ export const incomeFormSchema = z.object({
 export const expenseFormSchema = z.object({
   activityId: z.string().uuid().optional().or(z.literal("")),
   label: z.string().min(1, "Le libellé est requis"),
-  category: z.string().min(1, "La catégorie est requise"),
+  category: z.string().default("other"),
   amount: z.coerce.number().positive("Le montant doit être strictement positif"),
   currency: z.string().min(1, "La devise est requise"),
   expenseType: z.enum(["personal", "business", "mixed"]).default("personal"),

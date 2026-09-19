@@ -35,9 +35,9 @@ export const TASK_PRIORITY_STYLES: Record<string, string> = {
 export const taskFormSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().optional(),
-  activityId: z.string().uuid().optional().or(z.literal("")),
-  priority: z.enum(["low", "medium", "high", "urgent"]),
-  dueDate: z.string().optional().or(z.literal("")),
+  activityId: z.string().uuid().optional().or(z.literal("")).optional(),
+  priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
+  dueDate: z.string().min(1, "La date d'échéance est requise"),
   dueTime: z.string().optional().or(z.literal("")),
   reminderMinutesBefore: z
     .union([z.coerce.number().int().min(0), z.literal("")])

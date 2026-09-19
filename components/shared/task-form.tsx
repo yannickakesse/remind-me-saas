@@ -30,7 +30,9 @@ export function TaskForm({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [dueDate, setDueDate] = useState<string>(initial?.dueDate ?? "");
+  const [dueDate, setDueDate] = useState<string>(
+    initial?.dueDate || new Date().toISOString().slice(0, 10)
+  );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -76,7 +78,7 @@ export function TaskForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-5">
-      <Field label="Titre de la tâche" htmlFor="title">
+      <Field label="Titre de la tâche *" htmlFor="title">
         <TextInput
           id="title"
           name="title"
@@ -98,22 +100,6 @@ export function TaskForm({
       </Field>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Activité liée (optionnel)" htmlFor="activityId">
-          <select
-            id="activityId"
-            name="activityId"
-            defaultValue={initial?.activityId ?? ""}
-            className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
-          >
-            <option value="">Aucune — tâche libre</option>
-            {activities.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-
         <Field label="Priorité" htmlFor="priority">
           <select
             id="priority"
@@ -128,15 +114,13 @@ export function TaskForm({
             ))}
           </select>
         </Field>
-      </div>
 
-      {/* Statut si en mode édition */}
-      {initial?.status ? (
+        {/* Statut (par défaut À faire) */}
         <Field label="Statut" htmlFor="status">
           <select
             id="status"
             name="status"
-            defaultValue={initial.status}
+            defaultValue={initial?.status ?? "todo"}
             className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
           >
             {TASK_STATUSES.map((s) => (
@@ -146,52 +130,43 @@ export function TaskForm({
             ))}
           </select>
         </Field>
-      ) : null}
+      </div>
 
-      {/* Date d'échéance et raccourcis */}
+      {/* Date d'échéance obligatoire et raccourcis rapides */}
       <div className="rounded-xl border border-ink-200 bg-canvas/40 p-4 space-y-3">
         <div className="flex items-center justify-between">
           <label htmlFor="dueDate" className="text-sm font-medium text-ink-900">
-            Date d'échéance (optionnel)
+            Date d'échéance *
           </label>
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
             <button
               type="button"
               onClick={() => setDateShortcut(0)}
-              className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200"
+              className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200 font-medium"
             >
               Aujourd'hui
             </button>
             <button
               type="button"
               onClick={() => setDateShortcut(1)}
-              className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200"
+              className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200 font-medium"
             >
               Demain
             </button>
             <button
               type="button"
               onClick={setEndOfWeek}
-              className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200"
+              className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200 font-medium"
             >
               Vendredi
             </button>
             <button
               type="button"
               onClick={setNextMonday}
-              className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200"
+              className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200 font-medium"
             >
               Lundi proch.
             </button>
-            {dueDate ? (
-              <button
-                type="button"
-                onClick={() => setDueDate("")}
-                className="text-danger hover:underline ml-1"
-              >
-                Effacer
-              </button>
-            ) : null}
           </div>
         </div>
 
@@ -200,6 +175,7 @@ export function TaskForm({
             id="dueDate"
             name="dueDate"
             type="date"
+            required
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
           />
