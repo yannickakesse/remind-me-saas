@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { DateTime } from "luxon";
 import { AlertTriangle } from "lucide-react";
-import { EVENT_STATUS_STYLES } from "@/lib/validation/calendar";
+import { EVENT_STATUS_STYLES, getContrastTextColor } from "@/lib/validation/calendar";
 import { HOUR_HEIGHT_PX, TIMELINE_HEIGHT_PX, TIMELINE_HOURS, timelinePosition } from "@/lib/calendar/timeline";
 import type { CalendarEventView } from "./types";
 
@@ -66,19 +66,31 @@ export function WeekView({
                 {dayEvents.map((event) => {
                   const { topPx, heightPx } = timelinePosition(event.starts_at, event.ends_at, timezone);
                   const hasConflict = conflictIds.has(event.id);
-                  const color = event.activity?.color ?? "#1E3A5F";
+                  const color = event.is_scheduled_expense ? "#D97706" : (event.activity?.color ?? "#1E3A5F");
+                  const textColor = getContrastTextColor(color);
+                  const isCancelled = event.status === "cancelled";
 
                   return (
                     <Link
                       key={event.id}
                       href={`/calendar/${event.id}`}
-                      style={{ top: topPx, height: heightPx, borderLeftColor: color, borderLeftWidth: 3 }}
-                      className={`absolute left-1 right-1 overflow-hidden rounded border bg-canvas-raised px-1 py-0.5 text-[11px] leading-tight hover:brightness-95 flex items-center justify-between ${
-                        EVENT_STATUS_STYLES[event.status] ?? "border-ink-300"
-                      } ${hasConflict ? "ring-1 ring-danger" : ""}`}
+                      style={{
+                        top: topPx,
+                        height: heightPx,
+                        backgroundColor: color,
+                        color: textColor,
+                        border: "1px solid rgba(0, 0, 0, 0.15)",
+                      }}
+                      className={`absolute left-1 right-1 overflow-hidden rounded px-1.5 py-0.5 text-[11px] font-semibold leading-tight shadow-xs transition-all hover:scale-[1.01] hover:brightness-110 flex items-center justify-between ${
+                        isCancelled ? "opacity-50 line-through" : ""
+                      } ${hasConflict ? "ring-2 ring-danger ring-offset-1 z-20" : "z-10"}`}
                     >
                       <span className="truncate">{event.title}</span>
-                      {hasConflict ? <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-danger ml-0.5" /> : null}
+                      {hasConflict ? (
+                        <span className="shrink-0 ml-0.5 rounded bg-danger px-0.5 py-0.2 text-[9px] font-bold text-white shadow-xs flex items-center">
+                          <AlertTriangle className="h-2.5 w-2.5" />
+                        </span>
+                      ) : null}
                     </Link>
                   );
                 })}

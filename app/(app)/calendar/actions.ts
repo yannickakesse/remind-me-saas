@@ -72,11 +72,34 @@ export async function rescheduleEvent(eventId: string, formData: FormData) {
   if (!newStart.isValid) throw new Error("Date invalide.");
   const newEnd = newStart.plus({ milliseconds: durationMs });
 
+  const newStartUtc = newStart.toUTC().toISO()!;
+  const newEndUtc = newEnd.toUTC().toISO()!;
+
+  // Vérifier qu'aucun autre événement actif ne chevauche ce nouveau créneau
+  const { data: overlappingReschedule } = await supabase
+    .from("calendar_events")
+    .select("id, title, starts_at, ends_at")
+    .eq("user_id", user.id)
+    .neq("id", eventId)
+    .neq("status", "cancelled")
+    .lt("starts_at", newEndUtc)
+    .gt("ends_at", newStartUtc)
+    .limit(1);
+
+  if (overlappingReschedule && overlappingReschedule.length > 0) {
+    const conflict = overlappingReschedule[0]!;
+    const cStart = DateTime.fromISO(conflict.starts_at, { zone: timezone }).toFormat("HH:mm");
+    const cEnd = DateTime.fromISO(conflict.ends_at, { zone: timezone }).toFormat("HH:mm");
+    throw new Error(
+      `Impossible de déplacer l'événement : ce créneau chevauche déjà "${conflict.title}" (${cStart} - ${cEnd}).`
+    );
+  }
+
   const { error } = await supabase
     .from("calendar_events")
     .update({
-      starts_at: newStart.toUTC().toISO(),
-      ends_at: newEnd.toUTC().toISO(),
+      starts_at: newStartUtc,
+      ends_at: newEndUtc,
       status: "postponed",
       is_exception: true,
       original_starts_at: current.original_starts_at ?? current.starts_at,
@@ -115,13 +138,35 @@ export async function createManualEvent(formData: FormData) {
     throw new Error("La période saisie est invalide.");
   }
 
+  const newStartUtc = startsAt.toUTC().toISO()!;
+  const newEndUtc = endsAt.toUTC().toISO()!;
+
+  // Vérifier qu'aucun événement actif ne chevauche ce créneau
+  const { data: overlappingManual } = await supabase
+    .from("calendar_events")
+    .select("id, title, starts_at, ends_at")
+    .eq("user_id", user.id)
+    .neq("status", "cancelled")
+    .lt("starts_at", newEndUtc)
+    .gt("ends_at", newStartUtc)
+    .limit(1);
+
+  if (overlappingManual && overlappingManual.length > 0) {
+    const conflict = overlappingManual[0]!;
+    const cStart = DateTime.fromISO(conflict.starts_at, { zone: timezone }).toFormat("HH:mm");
+    const cEnd = DateTime.fromISO(conflict.ends_at, { zone: timezone }).toFormat("HH:mm");
+    throw new Error(
+      `Impossible d'enregistrer : ce créneau chevauche déjà l'événement "${conflict.title}" (${cStart} - ${cEnd}).`
+    );
+  }
+
   const { error } = await supabase.from("calendar_events").insert({
     user_id: user.id,
     activity_id: parsed.activityId,
     schedule_id: null,
     title: parsed.title,
-    starts_at: startsAt.toUTC().toISO()!,
-    ends_at: endsAt.toUTC().toISO()!,
+    starts_at: newStartUtc,
+    ends_at: newEndUtc,
     status: "planned",
     notes: parsed.notes || null,
   });

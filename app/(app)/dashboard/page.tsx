@@ -19,7 +19,7 @@ import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist
 import { AttentionRequired } from "@/components/dashboard/attention-required";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { typeLabel } from "@/lib/validation/activities";
-import { eventStatusLabel } from "@/lib/validation/calendar";
+import { eventStatusLabel, getContrastTextColor } from "@/lib/validation/calendar";
 import { taskPriorityLabel, TASK_PRIORITY_STYLES } from "@/lib/validation/tasks";
 import type { Notification } from "@/types/database";
 
@@ -301,26 +301,39 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <ul className="space-y-2">
-              {todayEvents.map((event) => (
-                <li key={event.id}>
-                  <Link
-                    href={`/calendar/${event.id}`}
-                    style={{ borderLeftColor: event.activity?.color ?? "#1E3A5F", borderLeftWidth: 3 }}
-                    className="flex items-center justify-between p-2.5 rounded-lg border border-ink-100 bg-canvas text-xs hover:border-ink-300 transition-colors"
-                  >
-                    <div>
-                      <div className="font-semibold text-ink-950">{event.title}</div>
-                      <div className="text-[10px] text-ink-500">
-                        {DateTime.fromISO(event.starts_at, { zone: timezone }).toFormat("HH:mm")} –{" "}
-                        {DateTime.fromISO(event.ends_at, { zone: timezone }).toFormat("HH:mm")}
+              {todayEvents.map((event) => {
+                const color = event.activity?.color ?? "#1E3A5F";
+                const textColor = getContrastTextColor(color);
+                const start = DateTime.fromISO(event.starts_at, { zone: timezone }).toFormat("HH:mm");
+                const end = DateTime.fromISO(event.ends_at, { zone: timezone }).toFormat("HH:mm");
+
+                return (
+                  <li key={event.id}>
+                    <Link
+                      href={`/calendar/${event.id}`}
+                      className="flex items-center justify-between p-2.5 rounded-lg border border-ink-100 bg-canvas text-xs hover:border-ink-300 transition-colors shadow-2xs"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className="px-2 py-0.5 rounded text-[11px] font-bold shadow-2xs"
+                          style={{ backgroundColor: color, color: textColor }}
+                        >
+                          {start}
+                        </span>
+                        <div>
+                          <div className="font-semibold text-ink-950">{event.title}</div>
+                          <div className="text-[10px] text-ink-500">
+                            {start} – {end}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <span className="text-[10px] font-medium text-ink-500">
-                      {eventStatusLabel(event.status)}
-                    </span>
-                  </Link>
-                </li>
-              ))}
+                      <span className="text-[10px] font-medium text-ink-500">
+                        {eventStatusLabel(event.status)}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

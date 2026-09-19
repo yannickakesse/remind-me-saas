@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, Clock, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import {
@@ -107,9 +107,35 @@ export function ActivityForm({
     setSchedules((rows) => rows.filter((_, i) => i !== index));
   }
 
+  // Vérification temps réel des conflits internes de créneaux
+  const internalScheduleConflict = useMemo(() => {
+    if (variableHours || schedules.length <= 1) return null;
+    for (let i = 0; i < schedules.length; i++) {
+      const s1 = schedules[i]!;
+      if (s1.endTime <= s1.startTime) {
+        const day = WEEKDAYS.find((w) => w.value === s1.weekday)?.label ?? `Jour ${s1.weekday}`;
+        return `L'heure de fin (${s1.endTime}) doit être après l'heure de début (${s1.startTime}) le ${day}.`;
+      }
+      for (let j = i + 1; j < schedules.length; j++) {
+        const s2 = schedules[j]!;
+        if (s1.weekday === s2.weekday) {
+          if (s1.startTime < s2.endTime && s2.startTime < s1.endTime) {
+            const day = WEEKDAYS.find((w) => w.value === s1.weekday)?.label ?? `Jour ${s1.weekday}`;
+            return `Chevauchement d'horaires : Deux créneaux se chevauchent le ${day} (${s1.startTime}–${s1.endTime} et ${s2.startTime}–${s2.endTime}). Veuillez modifier les horaires pour pouvoir enregistrer.`;
+          }
+        }
+      }
+    }
+    return null;
+  }, [schedules, variableHours]);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (submitting) return;
+    if (internalScheduleConflict) {
+      setError(internalScheduleConflict);
+      return;
+    }
     setError(null);
     setSubmitting(true);
 
@@ -323,6 +349,13 @@ export function ActivityForm({
               </div>
             ))}
 
+            {internalScheduleConflict ? (
+              <div role="alert" className="flex items-center gap-2 rounded-lg bg-danger/10 border border-danger/30 p-3 text-xs font-semibold text-danger">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-danger" />
+                <span>{internalScheduleConflict}</span>
+              </div>
+            ) : null}
+
             <Button
               type="button"
               variant="secondary"
@@ -535,7 +568,7 @@ export function ActivityForm({
             type="submit"
             variant="primary"
             loading={submitting}
-            disabled={submitting || deleting}
+            disabled={submitting || deleting || Boolean(internalScheduleConflict)}
             data-tour="activity-form-submit"
             className="w-full sm:w-auto sm:min-w-[180px]"
           >

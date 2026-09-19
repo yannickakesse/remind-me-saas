@@ -25,6 +25,21 @@ export const EVENT_STATUS_STYLES: Record<string, string> = {
   postponed: "border-warning text-warning",
 };
 
+/**
+ * Calcule une couleur de texte à fort contraste (blanc ou noir/encre sombre)
+ * en fonction de la luminance de la couleur de fond de l'activité.
+ */
+export function getContrastTextColor(hexColor?: string | null): string {
+  if (!hexColor) return "#ffffff";
+  const hex = hexColor.replace("#", "");
+  if (hex.length !== 6) return "#ffffff";
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 160 ? "#0f172a" : "#ffffff";
+}
+
 export const rescheduleSchema = z.object({
   newStartsAt: z.string().min(1, "Choisissez une nouvelle date et heure."),
 });

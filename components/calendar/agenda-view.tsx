@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { DateTime } from "luxon";
 import { AlertTriangle } from "lucide-react";
-import { EVENT_STATUS_STYLES, eventStatusLabel } from "@/lib/validation/calendar";
+import { EVENT_STATUS_STYLES, eventStatusLabel, getContrastTextColor } from "@/lib/validation/calendar";
 import type { CalendarEventView } from "./types";
 
 export function AgendaView({
@@ -62,32 +62,42 @@ export function AgendaView({
                 const startTime = DateTime.fromISO(event.starts_at, { zone: timezone });
                 const endTime = DateTime.fromISO(event.ends_at, { zone: timezone });
                 const hasConflict = conflictIds.has(event.id);
-                const color = event.activity?.color ?? "#1E3A5F";
+                const color = event.is_scheduled_expense ? "#D97706" : (event.activity?.color ?? "#1E3A5F");
+                const textColor = getContrastTextColor(color);
 
                 return (
                   <li key={event.id}>
                     <Link
                       href={`/calendar/${event.id}`}
-                      style={{ borderLeftColor: color, borderLeftWidth: 3 }}
-                      className={`flex items-center justify-between rounded-lg border bg-canvas-raised px-4 py-3 hover:brightness-95 ${
-                        EVENT_STATUS_STYLES[event.status] ?? "border-ink-300"
-                      } ${hasConflict ? "ring-1 ring-danger" : ""}`}
+                      className={`flex items-center justify-between rounded-xl border bg-canvas-raised p-3.5 shadow-xs transition-all hover:border-ink-300 hover:shadow-sm ${
+                        hasConflict ? "ring-2 ring-danger ring-offset-1" : ""
+                      }`}
                     >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-ink-950">{event.title}</p>
-                          {hasConflict ? (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-danger-soft px-1.5 py-0.5 text-[11px] font-medium text-danger border border-danger/20">
-                              <AlertTriangle className="h-3 w-3" />
-                              Conflit d'horaire
-                            </span>
-                          ) : null}
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg font-bold shadow-xs text-xs"
+                          style={{ backgroundColor: color, color: textColor }}
+                        >
+                          <span>{startTime.toFormat("HH:mm")}</span>
                         </div>
-                        <p className="text-sm text-ink-500">
-                          {startTime.toFormat("HH:mm")} – {endTime.toFormat("HH:mm")}
-                        </p>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-ink-950">{event.title}</p>
+                            {hasConflict ? (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-danger px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                                <AlertTriangle className="h-3 w-3" />
+                                Conflit d'horaire
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="text-xs text-ink-500 mt-0.5">
+                            {startTime.toFormat("HH:mm")} – {endTime.toFormat("HH:mm")}
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-xs font-medium text-ink-500">{eventStatusLabel(event.status)}</span>
+                      <span className="rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-700">
+                        {eventStatusLabel(event.status)}
+                      </span>
                     </Link>
                   </li>
                 );
