@@ -14,10 +14,29 @@ export default async function NewActivityPage({
   ]);
   const supabase = createClient();
 
-  const { data: currencies } = await supabase
-    .from("currencies")
-    .select("code, name, symbol")
-    .order("name");
+  const [{ data: currencies }, { data: allActiveActivities }] = await Promise.all([
+    supabase
+      .from("currencies")
+      .select("code, name, symbol")
+      .order("name"),
+    supabase
+      .from("activities")
+      .select("id, name, activity_schedules(weekday, start_time, end_time, variable_hours)")
+      .eq("user_id", user!.id)
+      .eq("status", "active"),
+  ]);
+
+  const existingActivities = (allActiveActivities ?? []).map((a) => ({
+    id: a.id,
+    name: a.name,
+    schedules: (a.activity_schedules ?? [])
+      .filter((s) => !s.variable_hours && s.start_time && s.end_time)
+      .map((s) => ({
+        weekday: s.weekday,
+        startTime: s.start_time.slice(0, 5),
+        endTime: s.end_time.slice(0, 5),
+      })),
+  }));
 
   const isFirstActivity = searchParams.onboarding === "1";
 
@@ -37,6 +56,7 @@ export default async function NewActivityPage({
       <ActivityForm
         currencies={currencies ?? []}
         defaultCurrency={profile?.default_currency ?? undefined}
+        existingActivities={existingActivities}
         action={createActivity}
       />
     </div>

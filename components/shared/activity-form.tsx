@@ -24,6 +24,12 @@ interface ActivityFormProps {
   defaultCurrency?: string;
   action: (formData: FormData) => Promise<{ success?: boolean; error?: string } | void>;
   deleteAction?: () => Promise<{ success?: boolean; error?: string } | void>;
+  existingActivities?: {
+    id: string;
+    name: string;
+    schedules: { weekday: number; startTime: string; endTime: string }[];
+  }[];
+  currentActivityId?: string;
   initial?: {
     name: string;
     description: string;
@@ -60,6 +66,8 @@ export function ActivityForm({
   defaultCurrency,
   action,
   deleteAction,
+  existingActivities = [],
+  currentActivityId,
   initial,
   submitLabel = "Créer l'activité",
 }: ActivityFormProps) {
@@ -107,9 +115,11 @@ export function ActivityForm({
     setSchedules((rows) => rows.filter((_, i) => i !== index));
   }
 
-  // Vérification temps réel des conflits internes de créneaux
-  const internalScheduleConflict = useMemo(() => {
-    if (variableHours || schedules.length <= 1) return null;
+  // Vérification temps réel des conflits internes ET avec les autres activités
+  const scheduleConflict = useMemo(() => {
+    if (variableHours || schedules.length === 0) return null;
+
+    // 1. Vérification interne (au sein de cette activité)
     for (let i = 0; i < schedules.length; i++) {
       const s1 = schedules[i]!;
       if (s1.endTime <= s1.startTime) {
@@ -121,19 +131,41 @@ export function ActivityForm({
         if (s1.weekday === s2.weekday) {
           if (s1.startTime < s2.endTime && s2.startTime < s1.endTime) {
             const day = WEEKDAYS.find((w) => w.value === s1.weekday)?.label ?? `Jour ${s1.weekday}`;
-            return `Chevauchement d'horaires : Deux créneaux se chevauchent le ${day} (${s1.startTime}–${s1.endTime} et ${s2.startTime}–${s2.endTime}). Veuillez modifier les horaires pour pouvoir enregistrer.`;
+            return `Chevauchement d'horaires : Deux créneaux se chevauchent le ${day} (${s1.startTime}–${s1.endTime} et ${s2.startTime}–${s2.endTime}).`;
           }
         }
       }
     }
+
+    // 2. Vérification externe (avec les autres activités existantes)
+    if (existingActivities && existingActivities.length > 0) {
+      for (const candidate of schedules) {
+        const cStart = candidate.startTime.slice(0, 5);
+        const cEnd = candidate.endTime.slice(0, 5);
+        for (const other of existingActivities) {
+          if (currentActivityId && other.id === currentActivityId) continue;
+          for (const otherSlot of other.schedules) {
+            if (otherSlot.weekday === candidate.weekday) {
+              const oStart = otherSlot.startTime.slice(0, 5);
+              const oEnd = otherSlot.endTime.slice(0, 5);
+              if (cStart < oEnd && oStart < cEnd) {
+                const day = WEEKDAYS.find((w) => w.value === candidate.weekday)?.label ?? `Jour ${candidate.weekday}`;
+                return `Conflit d'horaires : Le créneau du ${day} (${cStart}–${cEnd}) chevauche votre activité « ${other.name} » (${oStart}–${oEnd}). Veuillez choisir une autre heure.`;
+              }
+            }
+          }
+        }
+      }
+    }
+
     return null;
-  }, [schedules, variableHours]);
+  }, [schedules, variableHours, existingActivities, currentActivityId]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (submitting) return;
-    if (internalScheduleConflict) {
-      setError(internalScheduleConflict);
+    if (scheduleConflict) {
+      setError(scheduleConflict);
       return;
     }
     setError(null);
@@ -356,10 +388,10 @@ export function ActivityForm({
               </div>
             ))}
 
-            {internalScheduleConflict ? (
+            {scheduleConflict ? (
               <div role="alert" className="flex items-center gap-2 rounded-lg bg-danger/10 border border-danger/30 p-3 text-xs font-semibold text-danger">
                 <AlertTriangle className="w-4 h-4 shrink-0 text-danger" />
-                <span>{internalScheduleConflict}</span>
+                <span>{scheduleConflict}</span>
               </div>
             ) : null}
 
@@ -586,7 +618,7 @@ export function ActivityForm({
             type="submit"
             variant="primary"
             loading={submitting}
-            disabled={submitting || deleting || Boolean(internalScheduleConflict)}
+            disabled={submitting || deleting || Boolean(scheduleConflict)}
             data-tour="activity-form-submit"
             className="w-full sm:w-auto sm:min-w-[180px]"
           >
