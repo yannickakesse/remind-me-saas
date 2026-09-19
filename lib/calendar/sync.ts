@@ -86,29 +86,48 @@ export async function ensureCalendarEvents(
 
   if (candidates.length === 0) return;
 
-  const scheduleIds = Array.from(new Set(candidates.map((c) => c.schedule_id!)));
+  // Récupérer tous les événements existants sur cette période pour cet utilisateur
   const { data: existing } = await supabase
     .from("calendar_events")
-    .select("schedule_id, starts_at, original_starts_at")
+    .select("id, activity_id, schedule_id, starts_at, original_starts_at, status")
     .eq("user_id", userId)
-    .in("schedule_id", scheduleIds);
+    .gte("starts_at", from.toUTC().toISO()!)
+    .lte("starts_at", to.toUTC().toISO()!);
 
-  const covered = new Set<string>();
+  const coveredByActivityAndSlot = new Set<string>();
+  const duplicateIdsToDelete: string[] = [];
+
   for (const e of existing ?? []) {
-    if (!e.schedule_id) continue;
-    covered.add(`${e.schedule_id}|${normalizeIso(e.starts_at)}`);
-    if (e.original_starts_at) {
-      covered.add(`${e.schedule_id}|${normalizeIso(e.original_starts_at)}`);
+    const normStart = normalizeIso(e.starts_at);
+    const key = `${e.activity_id}|${normStart}`;
+
+    if (coveredByActivityAndSlot.has(key) && e.status === "planned") {
+      // Détection et suppression des doublons historiques
+      duplicateIdsToDelete.push(e.id);
+    } else {
+      coveredByActivityAndSlot.add(key);
+      if (e.original_starts_at) {
+        coveredByActivityAndSlot.add(`${e.activity_id}|${normalizeIso(e.original_starts_at)}`);
+      }
     }
   }
 
-  const toInsert = candidates.filter(
-    (c) => !covered.has(`${c.schedule_id}|${normalizeIso(c.starts_at)}`)
-  );
+  // Nettoyage automatique des doublons existants
+  if (duplicateIdsToDelete.length > 0) {
+    await supabase.from("calendar_events").delete().in("id", duplicateIdsToDelete);
+  }
+
+  // Filtrer les candidats qui n'ont pas encore d'occurrence pour cette activité et ce créneau
+  const toInsert = candidates.filter((c) => {
+    const normStart = normalizeIso(c.starts_at);
+    const key = `${c.activity_id}|${normStart}`;
+    if (coveredByActivityAndSlot.has(key)) return false;
+    coveredByActivityAndSlot.add(key);
+    return true;
+  });
+
   if (toInsert.length === 0) return;
 
-  // onConflict en filet de sécurité supplémentaire (comparaison d'instants
-  // côté Postgres, insensible au format texte) en plus du filtrage ci-dessus.
   await supabase
     .from("calendar_events")
     .upsert(toInsert, { onConflict: "schedule_id,starts_at", ignoreDuplicates: true });

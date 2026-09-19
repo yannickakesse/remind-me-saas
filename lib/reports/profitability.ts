@@ -45,7 +45,8 @@ export async function calculateProfitabilityReport(
   userId: string,
   startDate: string,
   endDate: string,
-  timezone: string = "UTC"
+  timezone: string = "UTC",
+  defaultCurrency: string = "XOF"
 ) {
   // 1. Récupérer activités, revenus, dépenses et événements calendrier réels
   const [
@@ -111,7 +112,7 @@ export async function calculateProfitabilityReport(
 
   (incomeEntries ?? []).forEach((i) => {
     const actId = i.activity_id ?? "unassigned";
-    const curr = i.currency;
+    const curr = i.currency || defaultCurrency;
     const key = `${actId}::${curr}`;
     const cur = actStats.get(key) ?? {
       incomeReceived: 0,
@@ -129,7 +130,7 @@ export async function calculateProfitabilityReport(
 
   (expenseEntries ?? []).forEach((e) => {
     const actId = e.activity_id ?? "unassigned";
-    const curr = e.currency;
+    const curr = e.currency || defaultCurrency;
     const key = `${actId}::${curr}`;
     const cur = actStats.get(key) ?? {
       incomeReceived: 0,
@@ -151,7 +152,7 @@ export async function calculateProfitabilityReport(
   actStats.forEach((val, key) => {
     const parts = key.split("::");
     const actId = parts[0] || "unassigned";
-    const currency = parts[1] || "XOF";
+    const currency = parts[1] || defaultCurrency;
     const actInfo = activityMap.get(actId);
     const hours = hoursByActivity.get(actId) ?? 0;
     const totalIncome = val.incomeReceived + val.incomeExpected;
@@ -191,7 +192,7 @@ export async function calculateProfitabilityReport(
 
   (expenseEntries ?? []).forEach((e) => {
     const cat = e.category || "other";
-    const curr = e.currency;
+    const curr = e.currency || defaultCurrency;
     const key = `${cat}::${curr}`;
     const cur = catTotals.get(key) ?? { amount: 0, currency: curr };
     const amount = Number(e.amount);
@@ -230,7 +231,7 @@ export async function calculateProfitabilityReport(
     let monthIncExp = 0;
     let monthExpPaid = 0;
     let monthExpPlan = 0;
-    let monthCurr = "XOF";
+    let monthCurr = defaultCurrency;
 
     (incomeEntries ?? []).forEach((i) => {
       if (i.due_date && i.due_date.startsWith(monthKey)) {
@@ -239,7 +240,7 @@ export async function calculateProfitabilityReport(
         } else {
           monthIncExp += Number(i.amount);
         }
-        monthCurr = i.currency;
+        monthCurr = i.currency || defaultCurrency;
       }
     });
 
@@ -250,7 +251,7 @@ export async function calculateProfitabilityReport(
         } else {
           monthExpPlan += Number(e.amount);
         }
-        monthCurr = e.currency;
+        monthCurr = e.currency || defaultCurrency;
       }
     });
 
@@ -272,12 +273,60 @@ export async function calculateProfitabilityReport(
     });
   }
 
-  // Totaux globaux réels vs attendus
-  const totalIncomeReceived = profitabilityList.reduce((acc, curr) => acc + curr.incomeReceived, 0);
-  const totalIncomeExpected = profitabilityList.reduce((acc, curr) => acc + curr.incomeExpected, 0);
-  const totalExpensesPaid = profitabilityList.reduce((acc, curr) => acc + curr.expensesPaid, 0);
-  const totalExpensesPlanned = profitabilityList.reduce((acc, curr) => acc + curr.expensesPlanned, 0);
-  const realNetBalance = totalIncomeReceived - totalExpensesPaid; // SOLDE RÉEL = REÇUS - DÉPENSES PAYÉES
+  // 7. Totaux regroupés rigoureusement par devise (pas de mélange illicite de devises différentes)
+  const currencyTotals = new Map<
+    string,
+    {
+      incomeReceived: number;
+      incomeExpected: number;
+      expensesPaid: number;
+      expensesPlanned: number;
+      realNetBalance: number;
+    }
+  >();
+
+  profitabilityList.forEach((p) => {
+    const curr = p.currency || defaultCurrency;
+    const cur = currencyTotals.get(curr) ?? {
+      incomeReceived: 0,
+      incomeExpected: 0,
+      expensesPaid: 0,
+      expensesPlanned: 0,
+      realNetBalance: 0,
+    };
+    cur.incomeReceived += p.incomeReceived;
+    cur.incomeExpected += p.incomeExpected;
+    cur.expensesPaid += p.expensesPaid;
+    cur.expensesPlanned += p.expensesPlanned;
+    cur.realNetBalance += p.netRealProfit;
+    currencyTotals.set(curr, cur);
+  });
+
+  const primaryTotals = currencyTotals.get(defaultCurrency) ?? {
+    incomeReceived: 0,
+    incomeExpected: 0,
+    expensesPaid: 0,
+    expensesPlanned: 0,
+    realNetBalance: 0,
+  };
+
+  const otherCurrencies: Array<{
+    currency: string;
+    incomeReceived: number;
+    incomeExpected: number;
+    expensesPaid: number;
+    expensesPlanned: number;
+    realNetBalance: number;
+  }> = [];
+
+  currencyTotals.forEach((val, curr) => {
+    if (curr !== defaultCurrency) {
+      otherCurrencies.push({
+        currency: curr,
+        ...val,
+      });
+    }
+  });
 
   return {
     profitabilityList,
@@ -285,10 +334,11 @@ export async function calculateProfitabilityReport(
     monthlySummaries,
     monthlyEvolution: monthlySummaries,
     totalHoursWorked: Math.round(totalHoursWorked * 10) / 10,
-    totalIncomeReceived,
-    totalIncomeExpected,
-    totalExpensesPaid,
-    totalExpensesPlanned,
-    realNetBalance,
+    totalIncomeReceived: primaryTotals.incomeReceived,
+    totalIncomeExpected: primaryTotals.incomeExpected,
+    totalExpensesPaid: primaryTotals.expensesPaid,
+    totalExpensesPlanned: primaryTotals.expensesPlanned,
+    realNetBalance: primaryTotals.realNetBalance,
+    otherCurrencies,
   };
 }

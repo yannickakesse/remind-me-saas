@@ -60,10 +60,16 @@ export default async function ReportsPage({
     totalExpensesPaid,
     totalExpensesPlanned,
     realNetBalance,
-  } = await calculateProfitabilityReport(supabase, user!.id, rangeStart, rangeEnd, timezone);
+    otherCurrencies,
+  } = await calculateProfitabilityReport(supabase, user!.id, rangeStart, rangeEnd, timezone, defaultCurrency);
 
   const averageHourlyRate =
     totalHoursWorked > 0 ? Math.round(realNetBalance / totalHoursWorked) : null;
+
+  const extraReceivedStr =
+    otherCurrencies && otherCurrencies.length > 0
+      ? otherCurrencies.map((c) => `+ ${formatAmount(c.incomeReceived, c.currency)}`).join(", ")
+      : null;
 
   return (
     <div className="space-y-8" data-tour="reports-container">
@@ -108,6 +114,7 @@ export default async function ReportsPage({
             {formatAmount(totalIncomeReceived, defaultCurrency)}
           </p>
           <p className="mt-1 text-xs text-ink-500">
+            {extraReceivedStr ? `(${extraReceivedStr}) · ` : ""}
             {totalIncomeExpected > 0 ? `+${formatAmount(totalIncomeExpected, defaultCurrency)} attendus` : "Aucun revenu en attente"}
           </p>
         </div>
