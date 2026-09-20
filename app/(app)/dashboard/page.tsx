@@ -18,6 +18,7 @@ import { QuickActions } from "@/components/dashboard/quick-actions";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { AttentionRequired } from "@/components/dashboard/attention-required";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
+import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { typeLabel } from "@/lib/validation/activities";
 import { eventStatusLabel, getContrastTextColor } from "@/lib/validation/calendar";
 import { taskPriorityLabel, TASK_PRIORITY_STYLES } from "@/lib/validation/tasks";
@@ -37,6 +38,9 @@ export default async function DashboardPage() {
   const startOfMonth = now.startOf("month").toISODate()!;
   const endOfMonth = now.endOf("month").toISODate()!;
   const todayIso = now.toISODate()!;
+
+  // Synchronisation dynamique des revenus attendus pour le mois en cours
+  await ensureIncomeEntries(supabase, user.id, startOfMonth, endOfMonth);
 
   const [
     { data: activities },

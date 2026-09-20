@@ -337,23 +337,42 @@ export async function updateActivity(activityId: string, formData: FormData) {
 export async function archiveActivity(activityId: string) {
   try {
     const supabase = createClient();
+    const adminSupabase = createAdminClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return { error: "Non authentifié." };
 
-    const { error } = await supabase
-      .from("activities")
-      .update({ status: "archived" })
-      .eq("id", activityId)
-      .eq("user_id", user.id);
-
-    if (error) {
-      return { error: "Impossible d'archiver l'activité : " + error.message };
-    }
+    await Promise.allSettled([
+      adminSupabase
+        .from("activities")
+        .update({ status: "archived" })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("activities")
+        .update({ status: "archived" })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+      // Supprimer les revenus attendus non encaissés pour cette activité archivée
+      adminSupabase
+        .from("income")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("received", false)
+        .eq("user_id", user.id),
+      supabase
+        .from("income")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("received", false)
+        .eq("user_id", user.id),
+    ]);
 
     revalidatePath("/activities");
     revalidatePath("/dashboard");
+    revalidatePath("/finances");
+    revalidatePath("/reports");
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Erreur lors de l'archivage." };
@@ -363,23 +382,29 @@ export async function archiveActivity(activityId: string) {
 export async function restoreActivity(activityId: string) {
   try {
     const supabase = createClient();
+    const adminSupabase = createAdminClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return { error: "Non authentifié." };
 
-    const { error } = await supabase
-      .from("activities")
-      .update({ status: "active" })
-      .eq("id", activityId)
-      .eq("user_id", user.id);
-
-    if (error) {
-      return { error: "Impossible de restaurer l'activité : " + error.message };
-    }
+    await Promise.allSettled([
+      adminSupabase
+        .from("activities")
+        .update({ status: "active" })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("activities")
+        .update({ status: "active" })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+    ]);
 
     revalidatePath("/activities");
     revalidatePath("/dashboard");
+    revalidatePath("/finances");
+    revalidatePath("/reports");
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Erreur lors de la restauration." };
@@ -398,45 +423,86 @@ export async function deleteActivity(activityId: string) {
 
     const adminSupabase = createAdminClient();
 
-    // 1. Détacher les références dans les tables liées pour éviter les violations de clés étrangères
+    // 1. Nettoyer les revenus et dépenses :
+    // - Supprimer les revenus ATTENDUS / NON ENCAISSÉS (received = false) pour que les montants attendus reflètent immédiatement la réalité
+    // - Détacher uniquement les revenus RÉELS déjà encaissés (received = true) pour préserver l'historique comptable
     await Promise.allSettled([
+      // Supprimer revenus non encaissés liés à l'activité
       adminSupabase
-        .from("tasks")
-        .update({ activity_id: null })
+        .from("income")
+        .delete()
         .eq("activity_id", activityId)
+        .eq("received", false)
         .eq("user_id", user.id),
+      supabase
+        .from("income")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("received", false)
+        .eq("user_id", user.id),
+
+      // Détacher les revenus passés déjà encaissés
       adminSupabase
         .from("income")
         .update({ activity_id: null, compensation_id: null })
         .eq("activity_id", activityId)
-        .eq("user_id", user.id),
-      adminSupabase
-        .from("expenses")
-        .update({ activity_id: null })
-        .eq("activity_id", activityId)
-        .eq("user_id", user.id),
-      adminSupabase
-        .from("scheduled_expenses")
-        .update({ activity_id: null })
-        .eq("activity_id", activityId)
-        .eq("user_id", user.id),
-      supabase
-        .from("tasks")
-        .update({ activity_id: null })
-        .eq("activity_id", activityId)
+        .eq("received", true)
         .eq("user_id", user.id),
       supabase
         .from("income")
         .update({ activity_id: null, compensation_id: null })
         .eq("activity_id", activityId)
+        .eq("received", true)
+        .eq("user_id", user.id),
+
+      // Supprimer dépenses non payées
+      adminSupabase
+        .from("expenses")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("paid", false)
+        .eq("user_id", user.id),
+      supabase
+        .from("expenses")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("paid", false)
+        .eq("user_id", user.id),
+
+      // Détacher dépenses déjà payées
+      adminSupabase
+        .from("expenses")
+        .update({ activity_id: null })
+        .eq("activity_id", activityId)
+        .eq("paid", true)
         .eq("user_id", user.id),
       supabase
         .from("expenses")
         .update({ activity_id: null })
         .eq("activity_id", activityId)
+        .eq("paid", true)
+        .eq("user_id", user.id),
+
+      // Dépenses programmées
+      adminSupabase
+        .from("scheduled_expenses")
+        .delete()
+        .eq("activity_id", activityId)
         .eq("user_id", user.id),
       supabase
         .from("scheduled_expenses")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+
+      // Tâches
+      adminSupabase
+        .from("tasks")
+        .update({ activity_id: null })
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("tasks")
         .update({ activity_id: null })
         .eq("activity_id", activityId)
         .eq("user_id", user.id),

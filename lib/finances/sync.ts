@@ -20,20 +20,67 @@ export async function ensureIncomeEntries(
   rangeStartISO: string,
   rangeEndISO: string
 ): Promise<void> {
-  const { data: compensations } = await supabase
-    .from("activity_compensation")
-    .select(
-      "id, activity_id, frequency, amount, currency, payment_day, created_at, activities!inner(id, name, status, start_date, user_id)"
-    )
-    .eq("user_id", userId)
-    .eq("activities.status", "active");
+  // 1. Récupérer toutes les activités actives et leurs rémunérations valides
+  const [
+    { data: activeActivities },
+    { data: compensations },
+    { data: existingIncomeInPeriod },
+  ] = await Promise.all([
+    supabase
+      .from("activities")
+      .select("id, name, status")
+      .eq("user_id", userId)
+      .eq("status", "active"),
+    supabase
+      .from("activity_compensation")
+      .select(
+        "id, activity_id, frequency, amount, currency, payment_day, created_at, activities!inner(id, name, status, start_date, user_id)"
+      )
+      .eq("user_id", userId)
+      .eq("activities.status", "active"),
+    supabase
+      .from("income")
+      .select("id, compensation_id, activity_id, amount, currency, due_date, received")
+      .eq("user_id", userId)
+      .gte("due_date", rangeStartISO)
+      .lte("due_date", rangeEndISO),
+  ]);
 
-  if (!compensations || compensations.length === 0) return;
+  const activeActivityIdSet = new Set((activeActivities ?? []).map((a) => a.id));
+  const activeCompensationIdSet = new Set((compensations ?? []).map((c) => c.id));
 
+  // 2. Nettoyage des orphelins ou activités supprimées / archivées sur les entrées NON encaissées (received = false)
+  const obsoleteIncomeIdsToDelete: string[] = [];
+  for (const inc of existingIncomeInPeriod ?? []) {
+    // Si c'est un revenu déjà encaissé (received = true), on conserve l'historique comptable réel
+    if (inc.received) continue;
+
+    // A. Revenu lié à une rémunération automatique dont l'activité ou la compensation n'est plus active
+    if (inc.compensation_id && !activeCompensationIdSet.has(inc.compensation_id)) {
+      obsoleteIncomeIdsToDelete.push(inc.id);
+      continue;
+    }
+
+    // B. Revenu lié à une activité qui n'est plus active (supprimée ou archivée)
+    if (inc.activity_id && !activeActivityIdSet.has(inc.activity_id)) {
+      obsoleteIncomeIdsToDelete.push(inc.id);
+      continue;
+    }
+  }
+
+  if (obsoleteIncomeIdsToDelete.length > 0) {
+    await supabase
+      .from("income")
+      .delete()
+      .in("id", obsoleteIncomeIdsToDelete)
+      .eq("user_id", userId);
+  }
+
+  // 3. Génération des candidats attendus pour les rémunérations actives
   type CandidateRow = Database["public"]["Tables"]["income"]["Insert"];
   const candidates: CandidateRow[] = [];
 
-  for (const c of compensations) {
+  for (const c of compensations ?? []) {
     if (!isGenerableFrequency(c.frequency)) continue;
 
     const activity = Array.isArray(c.activities) ? c.activities[0] : c.activities;
@@ -45,7 +92,7 @@ export async function ensureIncomeEntries(
         activityId: c.activity_id,
         activityName: activity.name,
         frequency: c.frequency,
-        amount: c.amount,
+        amount: Number(c.amount),
         currency: c.currency,
         paymentDay: c.payment_day,
         anchorDateISO: activity.start_date ?? c.created_at,
@@ -67,22 +114,43 @@ export async function ensureIncomeEntries(
     }
   }
 
-  if (candidates.length === 0) return;
+  // 4. Mettre à jour les montants si la rémunération d'une activité active a été modifiée
+  const existingMap = new Map<string, { id: string; amount: number; received: boolean }>();
+  (existingIncomeInPeriod ?? []).forEach((e) => {
+    if (e.compensation_id && e.due_date && !obsoleteIncomeIdsToDelete.includes(e.id)) {
+      existingMap.set(`${e.compensation_id}|${e.due_date}`, {
+        id: e.id,
+        amount: Number(e.amount),
+        received: e.received,
+      });
+    }
+  });
 
-  const compensationIds = Array.from(new Set(candidates.map((c) => c.compensation_id!)));
-  const { data: existing } = await supabase
-    .from("income")
-    .select("compensation_id, due_date")
-    .eq("user_id", userId)
-    .in("compensation_id", compensationIds);
+  const toInsert: CandidateRow[] = [];
 
-  const covered = new Set((existing ?? []).map((e) => `${e.compensation_id}|${e.due_date}`));
-  const toInsert = candidates.filter((c) => !covered.has(`${c.compensation_id}|${c.due_date}`));
-  if (toInsert.length === 0) return;
+  for (const candidate of candidates) {
+    const key = `${candidate.compensation_id}|${candidate.due_date}`;
+    const existingEntry = existingMap.get(key);
 
-  // onConflict en filet de sécurité supplémentaire, en plus du filtrage
-  // ci-dessus (même stratégie que ensureCalendarEvents).
-  await supabase
-    .from("income")
-    .upsert(toInsert, { onConflict: "compensation_id,due_date", ignoreDuplicates: true });
+    if (!existingEntry) {
+      toInsert.push(candidate);
+    } else if (!existingEntry.received && existingEntry.amount !== Number(candidate.amount)) {
+      // Le montant a changé dans l'activité et le revenu n'est pas encore encaissé -> mise à jour immédiate
+      await supabase
+        .from("income")
+        .update({
+          amount: candidate.amount,
+          currency: candidate.currency,
+          label: candidate.label,
+        })
+        .eq("id", existingEntry.id)
+        .eq("user_id", userId);
+    }
+  }
+
+  if (toInsert.length > 0) {
+    await supabase
+      .from("income")
+      .upsert(toInsert, { onConflict: "compensation_id,due_date", ignoreDuplicates: true });
+  }
 }
