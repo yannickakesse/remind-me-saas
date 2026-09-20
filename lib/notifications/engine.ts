@@ -557,7 +557,7 @@ export async function evaluateSmartReminders(
   if (prefsData?.task_reminders !== false) {
     const { data: pendingTasks } = await supabase
       .from("tasks")
-      .select("id, title, due_date, due_time, priority, status")
+      .select("id, title, due_date, due_time, priority, status, reminder_minutes_before")
       .eq("user_id", userId)
       .in("status", ["todo", "in_progress"])
       .not("due_date", "is", null);
@@ -572,6 +572,9 @@ export async function evaluateSmartReminders(
         { zone: userTimezone }
       );
       if (!dueDT.isValid) continue;
+
+      const reminderMinutes = typeof tsk.reminder_minutes_before === "number" ? tsk.reminder_minutes_before : 0;
+      const reminderTriggerDT = dueDT.minus({ minutes: reminderMinutes });
 
       if (dueDT < userNow) {
         const overdueDays = Math.max(1, Math.floor(userNow.diff(dueDT, "days").days));
@@ -597,23 +600,26 @@ export async function evaluateSmartReminders(
             idempotency_key: `task:${tsk.id}:overdue_${overdueDays}_days`,
           });
         }
-      } else if (dueDT.hasSame(userNow, "day")) {
-        const hoursUntil = dueDT.diff(userNow, "hours").hours;
-        if (hoursUntil <= 2 && hoursUntil > 0) {
+      } else if (userNow >= reminderTriggerDT || dueDT.hasSame(userNow, "day")) {
+        const minutesUntil = dueDT.diff(userNow, "minutes").minutes;
+
+        if (minutesUntil <= 120 && minutesUntil >= -15) {
           candidates.push({
             user_id: userId,
             category: "task",
             kind: "task_due_soon",
-            priority: "high",
+            priority: tsk.priority === "urgent" ? "critical" : "high",
             status: "unread",
             entity_type: "task",
             entity_id: tsk.id,
-            title: t("notif.task_due_soon.title", locale),
-            body: t("notif.task_due_soon.body", locale, { title: tsk.title }),
-            metadata: { title: tsk.title },
+            title: t("notif.task_due_soon.title", locale) || `Rappel : ${tsk.title}`,
+            body: tsk.due_time
+              ? `Échéance prévue aujourd'hui à ${tsk.due_time} pour « ${tsk.title} »`
+              : `La tâche « ${tsk.title} » arrive à échéance aujourd'hui.`,
+            metadata: { title: tsk.title, priority: tsk.priority },
             link: `/tasks/${tsk.id}/edit`,
             scheduled_at: userNow.toISO()!,
-            idempotency_key: `task:${tsk.id}:due_soon_${todayISO}`,
+            idempotency_key: `task:${tsk.id}:reminder_${todayISO}`,
           });
         } else {
           candidates.push({

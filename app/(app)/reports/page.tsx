@@ -33,9 +33,9 @@ export default async function ReportsPage({
   const today = DateTime.now().setZone(timezone);
   const supabase = createClient();
 
-  // Période par défaut : année civile en cours (YTD)
-  const defaultStart = today.startOf("year").toISODate()!;
-  const defaultEnd = today.endOf("year").toISODate()!;
+  // Période par défaut : mois en cours (pour une concordance exacte avec le Tableau de bord et les Finances)
+  const defaultStart = today.startOf("month").toISODate()!;
+  const defaultEnd = today.endOf("month").toISODate()!;
 
   const rangeStart =
     searchParams?.from && DateTime.fromISO(searchParams.from).isValid

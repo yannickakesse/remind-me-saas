@@ -189,22 +189,34 @@ export function TaskForm({
         </div>
       </div>
 
-      <Field label="Rappel avant échéance" htmlFor="reminderMinutesBefore">
+      <div className="rounded-xl border border-signal/20 bg-signal-soft/10 p-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <label htmlFor="reminderMinutesBefore" className="text-sm font-semibold text-ink-950 flex items-center gap-1.5">
+            <span>🔔 Rappel & Sonnerie d'alerte</span>
+          </label>
+          <span className="text-[11px] text-signal font-medium bg-signal-soft/80 px-2 py-0.5 rounded-md">
+            Sonnerie audio Remind Me
+          </span>
+        </div>
         <select
           id="reminderMinutesBefore"
           name="reminderMinutesBefore"
-          defaultValue={initial?.reminderMinutesBefore ?? ""}
+          defaultValue={initial?.reminderMinutesBefore ?? "0"}
           className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
         >
-          <option value="">Aucun rappel</option>
+          <option value="0">À l'heure exacte de l'échéance (Sonnerie immédiate)</option>
           <option value="15">15 minutes avant</option>
           <option value="30">30 minutes avant</option>
           <option value="60">1 heure avant</option>
           <option value="120">2 heures avant</option>
           <option value="1440">1 jour avant</option>
           <option value="2880">2 jours avant</option>
+          <option value="">Aucun rappel</option>
         </select>
-      </Field>
+        <p className="text-[11px] text-ink-500">
+          Une alerte sonore et visuelle retentira automatiquement sur votre appareil à l'heure programmée.
+        </p>
+      </div>
 
       {error ? (
         <p role="alert" className="text-sm font-medium text-danger">

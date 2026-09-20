@@ -19,11 +19,15 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
+  Volume2,
+  VolumeX,
+  Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { updateNotificationPrefs } from "@/app/(app)/settings/actions";
 import { urlBase64ToUint8Array } from "@/lib/push/client";
+import { isSoundEnabled, setSoundEnabled, testChimeSound } from "@/lib/notifications/sound";
 import type { NotificationPreference } from "@/types/database";
 
 const VAPID_PUBLIC_KEY =
@@ -82,6 +86,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   );
 
   const [saving, setSaving] = useState(false);
+  const [soundEnabled, setLocalSoundEnabled] = useState(true);
 
   // Push Web State
   const [isPushSupported, setIsPushSupported] = useState(true);
@@ -91,6 +96,23 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   const [pushSubscribed, setPushSubscribed] = useState(false);
   const [registeringPush, setRegisteringPush] = useState(false);
   const [testingPush, setTestingPush] = useState(false);
+
+  useEffect(() => {
+    setLocalSoundEnabled(isSoundEnabled());
+  }, []);
+
+  function handleToggleSound(enabled: boolean) {
+    setLocalSoundEnabled(enabled);
+    setSoundEnabled(enabled);
+    if (enabled) {
+      testChimeSound();
+    }
+  }
+
+  async function handleTestChime() {
+    await testChimeSound();
+    push("🔔 Le carillon audio Remind Me a été joué avec succès !", "success");
+  }
 
   // Détection de l'environnement PWA & Push
   useEffect(() => {
@@ -383,6 +405,51 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 </Button>
               )}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 1.5: Sonnerie Audio de Rappel (Carillon Remind Me) */}
+      <div className="p-4 rounded-2xl border border-signal/30 bg-signal-soft/20 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-signal text-white shrink-0 mt-0.5">
+              {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-ink-950">Sonnerie des rappels & Alertes audio</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                  soundEnabled ? "bg-positive-soft text-positive" : "bg-ink-100 text-ink-600"
+                }`}>
+                  {soundEnabled ? "Sonnerie activée" : "Sonnerie désactivée"}
+                </span>
+              </div>
+              <p className="text-xs text-ink-600 mt-0.5">
+                Joue le carillon sonore officiel Remind Me lors de l'arrivée d'une échéance de tâche ou d'une notification critique.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={handleTestChime}
+              className="text-xs"
+            >
+              <Play className="w-3.5 h-3.5 mr-1.5 fill-current text-signal" /> Tester le son
+            </Button>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={soundEnabled}
+                onChange={(e) => handleToggleSound(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-ink-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ink-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-signal"></div>
+            </label>
           </div>
         </div>
       </div>

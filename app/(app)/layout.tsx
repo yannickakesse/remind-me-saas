@@ -5,6 +5,7 @@ import { CommandPalette } from "@/components/navigation/command-palette";
 import { MobileNav } from "@/components/navigation/mobile-nav";
 import { NotificationBell } from "@/components/navigation/notification-bell";
 import { NotificationSyncTrigger } from "@/components/notifications/notification-sync-trigger";
+import { TaskSoundWatcher } from "@/components/notifications/task-sound-watcher";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { NetworkStatus } from "@/components/ui/network-status";
 import type { Notification } from "@/types/database";
@@ -60,9 +61,10 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-screen bg-canvas flex-col md:flex-row w-full max-w-full overflow-x-hidden">
-      {/* Moniteur d'état réseau & synchronisation asynchrone */}
+      {/* Moniteur d'état réseau & synchronisation asynchrone & sonneries de rappels */}
       <NetworkStatus />
       <NotificationSyncTrigger />
+      <TaskSoundWatcher userId={user.id} />
 
       {/* Header & Bottom Nav Mobile (< 768px) */}
       <MobileNav unreadCount={unreadCount} />

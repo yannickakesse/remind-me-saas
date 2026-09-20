@@ -128,6 +128,27 @@ export async function ensureIncomeEntries(
     }
   }
 
+  // 3.5. Nettoyage des anciennes dates d'échéances non encaissées devenues obsolètes après changement de jour/fréquence
+  const candidateKeys = new Set(candidates.map((c) => `${c.compensation_id}|${c.due_date}`));
+  const staleDateIdsToDelete: string[] = [];
+
+  for (const e of existingIncomeInPeriod ?? []) {
+    if (e.compensation_id && !e.received && activeCompensationIdSet.has(e.compensation_id)) {
+      const key = `${e.compensation_id}|${e.due_date}`;
+      if (!candidateKeys.has(key)) {
+        staleDateIdsToDelete.push(e.id);
+        obsoleteIncomeIdsToDelete.add(e.id);
+      }
+    }
+  }
+
+  if (staleDateIdsToDelete.length > 0) {
+    await Promise.allSettled([
+      supabase.from("income").delete().in("id", staleDateIdsToDelete).eq("user_id", userId),
+      adminSupabase.from("income").delete().in("id", staleDateIdsToDelete).eq("user_id", userId),
+    ]);
+  }
+
   // 4. Mettre à jour les montants si la rémunération d'une activité active a été modifiée
   const existingMap = new Map<string, { id: string; amount: number; received: boolean }>();
   (existingIncomeInPeriod ?? []).forEach((e) => {

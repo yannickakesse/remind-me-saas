@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, CheckCircle2, AlertCircle, Wallet, Clock, Pin, ArrowRight } from "lucide-react";
+import { Bell, CheckCircle2, AlertCircle, Wallet, Clock, Pin, ArrowRight, Volume2, VolumeX } from "lucide-react";
+import { isSoundEnabled, setSoundEnabled, testChimeSound } from "@/lib/notifications/sound";
 import type { Notification } from "@/types/database";
 
 interface NotificationBellProps {
@@ -13,8 +14,27 @@ interface NotificationBellProps {
 
 export function NotificationBell({ notifications, unreadCount }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
+  const [soundActive, setSoundActive] = useState(true);
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setSoundActive(isSoundEnabled());
+    function handlePrefChange(e: any) {
+      setSoundActive(e.detail?.enabled ?? true);
+    }
+    window.addEventListener("remindme_sound_pref_changed", handlePrefChange);
+    return () => window.removeEventListener("remindme_sound_pref_changed", handlePrefChange);
+  }, []);
+
+  function toggleSound() {
+    const next = !soundActive;
+    setSoundActive(next);
+    setSoundEnabled(next);
+    if (next) {
+      testChimeSound();
+    }
+  }
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -67,13 +87,30 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
                 </span>
               )}
             </div>
-            <Link
-              href="/notifications"
-              onClick={() => setOpen(false)}
-              className="text-[11px] text-signal font-semibold hover:underline flex items-center gap-1"
-            >
-              Centre complet <ArrowRight className="w-3 h-3" />
-            </Link>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleSound}
+                title={soundActive ? "Sonnerie activée (cliquer pour couper)" : "Sonnerie coupée (cliquer pour activer)"}
+                className={`p-1.5 rounded-lg text-xs transition-colors flex items-center gap-1 ${
+                  soundActive
+                    ? "bg-signal-soft/60 text-signal hover:bg-signal-soft"
+                    : "bg-ink-100 text-ink-400 hover:text-ink-700"
+                }`}
+              >
+                {soundActive ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                <span className="text-[10px] font-medium hidden sm:inline">{soundActive ? "Sonnerie" : "Muet"}</span>
+              </button>
+
+              <Link
+                href="/notifications"
+                onClick={() => setOpen(false)}
+                className="text-[11px] text-signal font-semibold hover:underline flex items-center gap-1"
+              >
+                Centre complet <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
           </div>
 
           <div className="divide-y divide-ink-100 max-h-80 overflow-y-auto">
