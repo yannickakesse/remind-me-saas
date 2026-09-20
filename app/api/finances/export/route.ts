@@ -36,7 +36,12 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user.id).single();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, timezone")
+    .eq("id", user.id)
+    .single();
+
   const timezone = profile?.timezone ?? "UTC";
   const today = DateTime.now().setZone(timezone);
 
@@ -65,8 +70,13 @@ export async function GET(request: NextRequest) {
   await ensureIncomeEntries(supabase, user.id, rangeStart, rangeEnd);
   const { income, expenses } = await getFinancesForRange(supabase, user.id, rangeStart, rangeEnd, todayISO);
 
-  const csv = buildFinancesCsv(income, expenses, timezone);
-  const filename = `finances_${rangeStart}_${rangeEnd}.csv`;
+  const csv = buildFinancesCsv(income, expenses, timezone, {
+    userName: profile?.full_name,
+    userEmail: user.email,
+    rangeStart,
+    rangeEnd,
+  });
+  const filename = `remind_me_finances_${rangeStart}_${rangeEnd}.csv`;
 
   return new NextResponse(csv, {
     status: 200,

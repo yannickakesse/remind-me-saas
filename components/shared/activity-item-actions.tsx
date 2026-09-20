@@ -3,25 +3,61 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Trash2, Archive, RotateCcw, Edit3 } from "lucide-react";
-import { archiveActivity, restoreActivity, deleteActivity } from "@/app/(app)/activities/actions";
+import { Trash2, Archive, RotateCcw, Edit3, Pause, Play } from "lucide-react";
+import { archiveActivity, restoreActivity, deleteActivity, suspendActivity, resumeActivity } from "@/app/(app)/activities/actions";
 import { Button } from "@/components/ui/button";
 
 interface ActivityItemActionsProps {
   activityId: string;
   activityName: string;
   isArchived?: boolean;
+  isSuspended?: boolean;
 }
 
 export function ActivityItemActions({
   activityId,
   activityName,
   isArchived = false,
+  isSuspended = false,
 }: ActivityItemActionsProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function handleSuspend() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await suspendActivity(activityId);
+      if (res && res.error) {
+        setError(res.error);
+        setLoading(false);
+        return;
+      }
+      router.refresh();
+    } catch (err: any) {
+      setError(err?.message || "Erreur lors de la suspension.");
+      setLoading(false);
+    }
+  }
+
+  async function handleResume() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await resumeActivity(activityId);
+      if (res && res.error) {
+        setError(res.error);
+        setLoading(false);
+        return;
+      }
+      router.refresh();
+    } catch (err: any) {
+      setError(err?.message || "Erreur lors de la réactivation.");
+      setLoading(false);
+    }
+  }
 
   async function handleArchive() {
     setLoading(true);
@@ -134,6 +170,32 @@ export function ActivityItemActions({
     );
   }
 
+  if (isSuspended) {
+    return (
+      <div className="flex items-center gap-2">
+        {error && <span className="text-danger text-xs mr-2">{error}</span>}
+        <button
+          type="button"
+          onClick={handleResume}
+          disabled={loading}
+          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-100/80 hover:bg-emerald-200 transition-colors min-h-[32px] inline-flex items-center gap-1"
+        >
+          <Play className="w-3.5 h-3.5 fill-emerald-800" />
+          Reprendre / Activer
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowDeleteConfirm(true)}
+          disabled={loading}
+          className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+          Supprimer
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-1 w-full sm:w-auto">
       {error && <span className="text-danger text-xs text-right">{error}</span>}
@@ -145,6 +207,16 @@ export function ActivityItemActions({
           <Edit3 className="w-3.5 h-3.5" />
           Modifier
         </Link>
+        <button
+          type="button"
+          onClick={handleSuspend}
+          disabled={loading}
+          title="Mettre en pause temporairement (non comptabilisé dans les finances)"
+          className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100/60 bg-amber-50 transition-colors min-h-[32px] inline-flex items-center gap-1"
+        >
+          <Pause className="w-3.5 h-3.5 text-amber-600" />
+          Suspendre
+        </button>
         <button
           type="button"
           onClick={handleArchive}

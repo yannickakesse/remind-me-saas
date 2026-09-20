@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Briefcase, Building2, Wallet, Plus, Trash2, Archive, RotateCcw, Edit3 } from "lucide-react";
-import { archiveActivity, restoreActivity, deleteActivity } from "@/app/(app)/activities/actions";
+import { Briefcase, Building2, Wallet, Plus, Trash2, Archive, RotateCcw, Edit3, Pause, Play } from "lucide-react";
+import { archiveActivity, restoreActivity, deleteActivity, suspendActivity, resumeActivity } from "@/app/(app)/activities/actions";
 import { buttonClasses, Button } from "@/components/ui/button";
 import { formatAmount } from "@/lib/finances/format";
 import { ACTIVITY_TYPES } from "@/lib/validation/activities";
@@ -37,9 +37,12 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [archivingId, setArchivingId] = useState<string | null>(null);
   const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [suspendingId, setSuspendingId] = useState<string | null>(null);
+  const [resumingId, setResumingId] = useState<string | null>(null);
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
 
   const active = activities.filter((a) => a.status === "active");
+  const suspended = activities.filter((a) => a.status === "suspended");
   const archived = activities.filter((a) => a.status === "archived");
 
   async function handleDelete(activityId: string) {
@@ -54,7 +57,6 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
     try {
       const res = await deleteActivity(activityId);
       if (res && res.error) {
-        // Rollback if server fails
         setActivities(previousActivities);
         setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur de suppression" }));
         setConfirmDeleteId(activityId);
@@ -68,6 +70,60 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
       setConfirmDeleteId(activityId);
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function handleSuspend(activityId: string) {
+    setSuspendingId(activityId);
+    setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
+
+    const previousActivities = [...activities];
+    // Optimistic status update to suspended
+    setActivities((prev) =>
+      prev.map((a) => (a.id === activityId ? { ...a, status: "suspended" } : a))
+    );
+
+    try {
+      const res = await suspendActivity(activityId);
+      if (res && res.error) {
+        setActivities(previousActivities);
+        setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur lors de la suspension" }));
+      }
+    } catch (err: any) {
+      setActivities(previousActivities);
+      setErrorMap((prev) => ({
+        ...prev,
+        [activityId]: err?.message || "Erreur lors de la suspension.",
+      }));
+    } finally {
+      setSuspendingId(null);
+    }
+  }
+
+  async function handleResume(activityId: string) {
+    setResumingId(activityId);
+    setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
+
+    const previousActivities = [...activities];
+    // Optimistic status update to active
+    setActivities((prev) =>
+      prev.map((a) => (a.id === activityId ? { ...a, status: "active" } : a))
+    );
+
+    try {
+      const res = await resumeActivity(activityId);
+      if (res && res.error) {
+        setActivities(previousActivities);
+        setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur lors de la réactivation" }));
+      }
+    } catch (err: any) {
+      setActivities(previousActivities);
+      setErrorMap((prev) => ({
+        ...prev,
+        [activityId]: err?.message || "Erreur lors de la réactivation.",
+      }));
+    } finally {
+      setResumingId(null);
     }
   }
 
@@ -132,7 +188,8 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ink-950">Activités & Métiers</h1>
           <p className="text-sm text-ink-500">
-            {active.length} activité{active.length > 1 ? "s" : ""} active{active.length > 1 ? "s" : ""} gérée{active.length > 1 ? "s" : ""} au même endroit.
+            {active.length} activité{active.length > 1 ? "s" : ""} active{active.length > 1 ? "s" : ""}
+            {suspended.length > 0 ? ` · ${suspended.length} en pause` : ""} gérée{active.length > 1 ? "s" : ""} au même endroit.
           </p>
         </div>
         <Link href="/activities/new" className={buttonClasses("primary", "md")}>
@@ -141,7 +198,7 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
         </Link>
       </div>
 
-      {active.length === 0 ? (
+      {active.length === 0 && suspended.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-ink-300 bg-canvas-raised/50 p-10 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-signal-soft text-signal">
             <Briefcase className="h-6 w-6" />
@@ -162,6 +219,7 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
           {active.map((activity) => {
             const isDeleting = deletingId === activity.id;
             const isArchiving = archivingId === activity.id;
+            const isSuspending = suspendingId === activity.id;
             const isConfirmingDelete = confirmDeleteId === activity.id;
             const itemError = errorMap[activity.id];
 
@@ -253,8 +311,18 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
                         </Link>
                         <button
                           type="button"
+                          onClick={() => handleSuspend(activity.id)}
+                          disabled={isSuspending || isArchiving || isDeleting}
+                          title="Mettre en pause temporairement (non comptabilisé dans les finances)"
+                          className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100/60 bg-amber-50 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                        >
+                          <Pause className="w-3.5 h-3.5 text-amber-600" />
+                          {isSuspending ? "..." : "Suspendre"}
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleArchive(activity.id)}
-                          disabled={isArchiving || isDeleting}
+                          disabled={isSuspending || isArchiving || isDeleting}
                           className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-500 hover:text-ink-800 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
                         >
                           <Archive className="w-3.5 h-3.5" />
@@ -263,7 +331,7 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteId(activity.id)}
-                          disabled={isArchiving || isDeleting}
+                          disabled={isSuspending || isArchiving || isDeleting}
                           className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -278,6 +346,95 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
           })}
         </div>
       )}
+
+      {/* Activités suspendues (En pause) */}
+      {suspended.length > 0 ? (
+        <div className="space-y-3 pt-6 border-t border-amber-200/80">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-amber-800 flex items-center gap-1.5">
+              <Pause className="w-4 h-4 text-amber-600" /> Activités suspendues ({suspended.length})
+            </h2>
+            <span className="text-xs text-amber-700/80 font-normal">
+              — Hors comptabilité prévisionnelle
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {suspended.map((activity) => {
+              const isDeleting = deletingId === activity.id;
+              const isResuming = resumingId === activity.id;
+              const isConfirmingDelete = confirmDeleteId === activity.id;
+              const itemError = errorMap[activity.id];
+
+              return (
+                <div
+                  key={activity.id}
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-amber-300/80 bg-amber-50/40 p-4"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="h-3 w-3 shrink-0 rounded-full opacity-60"
+                      style={{ backgroundColor: activity.color ?? "#1E3A5F" }}
+                    />
+                    <div className="min-w-0">
+                      <div className="font-semibold text-ink-950 text-sm truncate">{activity.name}</div>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full mt-0.5">
+                        <Pause className="w-2.5 h-2.5" /> En pause
+                      </span>
+                    </div>
+                  </div>
+
+                  {isConfirmingDelete ? (
+                    <div className="flex items-center gap-2 bg-danger/10 border border-danger/20 p-2 rounded-xl text-xs">
+                      <span className="text-danger font-semibold">Supprimer ?</span>
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="sm"
+                        loading={isDeleting}
+                        disabled={isDeleting}
+                        onClick={() => handleDelete(activity.id)}
+                      >
+                        Oui
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        disabled={isDeleting}
+                        onClick={() => setConfirmDeleteId(null)}
+                      >
+                        Annuler
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {itemError && <span className="text-danger text-xs mr-2">{itemError}</span>}
+                      <button
+                        type="button"
+                        onClick={() => handleResume(activity.id)}
+                        disabled={isResuming || isDeleting}
+                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-100/80 hover:bg-emerald-200 transition-colors min-h-[32px] inline-flex items-center gap-1 shadow-xs"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-emerald-800" />
+                        {isResuming ? "..." : "Reprendre / Activer"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(activity.id)}
+                        disabled={isResuming || isDeleting}
+                        className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Supprimer
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       {/* Activités archivées */}
       {archived.length > 0 ? (

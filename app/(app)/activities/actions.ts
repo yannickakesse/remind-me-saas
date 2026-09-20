@@ -334,6 +334,85 @@ export async function updateActivity(activityId: string, formData: FormData) {
   }
 }
 
+export async function suspendActivity(activityId: string) {
+  try {
+    const supabase = createClient();
+    const adminSupabase = createAdminClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Non authentifié." };
+
+    await Promise.allSettled([
+      adminSupabase
+        .from("activities")
+        .update({ status: "suspended" })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("activities")
+        .update({ status: "suspended" })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+      // Supprimer immédiatement les revenus attendus non encaissés pour cette activité suspendue
+      adminSupabase
+        .from("income")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("received", false)
+        .eq("user_id", user.id),
+      supabase
+        .from("income")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("received", false)
+        .eq("user_id", user.id),
+    ]);
+
+    revalidatePath("/activities");
+    revalidatePath("/dashboard");
+    revalidatePath("/finances");
+    revalidatePath("/reports");
+    revalidatePath("/calendar");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err?.message || "Erreur lors de la suspension de l'activité." };
+  }
+}
+
+export async function resumeActivity(activityId: string) {
+  try {
+    const supabase = createClient();
+    const adminSupabase = createAdminClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Non authentifié." };
+
+    await Promise.allSettled([
+      adminSupabase
+        .from("activities")
+        .update({ status: "active" })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("activities")
+        .update({ status: "active" })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+    ]);
+
+    revalidatePath("/activities");
+    revalidatePath("/dashboard");
+    revalidatePath("/finances");
+    revalidatePath("/reports");
+    revalidatePath("/calendar");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err?.message || "Erreur lors de la réactivation de l'activité." };
+  }
+}
+
 export async function archiveActivity(activityId: string) {
   try {
     const supabase = createClient();

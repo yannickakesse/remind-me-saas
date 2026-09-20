@@ -230,7 +230,7 @@ export interface Database {
           icon: string | null;
           color: string | null;
           type: ActivityType;
-          status: "active" | "archived";
+          status: "active" | "suspended" | "archived";
           organization_id: string | null;
           contact_id: string | null;
           work_mode: "remote" | "onsite" | "hybrid" | null;
@@ -249,7 +249,7 @@ export interface Database {
           icon?: string | null;
           color?: string | null;
           type: ActivityType;
-          status?: "active" | "archived";
+          status?: "active" | "suspended" | "archived";
           organization_id?: string | null;
           contact_id?: string | null;
           work_mode?: "remote" | "onsite" | "hybrid" | null;
