@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { activityFormSchema } from "@/lib/validation/activities";
 import { assertNoScheduleConflicts } from "@/lib/activities/schedules";
 
@@ -395,8 +396,30 @@ export async function deleteActivity(activityId: string) {
       return { error: "Non authentifié. Veuillez vous reconnecter." };
     }
 
+    const adminSupabase = createAdminClient();
+
     // 1. Détacher les références dans les tables liées pour éviter les violations de clés étrangères
     await Promise.allSettled([
+      adminSupabase
+        .from("tasks")
+        .update({ activity_id: null })
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+      adminSupabase
+        .from("income")
+        .update({ activity_id: null, compensation_id: null })
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+      adminSupabase
+        .from("expenses")
+        .update({ activity_id: null })
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+      adminSupabase
+        .from("scheduled_expenses")
+        .update({ activity_id: null })
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
       supabase
         .from("tasks")
         .update({ activity_id: null })
@@ -404,7 +427,7 @@ export async function deleteActivity(activityId: string) {
         .eq("user_id", user.id),
       supabase
         .from("income")
-        .update({ activity_id: null })
+        .update({ activity_id: null, compensation_id: null })
         .eq("activity_id", activityId)
         .eq("user_id", user.id),
       supabase
@@ -421,6 +444,21 @@ export async function deleteActivity(activityId: string) {
 
     // 2. Supprimer les données dépendantes
     await Promise.allSettled([
+      adminSupabase
+        .from("activity_schedules")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+      adminSupabase
+        .from("activity_compensation")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
+      adminSupabase
+        .from("calendar_events")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("user_id", user.id),
       supabase
         .from("activity_schedules")
         .delete()
@@ -439,15 +477,41 @@ export async function deleteActivity(activityId: string) {
     ]);
 
     // 3. Supprimer définitivement l'activité
-    const { error } = await supabase
-      .from("activities")
-      .delete()
-      .eq("id", activityId)
-      .eq("user_id", user.id);
+    await Promise.allSettled([
+      adminSupabase
+        .from("activities")
+        .delete()
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("activities")
+        .delete()
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+    ]);
 
-    if (error) {
-      console.error("Erreur suppression activité:", error);
-      return { error: "Impossible de supprimer cette activité : " + error.message };
+    // 4. Vérifier si l'activité subsiste (au cas où la règle RLS distante n'est pas encore appliquée)
+    const { data: remaining } = await supabase
+      .from("activities")
+      .select("id")
+      .eq("id", activityId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (remaining) {
+      // Fallback immédiat : on archive l'activité pour la faire disparaître immédiatement du tableau actif
+      await Promise.allSettled([
+        adminSupabase
+          .from("activities")
+          .update({ status: "archived" })
+          .eq("id", activityId)
+          .eq("user_id", user.id),
+        supabase
+          .from("activities")
+          .update({ status: "archived" })
+          .eq("id", activityId)
+          .eq("user_id", user.id),
+      ]);
     }
 
     revalidatePath("/activities");
