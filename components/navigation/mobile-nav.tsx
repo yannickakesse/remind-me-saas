@@ -56,10 +56,10 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
   }, [isOpen]);
 
   const navLinks = [
-    { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
-    { href: "/calendar", label: "Calendrier", icon: Calendar },
-    { href: "/activities", label: "Activités", icon: Briefcase },
-    { href: "/tasks", label: "Tâches", icon: CheckSquare },
+    { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, tourKey: "nav-dashboard-mobile" },
+    { href: "/calendar", label: "Calendrier", icon: Calendar, tourKey: "nav-calendar-mobile" },
+    { href: "/activities", label: "Activités", icon: Briefcase, tourKey: "nav-activities" },
+    { href: "/tasks", label: "Tâches", icon: CheckSquare, tourKey: "nav-tasks-mobile" },
   ];
 
   const financeSubLinks = [
@@ -72,10 +72,10 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
   ];
 
   const secondaryLinks = [
-    { href: "/clients", label: "Clients & Contacts", icon: Users },
-    { href: "/reports", label: "Rapports & Rentabilité", icon: BarChart3 },
-    { href: "/notifications", label: "Notifications", icon: Bell, badge: unreadCount },
-    { href: "/settings", label: "Paramètres", icon: Settings },
+    { href: "/clients", label: "Clients & Contacts", icon: Users, tourKey: "nav-clients-mobile" },
+    { href: "/reports", label: "Rapports & Rentabilité", icon: BarChart3, tourKey: "nav-reports-mobile" },
+    { href: "/notifications", label: "Notifications", icon: Bell, badge: unreadCount, tourKey: "nav-notifications-mobile" },
+    { href: "/settings", label: "Paramètres", icon: Settings, tourKey: "nav-settings-mobile" },
   ];
 
   return (
@@ -140,6 +140,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                     key={item.href}
                     href={item.href}
                     prefetch={true}
+                    data-tour={item.tourKey}
                     onClick={() => setIsOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all min-h-[44px] ${
                       isActive
@@ -209,6 +210,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                       key={item.href}
                       href={item.href}
                       prefetch={true}
+                      data-tour={item.tourKey}
                       onClick={() => setIsOpen(false)}
                       className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all min-h-[44px] ${
                         isActive

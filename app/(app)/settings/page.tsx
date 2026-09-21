@@ -43,8 +43,9 @@ export default async function SettingsPage() {
       <h1 className="mb-1 text-2xl font-semibold text-ink-950">Paramètres</h1>
       <p className="mb-8 text-ink-500">Gérez votre profil, votre compte et vos préférences.</p>
 
-      <Tabs
-        items={[
+      <div data-tour="settings-tabs">
+        <Tabs
+          items={[
           {
             id: "profile",
             label: "Profil",
@@ -82,6 +83,7 @@ export default async function SettingsPage() {
           { id: "data", label: "Données", content: <DataSection /> },
         ]}
       />
+      </div>
     </div>
   );
 }

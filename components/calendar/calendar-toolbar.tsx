@@ -51,7 +51,7 @@ export function CalendarToolbar({
         </Link>
         <p className="ml-1 text-sm font-medium capitalize text-ink-950 truncate max-w-[200px] sm:max-w-none">{label}</p>
       </div>
-      <div className="flex items-center gap-1 rounded-md border border-ink-300 p-0.5 max-w-full overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-1 rounded-md border border-ink-300 p-0.5 max-w-full overflow-x-auto no-scrollbar" data-tour="calendar-views">
         {CALENDAR_VIEWS.map((v) => (
           <Link
             key={v.value}

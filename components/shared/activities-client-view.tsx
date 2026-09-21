@@ -192,14 +192,14 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
             {suspended.length > 0 ? ` · ${suspended.length} en pause` : ""} gérée{active.length > 1 ? "s" : ""} au même endroit.
           </p>
         </div>
-        <Link href="/activities/new" className={buttonClasses("primary", "md")}>
+        <Link href="/activities/new" data-tour="activity-create" className={buttonClasses("primary", "md")}>
           <Plus className="h-4 w-4 mr-1.5" />
           Ajouter une activité
         </Link>
       </div>
 
       {active.length === 0 && suspended.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-ink-300 bg-canvas-raised/50 p-10 text-center">
+        <div className="rounded-2xl border border-dashed border-ink-300 bg-canvas-raised/50 p-10 text-center" data-tour="activities-list">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-signal-soft text-signal">
             <Briefcase className="h-6 w-6" />
           </div>
@@ -208,14 +208,14 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
             Créez votre première activité (salariat, freelance, consulting, enseignement, etc.) pour organiser vos horaires et vos rémunérations.
           </p>
           <div className="mt-5">
-            <Link href="/activities/new" className={buttonClasses("primary", "sm")}>
+            <Link href="/activities/new" data-tour="activity-create" className={buttonClasses("primary", "sm")}>
               <Plus className="h-4 w-4 mr-1" />
               Créer une activité
             </Link>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-tour="activities-list">
           {active.map((activity) => {
             const isDeleting = deletingId === activity.id;
             const isArchiving = archivingId === activity.id;

@@ -36,7 +36,7 @@ export default async function ClientsPage() {
   return (
     <div className="space-y-10">
       {/* En-tête */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-tour="clients-header">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-ink-950 flex items-center gap-2">
             <span className="bg-signal text-white p-1.5 rounded-xl shadow-xs inline-flex">
@@ -53,7 +53,7 @@ export default async function ClientsPage() {
           <Link href="/clients/organizations/new" className={buttonClasses("secondary", "sm")}>
             <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle organisation
           </Link>
-          <Link href="/clients/contacts/new" className={buttonClasses("primary", "sm")}>
+          <Link href="/clients/contacts/new" data-tour="client-create" className={buttonClasses("primary", "sm")}>
             <Plus className="w-3.5 h-3.5 mr-1" /> Nouveau contact
           </Link>
         </div>

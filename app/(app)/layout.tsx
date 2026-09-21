@@ -89,12 +89,14 @@ export default async function AppLayout({
               <RemindMeLogo size="sm" showText={true} />
             </Link>
 
-            <div className="flex items-center gap-1.5" data-tour="notification-bell">
+            <div className="flex items-center gap-1.5">
               <HelpCenterButton />
-              <NotificationBell
-                notifications={(latestNotifications as Notification[]) ?? []}
-                unreadCount={unreadCount ?? 0}
-              />
+              <div data-tour="notification-bell" className="inline-flex">
+                <NotificationBell
+                  notifications={(latestNotifications as Notification[]) ?? []}
+                  unreadCount={unreadCount ?? 0}
+                />
+              </div>
             </div>
           </div>
 

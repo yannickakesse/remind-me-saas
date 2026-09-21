@@ -8,6 +8,7 @@ interface StatCardProps {
   helper?: string;
   tone?: BadgeTone;
   icon?: LucideIcon;
+  dataTour?: string;
 }
 
 const TONE_TEXT_CLASSES: Record<BadgeTone, string> = {
@@ -23,9 +24,12 @@ const TONE_TEXT_CLASSES: Record<BadgeTone, string> = {
  * Carte de statistique du dashboard & finances (§28).
  * Design haut de gamme avec touches subtiles et typographie équilibrée.
  */
-export function StatCard({ label, value, helper, tone = "neutral", icon: Icon }: StatCardProps) {
+export function StatCard({ label, value, helper, tone = "neutral", icon: Icon, dataTour }: StatCardProps) {
   return (
-    <div className="rounded-2xl border border-ink-200 bg-canvas-raised p-4 sm:p-5 min-w-0 w-full shadow-xs hover:border-gold/40 transition-all flex flex-col justify-between group">
+    <div
+      data-tour={dataTour}
+      className="rounded-2xl border border-ink-200 bg-canvas-raised p-4 sm:p-5 min-w-0 w-full shadow-xs hover:border-gold/40 transition-all flex flex-col justify-between group"
+    >
       <div>
         <div className="flex items-center justify-between gap-2">
           <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-ink-500 truncate">

@@ -96,18 +96,20 @@ export default async function CalendarPage({
 
       <CalendarToolbar view={view} anchorDate={anchorDate} timezone={timezone} />
 
-      {view === "month" ? (
-        <MonthView anchorDate={anchorDate} timezone={timezone} events={allEvents} conflictIds={conflictIds} />
-      ) : null}
-      {view === "week" ? (
-        <WeekView weekStart={start} timezone={timezone} events={allEvents} conflictIds={conflictIds} />
-      ) : null}
-      {view === "day" ? (
-        <DayView day={DateTime.fromISO(anchorDate, { zone: timezone })} timezone={timezone} events={allEvents} conflictIds={conflictIds} />
-      ) : null}
-      {view === "agenda" ? (
-        <AgendaView start={start} end={end} timezone={timezone} events={allEvents} conflictIds={conflictIds} />
-      ) : null}
+      <div data-tour="calendar-grid">
+        {view === "month" ? (
+          <MonthView anchorDate={anchorDate} timezone={timezone} events={allEvents} conflictIds={conflictIds} />
+        ) : null}
+        {view === "week" ? (
+          <WeekView weekStart={start} timezone={timezone} events={allEvents} conflictIds={conflictIds} />
+        ) : null}
+        {view === "day" ? (
+          <DayView day={DateTime.fromISO(anchorDate, { zone: timezone })} timezone={timezone} events={allEvents} conflictIds={conflictIds} />
+        ) : null}
+        {view === "agenda" ? (
+          <AgendaView start={start} end={end} timezone={timezone} events={allEvents} conflictIds={conflictIds} />
+        ) : null}
+      </div>
     </div>
   );
 }

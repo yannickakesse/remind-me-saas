@@ -20,7 +20,7 @@ import {
   PiggyBank,
   CheckCircle2,
 } from "lucide-react";
-import { triggerInteractiveTour } from "@/components/onboarding/interactive-product-tour";
+import { triggerInteractiveTour, triggerContextualTour } from "@/components/onboarding/interactive-product-tour";
 
 interface PageGuideInfo {
   title: string;
@@ -201,6 +201,17 @@ const PAGE_GUIDES: Record<string, PageGuideInfo> = {
   },
 };
 
+const ROUTE_TO_SECTION: Record<string, string> = {
+  "/dashboard": "dashboard",
+  "/activities": "activities",
+  "/calendar": "calendar",
+  "/tasks": "tasks",
+  "/finances": "finances",
+  "/clients": "clients",
+  "/reports": "reports",
+  "/settings": "settings",
+};
+
 const DEFAULT_GUIDE: PageGuideInfo = PAGE_GUIDES["/dashboard"]!;
 
 export function HelpCenterButton() {
@@ -219,6 +230,16 @@ export function HelpCenterButton() {
   function handleStartTour() {
     setIsOpen(false);
     triggerInteractiveTour();
+  }
+
+  function handleStartContextualTour() {
+    setIsOpen(false);
+    const sectionKey = ROUTE_TO_SECTION[baseRoute] || "finances";
+    if (sectionKey === "dashboard") {
+      triggerInteractiveTour();
+    } else {
+      triggerContextualTour(sectionKey);
+    }
   }
 
   return (
@@ -317,10 +338,19 @@ export function HelpCenterButton() {
               {/* TAB 1: GUIDE DE LA PAGE ACTIVE */}
               {activeTab === "page" && (
                 <div className="space-y-4 animate-in fade-in-50 duration-150">
-                  <div className="rounded-xl border border-gold/30 bg-gold/5 p-4 space-y-1.5">
-                    <div className="flex items-center gap-2 text-gold-dark dark:text-gold-light font-bold text-sm">
-                      <GuideIcon className="h-4 w-4" />
-                      <span>{currentGuide.title}</span>
+                  <div className="rounded-xl border border-gold/30 bg-gold/5 p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-gold-dark dark:text-gold-light font-bold text-sm">
+                        <GuideIcon className="h-4 w-4" />
+                        <span>{currentGuide.title}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleStartContextualTour}
+                        className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-3 py-1.5 text-xs font-bold text-white shadow-gold-subtle hover:brightness-110 active:scale-95 transition-all shrink-0"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" /> Visite Guidée de cette Page
+                      </button>
                     </div>
                     <p className="text-xs text-ink-700 leading-relaxed">
                       {currentGuide.summary}

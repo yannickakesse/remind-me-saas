@@ -143,7 +143,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
         </div>
 
         <div className="shrink-0">
-          <Link href="/tasks/new" className={buttonClasses("primary", "sm")}>
+          <Link href="/tasks/new" data-tour="task-create" className={buttonClasses("primary", "sm")}>
             <svg className="mr-1 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -153,7 +153,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
       </div>
 
       {/* Onglets de navigation temporelle défilables sans scrollbar */}
-      <div className="w-full max-w-full overflow-x-auto no-scrollbar border-b border-ink-200 pb-1">
+      <div className="w-full max-w-full overflow-x-auto no-scrollbar border-b border-ink-200 pb-1" data-tour="task-tabs">
         <nav className="flex space-x-1.5 min-w-max py-0.5" aria-label="Tabs">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;

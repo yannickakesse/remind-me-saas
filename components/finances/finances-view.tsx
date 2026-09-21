@@ -143,7 +143,7 @@ export function FinancesView({
   return (
     <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3" data-tour="finance-header">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 truncate flex items-center gap-2">
             <span className="bg-gradient-to-r from-gold to-gold-dark text-white p-1.5 rounded-xl shadow-gold-subtle inline-flex">
@@ -160,6 +160,7 @@ export function FinancesView({
           <a
             href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
             download
+            data-tour="finance-export"
             className={buttonClasses("secondary", "sm")}
             title="Exporter les données financières au format CSV"
           >
@@ -197,6 +198,7 @@ export function FinancesView({
               helper="Revenus attendus"
               tone="warning"
               icon={Clock}
+              dataTour="finance-pending-revenue"
             />
             <StatCard
               label="Total reçu"
@@ -204,6 +206,7 @@ export function FinancesView({
               helper="Argent encaissé"
               tone="positive"
               icon={TrendingUp}
+              dataTour="finance-received-revenue"
             />
             <StatCard
               label="Dépenses payées"
@@ -211,6 +214,7 @@ export function FinancesView({
               helper="Payé ce mois"
               tone="danger"
               icon={TrendingDown}
+              dataTour="finance-paid-expenses"
             />
             <StatCard
               label="Solde net"
@@ -218,6 +222,7 @@ export function FinancesView({
               helper="Total reçu − Dépenses payées"
               tone={netBalance >= 0 ? "positive" : "danger"}
               icon={Wallet}
+              dataTour="finance-net-balance"
             />
           </div>
 
