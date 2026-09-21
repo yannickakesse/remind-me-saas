@@ -6,7 +6,7 @@ const ACTIONS = [
   { href: "/activities/new", label: "Activité", icon: Briefcase },
   { href: "/tasks/new", label: "Tâche", icon: CheckSquare },
   { href: "/finances/income/new", label: "Revenu", icon: TrendingUp },
-  { href: "/finances/expenses/new", label: "Dépense", icon: TrendingDown },
+  { href: "/finances?tab=scheduled&action=new", label: "Dépense", icon: TrendingDown },
 ] as const;
 
 /** §27 du prompt maître — actions rapides dans le header du dashboard. */

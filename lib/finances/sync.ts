@@ -194,6 +194,54 @@ export async function ensureIncomeEntries(
     }
   }
 
+  // 4.5. Synchronisation globale de sécurité : mettre à jour le montant et la devise
+  // de TOUS les revenus non encaissés pour éliminer toute valeur obsolète (ex: 375 000 FCFA)
+  const compensationAmountMap = new Map<string, { amount: number; currency: string; name: string }>();
+  for (const c of compensations ?? []) {
+    const act = Array.isArray(c.activities) ? c.activities[0] : c.activities;
+    compensationAmountMap.set(c.id, {
+      amount: Number(c.amount),
+      currency: c.currency,
+      name: act?.name ?? "",
+    });
+    if (c.activity_id) {
+      compensationAmountMap.set(`act:${c.activity_id}`, {
+        amount: Number(c.amount),
+        currency: c.currency,
+        name: act?.name ?? "",
+      });
+    }
+  }
+
+  for (const inc of allUnreceivedIncome ?? []) {
+    if (inc.received || obsoleteIncomeIdsToDelete.has(inc.id)) continue;
+    let expectedComp = inc.compensation_id ? compensationAmountMap.get(inc.compensation_id) : undefined;
+    if (!expectedComp && inc.activity_id) {
+      expectedComp = compensationAmountMap.get(`act:${inc.activity_id}`);
+    }
+
+    if (expectedComp && (Number(inc.amount) !== expectedComp.amount || inc.currency !== expectedComp.currency)) {
+      await Promise.allSettled([
+        supabase
+          .from("income")
+          .update({
+            amount: expectedComp.amount,
+            currency: expectedComp.currency,
+          })
+          .eq("id", inc.id)
+          .eq("user_id", userId),
+        adminSupabase
+          .from("income")
+          .update({
+            amount: expectedComp.amount,
+            currency: expectedComp.currency,
+          })
+          .eq("id", inc.id)
+          .eq("user_id", userId),
+      ]);
+    }
+  }
+
   if (toInsert.length > 0) {
     await Promise.allSettled([
       supabase

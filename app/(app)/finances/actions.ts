@@ -90,13 +90,44 @@ export async function updateIncome(id: string, formData: FormData) {
 
 export async function setIncomeReceived(id: string, received: boolean) {
   const { supabase, user } = await requireUser();
+  const today = new Date().toISOString().slice(0, 10);
   const { error } = await supabase
     .from("income")
-    .update({ received })
+    .update({
+      received,
+      received_at: received ? today : null,
+    })
     .eq("id", id)
     .eq("user_id", user.id);
 
   if (error) throw new Error("Erreur de mise à jour.");
+  revalidatePath("/finances");
+  revalidatePath("/dashboard");
+  revalidatePath("/reports");
+}
+
+export async function postponeIncomeAction(id: string, days: number = 7) {
+  const { supabase, user } = await requireUser();
+  const { data: current } = await supabase
+    .from("income")
+    .select("due_date")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!current) throw new Error("Revenu introuvable.");
+
+  const curDate = new Date(current.due_date || new Date());
+  curDate.setDate(curDate.getDate() + days);
+  const newDueDate = curDate.toISOString().slice(0, 10);
+
+  const { error } = await supabase
+    .from("income")
+    .update({ due_date: newDueDate })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) throw new Error("Erreur lors du report du revenu.");
   revalidatePath("/finances");
   revalidatePath("/dashboard");
 }
@@ -439,6 +470,37 @@ export async function cancelScheduledExpenseAction(id: string) {
   await supabase
     .from("scheduled_expenses")
     .update({ status: "cancelled" })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  revalidatePath("/finances");
+  revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+}
+
+export async function postponeScheduledExpenseAction(id: string, days: number = 7) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Non authentifié");
+
+  const { data: item } = await supabase
+    .from("scheduled_expenses")
+    .select("next_due_date")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!item) throw new Error("Dépense programmée introuvable.");
+
+  const curDate = new Date(item.next_due_date || new Date());
+  curDate.setDate(curDate.getDate() + days);
+  const nextDueDateStr = curDate.toISOString().slice(0, 10);
+
+  await supabase
+    .from("scheduled_expenses")
+    .update({ next_due_date: nextDueDateStr })
     .eq("id", id)
     .eq("user_id", user.id);
 

@@ -165,32 +165,32 @@ export default async function DashboardPage() {
       {/* Main KPI Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full min-w-0" data-tour="dashboard-kpi">
         <StatCard
-          label="Revenus reçus"
+          label="Paiements en attente"
+          value={formatAmount(incomeExpected, currency)}
+          helper="Revenus attendus"
+          tone="warning"
+          icon={Clock}
+        />
+        <StatCard
+          label="Total reçu"
           value={formatAmount(incomeReceived, currency)}
-          helper={incomeExpected > 0 ? `+${formatAmount(incomeExpected, currency)} attendus` : "À jour"}
+          helper="Argent encaissé"
           tone="positive"
           icon={TrendingUp}
         />
         <StatCard
           label="Dépenses payées"
           value={formatAmount(expensesPaid, currency)}
-          helper={expensesDue > 0 ? `${formatAmount(expensesDue, currency)} prévues` : undefined}
-          tone="warning"
+          helper="Payé ce mois"
+          tone="danger"
           icon={TrendingDown}
         />
         <StatCard
-          label="Solde Réel (Net)"
+          label="Solde net"
           value={formatAmount(net, currency)}
-          helper="Reçus − Dépenses payées"
+          helper="Total reçu − Dépenses payées"
           tone={net >= 0 ? "positive" : "danger"}
           icon={Wallet}
-        />
-        <StatCard
-          label="Tâches urgentes"
-          value={String(urgentTasks?.length ?? 0)}
-          helper="En retard ou aujourd'hui"
-          tone={(urgentTasks?.length ?? 0) > 0 ? "danger" : "neutral"}
-          icon={AlertCircle}
         />
       </div>
 

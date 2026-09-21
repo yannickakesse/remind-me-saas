@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { activityFormSchema } from "@/lib/validation/activities";
 import { assertNoScheduleConflicts } from "@/lib/activities/schedules";
+import { ensureIncomeEntries } from "@/lib/finances/sync";
+import { DateTime } from "luxon";
 
 /**
  * Trouve une organisation existante par nom exact pour cet utilisateur,
@@ -212,6 +214,16 @@ export async function createActivity(formData: FormData) {
       return { error: "L'activité a été créée mais la rémunération n'a pas pu être enregistrée." };
     }
 
+    // Synchronisation immédiate des revenus du mois pour afficher aussitôt le revenu attendu
+    try {
+      const now = DateTime.now();
+      const startOfMonth = now.startOf("month").toISODate()!;
+      const endOfMonth = now.endOf("month").toISODate()!;
+      await ensureIncomeEntries(supabase, user.id, startOfMonth, endOfMonth);
+    } catch (syncErr) {
+      console.error("createActivity sync error:", syncErr);
+    }
+
     revalidatePath("/activities");
     revalidatePath("/dashboard");
     revalidatePath("/calendar");
@@ -226,6 +238,7 @@ export async function createActivity(formData: FormData) {
 export async function updateActivity(activityId: string, formData: FormData) {
   try {
     const supabase = createClient();
+    const adminSupabase = createAdminClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -320,6 +333,42 @@ export async function updateActivity(activityId: string, formData: FormData) {
 
     if (compError) {
       return { error: "Erreur lors de l'enregistrement de la rémunération : " + compError.message };
+    }
+
+    // PROPAGATION IMMÉDIATE : Mettre à jour tous les revenus NON ENCAISSÉS de cette activité
+    // pour que les nouvelles valeurs (ex: 20 000 FCFA au lieu de 375 000 FCFA) soient immédiatement
+    // répercutées dans la table income sans aucune valeur résiduelle obsolète.
+    await Promise.allSettled([
+      supabase
+        .from("income")
+        .update({
+          amount: parsed.compensation.amount,
+          currency: parsed.compensation.currency,
+          label: `${parsed.info.name} — ${parsed.compensation.frequency}`,
+        })
+        .eq("activity_id", activityId)
+        .eq("received", false)
+        .eq("user_id", user.id),
+      adminSupabase
+        .from("income")
+        .update({
+          amount: parsed.compensation.amount,
+          currency: parsed.compensation.currency,
+          label: `${parsed.info.name} — ${parsed.compensation.frequency}`,
+        })
+        .eq("activity_id", activityId)
+        .eq("received", false)
+        .eq("user_id", user.id),
+    ]);
+
+    // Déclencher la synchronisation globale des revenus pour recalculer et synchroniser les échéances
+    try {
+      const now = DateTime.now();
+      const startOfMonth = now.startOf("month").toISODate()!;
+      const endOfMonth = now.plus({ months: 1 }).endOf("month").toISODate()!;
+      await ensureIncomeEntries(supabase, user.id, startOfMonth, endOfMonth);
+    } catch (syncErr) {
+      console.error("updateActivity sync error:", syncErr);
     }
 
     revalidatePath("/activities");

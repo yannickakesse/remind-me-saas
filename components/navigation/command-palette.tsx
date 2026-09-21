@@ -44,7 +44,7 @@ interface QuickActionItem {
 const QUICK_ACTIONS: QuickActionItem[] = [
   { id: "task-new", title: "Nouvelle tâche", subtitle: "Ajouter une tâche à faire", href: "/tasks/new", icon: CheckSquare, iconColor: "text-amber-700", iconBg: "bg-amber-100/70" },
   { id: "income-new", title: "Nouveau revenu", subtitle: "Saisir un paiement attendu ou reçu", href: "/finances/income/new", icon: TrendingUp, iconColor: "text-emerald-700", iconBg: "bg-emerald-100/70" },
-  { id: "expense-new", title: "Nouvelle dépense", subtitle: "Enregistrer une dépense perso ou pro", href: "/finances/expenses/new", icon: TrendingDown, iconColor: "text-rose-700", iconBg: "bg-rose-100/70" },
+  { id: "expense-new", title: "Programmer une dépense", subtitle: "Planifier une charge ou facture récurrente", href: "/finances?tab=scheduled&action=new", icon: TrendingDown, iconColor: "text-rose-700", iconBg: "bg-rose-100/70" },
   { id: "activity-new", title: "Nouvelle activité", subtitle: "Créer une activité et ses horaires", href: "/activities/new", icon: Briefcase, iconColor: "text-indigo-700", iconBg: "bg-indigo-100/70" },
   { id: "contact-new", title: "Nouveau contact", subtitle: "Ajouter un client ou collaborateur", href: "/clients/contacts/new", icon: User, iconColor: "text-cyan-700", iconBg: "bg-cyan-100/70" },
   { id: "budgets-view", title: "Gérer les budgets", subtitle: "Consulter les plafonds mensuels", href: "/finances?tab=budgets", icon: Wallet, iconColor: "text-gold-dark", iconBg: "bg-gold-soft" },

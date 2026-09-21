@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Clock, Check, Trash2, X, AlertCircle, Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Plus, Clock, Check, Trash2, X, AlertCircle, Loader2, Calendar } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
 import { scheduledStatusLabel, frequencyLabel } from "@/lib/validation/scheduled-expenses";
 import { useToast } from "@/components/ui/toast";
@@ -10,6 +11,7 @@ import {
   deleteScheduledExpenseAction,
   markScheduledExpensePaidAction,
   cancelScheduledExpenseAction,
+  postponeScheduledExpenseAction,
 } from "@/app/(app)/finances/actions";
 
 interface ScheduledExpenseItem {
@@ -47,9 +49,15 @@ export function ScheduledExpensesSection({
   const [submitting, setSubmitting] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
-  // Synchronisation avec les props serveur
+  // Synchronisation avec les props serveur et ouverture automatique si action=new
   useEffect(() => {
     setItems(scheduledExpenses);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("action") === "new") {
+        setIsModalOpen(true);
+      }
+    }
   }, [scheduledExpenses]);
 
   // Filtered list
@@ -62,6 +70,19 @@ export function ScheduledExpensesSection({
   const totalPlannedThisMonth = items
     .filter((e) => e.status === "planned" || e.status === "due")
     .reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+  async function handlePostpone(id: string) {
+    if (actionLoadingId) return;
+    setActionLoadingId(id);
+    try {
+      await postponeScheduledExpenseAction(id, 7);
+      toast.push("Échéance reportée de 7 jours.", "info");
+    } catch (err) {
+      toast.push("Erreur lors du report de l'échéance.", "error");
+    } finally {
+      setActionLoadingId(null);
+    }
+  }
 
   async function handleMarkPaid(id: string) {
     if (actionLoadingId) return;
@@ -273,14 +294,25 @@ export function ScheduledExpensesSection({
                 <div className="pt-3 border-t border-ink-100 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     {item.status !== "paid" && item.status !== "cancelled" && (
-                      <button
-                        type="button"
-                        disabled={isLoading}
-                        onClick={() => handleMarkPaid(item.id)}
-                        className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1"
-                      >
-                        <Check className="w-3.5 h-3.5" /> Marquer payée
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          disabled={isLoading}
+                          onClick={() => handleMarkPaid(item.id)}
+                          className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1"
+                        >
+                          <Check className="w-3.5 h-3.5" /> Marquer payée
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isLoading}
+                          onClick={() => handlePostpone(item.id)}
+                          className="px-2.5 py-1.5 rounded-lg border border-ink-200 text-ink-700 bg-canvas text-xs font-medium hover:bg-ink-100 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1"
+                          title="Reporter l'échéance de 7 jours"
+                        >
+                          <Clock className="w-3 h-3 text-amber-600" /> Reporter (+7j)
+                        </button>
+                      </>
                     )}
 
                     {item.status !== "cancelled" && (
