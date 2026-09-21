@@ -6,7 +6,7 @@ import { Trash2 } from "lucide-react";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { taskPriorityLabel, type TASK_PRIORITIES } from "@/lib/validation/tasks";
 import type { TaskStatus, TaskPriority } from "@/types/database";
-import { toggleTaskStatus, cycleTaskStatus, deleteTask } from "@/app/(app)/tasks/actions";
+import { toggleTaskStatus, cycleTaskStatus, deleteTask, setTaskStatus, postponeTask } from "@/app/(app)/tasks/actions";
 
 export interface TaskItemData {
   id: string;
@@ -104,6 +104,21 @@ export function TaskCard({ task }: TaskCardProps) {
     }
   }
 
+  function handleSetStatus(newStatus: TaskStatus) {
+    startTransition(async () => {
+      await setTaskStatus(task.id, newStatus);
+    });
+  }
+
+  function handlePostpone(days: number) {
+    startTransition(async () => {
+      const d = new Date(task.due_date || new Date());
+      d.setDate(d.getDate() + days);
+      const newDateStr = d.toISOString().slice(0, 10);
+      await postponeTask(task.id, newDateStr);
+    });
+  }
+
   return (
     <div
       className={`group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border bg-canvas-raised p-3.5 sm:p-4 transition-all duration-150 hover:shadow-xs w-full min-w-0 ${
@@ -193,22 +208,66 @@ export function TaskCard({ task }: TaskCardProps) {
         </div>
       </div>
 
-      {/* Actions rapides */}
-      <div className="flex items-center justify-end gap-2 sm:self-center shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-ink-100">
+      {/* Actions contextuelles : Commencer, Terminer, Reporter, Annuler */}
+      <div className="flex flex-wrap items-center justify-end gap-1.5 sm:self-center shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-ink-100">
         {!isDone && !isCancelled ? (
+          <>
+            {task.status === "todo" && (
+              <button
+                type="button"
+                onClick={() => handleSetStatus("in_progress")}
+                className="rounded-lg border border-ink-200 bg-canvas-raised px-2.5 py-1 text-xs font-semibold text-signal hover:bg-signal-soft active:scale-95 transition-all tap-active"
+                title="Commencer cette tâche"
+              >
+                Commencer
+              </button>
+            )}
+
+            {task.status === "in_progress" && (
+              <button
+                type="button"
+                onClick={() => handleSetStatus("done")}
+                className="rounded-lg bg-positive/10 border border-positive/30 px-2.5 py-1 text-xs font-semibold text-positive hover:bg-positive/20 active:scale-95 transition-all tap-active"
+                title="Terminer cette tâche"
+              >
+                ✓ Terminer
+              </button>
+            )}
+
+            {/* Reporter rapide (+1 jour ou +3 jours) */}
+            <button
+              type="button"
+              onClick={() => handlePostpone(1)}
+              className="rounded-lg border border-ink-200 bg-canvas-raised px-2 py-1 text-xs font-medium text-ink-600 hover:bg-ink-100 active:scale-95 transition-all tap-active"
+              title="Reporter à demain (+1 jour)"
+            >
+              +1j
+            </button>
+
+            {/* Annuler */}
+            <button
+              type="button"
+              onClick={() => handleSetStatus("cancelled")}
+              className="rounded-lg px-2 py-1 text-xs font-medium text-ink-400 hover:text-ink-700 hover:bg-ink-100 active:scale-95 transition-all tap-active"
+              title="Annuler cette tâche"
+            >
+              Annuler
+            </button>
+          </>
+        ) : isCancelled ? (
           <button
             type="button"
-            onClick={handleCycleStatus}
-            className="rounded-lg border border-ink-200 bg-canvas-raised px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-50 active:scale-95 transition-all tap-active"
-            title="Basculer statut (À faire / En cours)"
+            onClick={() => handleSetStatus("todo")}
+            className="rounded-lg border border-ink-200 bg-canvas-raised px-2.5 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-100 active:scale-95 transition-all tap-active"
+            title="Rétablir la tâche en À faire"
           >
-            {isInProgress ? "Passer à faire" : "Démarrer"}
+            Rétablir
           </button>
         ) : null}
 
         <Link
           href={`/tasks/${task.id}/edit`}
-          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal-soft active:scale-95 transition-all tap-active"
+          className="rounded-lg px-2.5 py-1 text-xs font-semibold text-signal hover:bg-signal-soft active:scale-95 transition-all tap-active"
         >
           Modifier
         </Link>
@@ -216,7 +275,7 @@ export function TaskCard({ task }: TaskCardProps) {
         <button
           type="button"
           onClick={handleDelete}
-          className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-400 hover:text-danger hover:bg-danger-soft/50 active:scale-95 transition-all tap-active inline-flex items-center justify-center"
+          className="rounded-lg p-1.5 text-ink-400 hover:text-danger hover:bg-danger-soft/50 active:scale-95 transition-all tap-active inline-flex items-center justify-center"
           title="Supprimer la tâche"
         >
           <Trash2 className="w-3.5 h-3.5" />

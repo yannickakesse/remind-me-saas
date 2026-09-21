@@ -115,7 +115,7 @@ export function TaskForm({
           </select>
         </Field>
 
-        {/* Statut (par défaut À faire) */}
+        {/* Statut (par défaut À faire ou En cours à la création) */}
         <Field label="Statut" htmlFor="status">
           <select
             id="status"
@@ -123,7 +123,10 @@ export function TaskForm({
             defaultValue={initial?.status ?? "todo"}
             className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
           >
-            {TASK_STATUSES.map((s) => (
+            {(initial
+              ? TASK_STATUSES
+              : TASK_STATUSES.filter((s) => s.value === "todo" || s.value === "in_progress")
+            ).map((s) => (
               <option key={s.value} value={s.value}>
                 {s.label}
               </option>

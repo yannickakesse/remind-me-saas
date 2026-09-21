@@ -215,6 +215,38 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
           Enregistrer
         </Button>
       </form>
+
+      {/* Carte d'Aide & Relance du Guide Interactif */}
+      <div className="mt-8 pt-6 border-t border-ink-200">
+        <div className="rounded-2xl border border-ink-200 bg-canvas-raised p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-ink-950 flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gold/15 text-gold-dark font-extrabold text-xs">
+                ?
+              </span>
+              Guide & Visite Interactive
+            </h3>
+            <p className="text-xs text-ink-600 leading-relaxed">
+              Besoin de revoir le fonctionnement de Remind Me ? Relancez le tour interactif pas-à-pas à tout moment.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                localStorage.removeItem("remindme_tour_status");
+                window.dispatchEvent(new CustomEvent("remindme:start-tour"));
+                push("Visite guidée relancée.", "info");
+              }
+            }}
+            className="shrink-0"
+          >
+            Revoir le guide
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

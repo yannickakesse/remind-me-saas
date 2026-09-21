@@ -82,10 +82,10 @@ export default async function FinancesPage({
       .order("name", { ascending: true }),
   ]);
 
-  // Calcul du dépensé par catégorie pour les budgets
+  // Calcul du dépensé réel par catégorie pour les budgets (dépenses payées uniquement)
   const budgetsWithSpent = (budgets ?? []).map((b) => {
     const spent = (expenseRows ?? [])
-      .filter((e) => e.category === b.category)
+      .filter((e) => e.category === b.category && e.paid === true)
       .reduce((sum, e) => sum + Number(e.amount), 0);
     return { ...b, spent };
   });

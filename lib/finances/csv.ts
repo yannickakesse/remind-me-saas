@@ -29,9 +29,11 @@ function formatDate(iso: string | null, timezone: string): string {
 }
 
 function formatAmount(amount: number): string {
-  // Point décimal (pas de virgule) : un nombre au format CSV doit rester
-  // sans ambiguïté avec le séparateur de colonnes, y compris s'il est
-  // réouvert par un autre outil que Excel (import comptable, script...).
+  // Préserve fidèlement les montants entiers (ex: 60000 XOF -> 60000)
+  // et formate avec 2 décimales uniquement si des centimes existent (ex: 12.50 EUR).
+  if (Number.isInteger(amount)) {
+    return String(amount);
+  }
   return amount.toFixed(2);
 }
 

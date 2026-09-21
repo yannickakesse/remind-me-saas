@@ -30,6 +30,8 @@ function parseFormData(formData: FormData) {
 export async function createTask(formData: FormData) {
   const { supabase, user } = await requireUser();
   const parsed = parseFormData(formData);
+  const statusValue = formData.get("status") as TaskStatus | null;
+  const initialStatus: TaskStatus = statusValue === "in_progress" ? "in_progress" : "todo";
 
   const { error } = await supabase.from("tasks").insert({
     user_id: user.id,
@@ -43,7 +45,7 @@ export async function createTask(formData: FormData) {
       parsed.reminderMinutesBefore === "" || parsed.reminderMinutesBefore === undefined
         ? null
         : parsed.reminderMinutesBefore,
-    status: "todo",
+    status: initialStatus,
   });
 
   if (error) throw new Error("Impossible de créer la tâche. Vérifiez les champs.");
@@ -51,6 +53,24 @@ export async function createTask(formData: FormData) {
   revalidatePath("/tasks");
   revalidatePath("/dashboard");
   redirect("/tasks");
+}
+
+export async function postponeTask(taskId: string, newDueDate: string) {
+  const { supabase, user } = await requireUser();
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      due_date: newDueDate,
+      status: "todo",
+    })
+    .eq("id", taskId)
+    .eq("user_id", user.id);
+
+  if (error) throw new Error("Impossible de reporter la tâche.");
+
+  revalidatePath("/tasks");
+  revalidatePath("/dashboard");
 }
 
 export async function updateTask(taskId: string, formData: FormData) {

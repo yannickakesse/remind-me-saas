@@ -6,6 +6,8 @@ import { MobileNav } from "@/components/navigation/mobile-nav";
 import { NotificationBell } from "@/components/navigation/notification-bell";
 import { NotificationSyncTrigger } from "@/components/notifications/notification-sync-trigger";
 import { TaskSoundWatcher } from "@/components/notifications/task-sound-watcher";
+import { InteractiveProductTour } from "@/components/onboarding/interactive-product-tour";
+import { HelpCenterButton } from "@/components/help/help-center-modal";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { NetworkStatus } from "@/components/ui/network-status";
 import type { Notification } from "@/types/database";
@@ -22,14 +24,14 @@ import {
 } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
-  { href: "/activities", label: "Activités", icon: Briefcase },
-  { href: "/calendar", label: "Calendrier", icon: Calendar },
-  { href: "/tasks", label: "Tâches", icon: CheckSquare },
-  { href: "/finances", label: "Finances", icon: Wallet },
-  { href: "/clients", label: "Clients", icon: Users },
-  { href: "/reports", label: "Rapports", icon: BarChart3 },
-  { href: "/settings", label: "Paramètres", icon: Settings },
+  { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, tourKey: "nav-dashboard" },
+  { href: "/activities", label: "Activités", icon: Briefcase, tourKey: "nav-activities" },
+  { href: "/calendar", label: "Calendrier", icon: Calendar, tourKey: "nav-calendar" },
+  { href: "/tasks", label: "Tâches", icon: CheckSquare, tourKey: "nav-tasks" },
+  { href: "/finances", label: "Finances", icon: Wallet, tourKey: "nav-finances" },
+  { href: "/clients", label: "Clients", icon: Users, tourKey: "nav-clients" },
+  { href: "/reports", label: "Rapports", icon: BarChart3, tourKey: "nav-reports" },
+  { href: "/settings", label: "Paramètres", icon: Settings, tourKey: "nav-settings" },
 ];
 
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
@@ -42,7 +44,7 @@ export default async function AppLayout({
   const user = await requireCurrentUser();
   const supabase = createClient();
 
-  const [profile, { count: unreadCount }, { data: latestNotifications }] = await Promise.all([
+  const [profile, { count: unreadCount }, { data: latestNotifications }, { data: userSettings }] = await Promise.all([
     getCurrentProfile(),
     supabase
       .from("notifications")
@@ -55,9 +57,17 @@ export default async function AppLayout({
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(6),
+    supabase
+      .from("user_settings")
+      .select("ui_prefs")
+      .eq("user_id", user.id)
+      .maybeSingle(),
   ]);
 
   if (!profile?.onboarding_completed) redirect("/onboarding");
+
+  const tourState = (userSettings?.ui_prefs as any)?.tour_state;
+  const tourCompleted = Boolean(tourState?.completed || tourState?.skipped);
 
   return (
     <div className="flex min-h-screen bg-canvas flex-col md:flex-row w-full max-w-full overflow-x-hidden">
@@ -65,6 +75,7 @@ export default async function AppLayout({
       <NetworkStatus />
       <NotificationSyncTrigger />
       <TaskSoundWatcher userId={user.id} />
+      <InteractiveProductTour initialCompleted={tourCompleted} />
 
       {/* Header & Bottom Nav Mobile (< 768px) */}
       <MobileNav unreadCount={unreadCount} />
@@ -73,15 +84,18 @@ export default async function AppLayout({
       <aside className="hidden md:flex w-64 shrink-0 flex-col justify-between border-r border-ink-200 bg-canvas-raised px-4 py-6">
         <div className="space-y-6">
           {/* Logo & Titre */}
-          <div className="flex items-center justify-between px-2">
+          <div className="flex items-center justify-between px-2 gap-2">
             <Link href="/dashboard" className="flex items-center group">
               <RemindMeLogo size="sm" showText={true} />
             </Link>
 
-            <NotificationBell
-              notifications={(latestNotifications as Notification[]) ?? []}
-              unreadCount={unreadCount ?? 0}
-            />
+            <div className="flex items-center gap-1.5" data-tour="notification-bell">
+              <HelpCenterButton />
+              <NotificationBell
+                notifications={(latestNotifications as Notification[]) ?? []}
+                unreadCount={unreadCount ?? 0}
+              />
+            </div>
           </div>
 
           {/* Recherche Globale / Command Palette */}
@@ -98,6 +112,7 @@ export default async function AppLayout({
                   key={item.href}
                   href={item.href}
                   prefetch={true}
+                  data-tour={item.tourKey}
                   className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-signal-soft hover:text-signal transition-colors"
                 >
                   <Icon className="w-4 h-4 text-ink-500 group-hover:text-signal transition-colors shrink-0" strokeWidth={1.8} />
@@ -134,3 +149,4 @@ export default async function AppLayout({
     </div>
   );
 }
+

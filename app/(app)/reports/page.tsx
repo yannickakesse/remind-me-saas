@@ -158,13 +158,15 @@ export default async function ReportsPage({
             </span>
             <Clock className="w-4 h-4 text-signal" />
           </div>
-          <p className="mt-2 text-2xl font-extrabold text-ink-950">
+          <p className="mt-2 text-xl sm:text-2xl font-extrabold text-ink-950">
             {averageHourlyRate !== null
               ? `${formatAmount(averageHourlyRate, defaultCurrency)}/h`
-              : "—"}
+              : "Données insuffisantes"}
           </p>
           <p className="mt-1 text-xs text-ink-500">
-            Pour {totalHoursWorked} h travaillées au total
+            {totalHoursWorked > 0
+              ? `Pour ${totalHoursWorked} h travaillées au total`
+              : "Planifiez des séances dans le calendrier"}
           </p>
         </div>
       </div>

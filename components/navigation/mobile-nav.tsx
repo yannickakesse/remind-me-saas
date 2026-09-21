@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
+import { HelpCenterButton } from "@/components/help/help-center-modal";
 
 import {
   LayoutDashboard,
@@ -85,11 +86,13 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           <RemindMeLogo size="sm" showText={true} />
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <HelpCenterButton />
           <Link
             href="/notifications"
             aria-label="Notifications"
             className="relative flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 hover:bg-ink-100 active:scale-95 transition-all tap-active"
+            data-tour="mobile-notification-bell"
           >
             <Bell className="w-5 h-5 text-ink-700" strokeWidth={1.8} />
             {unreadCount ? (
