@@ -12,11 +12,18 @@ interface NotificationBellProps {
   unreadCount: number;
 }
 
-export function NotificationBell({ notifications, unreadCount }: NotificationBellProps) {
+export function NotificationBell({ notifications: initialNotifications, unreadCount: initialCount }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [soundActive, setSoundActive] = useState(true);
+  const [items, setItems] = useState<Notification[]>(initialNotifications);
+  const [count, setCount] = useState<number>(initialCount);
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setItems(initialNotifications);
+    setCount(initialCount);
+  }, [initialNotifications, initialCount]);
 
   useEffect(() => {
     setSoundActive(isSoundEnabled());
@@ -25,6 +32,29 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
     }
     window.addEventListener("remindme_sound_pref_changed", handlePrefChange);
     return () => window.removeEventListener("remindme_sound_pref_changed", handlePrefChange);
+  }, []);
+
+  // Polling automatique toutes les 25 secondes pour rafraîchir les alertes en direct
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchLatest() {
+      try {
+        const res = await fetch("/api/notifications/poll");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success) {
+            setItems(data.unread || []);
+            setCount(data.count || 0);
+          }
+        }
+      } catch (_) {}
+    }
+
+    const interval = setInterval(fetchLatest, 25000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   function toggleSound() {
@@ -51,6 +81,8 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
   async function handleMarkAllRead() {
     try {
       await fetch("/api/notifications/read-all", { method: "POST" });
+      setCount(0);
+      setItems((prev) => prev.map((n) => ({ ...n, read_at: new Date().toISOString() })));
       router.refresh();
     } catch (e) {
       // Ignoré
@@ -68,9 +100,9 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
       >
         <Bell className="w-5 h-5" strokeWidth={1.8} />
 
-        {unreadCount > 0 && (
+        {count > 0 && (
           <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white ring-2 ring-canvas-raised animate-pulse">
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {count > 9 ? "9+" : count}
           </span>
         )}
       </button>
@@ -81,9 +113,9 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
           <div className="p-3.5 border-b border-ink-100 flex items-center justify-between bg-canvas">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-ink-950">Notifications</span>
-              {unreadCount > 0 && (
+              {count > 0 && (
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-danger-soft text-danger">
-                  {unreadCount} non lue{unreadCount > 1 ? "s" : ""}
+                  {count} non lue{count > 1 ? "s" : ""}
                 </span>
               )}
             </div>
@@ -114,13 +146,13 @@ export function NotificationBell({ notifications, unreadCount }: NotificationBel
           </div>
 
           <div className="divide-y divide-ink-100 max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
+            {items.length === 0 ? (
               <div className="p-6 text-center text-xs text-ink-500">
                 <CheckCircle2 className="w-6 h-6 text-positive mx-auto mb-1.5" />
                 Tout est à jour ! Aucune alerte en attente.
               </div>
             ) : (
-              notifications.slice(0, 5).map((n) => {
+              items.slice(0, 5).map((n) => {
                 const isUnread = !n.read_at && n.status !== "read";
                 const isOverdue = n.kind.includes("overdue");
                 return (

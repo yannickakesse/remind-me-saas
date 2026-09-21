@@ -146,14 +146,14 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
 
   // Déclencheur d'activation Web Push explicite (User Gesture)
   async function handleEnablePush() {
-    if (!isPushSupported) {
-      push("Les notifications push ne sont pas supportées sur ce navigateur.", "error");
+    // Sur iOS Safari, Web Push requiert d'abord l'ajout à l'écran d'accueil (PWA)
+    if (isIOS && !isStandalone) {
+      setShowIOSPrompt(true);
       return;
     }
 
-    // Sur iOS, Web Push requiert impérativement que l'application soit installée sur l'écran d'accueil
-    if (isIOS && !isStandalone) {
-      setShowIOSPrompt(true);
+    if (!isPushSupported) {
+      push("Pour activer les alertes push sur cet appareil, ajoutez l'application à l'écran d'accueil ou utilisez un navigateur supportant Web Push. Les alertes In-App et sonores restent actives.", "info");
       return;
     }
 
@@ -162,7 +162,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       // 1. Demande de permission native au navigateur
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
-        push("Autorisation refusée pour les notifications.", "error");
+        push("Autorisation non accordée pour les notifications.", "info");
         setPushSubscribed(false);
         setPushEnabled(false);
         setRegisteringPush(false);

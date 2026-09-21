@@ -219,6 +219,18 @@ export function HelpCenterButton() {
   const [activeTab, setActiveTab] = useState<"page" | "concepts" | "faq">("page");
   const pathname = usePathname() || "/dashboard";
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
   // Trouver le guide correspondant à la route active
   const baseRoute = Object.keys(PAGE_GUIDES).find((route) =>
     pathname === route || pathname.startsWith(route + "/")
@@ -262,23 +274,23 @@ export function HelpCenterButton() {
       {/* Modal / Drawer Centre d'Aide */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/70 p-3 sm:p-4 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-ink-950/85 p-0 sm:p-4 backdrop-blur-sm animate-in fade-in duration-200"
           role="dialog"
           aria-modal="true"
           aria-labelledby="help-title"
         >
-          <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl border border-ink-200 bg-canvas-raised shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+          <div className="relative flex max-h-[85dvh] max-h-[85vh] w-full max-w-2xl flex-col rounded-t-3xl sm:rounded-2xl border border-ink-200 bg-canvas-raised shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-150">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-ink-100 px-5 py-4 bg-canvas/60">
+            <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3.5 sm:px-5 sm:py-4 bg-canvas/60">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-gold to-gold-dark text-white shadow-gold-subtle font-extrabold text-sm">
+                <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-gradient-to-r from-gold to-gold-dark text-white shadow-gold-subtle font-extrabold text-xs sm:text-sm shrink-0">
                   ?
                 </span>
                 <div>
-                  <h2 id="help-title" className="text-lg font-extrabold text-ink-950 tracking-tight">
+                  <h2 id="help-title" className="text-base sm:text-lg font-extrabold text-ink-950 tracking-tight">
                     Centre d'Aide Remind Me
                   </h2>
-                  <p className="text-xs text-ink-500">
+                  <p className="text-[11px] sm:text-xs text-ink-500 line-clamp-1">
                     Comprendre, maîtriser et tirer le meilleur de votre plateforme.
                   </p>
                 </div>

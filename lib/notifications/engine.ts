@@ -4,6 +4,7 @@ import type { Database, NotificationPriority, SupportedLocale } from "@/types/da
 import { t, formatCurrencyLocale, formatDateLocale } from "@/lib/i18n/format";
 import { sendNotificationEmail } from "@/lib/email/service";
 import { sendNotificationPush } from "@/lib/push/service";
+import { ensureCalendarEvents } from "@/lib/calendar/sync";
 
 export interface ReminderCandidate {
   user_id: string;
@@ -108,6 +109,15 @@ export async function evaluateSmartReminders(
     prefsData?.quiet_hours_start ?? "22:00",
     prefsData?.quiet_hours_end ?? "07:00"
   );
+
+  // S'assurer que les séances d'activités et événements du calendrier sont générés (-7j à +30j)
+  try {
+    const calStart = userNow.minus({ days: 7 }).toISODate()!;
+    const calEnd = userNow.plus({ days: 30 }).toISODate()!;
+    await ensureCalendarEvents(supabase, userId, calStart, calEnd, userTimezone);
+  } catch (err) {
+    console.warn("[evaluateSmartReminders] ensureCalendarEvents silent fallback:", err);
+  }
 
   let resolvedCleanups = 0;
   const candidates: ReminderCandidate[] = [];
@@ -274,33 +284,30 @@ export async function evaluateSmartReminders(
         });
       } else if (daysDiff < 0) {
         const overdueDays = Math.abs(daysDiff);
-        // Anti-spam : rappels limités aux paliers 1j, 3j, 7j et capés à 30j
-        if (overdueDays === 1 || overdueDays === 3 || overdueDays === 7 || overdueDays === 14) {
-          const priority: NotificationPriority = overdueDays >= 7 ? "critical" : "high";
-          candidates.push({
-            user_id: userId,
-            category: "payment",
-            kind: "payment_overdue",
-            priority,
-            status: "unread",
-            entity_type: "income",
-            entity_id: inc.id,
-            title: t("notif.payment_overdue.title", locale),
-            body: t("notif.payment_overdue.body", locale, {
-              amount: inc.amount,
-              currency: inc.currency,
-              client: clientName,
-              days: overdueDays,
-            }),
-            title_key: "notif.payment_overdue.title",
-            body_key: "notif.payment_overdue.body",
-            metadata: { amount: inc.amount, currency: inc.currency, label: inc.label, days: overdueDays },
-            link: `/finances`,
-            scheduled_at: userNow.toISO()!,
-            idempotency_key: `payment:${inc.id}:overdue_${overdueDays}_days`,
-            email_template: "payment_overdue",
-          });
-        }
+        const priority: NotificationPriority = overdueDays >= 7 ? "critical" : "high";
+        candidates.push({
+          user_id: userId,
+          category: "payment",
+          kind: "payment_overdue",
+          priority,
+          status: "unread",
+          entity_type: "income",
+          entity_id: inc.id,
+          title: t("notif.payment_overdue.title", locale) || `Paiement en retard : ${inc.label}`,
+          body: t("notif.payment_overdue.body", locale, {
+            amount: inc.amount,
+            currency: inc.currency,
+            client: clientName,
+            days: overdueDays,
+          }) || `Paiement attendu de ${inc.amount} ${inc.currency} en retard de ${overdueDays} jour(s).`,
+          title_key: "notif.payment_overdue.title",
+          body_key: "notif.payment_overdue.body",
+          metadata: { amount: inc.amount, currency: inc.currency, label: inc.label, days: overdueDays },
+          link: `/finances`,
+          scheduled_at: userNow.toISO()!,
+          idempotency_key: `payment:${inc.id}:overdue_${todayISO}`,
+          email_template: "payment_overdue",
+        });
       }
     }
   }
@@ -373,29 +380,27 @@ export async function evaluateSmartReminders(
         });
       } else if (daysDiff < 0) {
         const overdueDays = Math.abs(daysDiff);
-        if (overdueDays === 1 || overdueDays === 3 || overdueDays === 7) {
-          candidates.push({
-            user_id: userId,
-            category: "expense",
-            kind: "expense_overdue",
-            priority: "high",
-            status: "unread",
-            entity_type: "expense",
-            entity_id: exp.id,
-            title: t("notif.expense_overdue.title", locale),
-            body: t("notif.expense_overdue.body", locale, {
-              amount: exp.amount,
-              currency: exp.currency,
-              label: exp.label,
-            }),
-            title_key: "notif.expense_overdue.title",
-            body_key: "notif.expense_overdue.body",
-            metadata: { amount: exp.amount, currency: exp.currency, label: exp.label, days: overdueDays },
-            link: `/finances?tab=expenses`,
-            scheduled_at: userNow.toISO()!,
-            idempotency_key: `expense:${exp.id}:overdue_${overdueDays}_days`,
-          });
-        }
+        candidates.push({
+          user_id: userId,
+          category: "expense",
+          kind: "expense_overdue",
+          priority: "high",
+          status: "unread",
+          entity_type: "expense",
+          entity_id: exp.id,
+          title: t("notif.expense_overdue.title", locale) || `Dépense en retard : ${exp.label}`,
+          body: t("notif.expense_overdue.body", locale, {
+            amount: exp.amount,
+            currency: exp.currency,
+            label: exp.label,
+          }) || `La dépense « ${exp.label} » (${exp.amount} ${exp.currency}) est en retard d'échéance.`,
+          title_key: "notif.expense_overdue.title",
+          body_key: "notif.expense_overdue.body",
+          metadata: { amount: exp.amount, currency: exp.currency, label: exp.label, days: overdueDays },
+          link: `/finances?tab=expenses`,
+          scheduled_at: userNow.toISO()!,
+          idempotency_key: `expense:${exp.id}:overdue_${todayISO}`,
+        });
       }
     }
 
@@ -434,25 +439,21 @@ export async function evaluateSmartReminders(
           scheduled_at: userNow.toISO()!,
           idempotency_key: `scheduled_expense:${sch.id}:${sch.next_due_date}:minus_${daysDiff}_days`,
         });
-      } else if (daysDiff === 0) {
+      } else if (daysDiff <= 0) {
         candidates.push({
           user_id: userId,
           category: "scheduled_expense",
-          kind: "expense_due_today",
+          kind: daysDiff === 0 ? "expense_due_today" : "expense_overdue",
           priority: "high",
           status: "unread",
           entity_type: "scheduled_expense",
           entity_id: sch.id,
-          title: t("notif.expense_due_today.title", locale),
-          body: t("notif.expense_due_today.body", locale, {
-            amount: sch.amount,
-            currency: sch.currency,
-            label: sch.name,
-          }),
+          title: daysDiff === 0 ? t("notif.expense_due_today.title", locale) : `Facture à échéance : ${sch.name}`,
+          body: `Facture programmée de ${sch.amount} ${sch.currency} pour « ${sch.name} ».`,
           metadata: { amount: sch.amount, currency: sch.currency, label: sch.name },
           link: `/finances?tab=scheduled`,
           scheduled_at: userNow.toISO()!,
-          idempotency_key: `scheduled_expense:${sch.id}:${sch.next_due_date}:due_today`,
+          idempotency_key: `scheduled_expense:${sch.id}:${sch.next_due_date}:${todayISO}`,
         });
       }
     }
@@ -460,28 +461,89 @@ export async function evaluateSmartReminders(
 
   // ==========================================================================
   // 5. CYCLE DE VIE DES ACTIVITÉS & CRÉNEAUX (CALENDAR EVENTS)
-  // J-1 (demain), H-1, 30m
+  // Séances passées/dépassées, séances du jour, rappels imminents et J-1
   // ==========================================================================
   if (prefsData?.activity_reminders !== false) {
-    const next24hIso = userNow.plus({ hours: 36 }).toUTC().toISO()!;
-    const { data: upcomingEvents } = await supabase
+    const past7daysIso = userNow.minus({ days: 7 }).toUTC().toISO()!;
+    const next48hIso = userNow.plus({ hours: 48 }).toUTC().toISO()!;
+    const { data: eventList } = await supabase
       .from("calendar_events")
       .select("id, title, starts_at, ends_at, status, activity_id")
       .eq("user_id", userId)
       .neq("status", "cancelled")
-      .gte("starts_at", userNow.toUTC().toISO()!)
-      .lte("starts_at", next24hIso)
+      .gte("starts_at", past7daysIso)
+      .lte("starts_at", next48hIso)
       .order("starts_at", { ascending: true });
 
-    for (const evt of upcomingEvents ?? []) {
+    for (const evt of eventList ?? []) {
       if (evt.status === "cancelled" || evt.status === "completed" || activeSnoozeEntityIds.has(evt.id)) continue;
 
       const eventStart = DateTime.fromISO(evt.starts_at, { zone: userTimezone });
+      const eventEnd = DateTime.fromISO(evt.ends_at, { zone: userTimezone });
       const minutesUntil = Math.floor(eventStart.diff(userNow, "minutes").minutes);
-      const hoursUntil = Math.floor(eventStart.diff(userNow, "hours").hours);
+      const isPast = eventEnd < userNow || eventStart < userNow.minus({ hours: 1 });
 
-      // Rappel J-1 (24h avant ou demain)
-      if (eventStart.hasSame(userNow.plus({ days: 1 }), "day") && minutesUntil > 120) {
+      // 5.1 Séances passées / dépassées non confirmées (hier ou plus tôt)
+      if (isPast && evt.status === "planned") {
+        const daysAgo = Math.max(0, Math.floor(userNow.diff(eventStart, "days").days));
+        candidates.push({
+          user_id: userId,
+          category: "activity",
+          kind: "activity_overdue",
+          priority: "high",
+          status: "unread",
+          entity_type: "activity",
+          entity_id: evt.id,
+          title: `Séance passée : ${evt.title}`,
+          body: `Votre séance « ${evt.title} » du ${formatDateLocale(eventStart.toISODate()!, locale, userTimezone)} est terminée. Cliquez pour confirmer sa réalisation.`,
+          title_key: "notif.activity_overdue.title",
+          body_key: "notif.activity_overdue.body",
+          metadata: { title: evt.title, starts_at: evt.starts_at, daysAgo },
+          link: `/calendar/${evt.id}`,
+          scheduled_at: userNow.toISO()!,
+          idempotency_key: `activity:${evt.id}:passed_${eventStart.toISODate()}`,
+        });
+      }
+      // 5.2 Séances aujourd'hui (imminentes ou prévues dans la journée)
+      else if (eventStart.hasSame(userNow, "day") && !isPast) {
+        if (minutesUntil <= 45 && minutesUntil >= -15) {
+          candidates.push({
+            user_id: userId,
+            category: "activity",
+            kind: "activity_reminder",
+            priority: "critical",
+            status: "unread",
+            entity_type: "activity",
+            entity_id: evt.id,
+            title: `Rappel imminent : ${evt.title}`,
+            body: minutesUntil > 0
+              ? `Votre séance « ${evt.title} » commence dans ${minutesUntil} minutes (à ${eventStart.toFormat("HH:mm")}).`
+              : `Votre séance « ${evt.title} » a commencé à ${eventStart.toFormat("HH:mm")}.`,
+            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil },
+            link: `/calendar/${evt.id}`,
+            scheduled_at: userNow.toISO()!,
+            idempotency_key: `activity:${evt.id}:imminent_${eventStart.toISODate()}`,
+          });
+        } else if (minutesUntil > 45) {
+          candidates.push({
+            user_id: userId,
+            category: "activity",
+            kind: "activity_today",
+            priority: "normal",
+            status: "unread",
+            entity_type: "activity",
+            entity_id: evt.id,
+            title: `Séance aujourd'hui : ${evt.title}`,
+            body: `Vous avez « ${evt.title} » prévue aujourd'hui de ${eventStart.toFormat("HH:mm")} à ${eventEnd.toFormat("HH:mm")}.`,
+            metadata: { title: evt.title, starts_at: evt.starts_at },
+            link: `/calendar/${evt.id}`,
+            scheduled_at: userNow.toISO()!,
+            idempotency_key: `activity:${evt.id}:today_${eventStart.toISODate()}`,
+          });
+        }
+      }
+      // 5.3 Séances demain (J-1)
+      else if (eventStart.hasSame(userNow.plus({ days: 1 }), "day")) {
         candidates.push({
           user_id: userId,
           category: "activity",
@@ -490,61 +552,12 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "activity",
           entity_id: evt.id,
-          title: t("notif.activity_upcoming.title", locale),
-          body: t("notif.activity_upcoming.body", locale, {
-            name: evt.title,
-            time: eventStart.toFormat("HH:mm"),
-          }),
+          title: t("notif.activity_upcoming.title", locale) || `Séance demain : ${evt.title}`,
+          body: `N'oubliez pas votre séance « ${evt.title} » demain à ${eventStart.toFormat("HH:mm")}.`,
           metadata: { title: evt.title, starts_at: evt.starts_at },
           link: `/calendar/${evt.id}`,
           scheduled_at: userNow.toISO()!,
-          idempotency_key: `activity:${evt.id}:minus_1_day_${eventStart.toISODate()}`,
-        });
-      }
-
-      // Rappel 1 heure avant (entre 45 et 75 minutes)
-      if (minutesUntil >= 45 && minutesUntil <= 75) {
-        candidates.push({
-          user_id: userId,
-          category: "activity",
-          kind: "activity_reminder",
-          priority: "high",
-          status: "unread",
-          entity_type: "activity",
-          entity_id: evt.id,
-          title: t("notif.activity_reminder.title", locale),
-          body: t("notif.activity_reminder.body", locale, {
-            name: evt.title,
-            minutes: minutesUntil,
-            time: eventStart.toFormat("HH:mm"),
-          }),
-          metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil },
-          link: `/calendar/${evt.id}`,
-          scheduled_at: userNow.toISO()!,
-          idempotency_key: `activity:${evt.id}:minus_1_hour`,
-        });
-      }
-
-      // Rappel 30 minutes avant (entre 20 et 35 minutes)
-      if (minutesUntil >= 20 && minutesUntil <= 35) {
-        candidates.push({
-          user_id: userId,
-          category: "activity",
-          kind: "activity_reminder",
-          priority: "high",
-          status: "unread",
-          entity_type: "activity",
-          entity_id: evt.id,
-          title: t("notif.activity_reminder.title", locale),
-          body: t("notif.activity_reminder.body", locale, {
-            name: evt.title,
-            minutes: minutesUntil,
-            time: eventStart.toFormat("HH:mm"),
-          }),
-          metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil },
-          link: `/calendar/${evt.id}`,
-          scheduled_at: userNow.toISO()!,
-          idempotency_key: `activity:${evt.id}:minus_30_min`,
+          idempotency_key: `activity:${evt.id}:tomorrow_${eventStart.toISODate()}`,
         });
       }
     }
@@ -552,7 +565,7 @@ export async function evaluateSmartReminders(
 
   // ==========================================================================
   // 6. CYCLE DE VIE DES TÂCHES (TASKS)
-  // Échéance du jour, imminente H-2, en retard +1j, +3j, +7j
+  // Échéance du jour, imminente H-2, en retard
   // ==========================================================================
   if (prefsData?.task_reminders !== false) {
     const { data: pendingTasks } = await supabase
@@ -578,28 +591,26 @@ export async function evaluateSmartReminders(
 
       if (dueDT < userNow) {
         const overdueDays = Math.max(1, Math.floor(userNow.diff(dueDT, "days").days));
-        if (overdueDays === 1 || overdueDays === 3 || overdueDays === 7) {
-          candidates.push({
-            user_id: userId,
-            category: "task",
-            kind: "task_overdue",
-            priority: tsk.priority === "urgent" ? "critical" : "high",
-            status: "unread",
-            entity_type: "task",
-            entity_id: tsk.id,
-            title: t("notif.task_overdue.title", locale),
-            body: t("notif.task_overdue.body", locale, {
-              title: tsk.title,
-              date: formatDateLocale(tsk.due_date, locale, userTimezone),
-            }),
-            title_key: "notif.task_overdue.title",
-            body_key: "notif.task_overdue.body",
-            metadata: { title: tsk.title, priority: tsk.priority, overdueDays },
-            link: `/tasks/${tsk.id}/edit`,
-            scheduled_at: userNow.toISO()!,
-            idempotency_key: `task:${tsk.id}:overdue_${overdueDays}_days`,
-          });
-        }
+        candidates.push({
+          user_id: userId,
+          category: "task",
+          kind: "task_overdue",
+          priority: tsk.priority === "urgent" ? "critical" : "high",
+          status: "unread",
+          entity_type: "task",
+          entity_id: tsk.id,
+          title: t("notif.task_overdue.title", locale) || `Tâche en retard : ${tsk.title}`,
+          body: t("notif.task_overdue.body", locale, {
+            title: tsk.title,
+            date: formatDateLocale(tsk.due_date, locale, userTimezone),
+          }) || `La tâche « ${tsk.title} » est en retard depuis le ${tsk.due_date}.`,
+          title_key: "notif.task_overdue.title",
+          body_key: "notif.task_overdue.body",
+          metadata: { title: tsk.title, priority: tsk.priority, overdueDays },
+          link: `/tasks/${tsk.id}/edit`,
+          scheduled_at: userNow.toISO()!,
+          idempotency_key: `task:${tsk.id}:overdue_${todayISO}`,
+        });
       } else if (userNow >= reminderTriggerDT || dueDT.hasSame(userNow, "day")) {
         const minutesUntil = dueDT.diff(userNow, "minutes").minutes;
 
@@ -612,7 +623,7 @@ export async function evaluateSmartReminders(
             status: "unread",
             entity_type: "task",
             entity_id: tsk.id,
-            title: t("notif.task_due_soon.title", locale) || `Rappel : ${tsk.title}`,
+            title: t("notif.task_due_soon.title", locale) || `Rappel tâche : ${tsk.title}`,
             body: tsk.due_time
               ? `Échéance prévue aujourd'hui à ${tsk.due_time} pour « ${tsk.title} »`
               : `La tâche « ${tsk.title} » arrive à échéance aujourd'hui.`,
@@ -630,8 +641,8 @@ export async function evaluateSmartReminders(
             status: "unread",
             entity_type: "task",
             entity_id: tsk.id,
-            title: t("notif.task_due_today.title", locale),
-            body: t("notif.task_due_today.body", locale, { title: tsk.title }),
+            title: t("notif.task_due_today.title", locale) || `Tâche du jour : ${tsk.title}`,
+            body: t("notif.task_due_today.body", locale, { title: tsk.title }) || `La tâche « ${tsk.title} » est programmée pour aujourd'hui.`,
             title_key: "notif.task_due_today.title",
             body_key: "notif.task_due_today.body",
             metadata: { title: tsk.title },

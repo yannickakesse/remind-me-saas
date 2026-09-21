@@ -21,10 +21,12 @@ import {
   Clock,
   Download,
 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { saveTourState } from "@/lib/onboarding/tour-actions";
 
 export interface TourStep {
   id: string;
+  route?: string; // Route cible vers laquelle naviguer automatiquement
   targetSelector: string;
   fallbackSelector?: string;
   title: string;
@@ -38,11 +40,12 @@ export interface TourStep {
 
 /**
  * NIVEAU 1 — TOUR GÉNÉRAL (Première visite ou relance globale)
- * Règle stricte : Le texte décrit EXACTEMENT l'élément ciblé.
+ * Règle stricte : Le texte décrit EXACTEMENT l'élément ciblé et navigue sur la bonne page.
  */
 export const MAIN_TOUR_STEPS: TourStep[] = [
   {
     id: "welcome",
+    route: "/dashboard",
     targetSelector: "",
     title: "Bienvenue sur Remind Me 👋",
     subtitle: "Espace multi-activités & trésorerie",
@@ -58,6 +61,7 @@ export const MAIN_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "dashboard",
+    route: "/dashboard",
     targetSelector: '[data-tour="dashboard-header"]',
     fallbackSelector: '[data-tour="dashboard-kpi"]',
     title: "Tableau de Bord Central",
@@ -74,7 +78,9 @@ export const MAIN_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "activities",
-    targetSelector: '[data-tour="nav-activities"]',
+    route: "/activities",
+    targetSelector: '[data-tour="activity-create"]',
+    fallbackSelector: '[data-tour="nav-activities"]',
     title: "Vos Activités Professionnelles",
     subtitle: "Multi-casquettes, un seul outil",
     description:
@@ -85,11 +91,13 @@ export const MAIN_TOUR_STEPS: TourStep[] = [
       "Liaison directe avec vos entreprises clientes et contacts",
     ],
     icon: Briefcase,
-    placement: "right",
+    placement: "bottom",
   },
   {
     id: "tasks",
-    targetSelector: '[data-tour="nav-tasks"]',
+    route: "/tasks",
+    targetSelector: '[data-tour="task-tabs"]',
+    fallbackSelector: '[data-tour="task-create"]',
     title: "Gestion des Tâches & Rappels",
     subtitle: "Cycle de vie & alertes sonores",
     description:
@@ -100,11 +108,13 @@ export const MAIN_TOUR_STEPS: TourStep[] = [
       "Filtrage instantané par urgence, date et activité",
     ],
     icon: CheckSquare,
-    placement: "right",
+    placement: "bottom",
   },
   {
     id: "calendar",
-    targetSelector: '[data-tour="nav-calendar"]',
+    route: "/calendar",
+    targetSelector: '[data-tour="calendar-views"]',
+    fallbackSelector: '[data-tour="nav-calendar"]',
     title: "Calendrier & Planning Visuel",
     subtitle: "4 vues ergonomiques",
     description:
@@ -115,11 +125,13 @@ export const MAIN_TOUR_STEPS: TourStep[] = [
       "Affichage synchronisé de vos dépenses programmées à échéance",
     ],
     icon: Calendar,
-    placement: "right",
+    placement: "bottom",
   },
   {
     id: "finances",
-    targetSelector: '[data-tour="nav-finances"]',
+    route: "/finances",
+    targetSelector: '[data-tour="finances-tabs"]',
+    fallbackSelector: '[data-tour="nav-finances"]',
     title: "Gestion Financière Réelle",
     subtitle: "Clarté absolue sur votre argent",
     description:
@@ -130,12 +142,12 @@ export const MAIN_TOUR_STEPS: TourStep[] = [
       "Suivi des budgets mensuels et épargne avec jauges visuelles",
     ],
     icon: Wallet,
-    placement: "right",
+    placement: "bottom",
   },
   {
     id: "notifications",
-    targetSelector: '[data-tour="notification-bell"]',
-    fallbackSelector: '[data-tour="mobile-notification-bell"]',
+    targetSelector: '[data-tour="mobile-notification-bell"]',
+    fallbackSelector: '[data-tour="notification-bell"]',
     title: "Centre de Notifications & Alertes",
     subtitle: "Restez toujours alerté",
     description:
@@ -161,7 +173,7 @@ export const MAIN_TOUR_STEPS: TourStep[] = [
       "Relance du guide interactif à tout moment en 1 clic",
     ],
     icon: HelpCircle,
-    placement: "bottom",
+    isModal: true,
   },
 ];
 
@@ -490,6 +502,8 @@ interface InteractiveProductTourProps {
 }
 
 export function InteractiveProductTour({ initialCompleted = false }: InteractiveProductTourProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [isActive, setIsActive] = useState(false);
   const [currentSteps, setCurrentSteps] = useState<TourStep[]>(MAIN_TOUR_STEPS);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -521,6 +535,9 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       setIsContextual(false);
       setIsActive(true);
       setCurrentStepIndex(0);
+      if (pathname !== "/dashboard") {
+        router.push("/dashboard");
+      }
     }
 
     // Écouter les événements de guide contextuel (remindme:start-contextual-tour)
@@ -540,9 +557,25 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       window.removeEventListener("remindme:start-tour", handleStartGlobalTour);
       window.removeEventListener("remindme:start-contextual-tour", handleStartContextualTour);
     };
-  }, []);
+  }, [pathname, router]);
 
   const currentStep = currentSteps[currentStepIndex];
+
+  // Helper pour trouver un élément véritablement visible dans le DOM
+  function findVisibleElement(sel?: string): HTMLElement | null {
+    if (!sel || typeof document === "undefined") return null;
+    try {
+      const elements = document.querySelectorAll(sel);
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements[i] as HTMLElement;
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          return el;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
 
   // Recalcul précis de la position du spotlight et du popover avec défilement automatique
   const updatePositions = useCallback(() => {
@@ -562,11 +595,11 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       return;
     }
 
-    let target = document.querySelector(currentStep.targetSelector) as HTMLElement | null;
+    let target = findVisibleElement(currentStep.targetSelector);
 
     // Fallbacks si le sélecteur principal n'est pas encore visible (ex: mobile vs desktop)
     if (!target && currentStep.fallbackSelector) {
-      target = document.querySelector(currentStep.fallbackSelector) as HTMLElement | null;
+      target = findVisibleElement(currentStep.fallbackSelector);
     }
 
     if (target) {
@@ -576,7 +609,11 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       } catch (_) {}
 
       const rect = target.getBoundingClientRect();
-      setTargetRect(rect);
+      if (rect.width > 0 && rect.height > 0) {
+        setTargetRect(rect);
+      } else {
+        setTargetRect(null);
+      }
 
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
@@ -628,7 +665,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
         transform: "none",
       });
     } else {
-      // Si aucun élément cible n'existe dans le DOM actuel : centrer proprement sans trou découpé erroné
+      // Si aucun élément cible visible n'existe dans le DOM actuel : centrer proprement sans trou découpé erroné
       setTargetRect(null);
       const viewportWidth = window.innerWidth;
       const popoverWidth = Math.min(400, viewportWidth - 32);
@@ -643,17 +680,19 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
 
   useEffect(() => {
     updatePositions();
-    // Petit intervalle de stabilisation pour laisser le temps aux transitions de pages / animations
-    const timer = setTimeout(updatePositions, 100);
+    // Intervalles de stabilisation pour laisser le temps aux transitions de pages / animations
+    const timer1 = setTimeout(updatePositions, 100);
+    const timer2 = setTimeout(updatePositions, 350);
     window.addEventListener("resize", updatePositions);
     window.addEventListener("scroll", updatePositions, true);
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
       window.removeEventListener("resize", updatePositions);
       window.removeEventListener("scroll", updatePositions, true);
     };
-  }, [updatePositions]);
+  }, [updatePositions, pathname]);
 
   // Navigation au clavier (Échap, Flèches Gauche / Droite)
   useEffect(() => {
@@ -675,7 +714,12 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
 
   const handleNext = async () => {
     if (currentStepIndex < currentSteps.length - 1) {
-      setCurrentStepIndex((prev) => prev + 1);
+      const nextIndex = currentStepIndex + 1;
+      const nextStep = currentSteps[nextIndex];
+      if (nextStep?.route && pathname !== nextStep.route) {
+        router.push(nextStep.route);
+      }
+      setCurrentStepIndex(nextIndex);
     } else {
       await handleComplete();
     }
@@ -683,7 +727,12 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
 
   const handlePrev = () => {
     if (currentStepIndex > 0) {
-      setCurrentStepIndex((prev) => prev - 1);
+      const prevIndex = currentStepIndex - 1;
+      const prevStep = currentSteps[prevIndex];
+      if (prevStep?.route && pathname !== prevStep.route) {
+        router.push(prevStep.route);
+      }
+      setCurrentStepIndex(prevIndex);
     }
   };
 
@@ -708,12 +757,13 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   const Icon = currentStep.icon;
   const isLastStep = currentStepIndex === currentSteps.length - 1;
 
-  // Calcul géométrique du trou Spotlight SVG
+  // Calcul géométrique du trou Spotlight SVG (avec garde stricte sur les dimensions)
+  const isTargetValid = targetRect !== null && targetRect.width > 0 && targetRect.height > 0;
   const padding = 8;
-  const spotlightX = targetRect ? Math.max(0, targetRect.left - padding) : 0;
-  const spotlightY = targetRect ? Math.max(0, targetRect.top - padding) : 0;
-  const spotlightW = targetRect ? targetRect.width + padding * 2 : 0;
-  const spotlightH = targetRect ? targetRect.height + padding * 2 : 0;
+  const spotlightX = isTargetValid ? Math.max(0, targetRect.left - padding) : 0;
+  const spotlightY = isTargetValid ? Math.max(0, targetRect.top - padding) : 0;
+  const spotlightW = isTargetValid ? targetRect.width + padding * 2 : 0;
+  const spotlightH = isTargetValid ? targetRect.height + padding * 2 : 0;
   const rx = 12;
 
   return (
@@ -724,12 +774,12 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       aria-modal="true"
       aria-label="Guide interactif Remind Me"
     >
-      {/* Masque Sombre avec Découpe Spotlight si cible réelle existante */}
+      {/* Masque Sombre avec Découpe Spotlight uniquement si cible valide */}
       <svg className="absolute inset-0 h-full w-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <mask id="spotlight-mask">
             <rect width="100%" height="100%" fill="white" />
-            {targetRect && (
+            {isTargetValid && (
               <rect
                 x={spotlightX}
                 y={spotlightY}
@@ -749,8 +799,8 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
         />
       </svg>
 
-      {/* Anneau doré animé autour de l'élément ciblé */}
-      {targetRect && (
+      {/* Anneau doré animé autour de l'élément ciblé uniquement si cible valide */}
+      {isTargetValid && (
         <div
           className="absolute pointer-events-none rounded-xl border-2 border-gold ring-4 ring-gold/20 shadow-gold-subtle transition-all duration-300 animate-pulse"
           style={{

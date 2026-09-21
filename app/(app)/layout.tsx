@@ -35,6 +35,7 @@ const NAV_ITEMS = [
 ];
 
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
+import { ensureNotifications } from "@/lib/notifications/sync";
 
 export default async function AppLayout({
   children,
@@ -43,18 +44,28 @@ export default async function AppLayout({
 }) {
   const user = await requireCurrentUser();
   const supabase = createClient();
+  const profile = await getCurrentProfile();
 
-  const [profile, { count: unreadCount }, { data: latestNotifications }, { data: userSettings }] = await Promise.all([
-    getCurrentProfile(),
+  if (!profile?.onboarding_completed) redirect("/onboarding");
+
+  // Évaluation proactive et immédiate des notifications et rappels d'activités
+  await ensureNotifications(supabase, user.id, profile?.timezone ?? "UTC");
+
+  const [{ count: unreadCount }, { data: latestNotifications }, { data: userSettings }] = await Promise.all([
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
-      .is("read_at", null),
+      .is("read_at", null)
+      .neq("status", "resolved")
+      .neq("status", "dismissed"),
     supabase
       .from("notifications")
       .select("*")
       .eq("user_id", user.id)
+      .is("read_at", null)
+      .neq("status", "resolved")
+      .neq("status", "dismissed")
       .order("created_at", { ascending: false })
       .limit(6),
     supabase
@@ -63,8 +74,6 @@ export default async function AppLayout({
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
-
-  if (!profile?.onboarding_completed) redirect("/onboarding");
 
   const tourState = (userSettings?.ui_prefs as any)?.tour_state;
   const tourCompleted = Boolean(tourState?.completed || tourState?.skipped);
