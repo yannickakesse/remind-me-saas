@@ -175,8 +175,17 @@ button, a, input, select, textarea {
   transform: scale(0.97);
 }
 
+.safe-area-top {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
 .safe-area-bottom {
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+.safe-area-x {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
 }
 
 /* Masquage propre des barres de défilement pour les carrousels tactiles */

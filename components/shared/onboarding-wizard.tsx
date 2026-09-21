@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
 import { completeOnboarding } from "@/app/(onboarding)/onboarding/actions";
+import { TIMEZONE_OPTIONS, resolveAppropriateTimezone } from "@/lib/time/timezones";
 
 interface OnboardingWizardProps {
   countries: { code: string; name: string }[];
@@ -25,11 +26,15 @@ export function OnboardingWizard({
 }: OnboardingWizardProps) {
   const [step, setStep] = useState(0);
   const [fullName, setFullName] = useState(defaultFullName);
-  const [countryCode, setCountryCode] = useState(countries[0]?.code ?? "");
-  const [currencyCode, setCurrencyCode] = useState(currencies[0]?.code ?? "");
-  const [timezone, setTimezone] = useState(
-    Intl.DateTimeFormat().resolvedOptions().timeZone
-  );
+  const [countryCode, setCountryCode] = useState(countries[0]?.code ?? "CI");
+  const [currencyCode, setCurrencyCode] = useState(currencies[0]?.code ?? "XOF");
+  const [timezone, setTimezone] = useState(() => {
+    let detected: string | null = null;
+    try {
+      detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch (_) {}
+    return resolveAppropriateTimezone(countries[0]?.code ?? "CI", detected);
+  });
   const [activityCountHint, setActivityCountHint] = useState<
     (typeof ACTIVITY_COUNT_OPTIONS)[number]["value"]
   >("two_to_three");
@@ -113,7 +118,23 @@ export function OnboardingWizard({
             <select
               id="countryCode"
               value={countryCode}
-              onChange={(e) => setCountryCode(e.target.value)}
+              onChange={(e) => {
+                const newCode = e.target.value;
+                setCountryCode(newCode);
+                if (newCode === "CI") {
+                  setCurrencyCode("XOF");
+                  setTimezone("Africa/Abidjan");
+                } else if (newCode === "SN" || newCode === "ML" || newCode === "BF" || newCode === "TG" || newCode === "BJ") {
+                  setCurrencyCode("XOF");
+                  setTimezone(resolveAppropriateTimezone(newCode));
+                } else if (newCode === "CM" || newCode === "GA" || newCode === "CG") {
+                  setCurrencyCode("XAF");
+                  setTimezone(resolveAppropriateTimezone(newCode));
+                } else if (newCode === "FR") {
+                  setCurrencyCode("EUR");
+                  setTimezone("Europe/Paris");
+                }
+              }}
               className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2"
             >
               {countries.map((c) => (
@@ -144,11 +165,21 @@ export function OnboardingWizard({
 
         {step === 3 ? (
           <Field label="Fuseau horaire" htmlFor="timezone">
-            <TextInput
+            <select
               id="timezone"
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-            />
+              className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2"
+            >
+              {TIMEZONE_OPTIONS.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label} ({t.offset})
+                </option>
+              ))}
+              {!TIMEZONE_OPTIONS.some((t) => t.value === timezone) && timezone && (
+                <option value={timezone}>{timezone}</option>
+              )}
+            </select>
           </Field>
         ) : null}
 

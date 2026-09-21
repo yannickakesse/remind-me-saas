@@ -10,6 +10,7 @@ import { WeekView } from "@/components/calendar/week-view";
 import { DayView } from "@/components/calendar/day-view";
 import { AgendaView } from "@/components/calendar/agenda-view";
 import type { CalendarEventView } from "@/components/calendar/types";
+import { getUserTimezone } from "@/lib/time/timezones";
 
 export default async function CalendarPage({
   searchParams,
@@ -21,7 +22,8 @@ export default async function CalendarPage({
     getCurrentProfile(),
   ]);
 
-  const timezone = profile?.timezone ?? "UTC";
+  const timezone = getUserTimezone(profile);
+
   const supabase = createClient();
 
   const view: CalendarView = isCalendarView(searchParams.view) ? searchParams.view : "month";

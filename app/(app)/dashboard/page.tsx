@@ -19,6 +19,7 @@ import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist
 import { AttentionRequired } from "@/components/dashboard/attention-required";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
+import { getUserTimezone } from "@/lib/time/timezones";
 import { typeLabel } from "@/lib/validation/activities";
 import { eventStatusLabel, getContrastTextColor } from "@/lib/validation/calendar";
 import { taskPriorityLabel, TASK_PRIORITY_STYLES } from "@/lib/validation/tasks";
@@ -31,9 +32,10 @@ export default async function DashboardPage() {
   ]);
 
   const supabase = createClient();
-  const timezone = profile?.timezone ?? "UTC";
+  const timezone = getUserTimezone(profile);
   const currency = profile?.default_currency ?? "XOF";
   const now = DateTime.now().setZone(timezone);
+
 
   const startOfMonth = now.startOf("month").toISODate()!;
   const endOfMonth = now.endOf("month").toISODate()!;

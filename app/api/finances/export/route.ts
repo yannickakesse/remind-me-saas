@@ -5,6 +5,7 @@ import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { getFinancesForRange } from "@/lib/finances/aggregate";
 import { buildFinancesCsv } from "@/lib/finances/csv";
 import { checkRateLimit } from "@/lib/security/rate-limit";
+import { getUserTimezone } from "@/lib/time/timezones";
 
 /**
  * Export CSV des revenus + dépenses sur une période. Réutilise
@@ -38,12 +39,14 @@ export async function GET(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, timezone")
+    .select("full_name, timezone, country_code")
     .eq("id", user.id)
     .single();
 
-  const timezone = profile?.timezone ?? "UTC";
+
+  const timezone = getUserTimezone(profile);
   const today = DateTime.now().setZone(timezone);
+
 
   const searchParams = request.nextUrl.searchParams;
   const fromParam = searchParams.get("from");

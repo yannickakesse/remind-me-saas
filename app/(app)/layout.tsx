@@ -36,6 +36,7 @@ const NAV_ITEMS = [
 
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureNotifications } from "@/lib/notifications/sync";
+import { getUserTimezone } from "@/lib/time/timezones";
 
 export default async function AppLayout({
   children,
@@ -49,7 +50,8 @@ export default async function AppLayout({
   if (!profile?.onboarding_completed) redirect("/onboarding");
 
   // Évaluation proactive et immédiate des notifications et rappels d'activités
-  await ensureNotifications(supabase, user.id, profile?.timezone ?? "UTC");
+  await ensureNotifications(supabase, user.id, getUserTimezone(profile));
+
 
   const [{ count: unreadCount }, { data: latestNotifications }, { data: userSettings }] = await Promise.all([
     supabase

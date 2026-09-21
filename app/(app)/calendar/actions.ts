@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { DateTime } from "luxon";
 import { createClient } from "@/lib/supabase/server";
 import { manualEventSchema, rescheduleSchema } from "@/lib/validation/calendar";
+import { getUserTimezone } from "@/lib/time/timezones";
 import type { CalendarEventStatus } from "@/types/database";
 
 async function requireUserWithTimezone() {
@@ -16,11 +17,11 @@ async function requireUserWithTimezone() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("timezone")
+    .select("timezone, country_code")
     .eq("id", user.id)
     .single();
 
-  return { supabase, user, timezone: profile?.timezone ?? "UTC" };
+  return { supabase, user, timezone: getUserTimezone(profile) };
 }
 
 /**

@@ -8,14 +8,16 @@ import { setEventStatus, rescheduleEvent, deleteManualEvent } from "../actions";
 import type { CalendarEventStatus } from "@/types/database";
 
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
+import { getUserTimezone } from "@/lib/time/timezones";
 
 export default async function EventDetailPage({ params }: { params: { id: string } }) {
   const [user, profile] = await Promise.all([
     requireCurrentUser(),
     getCurrentProfile(),
   ]);
-  const timezone = profile?.timezone ?? "UTC";
+  const timezone = getUserTimezone(profile);
   const supabase = createClient();
+
 
   const { data: event } = await supabase
     .from("calendar_events")

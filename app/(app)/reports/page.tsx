@@ -17,6 +17,7 @@ import { ProfitabilityTable } from "@/components/reports/profitability-table";
 import { CategoryBreakdown } from "@/components/reports/category-breakdown";
 import { MonthlyEvolution } from "@/components/reports/monthly-evolution";
 import { buttonClasses } from "@/components/ui/button";
+import { getUserTimezone } from "@/lib/time/timezones";
 
 export default async function ReportsPage({
   searchParams,
@@ -28,7 +29,8 @@ export default async function ReportsPage({
     getCurrentProfile(),
   ]);
 
-  const timezone = profile?.timezone ?? "UTC";
+  const timezone = getUserTimezone(profile);
+
   const defaultCurrency = profile?.default_currency ?? "XOF";
   const today = DateTime.now().setZone(timezone);
   const supabase = createClient();

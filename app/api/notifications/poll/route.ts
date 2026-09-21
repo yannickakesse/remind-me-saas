@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { evaluateSmartReminders } from "@/lib/notifications/engine";
+import { getUserTimezone } from "@/lib/time/timezones";
 
 export const dynamic = "force-dynamic";
 
@@ -17,11 +18,12 @@ export async function GET() {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("timezone")
+      .select("timezone, country_code")
       .eq("id", user.id)
       .maybeSingle();
 
-    const timezone = profile?.timezone || "UTC";
+    const timezone = getUserTimezone(profile);
+
 
     // 1. Évaluer les rappels récents
     await evaluateSmartReminders(supabase, user.id, timezone);

@@ -5,6 +5,7 @@ import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { aggregateFinancesForMonth } from "@/lib/finances/aggregate";
 import { FinancesView } from "@/components/finances/finances-view";
 import type { FinanceTab } from "@/components/finances/finance-tabs";
+import { getUserTimezone } from "@/lib/time/timezones";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,8 @@ export default async function FinancesPage({
     getCurrentProfile(),
   ]);
 
-  const timezone = profile?.timezone ?? "UTC";
+  const timezone = getUserTimezone(profile);
+
   const defaultCurrency = profile?.default_currency ?? "XOF";
   const today = DateTime.now().setZone(timezone);
 

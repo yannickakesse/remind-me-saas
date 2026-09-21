@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 import { profileFormSchema } from "@/lib/validation/settings";
 import { updateProfile, updateAvatarUrl } from "@/app/(app)/settings/actions";
+import { TIMEZONE_OPTIONS, resolveAppropriateTimezone } from "@/lib/time/timezones";
 
 interface ProfileSectionProps {
   userId: string;
@@ -43,9 +44,11 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [fullName, setFullName] = useState(profile.full_name ?? "");
-  const [countryCode, setCountryCode] = useState(profile.country_code ?? countries[0]?.code ?? "");
-  const [currencyCode, setCurrencyCode] = useState(profile.default_currency ?? currencies[0]?.code ?? "");
-  const [timezone, setTimezone] = useState(profile.timezone);
+  const [countryCode, setCountryCode] = useState(profile.country_code ?? countries[0]?.code ?? "CI");
+  const [currencyCode, setCurrencyCode] = useState(profile.default_currency ?? currencies[0]?.code ?? "XOF");
+  const [timezone, setTimezone] = useState(
+    resolveAppropriateTimezone(profile.country_code, profile.timezone)
+  );
   const [locale, setLocale] = useState(profile.locale);
   const [weekStart, setWeekStart] = useState(String(profile.week_start));
   const [timeFormat, setTimeFormat] = useState(profile.time_format);
@@ -182,12 +185,16 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
         </Field>
 
         <Field label="Fuseau horaire" htmlFor="timezone" error={fieldErrors.timezone}>
-          <TextInput
-            id="timezone"
-            value={timezone}
-            onChange={(e) => setTimezone(e.target.value)}
-            placeholder="Africa/Abidjan"
-          />
+          <Select id="timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)}>
+            {TIMEZONE_OPTIONS.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label} ({t.offset})
+              </option>
+            ))}
+            {!TIMEZONE_OPTIONS.some((t) => t.value === timezone) && timezone && (
+              <option value={timezone}>{timezone}</option>
+            )}
+          </Select>
         </Field>
 
         <Field label="Langue" htmlFor="locale" error={fieldErrors.locale}>

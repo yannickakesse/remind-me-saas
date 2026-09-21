@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureNotifications } from "@/lib/notifications/sync";
 import { NotificationsCenter } from "@/components/notifications/notifications-center";
+import { getUserTimezone } from "@/lib/time/timezones";
 import type { Notification } from "@/types/database";
 
 export default async function NotificationsPage() {
@@ -10,7 +11,8 @@ export default async function NotificationsPage() {
     getCurrentProfile(),
   ]);
 
-  const timezone = profile?.timezone ?? "UTC";
+  const timezone = getUserTimezone(profile);
+
   const supabase = createClient();
 
   // Run the smart reminders engine
