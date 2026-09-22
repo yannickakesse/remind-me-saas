@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Check, X, Sparkles, ShieldCheck, Zap, ArrowRight } from "lucide-react";
 import { PLAN_ENTITLEMENTS, normalizePlan, type PlanType } from "@/lib/subscriptions/entitlements";
 import { updateSubscriptionPlan } from "@/app/(app)/settings/actions";
@@ -17,7 +17,12 @@ export interface SubscriptionSectionProps {
 
 export function SubscriptionSection({ subscription, plan, status }: SubscriptionSectionProps) {
   const { push } = useToast();
-  const currentPlan = normalizePlan(plan ?? subscription?.plan);
+  const initialPlan = normalizePlan(plan ?? subscription?.plan);
+  const [activePlan, setActivePlan] = useState<PlanType>(initialPlan);
+
+  useEffect(() => {
+    setActivePlan(normalizePlan(plan ?? subscription?.plan));
+  }, [plan, subscription]);
 
   const [isPending, startTransition] = useTransition();
   const [selectedTargetPlan, setSelectedTargetPlan] = useState<PlanType | null>(null);
@@ -25,7 +30,7 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
   const [modalOpen, setModalOpen] = useState(false);
 
   function openCheckoutModal(targetPlan: PlanType) {
-    if (targetPlan === currentPlan) return;
+    if (targetPlan === activePlan) return;
     setSelectedTargetPlan(targetPlan);
     setModalOpen(true);
   }
@@ -36,14 +41,19 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
 
     startTransition(async () => {
       try {
-        await updateSubscriptionPlan(targetPlan);
-        setModalOpen(false);
-        push(
-          `Félicitations ! Votre compte est maintenant activé sur le forfait ${PLAN_ENTITLEMENTS[targetPlan].planName}.`,
-          "success"
-        );
+        const res = await updateSubscriptionPlan(targetPlan);
+        if (res && res.success) {
+          setActivePlan(targetPlan);
+          setModalOpen(false);
+          push(
+            `Félicitations ! Votre compte est maintenant activé sur le forfait ${PLAN_ENTITLEMENTS[targetPlan].planName}.`,
+            "success"
+          );
+        } else {
+          push(res?.error || "Une erreur est survenue lors de la mise à niveau.", "error");
+        }
       } catch (err: any) {
-        push(err?.message || "Une erreur est survenue lors de la mise à niveau.", "error");
+        push(err?.message || "Une erreur est survenue.", "error");
       }
     });
   }
@@ -95,10 +105,10 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {(["free", "pro", "premium"] as PlanType[]).map((pKey) => {
           const p = PLAN_ENTITLEMENTS[pKey];
-          const isCurrent = currentPlan === pKey;
+          const isCurrent = activePlan === pKey;
           const isHigher =
-            (currentPlan === "free" && (pKey === "pro" || pKey === "premium")) ||
-            (currentPlan === "pro" && pKey === "premium");
+            (activePlan === "free" && (pKey === "pro" || pKey === "premium")) ||
+            (activePlan === "pro" && pKey === "premium");
 
           const priceDisplay =
             billingCycle === "monthly"

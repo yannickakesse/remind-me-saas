@@ -28,7 +28,16 @@ export async function getUserSubscription(
     .eq("user_id", userId)
     .maybeSingle();
 
-  const plan = normalizePlan(sub?.plan);
+  let rawPlan = sub?.plan;
+
+  if (!rawPlan) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.id === userId && user?.user_metadata?.subscription_plan) {
+      rawPlan = user.user_metadata.subscription_plan;
+    }
+  }
+
+  const plan = normalizePlan(rawPlan);
   const status = sub?.status ?? "active";
   const currentPeriodEnd = sub?.current_period_end ?? null;
 

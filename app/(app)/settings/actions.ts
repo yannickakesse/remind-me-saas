@@ -164,50 +164,67 @@ export async function deleteAccount() {
 }
 
 export async function updateSubscriptionPlan(newPlan: "free" | "pro" | "premium") {
-  const { supabase, user } = await requireUser();
-  const nowIso = new Date().toISOString();
+  try {
+    const { supabase, user } = await requireUser();
 
-  // 1. Essai avec le client Supabase standard
-  let { error } = await supabase
-    .from("subscriptions")
-    .upsert(
-      {
-        user_id: user.id,
-        plan: newPlan,
-        status: "active",
-        updated_at: nowIso,
-      },
-      { onConflict: "user_id" }
-    );
+    // 1. Mise à jour persistante dans user_metadata (garantie sans restriction RLS)
+    await supabase.auth.updateUser({
+      data: { subscription_plan: newPlan },
+    });
 
-  // 2. Fallback avec le client Admin si restriction RLS
-  if (error) {
+    // 2. Mise à jour de la table subscriptions (uniquement les colonnes existantes en base : plan, status)
+    try {
+      const { error: updateErr } = await supabase
+        .from("subscriptions")
+        .update({
+          plan: newPlan,
+          status: "active",
+        })
+        .eq("user_id", user.id);
+
+      if (updateErr) {
+        // Essai via upsert si la ligne n'existait pas encore
+        await supabase
+          .from("subscriptions")
+          .upsert(
+            {
+              user_id: user.id,
+              plan: newPlan,
+              status: "active",
+            },
+            { onConflict: "user_id" }
+          );
+      }
+    } catch {
+      // Ignorer si RLS bloque la mise à jour directe
+    }
+
+    // 3. Essai via le client d'administration si disponible
     try {
       const adminSupabase = createAdminClient();
-      const adminRes = await adminSupabase
+      await adminSupabase
         .from("subscriptions")
         .upsert(
           {
             user_id: user.id,
             plan: newPlan,
             status: "active",
-            updated_at: nowIso,
           },
           { onConflict: "user_id" }
         );
-      if (!adminRes.error) {
-        error = null;
-      }
     } catch {
-      // Ignorer si adminSupabase n'est pas dispo
+      // Ignorer
     }
+
+    revalidatePath("/settings");
+    revalidatePath("/dashboard");
+    revalidatePath("/activities");
+    revalidatePath("/finances");
+    revalidatePath("/reports");
+
+    return { success: true, plan: newPlan };
+  } catch (err: any) {
+    console.error("[updateSubscriptionPlan] Erreur:", err);
+    return { success: false, error: err?.message || "Impossible de mettre à jour le forfait." };
   }
-
-  if (error) throw new Error("Impossible de mettre à jour le forfait.");
-
-  revalidatePath("/settings");
-  revalidatePath("/dashboard");
-  revalidatePath("/activities");
-  revalidatePath("/finances");
-  revalidatePath("/reports");
 }

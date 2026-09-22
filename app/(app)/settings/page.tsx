@@ -78,7 +78,12 @@ export default async function SettingsPage() {
           {
             id: "subscription",
             label: "Abonnement",
-            content: <SubscriptionSection plan={subscription?.plan ?? "free"} status={subscription?.status ?? "active"} />,
+            content: (
+              <SubscriptionSection
+                plan={subscription?.plan ?? (user?.user_metadata?.subscription_plan as string) ?? "free"}
+                status={subscription?.status ?? "active"}
+              />
+            ),
           },
           { id: "data", label: "Données", content: <DataSection /> },
         ]}
