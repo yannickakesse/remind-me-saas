@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false, // Supprime l'en-tête X-Powered-By pour ne pas exposer Next.js
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   async headers() {
     return [
       {

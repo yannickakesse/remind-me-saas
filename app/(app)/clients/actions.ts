@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { organizationFormSchema, contactFormSchema } from "@/lib/validation/clients";
+import { assertCanCreateContact } from "@/lib/subscriptions/server";
 
 async function requireUser() {
   const supabase = createClient();
@@ -97,6 +98,7 @@ export async function deleteOrganization(organizationId: string) {
 // ----------------------------------------------------------------------------
 export async function createContact(formData: FormData) {
   const { supabase, user } = await requireUser();
+  await assertCanCreateContact(supabase, user.id);
   const parsed = parseContactForm(formData);
 
   const { error } = await supabase.from("contacts").insert({

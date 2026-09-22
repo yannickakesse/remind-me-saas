@@ -13,8 +13,11 @@ export type ProfileFormInput = z.infer<typeof profileFormSchema>;
 
 export const passwordChangeSchema = z
   .object({
-    newPassword: z.string().min(8, "8 caractères minimum"),
-    confirmPassword: z.string(),
+    currentPassword: z.string().optional(),
+    newPassword: z
+      .string()
+      .min(8, "Le mot de passe doit comporter au moins 8 caractères"),
+    confirmPassword: z.string().min(1, "Veuillez confirmer votre mot de passe"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas",

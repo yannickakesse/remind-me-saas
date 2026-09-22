@@ -6,7 +6,11 @@ import {
   Wallet,
   Clock,
   Download,
+  Lock,
+  Zap,
+  ArrowRight,
 } from "lucide-react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
@@ -18,6 +22,7 @@ import { CategoryBreakdown } from "@/components/reports/category-breakdown";
 import { MonthlyEvolution } from "@/components/reports/monthly-evolution";
 import { buttonClasses } from "@/components/ui/button";
 import { getUserTimezone } from "@/lib/time/timezones";
+import { getUserSubscription } from "@/lib/subscriptions/server";
 
 export default async function ReportsPage({
   searchParams,
@@ -30,12 +35,14 @@ export default async function ReportsPage({
   ]);
 
   const timezone = getUserTimezone(profile);
-
   const defaultCurrency = profile?.default_currency ?? "XOF";
   const today = DateTime.now().setZone(timezone);
   const supabase = createClient();
 
-  // Période par défaut : mois en cours (pour une concordance exacte avec le Tableau de bord et les Finances)
+  const userSub = await getUserSubscription(supabase, user!.id);
+  const hasHourlyProfitability = userSub.entitlements.hourlyProfitability;
+
+  // Période par défaut : mois en cours
   const defaultStart = today.startOf("month").toISODate()!;
   const defaultEnd = today.endOf("month").toISODate()!;
 
@@ -160,20 +167,33 @@ export default async function ReportsPage({
             </span>
             <Clock className="w-4 h-4 text-signal" />
           </div>
-          <p className="mt-2 text-xl sm:text-2xl font-extrabold text-ink-950">
-            {averageHourlyRate !== null
-              ? `${formatAmount(averageHourlyRate, defaultCurrency)}/h`
-              : "Données insuffisantes"}
-          </p>
-          <p className="mt-1 text-xs text-ink-500">
-            {totalHoursWorked > 0
-              ? `Pour ${totalHoursWorked} h travaillées au total`
-              : "Planifiez des séances dans le calendrier"}
-          </p>
+          {hasHourlyProfitability ? (
+            <>
+              <p className="mt-2 text-xl sm:text-2xl font-extrabold text-ink-950">
+                {averageHourlyRate !== null
+                  ? `${formatAmount(averageHourlyRate, defaultCurrency)}/h`
+                  : "Données insuffisantes"}
+              </p>
+              <p className="mt-1 text-xs text-ink-500">
+                {totalHoursWorked > 0
+                  ? `Pour ${totalHoursWorked} h travaillées au total`
+                  : "Planifiez des séances dans le calendrier"}
+              </p>
+            </>
+          ) : (
+            <div className="mt-2">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-bold bg-signal-soft text-signal">
+                <Lock className="w-3 h-3" /> Forfait Pro requis
+              </span>
+              <p className="mt-1 text-xs text-ink-500">
+                Calcul automatique de votre taux horaire net.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Section Stratégique : Rentabilité par Activité (§55) */}
+      {/* Section Stratégique : Rentabilité par Activité */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
@@ -185,7 +205,34 @@ export default async function ReportsPage({
             </p>
           </div>
         </div>
-        <ProfitabilityTable items={profitabilityList} />
+
+        {hasHourlyProfitability ? (
+          <ProfitabilityTable items={profitabilityList} />
+        ) : (
+          <div className="rounded-2xl border-2 border-dashed border-ink-200 bg-canvas-raised p-8 text-center space-y-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-signal-soft text-signal">
+              <Lock className="w-6 h-6" />
+            </div>
+            <div className="max-w-md mx-auto space-y-1">
+              <h3 className="text-base font-bold text-ink-950">
+                Débloquez l'analyse de rentabilité horaire
+              </h3>
+              <p className="text-xs text-ink-500 leading-relaxed">
+                Le calcul automatique de la rentabilité par activité et de votre taux horaire réel est inclus à partir du forfait <strong>Pro</strong>.
+              </p>
+            </div>
+            <div>
+              <Link
+                href="/settings"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-signal px-4 py-2 text-xs font-bold text-white hover:bg-signal/90 transition-colors shadow-xs"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                Passer en Pro pour débloquer
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Deux colonnes : Répartition par catégorie & Évolution mensuelle */}

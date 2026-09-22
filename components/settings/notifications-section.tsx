@@ -22,6 +22,7 @@ import {
   Volume2,
   VolumeX,
   Play,
+  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
@@ -38,6 +39,15 @@ interface NotificationsSectionProps {
   notifPrefs: Record<string, unknown> | null;
   notificationPreferences?: NotificationPreference | null;
 }
+
+export type PushState =
+  | "disabled"
+  | "activating"
+  | "active"
+  | "permission_denied"
+  | "unsupported"
+  | "ios_needs_pwa"
+  | "error";
 
 export function NotificationsSection({ notifPrefs, notificationPreferences }: NotificationsSectionProps) {
   const { push } = useToast();
@@ -88,13 +98,12 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   const [saving, setSaving] = useState(false);
   const [soundEnabled, setLocalSoundEnabled] = useState(true);
 
-  // Push Web State
-  const [isPushSupported, setIsPushSupported] = useState(true);
+  // Push Web State Réel
+  const [pushState, setPushState] = useState<PushState>("disabled");
+  const [pushErrorMessage, setPushErrorMessage] = useState<string | null>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
-  const [pushSubscribed, setPushSubscribed] = useState(false);
-  const [registeringPush, setRegisteringPush] = useState(false);
   const [testingPush, setTestingPush] = useState(false);
 
   useEffect(() => {
@@ -114,7 +123,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
     push("🔔 Le carillon audio Remind Me a été joué avec succès !", "success");
   }
 
-  // Détection de l'environnement PWA & Push
+  // Détection exhaustive de l'environnement PWA, Permissions & Push
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -129,48 +138,83 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
 
     const pushSupported =
       "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
-    setIsPushSupported(pushSupported);
 
-    if (pushSupported && "serviceWorker" in navigator) {
+    if (!pushSupported) {
+      setPushState("unsupported");
+      return;
+    }
+
+    if (Notification.permission === "denied") {
+      setPushState("permission_denied");
+      return;
+    }
+
+    if (iosDevice && !standaloneMode) {
+      setPushState("ios_needs_pwa");
+      return;
+    }
+
+    // Vérifier si une souscription réelle existe déjà
+    if ("serviceWorker" in navigator) {
       navigator.serviceWorker.ready
         .then((reg) => reg.pushManager.getSubscription())
         .then((sub) => {
           if (sub) {
-            setPushSubscribed(true);
+            setPushState("active");
             setPushEnabled(true);
+          } else {
+            setPushState("disabled");
           }
         })
-        .catch(() => {});
+        .catch(() => {
+          setPushState("disabled");
+        });
     }
   }, []);
 
   // Déclencheur d'activation Web Push explicite (User Gesture)
   async function handleEnablePush() {
+    setPushErrorMessage(null);
+
     // Sur iOS Safari, Web Push requiert d'abord l'ajout à l'écran d'accueil (PWA)
     if (isIOS && !isStandalone) {
       setShowIOSPrompt(true);
+      setPushState("ios_needs_pwa");
       return;
     }
 
-    if (!isPushSupported) {
-      push("Pour activer les alertes push sur cet appareil, ajoutez l'application à l'écran d'accueil ou utilisez un navigateur supportant Web Push. Les alertes In-App et sonores restent actives.", "info");
+    const pushSupported =
+      "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+
+    if (!pushSupported) {
+      setPushState("unsupported");
+      push(
+        "Ce navigateur ne prend pas en charge le Web Push. Les alertes In-App et sonores restent pleinement actives.",
+        "info"
+      );
       return;
     }
 
-    setRegisteringPush(true);
+    setPushState("activating");
+
     try {
-      // 1. Demande de permission native au navigateur
+      // 1. Demande de permission native
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
-        push("Autorisation non accordée pour les notifications.", "info");
-        setPushSubscribed(false);
-        setPushEnabled(false);
-        setRegisteringPush(false);
+        setPushState("permission_denied");
+        push("Autorisation refusée pour les notifications dans votre navigateur.", "info");
         return;
       }
 
-      // 2. Récupération de l'enregistrement Service Worker
-      const reg = await navigator.serviceWorker.ready;
+      // 2. Enregistrement du Service Worker si non présent
+      let reg: ServiceWorkerRegistration;
+      try {
+        reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        await navigator.serviceWorker.ready;
+      } catch (swErr: any) {
+        console.warn("[Push] Enregistrement SW:", swErr);
+        reg = await navigator.serviceWorker.ready;
+      }
 
       // 3. Création de la souscription PushManager avec clé VAPID
       const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
@@ -204,14 +248,37 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         throw new Error("Impossible d'enregistrer la souscription sur le serveur.");
       }
 
-      setPushSubscribed(true);
+      setPushState("active");
       setPushEnabled(true);
-      push("Notifications push activées avec succès !", "success");
+      push("Notifications push activées avec succès sur cet appareil !", "success");
     } catch (err: any) {
       console.error("[Push] Erreur activation:", err);
+      setPushState("error");
+      setPushErrorMessage(err?.message || "Erreur lors de l'activation du push.");
       push(err?.message || "Erreur lors de l'activation des notifications push.", "error");
-    } finally {
-      setRegisteringPush(false);
+    }
+  }
+
+  // Désactivation propre du Web Push
+  async function handleDisablePush() {
+    try {
+      if ("serviceWorker" in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await sub.unsubscribe();
+          await fetch("/api/push/unsubscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ endpoint: sub.endpoint }),
+          });
+        }
+      }
+      setPushState("disabled");
+      setPushEnabled(false);
+      push("Notifications push désactivées sur cet appareil.", "info");
+    } catch {
+      push("Impossible de désactiver le push.", "error");
     }
   }
 
@@ -281,7 +348,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2 text-signal font-bold text-sm">
               <Smartphone className="w-4 h-4" />
-              <span>Activation requise sur iPhone</span>
+              <span>Activation requise sur iPhone (iOS PWA)</span>
             </div>
             <button
               type="button"
@@ -293,18 +360,18 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           </div>
 
           <p className="text-xs text-ink-700 font-medium leading-relaxed">
-            Pour recevoir les notifications push sur votre iPhone, ajoutez d'abord Remind Me à votre écran d'accueil :
+            Pour recevoir les alertes push instantanées sur votre iPhone, Apple exige d'ajouter l'application à votre écran d'accueil :
           </p>
 
           <ol className="text-xs text-ink-600 space-y-1.5 pl-4 list-decimal">
             <li className="flex items-center gap-1.5">
-              <span>Appuyez sur le bouton Partager</span> <Share className="w-3.5 h-3.5 text-signal inline" /> <span>dans Safari</span>
+              <span>Appuyez sur le bouton Partager</span> <Share className="w-3.5 h-3.5 text-signal inline" /> <span>en bas de Safari</span>
             </li>
             <li className="flex items-center gap-1.5">
               <span>Sélectionnez</span> <span className="font-semibold text-ink-950">« Sur l'écran d'accueil »</span> <PlusSquare className="w-3.5 h-3.5 text-signal inline" />
             </li>
-            <li>Ouvrez l'application depuis la nouvelle icône <strong>Remind Me</strong></li>
-            <li>Revenez dans les Paramètres et appuyez sur <strong>Activer les notifications push</strong></li>
+            <li>Ouvrez ensuite l'application depuis la nouvelle icône <strong>Remind Me</strong></li>
+            <li>Revenez dans Paramètres &gt; Notifications et activez les alertes push.</li>
           </ol>
         </div>
       )}
@@ -355,10 +422,12 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             </div>
           </label>
 
-          {/* Web Push */}
+          {/* Web Push avec statut réel */}
           <div className={`p-3.5 rounded-xl border transition-all ${
-            pushSubscribed
+            pushState === "active"
               ? "border-positive/40 bg-positive-soft/20"
+              : pushState === "permission_denied"
+              ? "border-warning/40 bg-warning-soft/20"
               : "border-ink-200 bg-canvas-raised"
           }`}>
             <div className="flex items-start justify-between gap-2">
@@ -366,42 +435,114 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <Smartphone className="w-3.5 h-3.5 text-signal" />
                 <span className="block text-xs font-bold text-ink-950">Push Mobile</span>
               </div>
-              {pushSubscribed ? (
+
+              {/* État visuel clair */}
+              {pushState === "active" && (
                 <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-positive-soft text-positive flex items-center gap-1">
-                  <CheckCircle2 className="w-2.5 h-2.5" /> Actif
+                  <CheckCircle2 className="w-2.5 h-2.5" /> Push activé
                 </span>
-              ) : (
+              )}
+              {pushState === "activating" && (
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-signal-soft text-signal animate-pulse">
+                  Activation en cours...
+                </span>
+              )}
+              {pushState === "disabled" && (
                 <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-ink-100 text-ink-700">
-                  Désactivé
+                  Push désactivé
+                </span>
+              )}
+              {pushState === "permission_denied" && (
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-danger-soft text-danger flex items-center gap-1">
+                  <ShieldAlert className="w-2.5 h-2.5" /> Permission refusée
+                </span>
+              )}
+              {pushState === "unsupported" && (
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-ink-100 text-ink-500">
+                  Non disponible
+                </span>
+              )}
+              {pushState === "ios_needs_pwa" && (
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-warning-soft text-warning">
+                  PWA requise (iOS)
+                </span>
+              )}
+              {pushState === "error" && (
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-danger-soft text-danger">
+                  Erreur
                 </span>
               )}
             </div>
+
             <span className="block text-[11px] text-ink-500 mt-1">
-              Rappels instantanés sur iPhone, Android et Mac/PC.
+              {pushState === "permission_denied"
+                ? "Autorisation bloquée dans les réglages du navigateur. Cliquez sur l'icône de cadenas pour autoriser."
+                : pushState === "unsupported"
+                ? "Votre navigateur ne supporte pas l'API Web Push."
+                : "Rappels instantanés sur iPhone, Android et Mac/PC."}
             </span>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {!pushSubscribed ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="primary"
-                  loading={registeringPush}
-                  onClick={handleEnablePush}
-                  className="w-full text-xs py-1.5"
-                >
-                  <Smartphone className="w-3.5 h-3.5 mr-1.5" /> Activer Push
-                </Button>
-              ) : (
+            {pushErrorMessage && (
+              <p className="mt-2 text-[10px] text-danger font-medium">{pushErrorMessage}</p>
+            )}
+
+            <div className="mt-3 flex flex-col gap-1.5">
+              {pushState === "active" ? (
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    loading={testingPush}
+                    onClick={handleTestPush}
+                    className="flex-1 text-xs py-1.5"
+                  >
+                    <Send className="w-3 h-3 mr-1.5" /> Tester la notification
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={handleDisablePush}
+                    className="text-xs py-1.5 text-danger hover:text-danger"
+                  >
+                    Désactiver
+                  </Button>
+                </div>
+              ) : pushState === "permission_denied" ? (
                 <Button
                   type="button"
                   size="sm"
                   variant="secondary"
-                  loading={testingPush}
-                  onClick={handleTestPush}
+                  onClick={() => alert("Pour activer le push : ouvrez les réglages de votre navigateur (icône cadenas à gauche de l'URL) et autorisez les notifications pour ce site.")}
                   className="w-full text-xs py-1.5"
                 >
-                  <Send className="w-3 h-3 mr-1.5" /> Tester la notification
+                  <AlertCircle className="w-3.5 h-3.5 mr-1.5 text-warning" /> Guide d'autorisation
+                </Button>
+              ) : pushState === "ios_needs_pwa" ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="primary"
+                  onClick={() => setShowIOSPrompt(true)}
+                  className="w-full text-xs py-1.5"
+                >
+                  <Smartphone className="w-3.5 h-3.5 mr-1.5" /> Ajouter à l'écran d'accueil
+                </Button>
+              ) : pushState === "unsupported" ? (
+                <div className="text-[10px] text-ink-500 italic py-1">
+                  Non supporté sur ce navigateur
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="primary"
+                  loading={pushState === "activating"}
+                  onClick={handleEnablePush}
+                  className="w-full text-xs py-1.5"
+                >
+                  <Smartphone className="w-3.5 h-3.5 mr-1.5" /> Activer les notifications push
                 </Button>
               )}
             </div>

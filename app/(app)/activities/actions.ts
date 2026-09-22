@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { activityFormSchema } from "@/lib/validation/activities";
 import { assertNoScheduleConflicts } from "@/lib/activities/schedules";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
+import { assertCanCreateActivity } from "@/lib/subscriptions/server";
 import { DateTime } from "luxon";
 
 /**
@@ -135,6 +136,13 @@ export async function createActivity(formData: FormData) {
     }
 
     const parsed = parseFormData(formData);
+
+    // Vérifier les quotas du forfait d'abonnement
+    try {
+      await assertCanCreateActivity(supabase, user.id);
+    } catch (quotaError: any) {
+      return { error: quotaError.message || "Limite de votre forfait atteinte." };
+    }
 
     // Vérifier l'absence de chevauchement d'horaires AVANT d'insérer en base
     if (!parsed.schedule.variableHours && parsed.schedule.schedules.length > 0) {

@@ -10,6 +10,10 @@ import {
   savingsGoalFormSchema,
   scheduledExpenseFormSchema,
 } from "@/lib/validation/finances";
+import {
+  assertCanCreateBudget,
+  assertCanCreateSavingsGoal,
+} from "@/lib/subscriptions/server";
 
 async function requireUser() {
   const supabase = createClient();
@@ -240,6 +244,7 @@ export async function deleteExpense(id: string) {
 // ----------------------------------------------------------------------------
 export async function createBudget(formData: FormData) {
   const { supabase, user } = await requireUser();
+  await assertCanCreateBudget(supabase, user.id);
   const parsed = budgetFormSchema.parse({
     category: formData.get("category"),
     monthlyLimit: formData.get("monthlyLimit"),
@@ -293,6 +298,7 @@ export async function deleteBudget(id: string) {
 // ----------------------------------------------------------------------------
 export async function createSavingsGoal(formData: FormData) {
   const { supabase, user } = await requireUser();
+  await assertCanCreateSavingsGoal(supabase, user.id);
   const parsed = savingsGoalFormSchema.parse({
     name: formData.get("name"),
     category: formData.get("category") || "other",
