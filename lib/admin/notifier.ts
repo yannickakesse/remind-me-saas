@@ -5,7 +5,7 @@
  */
 
 export interface AdminEventData {
-  type: "signup" | "email_confirmed" | "test_alert" | "system_alert";
+  type: "signup" | "email_confirmed" | "test_alert" | "payment_received" | "system_alert";
   email?: string;
   fullName?: string;
   details?: Record<string, any>;
@@ -127,15 +127,22 @@ export async function notifyAdmin(event: AdminEventData): Promise<{ telegram: bo
       ];
       break;
 
-    case "test_alert":
-      telegramMessage = `🔔 <b>TEST DU MONITORING REMIND ME</b>\n\n` +
-        `Tout fonctionne parfaitement ! Vous recevrez vos alertes d'inscriptions et d'activités ici en direct sur votre smartphone.`;
+    case "payment_received":
+      telegramMessage = `💳 <b>PAIEMENT CONFIRMÉ (BICTORYS) !</b>\n\n` +
+        `👤 <b>Client :</b> ${event.fullName || "Utilisateur"}\n` +
+        `📧 <b>Email :</b> <code>${event.email}</code>\n` +
+        `💰 <b>Montant :</b> ${event.details?.amount || "N/A"}\n` +
+        `⚡ <b>Forfait :</b> <b>${event.details?.plan?.toUpperCase()}</b> (${event.details?.billingCycle})\n` +
+        `🕒 <b>Date :</b> ${now}\n` +
+        `✅ <b>Statut :</b> Abonnement activé instantanément !`;
 
-      discordTitle = "🔔 Test du Système d'Alertes";
-      discordDescription = "Test réussi ! Les notifications de surveillance Remind Me sont bien configurées.";
+      discordTitle = "💳 Nouveau Paiement Confirmé";
+      discordDescription = `Un abonnement a été souscrit et validé avec succès sur **Remind Me**.`;
       discordFields = [
-        { name: "Canal", value: "Smartphone / Mobile Live", inline: true },
-        { name: "Statut", value: "🟢 Opérationnel", inline: true },
+        { name: "Client", value: event.fullName || "Utilisateur", inline: true },
+        { name: "Email", value: `\`${event.email}\``, inline: true },
+        { name: "Forfait", value: `${event.details?.plan?.toUpperCase()} (${event.details?.billingCycle})`, inline: true },
+        { name: "Montant", value: event.details?.amount || "N/A", inline: true },
       ];
       break;
 

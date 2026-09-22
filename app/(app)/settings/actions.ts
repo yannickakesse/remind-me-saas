@@ -228,3 +228,38 @@ export async function updateSubscriptionPlan(newPlan: "free" | "pro" | "premium"
     return { success: false, error: err?.message || "Impossible de mettre à jour le forfait." };
   }
 }
+
+export async function initiateBictorysCheckoutAction(params: {
+  targetPlan: "pro" | "premium";
+  billingCycle: "monthly" | "yearly";
+  baseUrl: string;
+}): Promise<{ success: boolean; checkoutUrl?: string; chargeId?: string; error?: string }> {
+  try {
+    const { supabase, user } = await requireUser();
+    const { createBictorysCheckoutSession } = await import("@/lib/payments/bictorys");
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const result = await createBictorysCheckoutSession({
+      userId: user.id,
+      userEmail: user.email || "",
+      userName: profile?.full_name || undefined,
+      plan: params.targetPlan,
+      billingCycle: params.billingCycle,
+      baseUrl: params.baseUrl,
+    });
+
+    return result;
+  } catch (err: any) {
+    console.error("[initiateBictorysCheckoutAction] Erreur:", err);
+    return {
+      success: false,
+      error: err?.message || "Impossible d'initialiser le paiement Bictorys.",
+    };
+  }
+}
+

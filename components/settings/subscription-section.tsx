@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect } from "react";
 import { Check, X, Sparkles, ShieldCheck, Zap, ArrowRight } from "lucide-react";
 import { PLAN_ENTITLEMENTS, normalizePlan, type PlanType } from "@/lib/subscriptions/entitlements";
-import { updateSubscriptionPlan } from "@/app/(app)/settings/actions";
+import { updateSubscriptionPlan, initiateBictorysCheckoutAction } from "@/app/(app)/settings/actions";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
@@ -25,6 +25,7 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
   }, [plan, subscription]);
 
   const [isPending, startTransition] = useTransition();
+  const [isBictorysPending, setIsBictorysPending] = useState(false);
   const [selectedTargetPlan, setSelectedTargetPlan] = useState<PlanType | null>(null);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [modalOpen, setModalOpen] = useState(false);
@@ -33,6 +34,31 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
     if (targetPlan === activePlan) return;
     setSelectedTargetPlan(targetPlan);
     setModalOpen(true);
+  }
+
+  async function handleBictorysPayment() {
+    if (!selectedTargetPlan || selectedTargetPlan === "free") return;
+    setIsBictorysPending(true);
+
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await initiateBictorysCheckoutAction({
+        targetPlan: selectedTargetPlan,
+        billingCycle,
+        baseUrl,
+      });
+
+      if (res && res.success && res.checkoutUrl) {
+        push("Redirection vers Bictorys (Wave, Orange Money, MTN, Moov)...", "info");
+        window.location.href = res.checkoutUrl;
+      } else {
+        setIsBictorysPending(false);
+        push(res?.error || "Impossible d'initialiser le paiement Bictorys.", "error");
+      }
+    } catch (err: any) {
+      setIsBictorysPending(false);
+      push(err?.message || "Erreur de connexion avec Bictorys.", "error");
+    }
   }
 
   function handleConfirmPlanChange() {
@@ -366,23 +392,41 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
               )}
             </div>
 
-            <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-ink-100">
               <Button
                 type="button"
                 variant="secondary"
-                disabled={isPending}
+                disabled={isPending || isBictorysPending}
                 onClick={() => setModalOpen(false)}
               >
                 Annuler
               </Button>
-              <Button
-                type="button"
-                variant="primary"
-                loading={isPending}
-                onClick={handleConfirmPlanChange}
-              >
-                Confirmer le changement
-              </Button>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  loading={isPending}
+                  disabled={isPending || isBictorysPending}
+                  onClick={handleConfirmPlanChange}
+                  className="text-xs"
+                >
+                  ⚡ Tester sans payer (Mode Démo)
+                </Button>
+
+                {selectedTargetPlan !== "free" && (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    loading={isBictorysPending}
+                    disabled={isPending || isBictorysPending}
+                    onClick={handleBictorysPayment}
+                    className="bg-signal hover:bg-signal/90 text-xs font-bold"
+                  >
+                    💳 Payer via Bictorys (Wave / Orange / MTN / CB)
+                  </Button>
+                )}
+              </div>
             </div>
           </Modal>
         );
