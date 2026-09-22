@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password"];
+const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/auth"];
 const RECOVERY_ROUTE = "/reset-password";
 
 export async function middleware(request: NextRequest) {
@@ -33,8 +33,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Authentifié sur une page d'auth → redirection vers dashboard
-  if (user && isPublicRoute) {
+  // Authentifié sur une page d'auth (login/register) → redirection vers dashboard
+  // Note: /auth/confirmed et /auth/error restent accessibles même connecté
+  if (user && (pathname.startsWith("/login") || pathname.startsWith("/register") || pathname.startsWith("/forgot-password"))) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

@@ -5,6 +5,7 @@ import {
   Bell,
   Mail,
   Smartphone,
+  MessageSquare,
   Briefcase,
   CheckSquare,
   Wallet,
@@ -23,6 +24,10 @@ import {
   VolumeX,
   Play,
   ShieldAlert,
+  Calendar,
+  Sparkles,
+  Info,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
@@ -80,6 +85,12 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   const [conflictAlerts, setConflictAlerts] = useState(
     notificationPreferences?.conflict_alerts ?? (notifPrefs?.conflict_alerts as boolean ?? true)
   );
+  const [weeklySummaryEnabled, setWeeklySummaryEnabled] = useState(
+    notificationPreferences?.weekly_summary_enabled ?? (notifPrefs?.weekly_summary_enabled as boolean ?? true)
+  );
+  const [dailySummaryEnabled, setDailySummaryEnabled] = useState(
+    notificationPreferences?.daily_summary_enabled ?? (notifPrefs?.daily_summary_enabled as boolean ?? true)
+  );
 
   const [quietHoursEnabled, setQuietHoursEnabled] = useState(
     notificationPreferences?.quiet_hours_enabled ?? (notifPrefs?.quiet_hours_enabled as boolean ?? false)
@@ -98,7 +109,11 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   const [saving, setSaving] = useState(false);
   const [soundEnabled, setLocalSoundEnabled] = useState(true);
 
-  // Push Web State Réel
+  // Tests & États réels de chaque canal
+  const [testingInApp, setTestingInApp] = useState(false);
+  const [testingEmail, setTestingEmail] = useState(false);
+  const [emailStatusMsg, setEmailStatusMsg] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+
   const [pushState, setPushState] = useState<PushState>("disabled");
   const [pushErrorMessage, setPushErrorMessage] = useState<string | null>(null);
   const [isIOS, setIsIOS] = useState(false);
@@ -123,7 +138,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
     push("🔔 Le carillon audio Remind Me a été joué avec succès !", "success");
   }
 
-  // Détection exhaustive de l'environnement PWA, Permissions & Push
+  // Détection de l'environnement PWA & Web Push
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -154,7 +169,6 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       return;
     }
 
-    // Vérifier si une souscription réelle existe déjà
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.ready
         .then((reg) => reg.pushManager.getSubscription())
@@ -172,11 +186,66 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
     }
   }, []);
 
-  // Déclencheur d'activation Web Push explicite (User Gesture)
+  // Test de notification In-App réelle
+  async function handleTestInApp() {
+    setTestingInApp(true);
+    try {
+      const res = await fetch("/api/notifications/test-inapp", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        push("Notification In-App créée avec succès ! Vérifiez la cloche ou le centre de notifications.", "success");
+      } else {
+        push(data.error || "Impossible de créer la notification in-app.", "error");
+      }
+    } catch {
+      push("Erreur réseau lors du test in-app.", "error");
+    } finally {
+      setTestingInApp(false);
+    }
+  }
+
+  // Test d'envoi d'E-mail réel
+  async function handleTestEmail() {
+    setTestingEmail(true);
+    setEmailStatusMsg(null);
+    try {
+      const res = await fetch("/api/email/test", { method: "POST" });
+      const data = await res.json();
+
+      if (data.success) {
+        setEmailStatusMsg({
+          type: "success",
+          text: `E-mail envoyé avec succès à ${data.recipient} (Message ID : ${data.messageId}).`,
+        });
+        push(`Véritable e-mail de test envoyé à ${data.recipient} !`, "success");
+      } else if (data.status === "NOT_CONFIGURED") {
+        setEmailStatusMsg({
+          type: "info",
+          text: "Canal e-mail en attente de configuration : ajoutez votre clé RESEND_API_KEY dans vos variables d'environnement.",
+        });
+        push("Fournisseur e-mail non configuré (RESEND_API_KEY manquante).", "info");
+      } else {
+        setEmailStatusMsg({
+          type: "error",
+          text: data.error || "Échec de l'envoi de l'e-mail par le fournisseur.",
+        });
+        push(data.error || "Échec lors de l'envoi de l'e-mail.", "error");
+      }
+    } catch {
+      setEmailStatusMsg({
+        type: "error",
+        text: "Erreur réseau lors du déclenchement de l'e-mail.",
+      });
+      push("Erreur réseau lors du test d'e-mail.", "error");
+    } finally {
+      setTestingEmail(false);
+    }
+  }
+
+  // Activation Web Push
   async function handleEnablePush() {
     setPushErrorMessage(null);
 
-    // Sur iOS Safari, Web Push requiert d'abord l'ajout à l'écran d'accueil (PWA)
     if (isIOS && !isStandalone) {
       setShowIOSPrompt(true);
       setPushState("ios_needs_pwa");
@@ -188,17 +257,13 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
 
     if (!pushSupported) {
       setPushState("unsupported");
-      push(
-        "Ce navigateur ne prend pas en charge le Web Push. Les alertes In-App et sonores restent pleinement actives.",
-        "info"
-      );
+      push("Ce navigateur ne prend pas en charge le Web Push.", "info");
       return;
     }
 
     setPushState("activating");
 
     try {
-      // 1. Demande de permission native
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         setPushState("permission_denied");
@@ -206,24 +271,20 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         return;
       }
 
-      // 2. Enregistrement du Service Worker si non présent
       let reg: ServiceWorkerRegistration;
       try {
         reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
         await navigator.serviceWorker.ready;
       } catch (swErr: any) {
-        console.warn("[Push] Enregistrement SW:", swErr);
         reg = await navigator.serviceWorker.ready;
       }
 
-      // 3. Création de la souscription PushManager avec clé VAPID
       const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
       const subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: convertedVapidKey,
       });
 
-      // 4. Envoi de la souscription à Supabase via l'API
       const rawKeys = subscription.toJSON();
       const response = await fetch("/api/push/subscribe", {
         method: "POST",
@@ -260,7 +321,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
     }
   }
 
-  // Désactivation propre du Web Push
+  // Désactivation Web Push
   async function handleDisablePush() {
     try {
       if ("serviceWorker" in navigator) {
@@ -283,7 +344,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
     }
   }
 
-  // Test immédiat de notification push
+  // Test Push
   async function handleTestPush() {
     setTestingPush(true);
     try {
@@ -294,7 +355,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       const data = await response.json();
 
       if (data.success) {
-        push("Notification push de test envoyée !", "success");
+        push("Notification push de test envoyée avec succès sur votre appareil !", "success");
       } else {
         push(data.error || "Impossible d'envoyer la notification de test.", "error");
       }
@@ -319,6 +380,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       if (financeReminders) formData.set("finance_reminders", "on");
       if (taskReminders) formData.set("task_reminders", "on");
       if (conflictAlerts) formData.set("conflict_alerts", "on");
+      if (weeklySummaryEnabled) formData.set("weekly_summary_enabled", "on");
+      if (dailySummaryEnabled) formData.set("daily_summary_enabled", "on");
 
       if (quietHoursEnabled) formData.set("quiet_hours_enabled", "on");
       formData.set("quiet_hours_start", quietHoursStart);
@@ -337,9 +400,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-8">
       <div>
-        <h3 className="text-base font-bold text-ink-950">Centre de notifications & Alertes</h3>
+        <h3 className="text-base font-bold text-ink-950">Centre de notifications & Alertes réelles</h3>
         <p className="text-xs text-ink-500 mt-1">
-          Personnalisez la fréquence, les canaux de diffusion et les alertes automatisées de vos activités.
+          Gérez vos canaux de réception réels (In-App, E-mail, Push Mobile), testez leur fonctionnement en direct et configurez vos règles de rappel.
         </p>
       </div>
 
@@ -380,145 +443,179 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       {/* Section 1: Canaux de diffusion */}
       <div className="space-y-3">
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-600">
-          Canaux de réception (Channels)
+          Canaux de réception (Multi-Channels)
         </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* In-App */}
-          <label className="flex items-start gap-3 p-3.5 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
-            <input
-              type="checkbox"
-              checked={inAppEnabled}
-              onChange={(e) => setInAppEnabled(e.target.checked)}
-              className="mt-1 rounded text-signal focus:ring-signal"
-            />
-            <div>
-              <div className="flex items-center gap-1.5">
-                <Bell className="w-3.5 h-3.5 text-signal" />
-                <span className="block text-xs font-bold text-ink-950">In-App</span>
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-positive-soft text-positive">Actif</span>
-              </div>
-              <span className="block text-[11px] text-ink-500 mt-0.5">
-                Cloche, badges temps réel et panneau « Nécessite votre attention ».
-              </span>
-            </div>
-          </label>
 
-          {/* E-mail */}
-          <label className="flex items-start gap-3 p-3.5 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
-            <input
-              type="checkbox"
-              checked={emailEnabled}
-              onChange={(e) => setEmailEnabled(e.target.checked)}
-              className="mt-1 rounded text-signal focus:ring-signal"
-            />
-            <div>
-              <div className="flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-signal" />
-                <span className="block text-xs font-bold text-ink-950">E-mail</span>
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-signal-soft text-signal">Configurable</span>
-              </div>
-              <span className="block text-[11px] text-ink-500 mt-0.5">
-                Relances pour paiements en retard et échéances critiques.
-              </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {/* 1. In-App */}
+          <div className="p-3.5 rounded-xl border border-ink-200 bg-canvas-raised space-y-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={inAppEnabled}
+                  onChange={(e) => setInAppEnabled(e.target.checked)}
+                  className="rounded text-signal focus:ring-signal"
+                />
+                <div className="flex items-center gap-1.5">
+                  <Bell className="w-4 h-4 text-signal" />
+                  <span className="text-xs font-bold text-ink-950">In-App</span>
+                </div>
+              </label>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-positive-soft text-positive">Opérationnel</span>
             </div>
-          </label>
+            <p className="text-[11px] text-ink-500 leading-relaxed">
+              Cloche d'alertes, badges de non-lus et panneau d'attention quotidienne.
+            </p>
+            <div className="pt-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                loading={testingInApp}
+                onClick={handleTestInApp}
+                className="w-full text-xs py-1.5"
+              >
+                <Send className="w-3 h-3 mr-1.5" /> Tester la notification In-App
+              </Button>
+            </div>
+          </div>
 
-          {/* Web Push avec statut réel */}
-          <div className={`p-3.5 rounded-xl border transition-all ${
+          {/* 2. E-mail */}
+          <div className="p-3.5 rounded-xl border border-ink-200 bg-canvas-raised space-y-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={emailEnabled}
+                  onChange={(e) => setEmailEnabled(e.target.checked)}
+                  className="rounded text-signal focus:ring-signal"
+                />
+                <div className="flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-signal" />
+                  <span className="text-xs font-bold text-ink-950">E-mail Transactionnel</span>
+                </div>
+              </label>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-signal-soft text-signal">Resend API</span>
+            </div>
+            <p className="text-[11px] text-ink-500 leading-relaxed">
+              Véritables e-mails envoyés dans votre boîte mail pour les échéances et impayés.
+            </p>
+            <div className="pt-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                loading={testingEmail}
+                onClick={handleTestEmail}
+                className="w-full text-xs py-1.5"
+              >
+                <Send className="w-3 h-3 mr-1.5" /> Tester l'envoi d'e-mail
+              </Button>
+            </div>
+            {emailStatusMsg && (
+              <p
+                className={`text-[10px] p-2 rounded-lg leading-relaxed ${
+                  emailStatusMsg.type === "success"
+                    ? "bg-positive-soft text-positive"
+                    : emailStatusMsg.type === "info"
+                    ? "bg-signal-soft text-signal"
+                    : "bg-danger-soft text-danger"
+                }`}
+              >
+                {emailStatusMsg.text}
+              </p>
+            )}
+          </div>
+
+          {/* 3. Web Push Mobile & Desktop */}
+          <div className={`p-3.5 rounded-xl border transition-all space-y-2.5 sm:col-span-2 ${
             pushState === "active"
-              ? "border-positive/40 bg-positive-soft/20"
+              ? "border-positive/40 bg-positive-soft/15"
               : pushState === "permission_denied"
-              ? "border-warning/40 bg-warning-soft/20"
+              ? "border-warning/40 bg-warning-soft/15"
               : "border-ink-200 bg-canvas-raised"
           }`}>
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <Smartphone className="w-3.5 h-3.5 text-signal" />
-                <span className="block text-xs font-bold text-ink-950">Push Mobile</span>
+                <Smartphone className="w-4 h-4 text-signal" />
+                <span className="text-xs font-bold text-ink-950">Push Mobile & Notifications Système</span>
               </div>
 
-              {/* État visuel clair */}
               {pushState === "active" && (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-positive-soft text-positive flex items-center gap-1">
-                  <CheckCircle2 className="w-2.5 h-2.5" /> Push activé
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-positive-soft text-positive flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Push actif
                 </span>
               )}
               {pushState === "activating" && (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-signal-soft text-signal animate-pulse">
-                  Activation en cours...
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-signal-soft text-signal animate-pulse">
+                  Activation...
                 </span>
               )}
               {pushState === "disabled" && (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-ink-100 text-ink-700">
-                  Push désactivé
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-ink-100 text-ink-700">
+                  Désactivé
                 </span>
               )}
               {pushState === "permission_denied" && (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-danger-soft text-danger flex items-center gap-1">
-                  <ShieldAlert className="w-2.5 h-2.5" /> Permission refusée
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-danger-soft text-danger flex items-center gap-1">
+                  <ShieldAlert className="w-3 h-3" /> Permission refusée
                 </span>
               )}
               {pushState === "unsupported" && (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-ink-100 text-ink-500">
-                  Non disponible
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-ink-100 text-ink-500">
+                  Non supporté
                 </span>
               )}
               {pushState === "ios_needs_pwa" && (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-warning-soft text-warning">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-warning-soft text-warning">
                   PWA requise (iOS)
-                </span>
-              )}
-              {pushState === "error" && (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-danger-soft text-danger">
-                  Erreur
                 </span>
               )}
             </div>
 
-            <span className="block text-[11px] text-ink-500 mt-1">
+            <p className="text-[11px] text-ink-500 leading-relaxed">
               {pushState === "permission_denied"
-                ? "Autorisation bloquée dans les réglages du navigateur. Cliquez sur l'icône de cadenas pour autoriser."
-                : pushState === "unsupported"
-                ? "Votre navigateur ne supporte pas l'API Web Push."
-                : "Rappels instantanés sur iPhone, Android et Mac/PC."}
-            </span>
+                ? "Autorisation bloquée dans votre navigateur. Cliquez sur l'icône de cadenas pour autoriser."
+                : "Recevez les alertes directement sur votre écran même lorsque l'application est fermée."}
+            </p>
 
             {pushErrorMessage && (
-              <p className="mt-2 text-[10px] text-danger font-medium">{pushErrorMessage}</p>
+              <p className="text-[10px] text-danger font-medium">{pushErrorMessage}</p>
             )}
 
-            <div className="mt-3 flex flex-col gap-1.5">
+            <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
               {pushState === "active" ? (
-                <div className="flex items-center gap-2">
+                <>
                   <Button
                     type="button"
                     size="sm"
                     variant="secondary"
                     loading={testingPush}
                     onClick={handleTestPush}
-                    className="flex-1 text-xs py-1.5"
+                    className="w-full sm:w-auto text-xs py-1.5"
                   >
-                    <Send className="w-3 h-3 mr-1.5" /> Tester la notification
+                    <Send className="w-3 h-3 mr-1.5" /> Tester la notification push
                   </Button>
                   <Button
                     type="button"
                     size="sm"
                     variant="secondary"
                     onClick={handleDisablePush}
-                    className="text-xs py-1.5 text-danger hover:text-danger"
+                    className="w-full sm:w-auto text-xs py-1.5 text-danger hover:text-danger"
                   >
-                    Désactiver
+                    Désactiver sur cet appareil
                   </Button>
-                </div>
+                </>
               ) : pushState === "permission_denied" ? (
                 <Button
                   type="button"
                   size="sm"
                   variant="secondary"
-                  onClick={() => alert("Pour activer le push : ouvrez les réglages de votre navigateur (icône cadenas à gauche de l'URL) et autorisez les notifications pour ce site.")}
+                  onClick={() => alert("Pour réactiver : cliquez sur l'icône de cadenas à gauche de l'adresse du site et autorisez les notifications.")}
                   className="w-full text-xs py-1.5"
                 >
-                  <AlertCircle className="w-3.5 h-3.5 mr-1.5 text-warning" /> Guide d'autorisation
+                  <AlertCircle className="w-3.5 h-3.5 mr-1.5 text-warning" /> Guide d'autorisation navigateur
                 </Button>
               ) : pushState === "ios_needs_pwa" ? (
                 <Button
@@ -528,12 +625,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                   onClick={() => setShowIOSPrompt(true)}
                   className="w-full text-xs py-1.5"
                 >
-                  <Smartphone className="w-3.5 h-3.5 mr-1.5" /> Ajouter à l'écran d'accueil
+                  <Smartphone className="w-3.5 h-3.5 mr-1.5" /> Ajouter à l'écran d'accueil iPhone
                 </Button>
               ) : pushState === "unsupported" ? (
-                <div className="text-[10px] text-ink-500 italic py-1">
-                  Non supporté sur ce navigateur
-                </div>
+                <div className="text-[10px] text-ink-500 italic">Navigateur non compatible Web Push</div>
               ) : (
                 <Button
                   type="button"
@@ -541,17 +636,33 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                   variant="primary"
                   loading={pushState === "activating"}
                   onClick={handleEnablePush}
-                  className="w-full text-xs py-1.5"
+                  className="w-full sm:w-auto text-xs py-1.5"
                 >
                   <Smartphone className="w-3.5 h-3.5 mr-1.5" /> Activer les notifications push
                 </Button>
               )}
             </div>
           </div>
+
+          {/* 4. WhatsApp (Statut véridique & Architecture prête) */}
+          <div className="p-3.5 rounded-xl border border-ink-200 bg-canvas-raised space-y-2.5 sm:col-span-2 opacity-85">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <MessageSquare className="w-4 h-4 text-ink-500" />
+                <span className="text-xs font-bold text-ink-950">WhatsApp Business</span>
+              </div>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-ink-100 text-ink-600 border border-ink-200">
+                Non configuré (En attente d'API)
+              </span>
+            </div>
+            <p className="text-[11px] text-ink-500 leading-relaxed">
+              L'architecture technique pour l'API officielle (Twilio / Meta Cloud API) est intégrée. Aucun envoi n'est simulé tant que vos identifiants d'API officiels ne sont pas renseignés.
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Section 1.5: Sonnerie Audio de Rappel (Carillon Remind Me) */}
+      {/* Section 1.5: Sonnerie Audio de Rappel */}
       <div className="p-4 rounded-2xl border border-signal/30 bg-signal-soft/20 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -560,15 +671,15 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-ink-950">Sonnerie des rappels & Alertes audio</span>
+                <span className="text-sm font-bold text-ink-950">Carillon sonore officiel Remind Me</span>
                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                   soundEnabled ? "bg-positive-soft text-positive" : "bg-ink-100 text-ink-600"
                 }`}>
-                  {soundEnabled ? "Sonnerie activée" : "Sonnerie désactivée"}
+                  {soundEnabled ? "Son activé" : "Son coupé"}
                 </span>
               </div>
               <p className="text-xs text-ink-600 mt-0.5">
-                Joue le carillon sonore officiel Remind Me lors de l'arrivée d'une échéance de tâche ou d'une notification critique.
+                Joue un carillon agréable au moment exact des échéances de tâches et alertes urgentes.
               </p>
             </div>
           </div>
@@ -581,7 +692,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               onClick={handleTestChime}
               className="text-xs"
             >
-              <Play className="w-3.5 h-3.5 mr-1.5 fill-current text-signal" /> Tester le son
+              <Play className="w-3.5 h-3.5 mr-1.5 fill-current text-signal" /> Écouter
             </Button>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -596,13 +707,31 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         </div>
       </div>
 
-      {/* Section 2: Types d'alertes & Rappels */}
+      {/* Section 2: Types d'alertes & Règles déterministes */}
       <div className="space-y-3">
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-600">
-          Catégories d'alertes prises en charge
+          Règles de rappels & Alertes automatiques
         </h4>
 
         <div className="space-y-2.5">
+          <label className="flex items-start gap-3 p-3 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
+            <input
+              type="checkbox"
+              checked={paymentReminders}
+              onChange={(e) => setPaymentReminders(e.target.checked)}
+              className="mt-1 rounded text-signal focus:ring-signal"
+            />
+            <div className="flex-1">
+              <div className="flex items-center gap-1.5">
+                <Wallet className="w-3.5 h-3.5 text-gold-dark" />
+                <span className="block text-xs font-bold text-ink-950">Paiements attendus (J-7, J-3, J-1, Jour J, Impayés)</span>
+              </div>
+              <span className="block text-[11px] text-ink-500 mt-0.5">
+                Rappels progressifs avant échéance et alertes si non encaissé. S'arrête immédiatement dès que le paiement est marqué comme reçu.
+              </span>
+            </div>
+          </label>
+
           <label className="flex items-start gap-3 p-3 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
             <input
               type="checkbox"
@@ -613,10 +742,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <Briefcase className="w-3.5 h-3.5 text-signal" />
-                <span className="block text-xs font-bold text-ink-950">Activités & Séances</span>
+                <span className="block text-xs font-bold text-ink-950">Activités & Séances du calendrier</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Rappels programmés avant les créneaux d'activité (J-1, H-3, H-1, 30m, 15m).
+                Rappels programmés (J-1, H-3, H-1, 30m, 15m) et alertes pour les séances passées non encore confirmées.
               </span>
             </div>
           </label>
@@ -634,25 +763,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <span className="block text-xs font-bold text-ink-950">Tâches & Échéances</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Rappels des tâches imminentes, échéances du jour et alertes de retard.
-              </span>
-            </div>
-          </label>
-
-          <label className="flex items-start gap-3 p-3 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
-            <input
-              type="checkbox"
-              checked={paymentReminders}
-              onChange={(e) => setPaymentReminders(e.target.checked)}
-              className="mt-1 rounded text-signal focus:ring-signal"
-            />
-            <div className="flex-1">
-              <div className="flex items-center gap-1.5">
-                <Wallet className="w-3.5 h-3.5 text-gold-dark" />
-                <span className="block text-xs font-bold text-ink-950">Paiements attendus & Factures clients</span>
-              </div>
-              <span className="block text-[11px] text-ink-500 mt-0.5">
-                Alertes séquentielles avant échéance (J-7, J-3, J-1, Jour J) et signalement des impayés (+1j, +3j, +7j).
+                Rappels des tâches du jour, imminentes et en retard. S'arrête automatiquement dès que la tâche est terminée.
               </span>
             </div>
           </label>
@@ -670,7 +781,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <span className="block text-xs font-bold text-ink-950">Dépenses & Factures à régler</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Alertes pour anticiper les paiements et charges d'activités dues.
+                Alertes pour anticiper les paiements et charges dues. S'arrête dès que la facture est payée.
               </span>
             </div>
           </label>
@@ -678,17 +789,35 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           <label className="flex items-start gap-3 p-3 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
             <input
               type="checkbox"
-              checked={financeReminders}
-              onChange={(e) => setFinanceReminders(e.target.checked)}
+              checked={dailySummaryEnabled}
+              onChange={(e) => setDailySummaryEnabled(e.target.checked)}
+              className="mt-1 rounded text-signal focus:ring-signal"
+            />
+            <div className="flex-1">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-gold" />
+                <span className="block text-xs font-bold text-ink-950">Rappel du début de mois (Perspectives mensuelles)</span>
+              </div>
+              <span className="block text-[11px] text-ink-500 mt-0.5">
+                Notification le 1er, 2e ou 3e jour du mois avec synthèse des encaissements prévus et charges programmées du mois.
+              </span>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 p-3 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
+            <input
+              type="checkbox"
+              checked={weeklySummaryEnabled}
+              onChange={(e) => setWeeklySummaryEnabled(e.target.checked)}
               className="mt-1 rounded text-signal focus:ring-signal"
             />
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <BarChart3 className="w-3.5 h-3.5 text-signal" />
-                <span className="block text-xs font-bold text-ink-950">Finances & Dépenses programmées</span>
+                <span className="block text-xs font-bold text-ink-950">Résumé hebdomadaire (Le lundi)</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Alertes d'échéances d'abonnements, charges récurrentes et objectifs d'épargne.
+                Synthèse le lundi matin de votre planning de la semaine, priorités et échéances financières.
               </span>
             </div>
           </label>
@@ -706,7 +835,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <span className="block text-xs font-bold text-ink-950">Détection de conflits d'agenda</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Notification immédiate si deux créneaux d'activités se chevauchent.
+                Alerte instantanée en cas de chevauchement d'activités.
               </span>
             </div>
           </label>
@@ -722,7 +851,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               <span className="block text-xs font-bold text-ink-950">Heures silencieuses (Quiet Hours)</span>
             </div>
             <span className="block text-[11px] text-ink-500 mt-0.5">
-              Suspendre l'envoi d'alertes durant votre période de repos nocturne.
+              Suspendre l'envoi d'alertes sonores et push durant votre période de repos nocturne (les alertes critiques restent visibles In-App).
             </span>
           </div>
           <input

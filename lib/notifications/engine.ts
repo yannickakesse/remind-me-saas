@@ -63,15 +63,18 @@ export function isInQuietHours(
 }
 
 /**
- * Moteur de Rappels Automatiques & Centre de Notifications (Phase 3).
+ * Moteur de Rappels Automatiques & Centre de Notifications Remind Me.
  *
- * Évalue de manière 100% déterministe et idempotente l'ensemble des règles :
- * 1. Paiements / Encaissements (J-7, J-3, J-1, Jour J, +1j, +3j, +7j)
- * 2. Dépenses & Dépenses programmées (J-7, J-3, J-1, Jour J, +1j, +3j, +7j)
- * 3. Activités & Séances (J-1, H-3, H-1, 30m, 15m)
- * 4. Tâches (Échéance du jour, imminente H-2, en retard +1j, +3j)
- * 5. Gestion stricte du Snooze (report) et auto-résolution des notifications pour les entités déjà payées/reçues/terminées.
- * 6. Respect des préférences, fuseaux horaires et heures silencieuses.
+ * Évalue de manière 100% déterministe et idempotente :
+ * 1. Paiements / Encaissements (J-7, J-3, J-1, Jour J, +1j, +3j, +7j en retard)
+ * 2. Dépenses & Dépenses programmées (J-7, J-3, J-1, Jour J, +1j, +3j)
+ * 3. Activités & Séances du calendrier (J-1, H-3, H-1, 30m, 15m, séances passées non confirmées)
+ * 4. Tâches (Échéances imminentes, tâches du jour, alertes de retard)
+ * 5. Rappel du début de mois (Jours 1 à 3 du mois avec bilan des encaissements prévus)
+ * 6. Résumé hebdomadaire (Le lundi)
+ * 7. Règle d'auto-arrêt (Auto-stop) : Si un paiement est encaissé, une dépense payée ou une tâche terminée,
+ *    aucun nouveau rappel n'est généré et les alertes existantes sont auto-résolues.
+ * 8. Respect des préférences, fuseaux horaires et heures silencieuses.
  */
 export async function evaluateSmartReminders(
   supabase: SupabaseClient<Database>,
@@ -102,7 +105,6 @@ export async function evaluateSmartReminders(
   const userNow = DateTime.now().setZone(userTimezone);
   const locale: SupportedLocale = prefsData?.preferred_locale ?? (profileData?.locale as SupportedLocale) ?? "fr";
   const emailEnabled = prefsData?.email_enabled ?? true;
-  const inAppEnabled = prefsData?.in_app_enabled ?? true;
   const quietHoursActive = isInQuietHours(
     userNow,
     prefsData?.quiet_hours_enabled ?? false,
@@ -123,9 +125,8 @@ export async function evaluateSmartReminders(
   const candidates: ReminderCandidate[] = [];
 
   // ==========================================================================
-  // 2. SNOOZE CHECK & AUTO-RÉSOLUTION DES NOTIFICATIONS PÉRIMÉES
+  // 2. SNOOZE CHECK & AUTO-RÉSOLUTION DES NOTIFICATIONS PÉRIMÉES (AUTO-STOP)
   // ==========================================================================
-  // Récupérer les entités déjà traitées pour nettoyer d'éventuelles notifications orphelines
   const [{ data: receivedIncomes }, { data: paidExpenses }, { data: completedTasks }, { data: snoozedNotifs }] = await Promise.all([
     supabase.from("income").select("id").eq("user_id", userId).eq("received", true),
     supabase.from("expenses").select("id").eq("user_id", userId).eq("paid", true),
@@ -196,13 +197,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "income",
           entity_id: inc.id,
-          title: t("notif.payment_upcoming.title", locale),
-          body: t("notif.payment_upcoming.body", locale, {
-            amount: inc.amount,
-            currency: inc.currency,
-            client: clientName,
-            date: formattedDate,
-          }),
+          title: t("notif.payment_upcoming.title", locale) || `Paiement prévu dans 7 jours : ${inc.label}`,
+          body: `Un paiement de ${formattedAmount} pour « ${inc.label} » est prévu le ${formattedDate}.`,
           title_key: "notif.payment_upcoming.title",
           body_key: "notif.payment_upcoming.body",
           metadata: { amount: inc.amount, currency: inc.currency, label: inc.label, days: 7 },
@@ -220,13 +216,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "income",
           entity_id: inc.id,
-          title: t("notif.payment_upcoming.title", locale),
-          body: t("notif.payment_upcoming.body", locale, {
-            amount: inc.amount,
-            currency: inc.currency,
-            client: clientName,
-            date: formattedDate,
-          }),
+          title: t("notif.payment_upcoming.title", locale) || `Paiement prévu dans 3 jours : ${inc.label}`,
+          body: `Un paiement de ${formattedAmount} pour « ${inc.label} » est attendu le ${formattedDate}.`,
           title_key: "notif.payment_upcoming.title",
           body_key: "notif.payment_upcoming.body",
           metadata: { amount: inc.amount, currency: inc.currency, label: inc.label, days: 3 },
@@ -244,13 +235,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "income",
           entity_id: inc.id,
-          title: t("notif.payment_upcoming.title", locale),
-          body: t("notif.payment_upcoming.body", locale, {
-            amount: inc.amount,
-            currency: inc.currency,
-            client: clientName,
-            date: formattedDate,
-          }),
+          title: `Paiement prévu demain : ${inc.label}`,
+          body: `Un paiement de ${formattedAmount} associé à votre activité « ${inc.label} » est prévu pour demain. Pensez à vérifier sa réception.`,
           title_key: "notif.payment_upcoming.title",
           body_key: "notif.payment_upcoming.body",
           metadata: { amount: inc.amount, currency: inc.currency, label: inc.label, days: 1 },
@@ -268,12 +254,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "income",
           entity_id: inc.id,
-          title: t("notif.payment_due_today.title", locale),
-          body: t("notif.payment_due_today.body", locale, {
-            amount: inc.amount,
-            currency: inc.currency,
-            client: clientName,
-          }),
+          title: `Paiement attendu aujourd'hui : ${inc.label}`,
+          body: `Le paiement de ${formattedAmount} pour « ${inc.label} » arrive à échéance aujourd'hui. Marquez-le comme reçu dès encaissement.`,
           title_key: "notif.payment_due_today.title",
           body_key: "notif.payment_due_today.body",
           metadata: { amount: inc.amount, currency: inc.currency, label: inc.label },
@@ -293,13 +275,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "income",
           entity_id: inc.id,
-          title: t("notif.payment_overdue.title", locale) || `Paiement en retard : ${inc.label}`,
-          body: t("notif.payment_overdue.body", locale, {
-            amount: inc.amount,
-            currency: inc.currency,
-            client: clientName,
-            days: overdueDays,
-          }) || `Paiement attendu de ${inc.amount} ${inc.currency} en retard de ${overdueDays} jour(s).`,
+          title: `Paiement en retard (${overdueDays}j) : ${inc.label}`,
+          body: `Le paiement de ${formattedAmount} pour « ${inc.label} » est en retard depuis le ${formattedDate}. Cliquez pour relancer le client ou valider la réception.`,
           title_key: "notif.payment_overdue.title",
           body_key: "notif.payment_overdue.body",
           metadata: { amount: inc.amount, currency: inc.currency, label: inc.label, days: overdueDays },
@@ -314,7 +291,7 @@ export async function evaluateSmartReminders(
 
   // ==========================================================================
   // 4. CYCLE DE VIE DES DÉPENSES & CHARGES (EXPENSES & SCHEDULED EXPENSES)
-  // J-7, J-3, J-1, Jour J, +1j, +3j, +7j
+  // J-7, J-3, J-1, Jour J, +1j, +3j
   // ==========================================================================
   if (prefsData?.expense_reminders !== false) {
     // 4.1 Dépenses directes
@@ -330,6 +307,7 @@ export async function evaluateSmartReminders(
 
       const dueDT = DateTime.fromISO(exp.due_date, { zone: userTimezone }).startOf("day");
       const daysDiff = Math.floor(dueDT.diff(userNow.startOf("day"), "days").days);
+      const formattedAmount = formatCurrencyLocale(Number(exp.amount), exp.currency, locale);
 
       if (daysDiff === 7 || daysDiff === 3 || daysDiff === 1) {
         candidates.push({
@@ -340,15 +318,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "expense",
           entity_id: exp.id,
-          title: t("notif.expense_upcoming.title", locale),
-          body: t("notif.expense_upcoming.body", locale, {
-            amount: exp.amount,
-            currency: exp.currency,
-            label: exp.label,
-            date: formatDateLocale(exp.due_date, locale, userTimezone),
-          }),
-          title_key: "notif.expense_upcoming.title",
-          body_key: "notif.expense_upcoming.body",
+          title: `Facture à régler dans ${daysDiff} jour(s) : ${exp.label}`,
+          body: `Une dépense de ${formattedAmount} pour « ${exp.label} » arrive à échéance le ${formatDateLocale(exp.due_date, locale, userTimezone)}.`,
           metadata: { amount: exp.amount, currency: exp.currency, label: exp.label, days: daysDiff },
           link: `/finances?tab=expenses`,
           scheduled_at: userNow.toISO()!,
@@ -364,14 +335,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "expense",
           entity_id: exp.id,
-          title: t("notif.expense_due_today.title", locale),
-          body: t("notif.expense_due_today.body", locale, {
-            amount: exp.amount,
-            currency: exp.currency,
-            label: exp.label,
-          }),
-          title_key: "notif.expense_due_today.title",
-          body_key: "notif.expense_due_today.body",
+          title: `Dépense à régler aujourd'hui : ${exp.label}`,
+          body: `La facture « ${exp.label} » (${formattedAmount}) doit être réglée aujourd'hui.`,
           metadata: { amount: exp.amount, currency: exp.currency, label: exp.label },
           link: `/finances?tab=expenses`,
           scheduled_at: userNow.toISO()!,
@@ -388,14 +353,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "expense",
           entity_id: exp.id,
-          title: t("notif.expense_overdue.title", locale) || `Dépense en retard : ${exp.label}`,
-          body: t("notif.expense_overdue.body", locale, {
-            amount: exp.amount,
-            currency: exp.currency,
-            label: exp.label,
-          }) || `La dépense « ${exp.label} » (${exp.amount} ${exp.currency}) est en retard d'échéance.`,
-          title_key: "notif.expense_overdue.title",
-          body_key: "notif.expense_overdue.body",
+          title: `Dépense en retard : ${exp.label}`,
+          body: `La dépense « ${exp.label} » (${formattedAmount}) a dépassé sa date d'échéance.`,
           metadata: { amount: exp.amount, currency: exp.currency, label: exp.label, days: overdueDays },
           link: `/finances?tab=expenses`,
           scheduled_at: userNow.toISO()!,
@@ -417,6 +376,7 @@ export async function evaluateSmartReminders(
 
       const dueDT = DateTime.fromISO(sch.next_due_date, { zone: userTimezone }).startOf("day");
       const daysDiff = Math.floor(dueDT.diff(userNow.startOf("day"), "days").days);
+      const formattedAmount = formatCurrencyLocale(Number(sch.amount), sch.currency, locale);
 
       if (daysDiff === 3 || daysDiff === 1) {
         candidates.push({
@@ -427,13 +387,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "scheduled_expense",
           entity_id: sch.id,
-          title: t("notif.expense_upcoming.title", locale),
-          body: t("notif.expense_upcoming.body", locale, {
-            amount: sch.amount,
-            currency: sch.currency,
-            label: sch.name,
-            date: formatDateLocale(sch.next_due_date, locale, userTimezone),
-          }),
+          title: `Facture programmée dans ${daysDiff} jour(s) : ${sch.name}`,
+          body: `L'échéance de ${formattedAmount} pour « ${sch.name} » est prévue le ${formatDateLocale(sch.next_due_date, locale, userTimezone)}.`,
           metadata: { amount: sch.amount, currency: sch.currency, label: sch.name, frequency: sch.frequency },
           link: `/finances?tab=scheduled`,
           scheduled_at: userNow.toISO()!,
@@ -448,8 +403,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "scheduled_expense",
           entity_id: sch.id,
-          title: daysDiff === 0 ? t("notif.expense_due_today.title", locale) : `Facture à échéance : ${sch.name}`,
-          body: `Facture programmée de ${sch.amount} ${sch.currency} pour « ${sch.name} ».`,
+          title: daysDiff === 0 ? `Facture à régler aujourd'hui : ${sch.name}` : `Facture en attente : ${sch.name}`,
+          body: `Facture programmée de ${formattedAmount} pour « ${sch.name} ».`,
           metadata: { amount: sch.amount, currency: sch.currency, label: sch.name },
           link: `/finances?tab=scheduled`,
           scheduled_at: userNow.toISO()!,
@@ -461,7 +416,6 @@ export async function evaluateSmartReminders(
 
   // ==========================================================================
   // 5. CYCLE DE VIE DES ACTIVITÉS & CRÉNEAUX (CALENDAR EVENTS)
-  // Séances passées/dépassées, séances du jour, rappels imminents et J-1
   // ==========================================================================
   if (prefsData?.activity_reminders !== false) {
     const past7daysIso = userNow.minus({ days: 7 }).toUTC().toISO()!;
@@ -483,7 +437,6 @@ export async function evaluateSmartReminders(
       const minutesUntil = Math.floor(eventStart.diff(userNow, "minutes").minutes);
       const isPast = eventEnd < userNow || eventStart < userNow.minus({ hours: 1 });
 
-      // 5.1 Séances passées / dépassées non confirmées (hier ou plus tôt)
       if (isPast && evt.status === "planned") {
         const daysAgo = Math.max(0, Math.floor(userNow.diff(eventStart, "days").days));
         candidates.push({
@@ -496,16 +449,12 @@ export async function evaluateSmartReminders(
           entity_id: evt.id,
           title: `Séance passée : ${evt.title}`,
           body: `Votre séance « ${evt.title} » du ${formatDateLocale(eventStart.toISODate()!, locale, userTimezone)} est terminée. Cliquez pour confirmer sa réalisation.`,
-          title_key: "notif.activity_overdue.title",
-          body_key: "notif.activity_overdue.body",
           metadata: { title: evt.title, starts_at: evt.starts_at, daysAgo },
           link: `/calendar/${evt.id}`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `activity:${evt.id}:passed_${eventStart.toISODate()}`,
         });
-      }
-      // 5.2 Séances aujourd'hui (imminentes ou prévues dans la journée)
-      else if (eventStart.hasSame(userNow, "day") && !isPast) {
+      } else if (eventStart.hasSame(userNow, "day") && !isPast) {
         if (minutesUntil <= 45 && minutesUntil >= -15) {
           candidates.push({
             user_id: userId,
@@ -541,9 +490,7 @@ export async function evaluateSmartReminders(
             idempotency_key: `activity:${evt.id}:today_${eventStart.toISODate()}`,
           });
         }
-      }
-      // 5.3 Séances demain (J-1)
-      else if (eventStart.hasSame(userNow.plus({ days: 1 }), "day")) {
+      } else if (eventStart.hasSame(userNow.plus({ days: 1 }), "day")) {
         candidates.push({
           user_id: userId,
           category: "activity",
@@ -552,7 +499,7 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "activity",
           entity_id: evt.id,
-          title: t("notif.activity_upcoming.title", locale) || `Séance demain : ${evt.title}`,
+          title: `Séance demain : ${evt.title}`,
           body: `N'oubliez pas votre séance « ${evt.title} » demain à ${eventStart.toFormat("HH:mm")}.`,
           metadata: { title: evt.title, starts_at: evt.starts_at },
           link: `/calendar/${evt.id}`,
@@ -565,7 +512,6 @@ export async function evaluateSmartReminders(
 
   // ==========================================================================
   // 6. CYCLE DE VIE DES TÂCHES (TASKS)
-  // Échéance du jour, imminente H-2, en retard
   // ==========================================================================
   if (prefsData?.task_reminders !== false) {
     const { data: pendingTasks } = await supabase
@@ -599,13 +545,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "task",
           entity_id: tsk.id,
-          title: t("notif.task_overdue.title", locale) || `Tâche en retard : ${tsk.title}`,
-          body: t("notif.task_overdue.body", locale, {
-            title: tsk.title,
-            date: formatDateLocale(tsk.due_date, locale, userTimezone),
-          }) || `La tâche « ${tsk.title} » est en retard depuis le ${tsk.due_date}.`,
-          title_key: "notif.task_overdue.title",
-          body_key: "notif.task_overdue.body",
+          title: `Tâche en retard : ${tsk.title}`,
+          body: `La tâche « ${tsk.title} » est en retard depuis le ${formatDateLocale(tsk.due_date, locale, userTimezone)}.`,
           metadata: { title: tsk.title, priority: tsk.priority, overdueDays },
           link: `/tasks/${tsk.id}/edit`,
           scheduled_at: userNow.toISO()!,
@@ -623,7 +564,7 @@ export async function evaluateSmartReminders(
             status: "unread",
             entity_type: "task",
             entity_id: tsk.id,
-            title: t("notif.task_due_soon.title", locale) || `Rappel tâche : ${tsk.title}`,
+            title: `Rappel tâche : ${tsk.title}`,
             body: tsk.due_time
               ? `Échéance prévue aujourd'hui à ${tsk.due_time} pour « ${tsk.title} »`
               : `La tâche « ${tsk.title} » arrive à échéance aujourd'hui.`,
@@ -641,10 +582,8 @@ export async function evaluateSmartReminders(
             status: "unread",
             entity_type: "task",
             entity_id: tsk.id,
-            title: t("notif.task_due_today.title", locale) || `Tâche du jour : ${tsk.title}`,
-            body: t("notif.task_due_today.body", locale, { title: tsk.title }) || `La tâche « ${tsk.title} » est programmée pour aujourd'hui.`,
-            title_key: "notif.task_due_today.title",
-            body_key: "notif.task_due_today.body",
+            title: `Tâche du jour : ${tsk.title}`,
+            body: `La tâche « ${tsk.title} » est programmée pour aujourd'hui.`,
             metadata: { title: tsk.title },
             link: `/tasks/${tsk.id}/edit`,
             scheduled_at: userNow.toISO()!,
@@ -656,7 +595,126 @@ export async function evaluateSmartReminders(
   }
 
   // ==========================================================================
-  // 7. ENREGISTREMENT IDEMPOTENT DANS LA TABLE NOTIFICATIONS
+  // 7. RAPPEL DU DÉBUT DE MOIS (Le 1er, 2e ou 3e jour du mois)
+  // ==========================================================================
+  if (userNow.day >= 1 && userNow.day <= 3) {
+    const currentMonthKey = userNow.toFormat("yyyy-MM");
+    const monthStartIso = userNow.startOf("month").toISODate()!;
+    const monthEndIso = userNow.endOf("month").toISODate()!;
+
+    const [{ data: monthIncomes }, { data: monthExpenses }] = await Promise.all([
+      supabase
+        .from("income")
+        .select("id, amount, currency, label, due_date, received")
+        .eq("user_id", userId)
+        .eq("received", false)
+        .gte("due_date", monthStartIso)
+        .lte("due_date", monthEndIso),
+      supabase
+        .from("scheduled_expenses")
+        .select("id, amount, currency, name, next_due_date")
+        .eq("user_id", userId)
+        .in("status", ["planned", "due"])
+        .gte("next_due_date", monthStartIso)
+        .lte("next_due_date", monthEndIso),
+    ]);
+
+    const incomeCount = monthIncomes?.length || 0;
+    const expenseCount = monthExpenses?.length || 0;
+
+    if (incomeCount > 0 || expenseCount > 0) {
+      const totalIncome = (monthIncomes || []).reduce((acc, inc) => acc + Number(inc.amount || 0), 0);
+      const currency = monthIncomes?.[0]?.currency || profileData?.default_currency || "XOF";
+      const formattedTotal = formatCurrencyLocale(totalIncome, currency, locale);
+      const monthName = userNow.setLocale("fr").toFormat("MMMM yyyy");
+
+      candidates.push({
+        user_id: userId,
+        category: "summary",
+        kind: "month_start_summary",
+        priority: "normal",
+        status: "unread",
+        entity_type: "summary",
+        entity_id: `month_${currentMonthKey}`,
+        title: `Bienvenue en ${monthName} — Vos perspectives du mois`,
+        body: `Votre nouveau mois commence : ${incomeCount} paiement(s) attendu(s) pour un total de ${formattedTotal}${expenseCount > 0 ? ` et ${expenseCount} dépense(s) programmée(s)` : ""}.`,
+        title_key: "notif.month_start.title",
+        body_key: "notif.month_start.body",
+        metadata: {
+          month: currentMonthKey,
+          incomeCount,
+          totalExpected: totalIncome,
+          expenseCount,
+          currency,
+        },
+        link: "/finances",
+        scheduled_at: userNow.toISO()!,
+        idempotency_key: `summary:month_start:${currentMonthKey}`,
+        email_template: "month_start_summary",
+      });
+    }
+  }
+
+  // ==========================================================================
+  // 8. RÉSUMÉ HEBDOMADAIRE (Le lundi)
+  // ==========================================================================
+  if (userNow.weekday === 1 && prefsData?.weekly_summary_enabled !== false) {
+    const weekNumber = userNow.weekNumber;
+    const weekYear = userNow.weekYear;
+    const weekKey = `${weekYear}-W${weekNumber}`;
+    const weekStartIso = userNow.startOf("week").toISODate()!;
+    const weekEndIso = userNow.endOf("week").toISODate()!;
+
+    const [{ data: weekIncomes }, { data: weekTasks }, { data: weekEvents }] = await Promise.all([
+      supabase
+        .from("income")
+        .select("id, amount, currency, received")
+        .eq("user_id", userId)
+        .eq("received", false)
+        .gte("due_date", weekStartIso)
+        .lte("due_date", weekEndIso),
+      supabase
+        .from("tasks")
+        .select("id, status")
+        .eq("user_id", userId)
+        .in("status", ["todo", "in_progress"])
+        .gte("due_date", weekStartIso)
+        .lte("due_date", weekEndIso),
+      supabase
+        .from("calendar_events")
+        .select("id")
+        .eq("user_id", userId)
+        .neq("status", "cancelled")
+        .gte("starts_at", userNow.startOf("week").toISO()!)
+        .lte("starts_at", userNow.endOf("week").toISO()!),
+    ]);
+
+    const incomeCount = weekIncomes?.length || 0;
+    const taskCount = weekTasks?.length || 0;
+    const eventCount = weekEvents?.length || 0;
+
+    if (incomeCount > 0 || taskCount > 0 || eventCount > 0) {
+      candidates.push({
+        user_id: userId,
+        category: "summary",
+        kind: "weekly_summary",
+        priority: "normal",
+        status: "unread",
+        entity_type: "summary",
+        entity_id: `week_${weekKey}`,
+        title: `Votre résumé de la semaine (${weekKey})`,
+        body: `Cette semaine : ${incomeCount} paiement(s) à surveiller, ${eventCount} séance(s) au planning et ${taskCount} tâche(s) à accomplir.`,
+        metadata: { week: weekKey, incomeCount, taskCount, eventCount },
+        link: "/dashboard",
+        scheduled_at: userNow.toISO()!,
+        idempotency_key: `summary:week:${weekKey}`,
+        email_template: "weekly_summary",
+      });
+    }
+  }
+
+  // ==========================================================================
+  // 9. ENREGISTREMENT IDEMPOTENT DANS LA TABLE NOTIFICATIONS
   // ==========================================================================
   if (candidates.length === 0) {
     return { processed: 0, inserted: 0, emailCount: 0, pushCount: 0, resolvedCleanups };
@@ -706,24 +764,31 @@ export async function evaluateSmartReminders(
   }
 
   // ==========================================================================
-  // 8. DISPATCH MULTI-CANAUX (EMAIL & PUSH) AVEC RESPECT DES HEURES SILENCIEUSES
+  // 10. DISPATCH MULTI-CANAUX (EMAIL & PUSH) AVEC RESPECT DES HEURES SILENCIEUSES
   // ==========================================================================
   let emailCount = 0;
   let pushCount = 0;
 
-  // Récupérer l'e-mail de l'utilisateur
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const userEmail = user?.email;
+  // Récupérer l'e-mail de l'utilisateur (avec fallback admin pour les jobs Cron)
+  let userEmail: string | undefined;
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    userEmail = userData.user?.email;
+  } catch {}
+
+  if (!userEmail) {
+    try {
+      const { data: adminUser } = await (supabase as any).auth.admin.getUserById(userId);
+      userEmail = adminUser.user?.email;
+    } catch {}
+  }
 
   for (const cand of newCandidates) {
-    // Si heures calmes actives et notification non critique, on évite le dérangement sonore/email immédiat
     const allowImmediateExternal = !quietHoursActive || cand.priority === "critical";
 
     // Envoi E-mail
     if (emailEnabled && allowImmediateExternal && cand.email_template && userEmail) {
-      const sent = await sendNotificationEmail(
+      const emailRes = await sendNotificationEmail(
         {
           userId,
           recipientEmail: userEmail,
@@ -738,7 +803,7 @@ export async function evaluateSmartReminders(
         },
         supabase
       );
-      if (sent) emailCount++;
+      if (emailRes.success) emailCount++;
     }
 
     // Envoi Push
@@ -777,7 +842,6 @@ export async function evaluateSmartReminders(
 export async function processAllUsersReminders(
   supabaseAdmin: SupabaseClient<Database>
 ): Promise<{ totalUsers: number; totalInserted: number; totalEmails: number; totalPushes: number }> {
-  // Récupérer tous les profils ayant complété l'onboarding
   const { data: activeProfiles, error } = await supabaseAdmin
     .from("profiles")
     .select("id, timezone")

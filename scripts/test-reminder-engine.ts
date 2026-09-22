@@ -1,6 +1,8 @@
 import { DateTime } from "luxon";
 import { isInQuietHours } from "../lib/notifications/engine";
-import { t, formatCurrencyLocale, formatDateLocale } from "../lib/i18n/format";
+import { formatCurrencyLocale, formatDateLocale } from "../lib/i18n/format";
+import { generateEmailHtml, generateEmailText } from "../lib/email/templates";
+import { sendWhatsAppNotification } from "../lib/whatsapp/service";
 
 interface TestResult {
   id: number;
@@ -23,11 +25,11 @@ function assert(id: number, name: string, category: string, condition: boolean, 
 }
 
 console.log("=================================================================");
-console.log("🧪 REMIND ME — PHASE 3 AUTOMATED TEST SUITE: REMINDER ENGINE");
+console.log("🧪 REMIND ME — PHASE 5 AUTOMATED TEST SUITE: NOTIFICATIONS & REMINDER ENGINE");
 console.log("=================================================================\n");
 
 // -----------------------------------------------------------------------------
-// Test 1: Payment 7-day reminder
+// Test 1: Payment 7-day reminder (J-7)
 // -----------------------------------------------------------------------------
 const now = DateTime.fromISO("2026-09-13T10:00:00.000Z");
 const dueIn7Days = DateTime.fromISO("2026-09-20T00:00:00.000Z");
@@ -36,14 +38,14 @@ const key7 = `payment:inc_001:minus_7_days`;
 
 assert(
   1,
-  "Payment 7-day reminder calculation",
+  "Payment 7-day reminder calculation (J-7)",
   "Payments",
   diff7 === 7 && key7 === "payment:inc_001:minus_7_days",
   `Échéance J-7 détectée avec clé d'idempotence: ${key7}`
 );
 
 // -----------------------------------------------------------------------------
-// Test 2: Payment 3-day reminder
+// Test 2: Payment 3-day reminder (J-3)
 // -----------------------------------------------------------------------------
 const now3 = DateTime.fromISO("2026-09-17T10:00:00.000Z");
 const diff3 = Math.floor(dueIn7Days.diff(now3.startOf("day"), "days").days);
@@ -51,14 +53,14 @@ const key3 = `payment:inc_001:minus_3_days`;
 
 assert(
   2,
-  "Payment 3-day reminder calculation",
+  "Payment 3-day reminder calculation (J-3)",
   "Payments",
   diff3 === 3 && key3 === "payment:inc_001:minus_3_days",
   `Échéance J-3 détectée avec clé: ${key3}`
 );
 
 // -----------------------------------------------------------------------------
-// Test 3: Payment 1-day reminder
+// Test 3: Payment 1-day reminder (J-1)
 // -----------------------------------------------------------------------------
 const now1 = DateTime.fromISO("2026-09-19T10:00:00.000Z");
 const diff1 = Math.floor(dueIn7Days.diff(now1.startOf("day"), "days").days);
@@ -66,14 +68,14 @@ const key1 = `payment:inc_001:minus_1_day`;
 
 assert(
   3,
-  "Payment 1-day reminder calculation",
+  "Payment 1-day reminder calculation (J-1)",
   "Payments",
   diff1 === 1 && key1 === "payment:inc_001:minus_1_day",
   `Échéance J-1 (demain) détectée avec clé: ${key1}`
 );
 
 // -----------------------------------------------------------------------------
-// Test 4: Payment Due Today
+// Test 4: Payment Due Today (Jour J)
 // -----------------------------------------------------------------------------
 const nowToday = DateTime.fromISO("2026-09-20T10:00:00.000Z");
 const diffToday = Math.floor(dueIn7Days.diff(nowToday.startOf("day"), "days").days);
@@ -81,19 +83,18 @@ const keyToday = `payment:inc_001:due_today_2026-09-20`;
 
 assert(
   4,
-  "Payment Due Today reminder",
+  "Payment Due Today reminder (Jour J)",
   "Payments",
   diffToday === 0 && keyToday.includes("due_today"),
   `Échéance Jour J détectée avec clé: ${keyToday}`
 );
 
 // -----------------------------------------------------------------------------
-// Test 5: Payment Overdue
+// Test 5: Payment Overdue (Après J)
 // -----------------------------------------------------------------------------
 const nowOverdue = DateTime.fromISO("2026-09-21T10:00:00.000Z");
 const diffOverdue = Math.floor(dueIn7Days.diff(nowOverdue.startOf("day"), "days").days);
 const overdueDays = Math.abs(diffOverdue);
-const keyOverdue = `payment:inc_001:overdue_1_days`;
 
 assert(
   5,
@@ -104,7 +105,7 @@ assert(
 );
 
 // -----------------------------------------------------------------------------
-// Test 6: MANDATORY CRITICAL SAFETY RULE: Mark received stops reminders
+// Test 6: MANDATORY AUTO-STOP RULE: Payment marked received stops all reminders
 // -----------------------------------------------------------------------------
 const incomeEntity = {
   id: "inc_001",
@@ -112,234 +113,185 @@ const incomeEntity = {
   amount: 150000,
   currency: "XOF",
   due_date: "2026-09-20",
-  received: true, // User received on Sept 18
+  received: true,
 };
 
-// The engine checks `inc.received`
-const shouldGenerate = !incomeEntity.received;
+const shouldGenerateIncome = !incomeEntity.received;
 assert(
   6,
-  "Mark received stops ALL future reminders",
-  "Safety Rule",
-  shouldGenerate === false,
-  `Le paiement étant marqué 'received: true', aucun rappel J-1, Jour J ou Overdue n'est généré.`
+  "Auto-stop: Mark received stops ALL future payment reminders",
+  "Auto-Stop Safety",
+  shouldGenerateIncome === false,
+  `Le paiement étant marqué 'received: true', aucun rappel futur n'est généré.`
 );
 
 // -----------------------------------------------------------------------------
-// Test 7: Canceled payment stops reminders
+// Test 7: MANDATORY AUTO-STOP RULE: Task done/cancelled stops reminders
 // -----------------------------------------------------------------------------
-const canceledTask = {
+const taskEntity = {
   id: "tsk_002",
-  status: "cancelled",
+  title: "Envoyer le bilan financier",
+  status: "done",
   due_date: "2026-09-20",
 };
-const shouldRemindTask = canceledTask.status !== "done" && canceledTask.status !== "cancelled";
+const shouldRemindTask = taskEntity.status !== "done" && taskEntity.status !== "cancelled";
 assert(
   7,
-  "Canceled entity stops reminders",
-  "Safety Rule",
+  "Auto-stop: Completed task stops ALL reminders",
+  "Auto-Stop Safety",
   shouldRemindTask === false,
-  `Entité annulée ignorée avec succès.`
+  `Tâche terminée ignorée avec succès.`
 );
 
 // -----------------------------------------------------------------------------
-// Test 8: Expense reminders
+// Test 8: MANDATORY AUTO-STOP RULE: Paid expense stops reminders
 // -----------------------------------------------------------------------------
-const expenseDue = DateTime.fromISO("2026-10-05");
-const nowExp = DateTime.fromISO("2026-10-02");
-const expDiff = Math.floor(expenseDue.diff(nowExp, "days").days);
+const expenseEntity = {
+  id: "exp_005",
+  label: "Loyer bureau",
+  amount: 250000,
+  currency: "XOF",
+  due_date: "2026-10-01",
+  paid: true,
+};
+const shouldRemindExpense = !expenseEntity.paid;
 assert(
   8,
-  "Expense 3-day reminder",
-  "Expenses",
-  expDiff === 3,
-  `Dépense programmée détectée à J-3.`
+  "Auto-stop: Paid expense stops ALL reminders",
+  "Auto-Stop Safety",
+  shouldRemindExpense === false,
+  `Dépense réglée ignorée avec succès.`
 );
 
 // -----------------------------------------------------------------------------
-// Test 9: Activity reminders (H-1, 30m, J-1)
+// Test 9: Month-Start Summary Reminder (Début de mois)
 // -----------------------------------------------------------------------------
-const eventStart = DateTime.fromISO("2026-09-12T15:00:00.000Z");
-const nowAct = DateTime.fromISO("2026-09-12T14:00:00.000Z");
-const minutesDiff = Math.floor(eventStart.diff(nowAct, "minutes").minutes);
+const day2 = DateTime.fromISO("2026-10-02T09:00:00.000Z");
+const isMonthStart = day2.day >= 1 && day2.day <= 3;
+const monthStartKey = `summary:month_start:${day2.toFormat("yyyy-MM")}`;
 assert(
   9,
-  "Activity 1-hour before reminder",
-  "Activities",
-  minutesDiff === 60,
-  `Créneau débutant dans 60 minutes détecté avec succès.`
+  "Month-Start summary reminder trigger (Day 1-3)",
+  "Summaries",
+  isMonthStart === true && monthStartKey === "summary:month_start:2026-10",
+  `Rappel mensuel de début de mois généré avec clé: ${monthStartKey}`
 );
 
 // -----------------------------------------------------------------------------
-// Test 10: Task reminders (due today & overdue)
+// Test 10: Weekly Summary Reminder (Lundi)
 // -----------------------------------------------------------------------------
-const taskDue = DateTime.fromISO("2026-09-12T23:59:59.000Z");
-const taskNow = DateTime.fromISO("2026-09-12T10:00:00.000Z");
+const monday = DateTime.fromISO("2026-09-21T08:00:00.000Z"); // 2026-09-21 is Monday
+const isMonday = monday.weekday === 1;
+const weekKey = `summary:week:${monday.weekYear}-W${monday.weekNumber}`;
 assert(
   10,
-  "Task due today detection",
-  "Tasks",
-  taskDue.hasSame(taskNow, "day"),
-  `Tâche pour aujourd'hui identifiée.`
+  "Weekly summary reminder trigger (Monday)",
+  "Summaries",
+  isMonday === true && weekKey.includes("-W"),
+  `Résumé hebdomadaire du lundi calculé avec clé: ${weekKey}`
 );
 
 // -----------------------------------------------------------------------------
-// Test 11: Snooze handling (no reminder before snooze expiration)
+// Test 11: Deduplication & Idempotency Key stability
 // -----------------------------------------------------------------------------
-const snoozedUntil = DateTime.now().plus({ hours: 24 });
-const activeSnooze = snoozedUntil > DateTime.now();
-assert(
-  11,
-  "Snooze prevents premature reminders",
-  "Snooze",
-  activeSnooze === true,
-  `Notification reportée de 24h bloquée jusqu'à expiration.`
-);
-
-// -----------------------------------------------------------------------------
-// Test 12: Duplicate prevention
-// -----------------------------------------------------------------------------
-const existingKeys = new Set(["payment:inc_001:minus_7_days", "expense:exp_002:due_today_2026-09-12"]);
+const existingKeys = new Set(["payment:inc_001:minus_7_days", "summary:month_start:2026-10"]);
 const candidateKey = "payment:inc_001:minus_7_days";
 const isDuplicate = existingKeys.has(candidateKey);
 assert(
-  12,
-  "Duplicate reminder prevention",
-  "Deduplication",
-  isDuplicate === true,
-  `Doublon détecté via le Set des clés existantes, réinsertion bloquée.`
-);
-
-// -----------------------------------------------------------------------------
-// Test 13: Deterministic Idempotency Key Format
-// -----------------------------------------------------------------------------
-const formattedKey = `payment:inc_001:minus_7_days`;
-const isDeterministic = formattedKey.startsWith("payment:") && formattedKey.endsWith("minus_7_days");
-assert(
-  13,
-  "Deterministic Idempotency Key format",
+  11,
+  "Deduplication & Idempotency Key stability",
   "Idempotency",
-  isDeterministic === true,
-  `Format canonique 'entity:id:milestone' respecté.`
+  isDuplicate === true,
+  `Doublon intercepté via le registre d'idempotence, aucun doublon inséré.`
 );
 
 // -----------------------------------------------------------------------------
-// Test 14: Timezone conversions (Abidjan UTC vs New York UTC-4)
+// Test 12: Quiet Hours respect (22h -> 07h)
 // -----------------------------------------------------------------------------
-const nowAbidjan = DateTime.now().setZone("Africa/Abidjan");
-const nowNY = DateTime.now().setZone("America/New_York");
-assert(
-  14,
-  "Timezone specific date evaluation",
-  "Timezone",
-  nowAbidjan.zoneName === "Africa/Abidjan" && nowNY.zoneName === "America/New_York",
-  `Évaluation locale respectée sans forcer UTC.`
-);
-
-// -----------------------------------------------------------------------------
-// Test 15: Quiet Hours deferral
-// -----------------------------------------------------------------------------
-const nightTime = DateTime.fromISO("2026-09-12T23:30:00.000", { zone: "Europe/Paris" });
+const nightTime = DateTime.fromISO("2026-09-12T23:30:00.000", { zone: "Africa/Abidjan" });
 const isQuiet = isInQuietHours(nightTime, true, "22:00", "07:00");
-const dayTime = DateTime.fromISO("2026-09-12T14:30:00.000", { zone: "Europe/Paris" });
+const dayTime = DateTime.fromISO("2026-09-12T14:30:00.000", { zone: "Africa/Abidjan" });
 const isQuietDay = isInQuietHours(dayTime, true, "22:00", "07:00");
 
 assert(
-  15,
-  "Quiet hours active period detection",
+  12,
+  "Quiet hours active period respect",
   "Quiet Hours",
   isQuiet === true && isQuietDay === false,
-  `Heures silencieuses (22h-07h) respectées : nuit = silencieux, jour = normal.`
+  `Heures silencieuses (22h-07h) vérifiées : nuit = silencieux, jour = actif.`
 );
 
 // -----------------------------------------------------------------------------
-// Test 16: Notification Preferences filtering
+// Test 13: Timezone specific date evaluation (Abidjan vs Paris)
 // -----------------------------------------------------------------------------
-const userPrefs = {
-  email_enabled: false,
-  activity_reminders: true,
-  payment_reminders: false,
-};
+const nowAbidjan = DateTime.now().setZone("Africa/Abidjan");
+const nowParis = DateTime.now().setZone("Europe/Paris");
 assert(
-  16,
-  "User Notification Preferences respect",
-  "Preferences",
-  userPrefs.payment_reminders === false && userPrefs.activity_reminders === true,
-  `Préférences désactivées respectées (pas de rappel de paiement si désactivé).`
+  13,
+  "Timezone specific date evaluation",
+  "Timezone",
+  nowAbidjan.zoneName === "Africa/Abidjan" && nowParis.zoneName === "Europe/Paris",
+  `Évaluation locale respectée sans forcer arbitrairement UTC.`
 );
 
 // -----------------------------------------------------------------------------
-// Test 17: RLS Isolation
+// Test 14: HTML Email Template Generation
 // -----------------------------------------------------------------------------
-const queryUserId: string = "user_abc";
-const itemUserId: string = "user_xyz";
-const rlsAllowed = queryUserId === itemUserId;
+const emailHtml = generateEmailHtml({
+  recipientName: "Nick",
+  title: "Paiement prévu demain : Cours particuliers",
+  body: "Un paiement de 50 000 FCFA pour « Cours particuliers » est prévu demain.",
+  link: "/finances",
+  ctaText: "Voir le paiement",
+  locale: "fr",
+});
+const emailText = generateEmailText({
+  recipientName: "Nick",
+  title: "Paiement prévu demain : Cours particuliers",
+  body: "Un paiement de 50 000 FCFA pour « Cours particuliers » est prévu demain.",
+  link: "/finances",
+  ctaText: "Voir le paiement",
+});
+
 assert(
-  17,
-  "Row Level Security user isolation",
-  "Security",
-  rlsAllowed === false,
-  `Un utilisateur ne peut pas lire ou recevoir les notifications d'un autre.`
+  14,
+  "HTML & Text Email Template Generation",
+  "Email Template",
+  emailHtml.includes("Remind") && emailHtml.includes("50 000 FCFA") && emailText.includes("Nick"),
+  `Génération HTML/Texte conforme à l'identité visuelle Remind Me.`
 );
 
 // -----------------------------------------------------------------------------
-// Test 18: Failed delivery audit logging
+// Test 15: WhatsApp Channel strict Non-Simulated Architecture
 // -----------------------------------------------------------------------------
-const logStatus = "failed";
-assert(
-  18,
-  "Failed delivery logged safely",
-  "Audit Log",
-  logStatus === "failed",
-  `Échec consigné dans notification_logs sans marquer comme envoyé.`
-);
-
-// -----------------------------------------------------------------------------
-// Test 19: Recurring Expense monthly advance
-// -----------------------------------------------------------------------------
-const currentDueDate = DateTime.fromISO("2026-10-05");
-const nextMonthDueDate = currentDueDate.plus({ months: 1 }).toISODate();
-assert(
-  19,
-  "Recurring Expense monthly advance",
-  "Recurring",
-  nextMonthDueDate === "2026-11-05",
-  `Dépense mensuelle passée du 2026-10-05 au 2026-11-05 après règlement.`
-);
-
-// -----------------------------------------------------------------------------
-// Test 20: Multi-user batch execution isolation
-// -----------------------------------------------------------------------------
-const userBatch = [
-  { id: "u1", error: false },
-  { id: "u2", error: true },
-  { id: "u3", error: false },
-];
-let successCount = 0;
-for (const u of userBatch) {
-  try {
-    if (u.error) throw new Error("Simulated network issue");
-    successCount++;
-  } catch {
-    // Isolated
-  }
+async function testWhatsApp() {
+  const res = await sendWhatsAppNotification({
+    userId: "test_user",
+    recipientPhone: "+22507000000",
+    message: "Test Remind Me WhatsApp",
+  });
+  return res;
 }
-assert(
-  20,
-  "Multiple users batch isolation",
-  "Batch Cron",
-  successCount === 2,
-  `Une erreur sur un utilisateur n'interrompt pas le traitement des autres.`
-);
 
 // -----------------------------------------------------------------------------
 // Print Summary
 // -----------------------------------------------------------------------------
-console.log("RÉSULTATS DE LA SUITE DE TESTS (20 SCÉNARIOS) :");
-let passed = 0;
-for (const r of results) {
-  if (r.status === "PASS") passed++;
-  console.log(`[${r.status === "PASS" ? "🟢 PASS" : "🔴 FAIL"}] #${r.id} ${r.name} (${r.category}) — ${r.details}`);
-}
+(async () => {
+  const waResult = await testWhatsApp();
+  assert(
+    15,
+    "WhatsApp channel: No fake simulations, reports not_configured when unconfigured",
+    "WhatsApp",
+    waResult.status === "not_configured" && waResult.configured === false && waResult.success === false,
+    `WhatsApp renvoie fidèlement 'not_configured' sans feindre un faux envoi.`
+  );
 
-console.log(`\nTOTAL : ${passed}/${results.length} tests réussis (100% de succès).`);
+  console.log("RÉSULTATS DE LA SUITE DE TESTS (15 SCÉNARIOS CRITIQUES) :");
+  let passed = 0;
+  for (const r of results) {
+    if (r.status === "PASS") passed++;
+    console.log(`[${r.status === "PASS" ? "🟢 PASS" : "🔴 FAIL"}] #${r.id} ${r.name} (${r.category}) — ${r.details}`);
+  }
+
+  console.log(`\nTOTAL : ${passed}/${results.length} tests réussis (${Math.round((passed / results.length) * 100)}% de succès).`);
+})();

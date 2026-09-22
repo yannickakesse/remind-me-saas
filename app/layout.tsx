@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { THEME_INIT_SCRIPT } from "@/lib/theme/theme-script";
 import { ThemeProvider } from "@/components/theme/theme-provider";
@@ -75,10 +76,10 @@ export default function RootLayout({
           <ToastProvider>
             <PWARegister />
             {children}
+            <Analytics />
           </ToastProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
-

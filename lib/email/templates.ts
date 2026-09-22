@@ -24,56 +24,62 @@ export function escapeHtml(str: string | null | undefined): string {
 }
 
 /**
- * Génère le contenu HTML d'un e-mail transactionnel de la marque Remind Me.
+ * Génère le contenu HTML d'un e-mail transactionnel aux couleurs de la marque Remind Me.
  */
 export function generateEmailHtml(payload: EmailPayload): string {
-  const { recipientName, title, body, link, ctaText = "Open in Remind Me" } = payload;
+  const { recipientName, title, body, link, ctaText = "Accéder à Remind Me", locale = "fr" } = payload;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.remindme.io";
-  const rawFullLink = link.startsWith("http") ? link : `${baseUrl}${link}`;
+  const rawFullLink = link.startsWith("http") ? link : `${baseUrl}${link.startsWith("/") ? "" : "/"}${link}`;
 
   // Sanitize the link (must be http/https)
   const safeLink = /^https?:\/\//i.test(rawFullLink) ? encodeURI(rawFullLink) : `${baseUrl}/dashboard`;
 
   const safeTitle = escapeHtml(title);
   const safeRecipientName = escapeHtml(recipientName);
-  const safeBody = escapeHtml(body);
+  const safeBody = escapeHtml(body).replace(/\n/g, "<br>");
   const safeCtaText = escapeHtml(ctaText);
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${locale}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${safeTitle}</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #F8FAFC; color: #0F172A; margin: 0; padding: 24px; }
-    .container { max-width: 560px; margin: 0 auto; background: #FFFFFF; border-radius: 16px; border: 1px solid #E2E8F0; overflow: hidden; }
-    .header { padding: 28px 32px 20px; border-bottom: 1px solid #F1F5F9; }
-    .logo { font-size: 20px; font-weight: 800; color: #0F172A; letter-spacing: -0.5px; }
-    .logo span { color: #2563EB; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 24px 12px; }
+    .container { max-width: 580px; margin: 0 auto; background: #1E293B; border-radius: 20px; border: 1px solid rgba(229, 169, 30, 0.25); overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+    .header { padding: 28px 32px 20px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 20px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; }
+    .logo span { color: #E5A91E; }
+    .badge { display: inline-block; padding: 4px 10px; background: rgba(229, 169, 30, 0.15); border: 1px solid rgba(229, 169, 30, 0.4); border-radius: 9999px; font-size: 11px; font-weight: 700; color: #FBBF24; }
     .content { padding: 32px; }
-    .title { font-size: 20px; font-weight: 700; color: #0F172A; margin: 0 0 16px; }
-    .body-text { font-size: 15px; line-height: 1.6; color: #475569; margin: 0 0 24px; }
-    .btn { display: inline-block; background-color: #2563EB; color: #FFFFFF !important; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 10px; text-decoration: none; text-align: center; }
-    .footer { padding: 24px 32px; background: #F8FAFC; border-top: 1px solid #F1F5F9; font-size: 12px; color: #64748B; text-align: center; }
+    .title { font-size: 20px; font-weight: 800; color: #FFFFFF; margin: 0 0 16px; line-height: 1.3; }
+    .greeting { font-size: 15px; font-weight: 600; color: #E2E8F0; margin: 0 0 12px; }
+    .body-box { background: #0F172A; border-radius: 14px; border: 1px solid #334155; padding: 18px 20px; margin: 16px 0 24px; font-size: 14px; line-height: 1.6; color: #CBD5E1; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #E5A91E 0%, #B48212 100%); color: #FFFFFF !important; font-weight: 700; font-size: 14px; padding: 13px 26px; border-radius: 12px; text-decoration: none; text-align: center; box-shadow: 0 4px 14px rgba(229, 169, 30, 0.35); }
+    .footer { padding: 20px 32px; background: #0F172A; border-top: 1px solid #334155; font-size: 12px; color: #64748B; text-align: center; line-height: 1.5; }
+    .footer a { color: #FBBF24; text-decoration: none; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <div class="logo">Remind<span>Me</span></div>
+      <div class="badge">Rappel Automatique</div>
     </div>
     <div class="content">
       <div class="title">${safeTitle}</div>
-      <p class="body-text">Hello ${safeRecipientName},</p>
-      <p class="body-text">${safeBody}</p>
-      <div style="margin: 28px 0;">
+      <p class="greeting">Bonjour ${safeRecipientName},</p>
+      <div class="body-box">
+        ${safeBody}
+      </div>
+      <div style="margin: 28px 0 12px;">
         <a href="${safeLink}" class="btn" target="_blank">${safeCtaText} &rarr;</a>
       </div>
     </div>
     <div class="footer">
-      Remind Me — Your work, your time and your money, finally under control.<br>
-      <a href="${baseUrl}/settings" style="color: #2563EB; text-decoration: none;">Notification Preferences</a>
+      Remind Me • Multi-activités, planning et rentabilité en toute sérénité.<br>
+      Pour ajuster vos alertes, accédez à vos <a href="${baseUrl}/settings">Paramètres de notifications</a>.
     </div>
   </div>
 </body>
@@ -84,20 +90,20 @@ export function generateEmailHtml(payload: EmailPayload): string {
  * Génère la version texte brut pour les clients e-mail sans HTML.
  */
 export function generateEmailText(payload: EmailPayload): string {
-  const { recipientName, title, body, link, ctaText = "Open in Remind Me" } = payload;
+  const { recipientName, title, body, link, ctaText = "Ouvrir dans Remind Me" } = payload;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.remindme.io";
-  const fullLink = link.startsWith("http") ? link : `${baseUrl}${link}`;
+  const fullLink = link.startsWith("http") ? link : `${baseUrl}${link.startsWith("/") ? "" : "/"}${link}`;
 
   return `Remind Me — ${title}
 
-Hello ${recipientName},
+Bonjour ${recipientName},
 
 ${body}
 
-${ctaText}: ${fullLink}
+${ctaText} : ${fullLink}
 
 ---
-Remind Me — Your work, your time and your money under control.
-Settings: ${baseUrl}/settings
+Remind Me — Multi-activités, planning et rentabilité.
+Paramètres : ${baseUrl}/settings
 `;
 }
