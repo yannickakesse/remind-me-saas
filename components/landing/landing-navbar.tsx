@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { RemindMeLogo } from "./remindme-logo";
 import { useTheme } from "@/components/theme/theme-provider";
-import { ShieldCheck } from "lucide-react";
 
 interface LandingNavbarProps {
   user: { email?: string; id?: string } | null;
@@ -81,33 +80,22 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
           <div className="flex items-center gap-2 sm:gap-2.5">
             {/* Direct Sign in / Action Pill (visible on both mobile and desktop) */}
             {user ? (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/admin"
-                  prefetch={true}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-full border border-gold/40 bg-gold/10 hover:bg-gold/20 text-gold-dark dark:text-gold font-bold text-xs transition-all tap-active"
-                  title="Centre de Contrôle Admin"
+              <Link
+                href="/dashboard"
+                prefetch={true}
+                className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active"
+              >
+                <span>Dashboard</span>
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
                 >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Admin</span>
-                </Link>
-                <Link
-                  href="/dashboard"
-                  prefetch={true}
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active"
-                >
-                  <span>Dashboard</span>
-                  <svg
-                    className="w-3.5 h-3.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              </div>
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
             ) : (
               <Link
                 href="/login"
@@ -229,24 +217,14 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             </nav>
             <div className="pt-2 border-t border-ink-100 dark:border-ink-800 flex flex-col gap-2">
               {user ? (
-                <>
-                  <Link
-                    href="/admin"
-                    prefetch={true}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full text-center py-2.5 rounded-full border border-gold/40 bg-gold/10 text-gold-dark dark:text-gold font-bold text-xs"
-                  >
-                    👑 Centre de Contrôle Admin
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    prefetch={true}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full text-center py-2.5 rounded-full bg-emerald-600 text-white font-semibold text-xs shadow"
-                  >
-                    Accéder au Dashboard →
-                  </Link>
-                </>
+                <Link
+                  href="/dashboard"
+                  prefetch={true}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-full bg-emerald-600 text-white font-semibold text-xs shadow"
+                >
+                  Accéder au Dashboard →
+                </Link>
               ) : (
                 <>
                   <Link

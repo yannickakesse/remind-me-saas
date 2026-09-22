@@ -21,12 +21,10 @@ import {
   Users,
   BarChart3,
   Settings,
-  ShieldCheck,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, tourKey: "nav-dashboard" },
-  { href: "/admin", label: "👑 Admin & Alertes", icon: ShieldCheck, tourKey: "nav-admin" },
   { href: "/activities", label: "Activités", icon: Briefcase, tourKey: "nav-activities" },
   { href: "/calendar", label: "Calendrier", icon: Calendar, tourKey: "nav-calendar" },
   { href: "/tasks", label: "Tâches", icon: CheckSquare, tourKey: "nav-tasks" },
