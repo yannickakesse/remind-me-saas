@@ -266,59 +266,127 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
       </div>
 
       {/* Modale de confirmation et de mise à niveau */}
-      {selectedTargetPlan && (
-        <Modal
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          title={`Passer au forfait ${PLAN_ENTITLEMENTS[selectedTargetPlan].planName}`}
-          description="Activez instantanément toutes les fonctionnalités et les quotas associés à cette formule."
-        >
-          <div className="space-y-4 my-2 p-4 rounded-xl bg-canvas border border-ink-100">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-ink-600 font-medium">Forfait sélectionné :</span>
-              <span className="font-bold text-ink-950">
-                {PLAN_ENTITLEMENTS[selectedTargetPlan].planName}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-ink-600 font-medium">Tarif :</span>
-              <span className="font-extrabold text-ink-950 text-base">
-                {billingCycle === "monthly"
-                  ? `${PLAN_ENTITLEMENTS[selectedTargetPlan].priceMonthly} € / mois`
-                  : `${PLAN_ENTITLEMENTS[selectedTargetPlan].priceYearly} € / an`}
-              </span>
-            </div>
-            <div className="text-xs text-ink-500 pt-2 border-t border-ink-100 space-y-1">
-              <p className="flex items-center gap-1.5 text-positive font-medium">
-                <Check className="w-3.5 h-3.5" />
-                Activation immédiate sans interruption de service
-              </p>
-              <p className="text-ink-400">
-                Vos données existantes sont strictement préservées.
-              </p>
-            </div>
-          </div>
+      {selectedTargetPlan && (() => {
+        const target = PLAN_ENTITLEMENTS[selectedTargetPlan];
+        const isDowngrade =
+          (activePlan === "premium" && (selectedTargetPlan === "pro" || selectedTargetPlan === "free")) ||
+          (activePlan === "pro" && selectedTargetPlan === "free");
 
-          <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={isPending}
-              onClick={() => setModalOpen(false)}
-            >
-              Annuler
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              loading={isPending}
-              onClick={handleConfirmPlanChange}
-            >
-              Confirmer et Activer
-            </Button>
-          </div>
-        </Modal>
-      )}
+        return (
+          <Modal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            title={`Passer au forfait ${target.planName} ?`}
+            description="En mode test, aucun paiement réel ne sera prélevé."
+          >
+            <div className="space-y-4 my-2">
+              {/* Carte Récapitulative */}
+              <div className="p-4 rounded-xl bg-canvas border border-ink-100 space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-ink-600 font-medium">Formule choisie :</span>
+                  <span className="font-bold text-ink-950 text-base">{target.planName}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-ink-600 font-medium">Tarif (Mode Test) :</span>
+                  <span className="font-extrabold text-ink-950 text-base">
+                    {billingCycle === "monthly"
+                      ? `${target.priceMonthly} € / mois`
+                      : `${target.priceYearly} € / an`}
+                  </span>
+                </div>
+              </div>
+
+              {/* Droits inclus */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+                  Vous aurez accès à :
+                </p>
+                <ul className="space-y-1.5 text-xs text-ink-700 bg-canvas-raised p-3.5 rounded-xl border border-ink-100">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                    <span>
+                      {target.maxActivities === Infinity ? "Activités illimitées" : `${target.maxActivities} activités`}
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                    <span>
+                      {target.maxClients === Infinity ? "Contacts & clients illimités" : `${target.maxClients} contacts et clients`}
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                    <span>
+                      {target.maxGoals === Infinity ? "Objectifs d'épargne illimités" : `${target.maxGoals} objectifs d'épargne`}
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                    <span>
+                      {target.maxBudgets === Infinity ? "Budgets mensuels illimités" : `${target.maxBudgets} budgets mensuels`}
+                    </span>
+                  </li>
+                  {target.hourlyProfitability && (
+                    <li className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                      <span>Rapport de rentabilité horaire</span>
+                    </li>
+                  )}
+                  {target.multiCurrency && (
+                    <li className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                      <span>Gestion multi-devises unifiée</span>
+                    </li>
+                  )}
+                  {target.aiAssistant && (
+                    <li className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                      <span>Assistant IA & insights prédictifs</span>
+                    </li>
+                  )}
+                </ul>
+              </div>
+
+              {/* Avertissement Downgrade bienveillant & rassurant */}
+              {isDowngrade ? (
+                <div className="rounded-xl border border-warning/30 bg-warning/5 p-3.5 text-xs text-ink-700 space-y-1">
+                  <p className="font-bold text-warning-dark flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-warning-dark" />
+                    Conservation garantie de vos données
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-ink-600">
+                    Vos activités, clients, budgets et objectifs existants restent précieusement conservés et <strong>ne seront jamais supprimés</strong>. Si vos données dépassent les quotas du forfait {target.planName}, vous devrez simplement repasser sous la limite avant de pouvoir créer de nouveaux éléments.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-positive/20 bg-positive/5 p-3 text-xs text-positive font-medium flex items-center gap-2">
+                  <Check className="w-4 h-4 text-positive shrink-0" />
+                  Activation immédiate et déblocage de toutes vos nouvelles fonctionnalités.
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isPending}
+                onClick={() => setModalOpen(false)}
+              >
+                Annuler
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                loading={isPending}
+                onClick={handleConfirmPlanChange}
+              >
+                Confirmer le changement
+              </Button>
+            </div>
+          </Modal>
+        );
+      })()}
     </div>
   );
 }

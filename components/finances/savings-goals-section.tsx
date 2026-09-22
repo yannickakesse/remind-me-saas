@@ -113,10 +113,11 @@ export function SavingsGoalsSection({
           toast.push("Objectif d'épargne créé avec succès.", "success");
         }
         resetForm();
-      } catch (err) {
+      } catch (err: any) {
         setLocalGoals(goals);
-        setError(err instanceof Error ? err.message : "Erreur lors de l'enregistrement");
-        toast.push("Erreur lors de l'enregistrement de l'objectif.", "error");
+        const msg = err instanceof Error ? err.message : "Erreur lors de l'enregistrement de l'objectif.";
+        setError(msg);
+        toast.push(msg, "error");
       }
     });
   }

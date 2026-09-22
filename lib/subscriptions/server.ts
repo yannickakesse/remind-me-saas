@@ -66,17 +66,29 @@ export async function assertCanCreateActivity(
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId);
 
-  if (error) return; // En cas d'erreur de comptage ponctuelle, ne pas bloquer arbitrairement
+  if (error) return;
 
-  if (typeof count === "number" && count >= max) {
-    throw new Error(
-      `Limite de votre forfait ${sub.entitlements.planName} atteinte (${max} activités maximum). Passez au forfait supérieur pour créer des activités illimitées.`
-    );
+  if (typeof count === "number") {
+    if (count > max) {
+      throw new Error(
+        `Votre plan ${sub.entitlements.planName} permet jusqu'à ${max} activités. Vous avez actuellement ${count} activités. Vos données existantes restent conservées, mais vous devrez revenir sous la limite avant de pouvoir en créer de nouvelles.`
+      );
+    }
+    if (count >= max) {
+      if (sub.plan === "free") {
+        throw new Error(
+          "Vous avez atteint la limite de votre plan Free (3 activités). Passez au plan Pro pour gérer jusqu'à 15 activités."
+        );
+      }
+      throw new Error(
+        "Vous avez atteint la limite de votre plan Pro (15 activités). Passez au plan Premium pour gérer des activités illimitées."
+      );
+    }
   }
 }
 
 /**
- * Vérifie si l'utilisateur peut créer un nouveau contact / organisation.
+ * Vérifie si l'utilisateur peut créer un nouveau contact ou une organisation.
  */
 export async function assertCanCreateContact(
   supabase: SupabaseClient<Database>,
@@ -87,16 +99,33 @@ export async function assertCanCreateContact(
 
   if (max === Infinity) return;
 
-  const { count, error } = await supabase
-    .from("contacts")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId);
+  const [{ count: contactsCount }, { count: orgsCount }] = await Promise.all([
+    supabase
+      .from("contacts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId),
+    supabase
+      .from("organizations")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId),
+  ]);
 
-  if (error) return;
+  const total = (contactsCount || 0) + (orgsCount || 0);
 
-  if (typeof count === "number" && count >= max) {
+  if (total > max) {
     throw new Error(
-      `Limite de votre forfait ${sub.entitlements.planName} atteinte (${max} contacts maximum). Passez au forfait supérieur pour ajouter davantage de clients.`
+      `Votre plan ${sub.entitlements.planName} permet jusqu'à ${max} contacts et clients. Vous en avez actuellement ${total}. Vos données existantes restent conservées, mais vous devrez revenir sous la limite avant de pouvoir en créer de nouveaux.`
+    );
+  }
+
+  if (total >= max) {
+    if (sub.plan === "free") {
+      throw new Error(
+        "Vous avez atteint la limite de votre plan Free (5 contacts & clients). Passez au plan Pro pour gérer jusqu'à 50 contacts et clients."
+      );
+    }
+    throw new Error(
+      "Vous avez atteint la limite de votre plan Pro (50 contacts & clients). Passez au plan Premium pour des contacts et clients illimités."
     );
   }
 }
@@ -120,10 +149,22 @@ export async function assertCanCreateBudget(
 
   if (error) return;
 
-  if (typeof count === "number" && count >= max) {
-    throw new Error(
-      `Limite de votre forfait ${sub.entitlements.planName} atteinte (${max} budgets maximum). Passez au forfait supérieur pour créer des budgets supplémentaires.`
-    );
+  if (typeof count === "number") {
+    if (count > max) {
+      throw new Error(
+        `Votre plan ${sub.entitlements.planName} permet jusqu'à ${max} budgets mensuels. Vous en avez actuellement ${count} budgets. Vos données existantes restent conservées, mais vous devrez revenir sous la limite avant de pouvoir en créer de nouveaux.`
+      );
+    }
+    if (count >= max) {
+      if (sub.plan === "free") {
+        throw new Error(
+          "Vous avez atteint la limite de votre plan Free (3 budgets mensuels). Passez au plan Pro pour créer jusqu'à 15 budgets mensuels."
+        );
+      }
+      throw new Error(
+        "Vous avez atteint la limite de votre plan Pro (15 budgets mensuels). Passez au plan Premium pour des budgets mensuels illimités."
+      );
+    }
   }
 }
 
@@ -146,11 +187,52 @@ export async function assertCanCreateSavingsGoal(
 
   if (error) return;
 
-  if (typeof count === "number" && count >= max) {
-    throw new Error(
-      `Limite de votre forfait ${sub.entitlements.planName} atteinte (${max} objectifs d'épargne maximum). Passez au forfait supérieur pour créer davantage d'objectifs.`
-    );
+  if (typeof count === "number") {
+    if (count > max) {
+      throw new Error(
+        `Votre plan ${sub.entitlements.planName} permet jusqu'à ${max} objectifs d'épargne. Vous en avez actuellement ${count}. Vos données existantes restent conservées, mais vous devrez revenir sous la limite avant de pouvoir en créer de nouveaux.`
+      );
+    }
+    if (count >= max) {
+      if (sub.plan === "free") {
+        throw new Error(
+          "Vous avez atteint la limite de votre plan Free (2 objectifs d'épargne). Passez au plan Pro pour créer jusqu'à 10 objectifs d'épargne."
+        );
+      }
+      throw new Error(
+        "Vous avez atteint la limite de votre plan Pro (10 objectifs d'épargne). Passez au plan Premium pour des objectifs d'épargne illimités."
+      );
+    }
   }
+}
+
+/**
+ * Récupère les compteurs d'utilisation actuels de l'utilisateur.
+ */
+export async function getUserUsageCounts(
+  supabase: SupabaseClient<Database>,
+  userId: string
+) {
+  const [
+    { count: activitiesCount },
+    { count: contactsCount },
+    { count: orgsCount },
+    { count: budgetsCount },
+    { count: goalsCount },
+  ] = await Promise.all([
+    supabase.from("activities").select("id", { count: "exact", head: true }).eq("user_id", userId),
+    supabase.from("contacts").select("id", { count: "exact", head: true }).eq("user_id", userId),
+    supabase.from("organizations").select("id", { count: "exact", head: true }).eq("user_id", userId),
+    supabase.from("budgets").select("id", { count: "exact", head: true }).eq("user_id", userId),
+    supabase.from("savings_goals").select("id", { count: "exact", head: true }).eq("user_id", userId),
+  ]);
+
+  return {
+    activitiesCount: activitiesCount ?? 0,
+    contactsClientsCount: (contactsCount ?? 0) + (orgsCount ?? 0),
+    budgetsCount: budgetsCount ?? 0,
+    goalsCount: goalsCount ?? 0,
+  };
 }
 
 /**

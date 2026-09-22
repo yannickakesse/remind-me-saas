@@ -40,6 +40,7 @@ function parseContactForm(formData: FormData) {
 // ----------------------------------------------------------------------------
 export async function createOrganization(formData: FormData) {
   const { supabase, user } = await requireUser();
+  await assertCanCreateContact(supabase, user.id);
   const parsed = parseOrganizationForm(formData);
 
   const { error } = await supabase.from("organizations").insert({

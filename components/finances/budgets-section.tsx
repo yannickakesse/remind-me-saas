@@ -72,10 +72,11 @@ export function BudgetsSection({
           toast.push("Budget créé avec succès.", "success");
         }
         resetForm();
-      } catch (err) {
+      } catch (err: any) {
         setLocalBudgets(budgets);
-        setError(err instanceof Error ? err.message : "Erreur lors de l'enregistrement");
-        toast.push("Erreur lors de l'enregistrement du budget.", "error");
+        const msg = err instanceof Error ? err.message : "Erreur lors de l'enregistrement du budget.";
+        setError(msg);
+        toast.push(msg, "error");
       }
     });
   }

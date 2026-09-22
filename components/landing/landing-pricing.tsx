@@ -51,13 +51,13 @@ export function LandingPricing() {
           <div className="p-8 rounded-2xl bg-canvas border border-ink-100 shadow-sm flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-ink-950">Découverte</h3>
+                <h3 className="text-xl font-bold text-ink-950">Free (Découverte)</h3>
                 <span className="px-2.5 py-1 rounded text-xs font-semibold bg-ink-100 text-ink-700">
                   Gratuit
                 </span>
               </div>
               <p className="text-xs text-ink-500">
-                Pour poser les bases et découvrir la gestion unifiée sans aucun engagement.
+                Pour démarrer sereinement et structurer vos premières activités plurielles.
               </p>
 
               <div className="flex items-baseline gap-1 pt-2">
@@ -68,19 +68,23 @@ export function LandingPricing() {
               <ul className="space-y-3 pt-6 border-t border-ink-100 text-xs text-ink-700">
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>Jusqu&apos;à <strong>2 activités</strong> actives</span>
+                  <span>Jusqu&apos;à <strong>3 activités</strong> actives</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>Calendrier multi-vues (Mois, Semaine, Jour)</span>
+                  <span>Jusqu&apos;à <strong>5 contacts &amp; clients</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>Suivi basique des tâches &amp; contacts</span>
+                  <span>Jusqu&apos;à <strong>2 objectifs d&apos;épargne</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>Devise unique principale</span>
+                  <span>Jusqu&apos;à <strong>3 budgets mensuels</strong></span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
+                  <span>Calendrier multi-vues &amp; suivi prévisionnel</span>
                 </li>
               </ul>
             </div>
@@ -108,45 +112,49 @@ export function LandingPricing() {
                 </span>
               </div>
               <p className="text-xs text-ink-500">
-                L&apos;arsenal complet pour les pluriactifs, consultants et indépendants réguliers.
+                L&apos;arsenal complet pour les pluriactifs, consultants et indépendants dynamiques.
               </p>
 
               <div className="flex items-baseline gap-1 pt-2">
                 <span className="text-4xl font-extrabold text-ink-950">
-                  {yearly ? "9 €" : "12 €"}
+                  {yearly ? "7,50 €" : "9 €"}
                 </span>
                 <span className="text-xs text-ink-500 font-medium">/ mois</span>
               </div>
               {yearly && (
                 <span className="text-[11px] text-positive font-semibold">
-                  Facturé 108 € / an (économie de 36 €)
+                  Facturé 90 € / an (économie de 18 €)
                 </span>
               )}
 
               <ul className="space-y-3 pt-6 border-t border-ink-100 text-xs text-ink-950">
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span><strong>Activités &amp; clients illimités</strong></span>
+                  <span>Jusqu&apos;à <strong>15 activités</strong> actives</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span><strong>Détection intelligente des conflits</strong></span>
+                  <span>Jusqu&apos;à <strong>50 contacts &amp; clients</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span><strong>Dépenses programmées &amp; cycle auto</strong></span>
+                  <span>Jusqu&apos;à <strong>10 objectifs d&apos;épargne</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>Calcul de rentabilité nette par heure</span>
+                  <span>Jusqu&apos;à <strong>15 budgets mensuels</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>Export comptable CSV en 1 clic</span>
+                  <span><strong>Calcul de rentabilité nette horaire</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>Multi-devises &amp; conversion automatique</span>
+                  <span><strong>Gestion multi-devises unifiée</strong></span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
+                  <span>Détection automatique des conflits d&apos;horaires</span>
                 </li>
               </ul>
             </div>
@@ -155,46 +163,59 @@ export function LandingPricing() {
               href="/register"
               className="w-full py-3.5 px-4 rounded-full bg-ink-950 text-white font-semibold text-xs text-center shadow-md shadow-ink-950/20 hover:bg-ink-900 hover:shadow-lg transition-all tap-active"
             >
-              Démarrer mon essai de 14 jours
+              Démarrer avec le Pro
             </Link>
           </div>
 
-          {/* Tier 3: Studio / Équipe */}
+          {/* Tier 3: Premium */}
           <div className="p-8 rounded-2xl bg-canvas border border-ink-100 shadow-sm flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-ink-950">Studio</h3>
-                <span className="px-2.5 py-1 rounded text-xs font-semibold bg-ink-100 text-ink-700">
-                  Sur-mesure
+                <h3 className="text-xl font-bold text-ink-950">Premium</h3>
+                <span className="px-2.5 py-1 rounded text-xs font-semibold bg-gold-soft text-gold-dark font-bold">
+                  Illimité &amp; IA
                 </span>
               </div>
               <p className="text-xs text-ink-500">
-                Pour les collectifs, cabinets de conseil et multi-entrepreneurs avec équipe.
+                Pour les multi-entrepreneurs et dirigeants exigeant une liberté totale et l&apos;intelligence prédictive.
               </p>
 
               <div className="flex items-baseline gap-1 pt-2">
                 <span className="text-4xl font-extrabold text-ink-950">
-                  {yearly ? "24 €" : "29 €"}
+                  {yearly ? "15,80 €" : "19 €"}
                 </span>
                 <span className="text-xs text-ink-500 font-medium">/ mois</span>
               </div>
+              {yearly && (
+                <span className="text-[11px] text-positive font-semibold">
+                  Facturé 190 € / an (économie de 38 €)
+                </span>
+              )}
 
               <ul className="space-y-3 pt-6 border-t border-ink-100 text-xs text-ink-700">
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>Tout le forfait Pro inclus</span>
+                  <span><strong>Activités illimitées</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>Multi-comptes &amp; accès partagé sécurisé</span>
+                  <span><strong>Contacts &amp; clients illimités</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>Rapports analytiques consolidés</span>
+                  <span><strong>Objectifs d&apos;épargne &amp; budgets illimités</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>Support prioritaire par email &amp; visio</span>
+                  <span>Rapport de rentabilité horaire &amp; multi-devises</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
+                  <span><strong>Assistant IA &amp; insights prédictifs</strong></span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
+                  <span>Support prioritaire 7j/7</span>
                 </li>
               </ul>
             </div>
@@ -203,7 +224,7 @@ export function LandingPricing() {
               href="/register"
               className="w-full py-3 px-4 rounded-full border border-ink-300 text-ink-950 font-semibold text-xs text-center hover:bg-ink-100 transition-colors tap-active"
             >
-              Contacter pour une démo
+              Découvrir Premium
             </Link>
           </div>
         </div>
