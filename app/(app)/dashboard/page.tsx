@@ -10,6 +10,8 @@ import {
   Calendar,
   Briefcase,
   ArrowRight,
+  ShieldCheck,
+  Smartphone,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatAmount } from "@/lib/finances/format";
@@ -35,7 +37,6 @@ export default async function DashboardPage() {
   const timezone = getUserTimezone(profile);
   const currency = profile?.default_currency ?? "XOF";
   const now = DateTime.now().setZone(timezone);
-
 
   const startOfMonth = now.startOf("month").toISODate()!;
   const endOfMonth = now.endOf("month").toISODate()!;
@@ -143,6 +144,27 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
+      {/* Admin Quick Shortcut Bar */}
+      <div className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl border border-gold/30 bg-gradient-to-r from-gold/10 via-gold/5 to-transparent shadow-2xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gold/20 text-gold-dark dark:text-gold font-bold text-xs">
+            👑
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-ink-950 truncate">Centre de Contrôle Admin & Alertes</p>
+            <p className="text-[11px] text-ink-500 truncate">Surveillez vos inscrits et vos alertes smartphone en temps réel</p>
+          </div>
+        </div>
+        <Link
+          href="/admin"
+          prefetch={true}
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-gold to-gold-dark text-white text-xs font-bold shadow-gold hover:brightness-110 active:scale-98 transition-all"
+        >
+          <Smartphone className="w-3.5 h-3.5" />
+          <span>Ouvrir</span>
+        </Link>
+      </div>
+
       {/* Top Welcome & Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" data-tour="dashboard-header">
         <div className="min-w-0">

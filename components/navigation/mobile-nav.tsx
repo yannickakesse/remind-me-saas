@@ -25,6 +25,7 @@ import {
   X,
   ChevronDown,
   ChevronRight,
+  ShieldCheck,
   Plus,
 } from "lucide-react";
 
@@ -72,6 +73,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
   ];
 
   const secondaryLinks = [
+    { href: "/admin", label: "👑 Centre Admin & Alertes", icon: ShieldCheck, tourKey: "nav-admin-mobile" },
     { href: "/clients", label: "Clients & Contacts", icon: Users, tourKey: "nav-clients-mobile" },
     { href: "/reports", label: "Rapports & Rentabilité", icon: BarChart3, tourKey: "nav-reports-mobile" },
     { href: "/notifications", label: "Notifications", icon: Bell, badge: unreadCount, tourKey: "nav-notifications-mobile" },
