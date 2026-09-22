@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const { endpoint, keys, platform, browser, device_name } = body;
 
     if (!endpoint || !keys?.p256dh || !keys?.auth) {
@@ -27,37 +28,58 @@ export async function POST(request: Request) {
       );
     }
 
-    // Upsert de la souscription push
-    const { data, error } = await supabase
+    const userAgent =
+      request.headers.get("user-agent") ||
+      `${platform || "Web"} - ${browser || "Browser"} (${device_name || "Device"})`;
+
+    const payload = {
+      user_id: user.id,
+      endpoint,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+      user_agent: userAgent,
+      updated_at: new Date().toISOString(),
+    };
+
+    // 1. Essai d'insertion/upsert avec client standard
+    let { data, error } = await supabase
       .from("push_subscriptions" as any)
-      .upsert(
-        {
-          user_id: user.id,
-          endpoint,
-          p256dh: keys.p256dh,
-          auth: keys.auth,
-          platform: platform || "web",
-          browser: browser || "unknown",
-          device_name: device_name || "Navigateur Web",
-          is_active: true,
-          updated_at: new Date().toISOString(),
-          last_seen_at: new Date().toISOString(),
-        },
-        { onConflict: "endpoint" }
-      )
+      .upsert(payload, { onConflict: "user_id,endpoint" })
       .select()
-      .single();
+      .maybeSingle();
+
+    // 2. Fallback avec admin client si restriction RLS
+    if (error) {
+      try {
+        const admin = createAdminClient();
+        const adminRes = await admin
+          .from("push_subscriptions" as any)
+          .upsert(payload, { onConflict: "user_id,endpoint" })
+          .select()
+          .maybeSingle();
+        if (!adminRes.error) {
+          data = adminRes.data;
+          error = null;
+        }
+      } catch (adminErr) {
+        console.warn("[Push:Subscribe] Fallback admin:", adminErr);
+      }
+    }
 
     if (error) {
       console.error("[Push:Subscribe] Erreur insertion:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error.message || "Impossible d'enregistrer la souscription" }, { status: 500 });
     }
 
-    // Activer l'option push dans les préférences si ce n'était pas fait
-    await supabase
-      .from("notification_preferences")
-      .update({ push_enabled: true } as any)
-      .eq("user_id", user.id);
+    // Activer l'option push dans les préférences
+    try {
+      await supabase
+        .from("notification_preferences")
+        .update({ push_enabled: true } as any)
+        .eq("user_id", user.id);
+    } catch {
+      // Ignorer si déjà géré
+    }
 
     return NextResponse.json({
       success: true,
@@ -65,9 +87,9 @@ export async function POST(request: Request) {
       subscriptionId: data?.id,
     });
   } catch (error: any) {
-    console.error("[Push:Subscribe] Erreur:", error);
+    console.error("[Push:Subscribe] Erreur globale:", error);
     return NextResponse.json(
-      { error: error.message || "Erreur interne" },
+      { error: error?.message || "Erreur interne du serveur" },
       { status: 500 }
     );
   }

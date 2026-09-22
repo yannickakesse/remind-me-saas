@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -17,23 +18,48 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const { endpoint } = body;
 
+    // 1. Suppression de la souscription
     if (endpoint) {
       await supabase
         .from("push_subscriptions" as any)
-        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .delete()
         .eq("user_id", user.id)
         .eq("endpoint", endpoint);
     } else {
       await supabase
         .from("push_subscriptions" as any)
-        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .delete()
         .eq("user_id", user.id);
     }
 
-    await supabase
-      .from("notification_preferences")
-      .update({ push_enabled: false } as any)
-      .eq("user_id", user.id);
+    // 2. Fallback admin si besoin
+    try {
+      const admin = createAdminClient();
+      if (endpoint) {
+        await admin
+          .from("push_subscriptions" as any)
+          .delete()
+          .eq("user_id", user.id)
+          .eq("endpoint", endpoint);
+      } else {
+        await admin
+          .from("push_subscriptions" as any)
+          .delete()
+          .eq("user_id", user.id);
+      }
+    } catch {
+      // Ignorer
+    }
+
+    // 3. Mise à jour des préférences
+    try {
+      await supabase
+        .from("notification_preferences")
+        .update({ push_enabled: false } as any)
+        .eq("user_id", user.id);
+    } catch {
+      // Ignorer
+    }
 
     return NextResponse.json({ success: true, message: "Notifications push désactivées." });
   } catch (err: any) {

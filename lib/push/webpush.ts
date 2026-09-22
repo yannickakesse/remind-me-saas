@@ -54,12 +54,11 @@ export async function dispatchWebPush(
     expiredRemoved: 0,
   };
 
-  // Récupération des souscriptions actives
+  // Récupération des souscriptions réelles de l'utilisateur
   const { data: subscriptions, error } = await supabase
     .from("push_subscriptions" as any)
     .select("id, endpoint, p256dh, auth")
-    .eq("user_id", userId)
-    .eq("is_active", true);
+    .eq("user_id", userId);
 
   if (error || !subscriptions || subscriptions.length === 0) {
     return result;
@@ -98,7 +97,7 @@ export async function dispatchWebPush(
         result.expiredRemoved++;
         await supabase
           .from("push_subscriptions" as any)
-          .update({ is_active: false, updated_at: new Date().toISOString() })
+          .delete()
           .eq("id", sub.id);
       }
     }

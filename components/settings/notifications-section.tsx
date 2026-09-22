@@ -245,7 +245,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       });
 
       if (!response.ok) {
-        throw new Error("Impossible d'enregistrer la souscription sur le serveur.");
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error || "Impossible d'enregistrer la souscription sur le serveur.");
       }
 
       setPushState("active");
