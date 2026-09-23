@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
@@ -6,6 +7,7 @@ import { THEME_INIT_SCRIPT } from "@/lib/theme/theme-script";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { PWARegister } from "@/components/pwa/pwa-register";
+import { NavigationProgressBar } from "@/components/ui/navigation-progress";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -74,6 +76,9 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <ToastProvider>
+            <Suspense fallback={null}>
+              <NavigationProgressBar />
+            </Suspense>
             <PWARegister />
             {children}
             <Analytics />
