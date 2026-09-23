@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { forgotPasswordSchema } from "@/lib/validation/auth";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
+import { getAuthRedirectUrl } from "@/lib/auth/url";
 
 export default function ForgotPasswordPage() {
   const supabase = createClient();
@@ -27,7 +28,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       result.data.email,
-      { redirectTo: `${window.location.origin}/auth/callback?next=/reset-password` }
+      { redirectTo: getAuthRedirectUrl("/reset-password") }
     );
     setLoading(false);
 

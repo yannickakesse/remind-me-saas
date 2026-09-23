@@ -1,4 +1,5 @@
 import type { SupportedLocale } from "@/types/database";
+import { getAppUrl } from "@/lib/auth/url";
 
 export interface EmailPayload {
   recipientName: string;
@@ -28,7 +29,7 @@ export function escapeHtml(str: string | null | undefined): string {
  */
 export function generateEmailHtml(payload: EmailPayload): string {
   const { recipientName, title, body, link, ctaText = "Accéder à Remind Me", locale = "fr" } = payload;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.remindme.io";
+  const baseUrl = getAppUrl();
   const rawFullLink = link.startsWith("http") ? link : `${baseUrl}${link.startsWith("/") ? "" : "/"}${link}`;
 
   // Sanitize the link (must be http/https)
@@ -91,7 +92,7 @@ export function generateEmailHtml(payload: EmailPayload): string {
  */
 export function generateEmailText(payload: EmailPayload): string {
   const { recipientName, title, body, link, ctaText = "Ouvrir dans Remind Me" } = payload;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.remindme.io";
+  const baseUrl = getAppUrl();
   const fullLink = link.startsWith("http") ? link : `${baseUrl}${link.startsWith("/") ? "" : "/"}${link}`;
 
   return `Remind Me — ${title}

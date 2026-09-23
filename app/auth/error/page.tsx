@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AlertTriangle, Mail, ArrowRight, RefreshCw, CheckCircle2, ShieldAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
+import { getAuthRedirectUrl } from "@/lib/auth/url";
 
 function AuthErrorContent() {
   const searchParams = useSearchParams();
@@ -56,7 +57,7 @@ function AuthErrorContent() {
         type: "signup",
         email: email.trim(),
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+          emailRedirectTo: getAuthRedirectUrl("/dashboard"),
         },
       });
 

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { registerSchema } from "@/lib/validation/auth";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
+import { getAuthRedirectUrl } from "@/lib/auth/url";
 
 export default function RegisterPage() {
   const supabase = createClient();
@@ -57,7 +58,7 @@ export default function RegisterPage() {
       password: result.data.password,
       options: {
         data: { full_name: result.data.fullName },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        emailRedirectTo: getAuthRedirectUrl("/dashboard"),
       },
     });
 
@@ -97,7 +98,7 @@ export default function RegisterPage() {
         type: "signup",
         email: email.trim(),
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+          emailRedirectTo: getAuthRedirectUrl("/dashboard"),
         },
       });
 

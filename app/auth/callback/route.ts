@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { notifyAdmin } from "@/lib/admin/notifier";
+import { getAppUrl } from "@/lib/auth/url";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,10 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
-  const { searchParams, origin } = requestUrl;
+  const { searchParams } = requestUrl;
+  const origin = requestUrl.origin && !requestUrl.origin.includes("localhost") 
+    ? requestUrl.origin 
+    : getAppUrl();
 
   const code = searchParams.get("code");
   const token_hash = searchParams.get("token_hash");

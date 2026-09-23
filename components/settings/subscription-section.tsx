@@ -7,6 +7,7 @@ import { updateSubscriptionPlan, initiateBictorysCheckoutAction } from "@/app/(a
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { getAppUrl } from "@/lib/auth/url";
 import type { Subscription } from "@/types/database";
 
 export interface SubscriptionSectionProps {
@@ -41,7 +42,7 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
     setIsBictorysPending(true);
 
     try {
-      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const baseUrl = getAppUrl();
       const res = await initiateBictorysCheckoutAction({
         targetPlan: selectedTargetPlan,
         billingCycle,
