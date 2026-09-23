@@ -100,9 +100,9 @@ export function NavigationProgressBar() {
         />
       </div>
 
-      {/* Badge flottant avec Spinner doré */}
+      {/* Badge flottant avec Spinner doré (avec support Safe Area pour encoches et Dynamic Island) */}
       {loading && progress < 100 && (
-        <div className="fixed top-4 right-4 z-[999999] pointer-events-none flex items-center gap-2.5 bg-ink-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-gold/40 shadow-xl text-[11px] font-bold text-white animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="fixed top-[max(1rem,env(safe-area-inset-top,0px))] right-4 z-[999999] pointer-events-none flex items-center gap-2.5 bg-ink-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-gold/40 shadow-xl text-[11px] font-bold text-white animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="w-3.5 h-3.5 border-2 border-gold border-t-transparent rounded-full animate-spin" />
           <span className="tracking-wide">Chargement...</span>
         </div>

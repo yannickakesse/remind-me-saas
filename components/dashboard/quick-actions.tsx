@@ -5,7 +5,6 @@ import { buttonClasses } from "@/components/ui/button";
 const ACTIONS = [
   { href: "/activities/new", label: "Activité", icon: Briefcase },
   { href: "/tasks/new", label: "Tâche", icon: CheckSquare },
-  { href: "/finances/income/new", label: "Revenu", icon: TrendingUp },
   { href: "/finances?tab=scheduled&action=new", label: "Dépense", icon: TrendingDown },
 ] as const;
 

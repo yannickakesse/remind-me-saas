@@ -81,8 +81,8 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
 
   return (
     <>
-      {/* Top Mobile Bar (< 768px) — Header Mobile Moderne & Épuré */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-4 py-2.5 shadow-xs w-full max-w-full">
+      {/* Top Mobile Bar (< 768px) — Header Mobile Moderne & Épuré avec Safe Area Inset pour iPhone / Android */}
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-4 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-2.5 shadow-xs w-full max-w-full safe-area-top">
         <Link href="/dashboard" className="flex items-center tap-active py-0.5">
           <RemindMeLogo size="sm" showText={true} />
         </Link>
@@ -117,8 +117,8 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
 
           {/* Drawer content */}
           <div className="relative flex flex-col w-[85%] max-w-[320px] bg-canvas-raised h-full shadow-2xl z-10 border-r border-ink-200 overflow-y-auto">
-            {/* Drawer Header */}
-            <div className="flex items-center justify-between p-4 border-b border-ink-200 bg-canvas">
+            {/* Drawer Header avec Safe Area Inset Top */}
+            <div className="flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top,0px))] border-b border-ink-200 bg-canvas safe-area-top">
               <RemindMeLogo size="sm" showText={true} />
 
               <button

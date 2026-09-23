@@ -273,7 +273,7 @@ export default function DedicatedAdminPage() {
   return (
     <main className="min-h-screen bg-canvas pb-28 text-ink-950 selection:bg-gold/20">
       {/* Header Mobile & Desktop Spécifique Admin */}
-      <header className="sticky top-0 z-30 border-b border-ink-200/80 dark:border-ink-100/10 bg-canvas/95 backdrop-blur-md px-4 py-3 sm:px-8">
+      <header className="sticky top-0 z-30 border-b border-ink-200/80 dark:border-ink-100/10 bg-canvas/95 backdrop-blur-md px-4 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-3 sm:px-8 safe-area-top">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-gold to-gold-dark text-white font-black text-sm shadow-gold">
