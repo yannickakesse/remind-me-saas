@@ -622,7 +622,12 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                   type="button"
                   size="sm"
                   variant="primary"
-                  onClick={() => setShowIOSPrompt(true)}
+                  onClick={() => {
+                    setShowIOSPrompt(true);
+                    if (typeof window !== "undefined") {
+                      window.dispatchEvent(new CustomEvent("open-pwa-install-guide"));
+                    }
+                  }}
                   className="w-full text-xs py-1.5"
                 >
                   <Smartphone className="w-3.5 h-3.5 mr-1.5" /> Ajouter à l'écran d'accueil iPhone
@@ -909,6 +914,35 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           <option value="de">Deutsch</option>
           <option value="pt">Português</option>
         </select>
+      </div>
+
+      {/* Section 5: Application Mobile & Écran d'accueil */}
+      <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Smartphone className="w-4 h-4 text-signal" />
+            <h4 className="text-xs font-bold text-ink-950">Application Mobile (PWA)</h4>
+          </div>
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-signal-soft text-signal">
+            Recommandé
+          </span>
+        </div>
+        <p className="text-xs text-ink-600 leading-relaxed">
+          Installez Remind Me sur l'écran d'accueil de votre iPhone, iPad ou Android pour profiter du mode plein écran fluide et de rappels fiables en temps réel.
+        </p>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("open-pwa-install-guide"));
+            }
+          }}
+          className="text-xs"
+        >
+          <Smartphone className="w-3.5 h-3.5 mr-1.5 text-signal" /> Guide d'installation sur écran d'accueil
+        </Button>
       </div>
 
       <div>

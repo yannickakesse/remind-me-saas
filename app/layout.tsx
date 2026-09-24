@@ -7,6 +7,7 @@ import { THEME_INIT_SCRIPT } from "@/lib/theme/theme-script";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { PWARegister } from "@/components/pwa/pwa-register";
+import { PwaInstallPrompt } from "@/components/pwa/pwa-install-prompt";
 import { NavigationProgressBar } from "@/components/ui/navigation-progress";
 
 export const viewport: Viewport = {
@@ -80,6 +81,7 @@ export default function RootLayout({
               <NavigationProgressBar />
             </Suspense>
             <PWARegister />
+            <PwaInstallPrompt />
             {children}
             <Analytics />
           </ToastProvider>
