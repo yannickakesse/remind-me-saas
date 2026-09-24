@@ -242,48 +242,63 @@ export async function deleteExpense(id: string) {
 // ----------------------------------------------------------------------------
 // BUDGETS
 // ----------------------------------------------------------------------------
-export async function createBudget(formData: FormData) {
-  const { supabase, user } = await requireUser();
-  await assertCanCreateBudget(supabase, user.id);
-  const parsed = budgetFormSchema.parse({
-    category: formData.get("category"),
-    monthlyLimit: formData.get("monthlyLimit"),
-    currency: formData.get("currency"),
-    notes: formData.get("notes") || undefined,
-  });
+export async function createBudget(formData: FormData): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase, user } = await requireUser();
+    await assertCanCreateBudget(supabase, user.id);
+    const parsed = budgetFormSchema.parse({
+      category: formData.get("category"),
+      monthlyLimit: formData.get("monthlyLimit"),
+      currency: formData.get("currency"),
+      notes: formData.get("notes") || undefined,
+    });
 
-  const { error } = await supabase.from("budgets").insert({
-    user_id: user.id,
-    category: parsed.category,
-    monthly_limit: parsed.monthlyLimit,
-    currency: parsed.currency,
-    notes: parsed.notes || null,
-  });
+    const { error } = await supabase.from("budgets").insert({
+      user_id: user.id,
+      category: parsed.category,
+      monthly_limit: parsed.monthlyLimit,
+      currency: parsed.currency,
+      notes: parsed.notes || null,
+    });
 
-  if (error) throw new Error("Ce budget existe déjà pour cette catégorie.");
-  revalidatePath("/finances");
+    if (error) {
+      if (error.code === "23505") {
+        return { success: false, error: "Un budget existe déjà pour cette catégorie et devise." };
+      }
+      return { success: false, error: error.message || "Impossible de créer le budget." };
+    }
+    revalidatePath("/finances");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Erreur lors de la création du budget." };
+  }
 }
 
-export async function updateBudget(id: string, formData: FormData) {
-  const { supabase, user } = await requireUser();
-  const parsed = budgetFormSchema.parse({
-    category: formData.get("category"),
-    monthlyLimit: formData.get("monthlyLimit"),
-    currency: formData.get("currency"),
-    notes: formData.get("notes") || undefined,
-  });
+export async function updateBudget(id: string, formData: FormData): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase, user } = await requireUser();
+    const parsed = budgetFormSchema.parse({
+      category: formData.get("category"),
+      monthlyLimit: formData.get("monthlyLimit"),
+      currency: formData.get("currency"),
+      notes: formData.get("notes") || undefined,
+    });
 
-  const { error } = await supabase
-    .from("budgets")
-    .update({
-      monthly_limit: parsed.monthlyLimit,
-      notes: parsed.notes || null,
-    })
-    .eq("id", id)
-    .eq("user_id", user.id);
+    const { error } = await supabase
+      .from("budgets")
+      .update({
+        monthly_limit: parsed.monthlyLimit,
+        notes: parsed.notes || null,
+      })
+      .eq("id", id)
+      .eq("user_id", user.id);
 
-  if (error) throw new Error("Impossible de mettre à jour le budget.");
-  revalidatePath("/finances");
+    if (error) return { success: false, error: error.message || "Impossible de mettre à jour le budget." };
+    revalidatePath("/finances");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Erreur lors de la mise à jour du budget." };
+  }
 }
 
 export async function deleteBudget(id: string) {
@@ -296,67 +311,77 @@ export async function deleteBudget(id: string) {
 // ----------------------------------------------------------------------------
 // OBJECTIFS D'ÉPARGNE & POCHES
 // ----------------------------------------------------------------------------
-export async function createSavingsGoal(formData: FormData) {
-  const { supabase, user } = await requireUser();
-  await assertCanCreateSavingsGoal(supabase, user.id);
-  const parsed = savingsGoalFormSchema.parse({
-    name: formData.get("name"),
-    category: formData.get("category") || "other",
-    targetAmount: formData.get("targetAmount"),
-    currentAmount: formData.get("currentAmount") || 0,
-    currency: formData.get("currency"),
-    deadline: formData.get("deadline") || "",
-    monthlyContribution: formData.get("monthlyContribution") || undefined,
-    notes: formData.get("notes") || undefined,
-  });
+export async function createSavingsGoal(formData: FormData): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase, user } = await requireUser();
+    await assertCanCreateSavingsGoal(supabase, user.id);
+    const parsed = savingsGoalFormSchema.parse({
+      name: formData.get("name"),
+      category: formData.get("category") || "other",
+      targetAmount: formData.get("targetAmount"),
+      currentAmount: formData.get("currentAmount") || 0,
+      currency: formData.get("currency"),
+      deadline: formData.get("deadline") || "",
+      monthlyContribution: formData.get("monthlyContribution") || undefined,
+      notes: formData.get("notes") || undefined,
+    });
 
-  const { error } = await supabase.from("savings_goals").insert({
-    user_id: user.id,
-    name: parsed.name,
-    category: parsed.category,
-    target_amount: parsed.targetAmount,
-    current_amount: parsed.currentAmount,
-    currency: parsed.currency,
-    deadline: parsed.deadline || null,
-    monthly_contribution: parsed.monthlyContribution || null,
-    notes: parsed.notes || null,
-  });
-
-  if (error) throw new Error("Impossible de créer l'objectif d'épargne.");
-  revalidatePath("/finances");
-  revalidatePath("/dashboard");
-}
-
-export async function updateSavingsGoal(id: string, formData: FormData) {
-  const { supabase, user } = await requireUser();
-  const parsed = savingsGoalFormSchema.parse({
-    name: formData.get("name"),
-    category: formData.get("category") || "other",
-    targetAmount: formData.get("targetAmount"),
-    currentAmount: formData.get("currentAmount") || 0,
-    currency: formData.get("currency"),
-    deadline: formData.get("deadline") || "",
-    monthlyContribution: formData.get("monthlyContribution") || undefined,
-    notes: formData.get("notes") || undefined,
-  });
-
-  const { error } = await supabase
-    .from("savings_goals")
-    .update({
+    const { error } = await supabase.from("savings_goals").insert({
+      user_id: user.id,
       name: parsed.name,
       category: parsed.category,
       target_amount: parsed.targetAmount,
       current_amount: parsed.currentAmount,
+      currency: parsed.currency,
       deadline: parsed.deadline || null,
       monthly_contribution: parsed.monthlyContribution || null,
       notes: parsed.notes || null,
-    })
-    .eq("id", id)
-    .eq("user_id", user.id);
+    });
 
-  if (error) throw new Error("Impossible de modifier l'objectif.");
-  revalidatePath("/finances");
-  revalidatePath("/dashboard");
+    if (error) return { success: false, error: error.message || "Impossible de créer l'objectif d'épargne." };
+    revalidatePath("/finances");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Erreur lors de la création de l'objectif." };
+  }
+}
+
+export async function updateSavingsGoal(id: string, formData: FormData): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase, user } = await requireUser();
+    const parsed = savingsGoalFormSchema.parse({
+      name: formData.get("name"),
+      category: formData.get("category") || "other",
+      targetAmount: formData.get("targetAmount"),
+      currentAmount: formData.get("currentAmount") || 0,
+      currency: formData.get("currency"),
+      deadline: formData.get("deadline") || "",
+      monthlyContribution: formData.get("monthlyContribution") || undefined,
+      notes: formData.get("notes") || undefined,
+    });
+
+    const { error } = await supabase
+      .from("savings_goals")
+      .update({
+        name: parsed.name,
+        category: parsed.category,
+        target_amount: parsed.targetAmount,
+        current_amount: parsed.currentAmount,
+        deadline: parsed.deadline || null,
+        monthly_contribution: parsed.monthlyContribution || null,
+        notes: parsed.notes || null,
+      })
+      .eq("id", id)
+      .eq("user_id", user.id);
+
+    if (error) return { success: false, error: error.message || "Impossible de modifier l'objectif." };
+    revalidatePath("/finances");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Erreur lors de la modification de l'objectif." };
+  }
 }
 
 export async function adjustSavingsGoalAmount(id: string, delta: number) {
@@ -394,62 +419,67 @@ export async function deleteSavingsGoal(id: string) {
 // ============================================================================
 // ACTIONS DÉPENSES PROGRAMMÉES
 // ============================================================================
-export async function createScheduledExpenseAction(formData: FormData) {
-  const { supabase, user } = await requireUser();
+export async function createScheduledExpenseAction(formData: FormData): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase, user } = await requireUser();
 
-  const rawActivityId = formData.get("activityId");
-  const activityId =
-    typeof rawActivityId === "string" && rawActivityId.trim().length > 0 && rawActivityId !== "null" && rawActivityId !== "undefined"
-      ? rawActivityId.trim()
-      : null;
+    const rawActivityId = formData.get("activityId");
+    const activityId =
+      typeof rawActivityId === "string" && rawActivityId.trim().length > 0 && rawActivityId !== "null" && rawActivityId !== "undefined"
+        ? rawActivityId.trim()
+        : null;
 
-  const rawName = formData.get("name")?.toString().trim() || "";
-  const rawAmount = formData.get("amount");
-  const rawCurrency = formData.get("currency")?.toString().trim() || "XOF";
-  const rawFrequency = (formData.get("frequency")?.toString().trim() || "monthly") as any;
-  const rawNextDueDate = formData.get("nextDueDate")?.toString().trim() || new Date().toISOString().split("T")[0];
-  const rawCategory = formData.get("category")?.toString().trim() || "other";
-  const rawMerchant = formData.get("merchant")?.toString().trim() || null;
-  const rawPaymentMethod = formData.get("paymentMethod")?.toString().trim() || null;
-  const rawNotes = formData.get("notes")?.toString().trim() || null;
+    const rawName = formData.get("name")?.toString().trim() || "";
+    const rawAmount = formData.get("amount");
+    const rawCurrency = (formData.get("currency")?.toString().trim() || "XOF").toUpperCase();
+    const rawFrequency = (formData.get("frequency")?.toString().trim() || "monthly") as any;
+    const rawNextDueDate = formData.get("nextDueDate")?.toString().trim() || new Date().toISOString().split("T")[0];
+    const rawCategory = formData.get("category")?.toString().trim() || "other";
+    const rawMerchant = formData.get("merchant")?.toString().trim() || null;
+    const rawPaymentMethod = formData.get("paymentMethod")?.toString().trim() || null;
+    const rawNotes = formData.get("notes")?.toString().trim() || null;
 
-  const parsed = scheduledExpenseFormSchema.parse({
-    name: rawName,
-    category: rawCategory,
-    amount: rawAmount,
-    currency: rawCurrency,
-    frequency: rawFrequency,
-    nextDueDate: rawNextDueDate,
-    activityId: activityId ?? undefined,
-    merchant: rawMerchant ?? undefined,
-    paymentMethod: rawPaymentMethod ?? undefined,
-    notes: rawNotes ?? undefined,
-  });
+    const parsed = scheduledExpenseFormSchema.parse({
+      name: rawName,
+      category: rawCategory,
+      amount: rawAmount,
+      currency: rawCurrency,
+      frequency: rawFrequency,
+      nextDueDate: rawNextDueDate,
+      activityId: activityId ?? undefined,
+      merchant: rawMerchant ?? undefined,
+      paymentMethod: rawPaymentMethod ?? undefined,
+      notes: rawNotes ?? undefined,
+    });
 
-  const { error } = await supabase.from("scheduled_expenses").insert({
-    user_id: user.id,
-    name: parsed.name,
-    category: parsed.category || "other",
-    amount: parsed.amount,
-    currency: parsed.currency,
-    frequency: parsed.frequency,
-    start_date: parsed.nextDueDate,
-    next_due_date: parsed.nextDueDate,
-    status: "planned",
-    activity_id: activityId,
-    merchant: rawMerchant,
-    payment_method: rawPaymentMethod,
-    notes: rawNotes,
-  });
+    const { error } = await supabase.from("scheduled_expenses").insert({
+      user_id: user.id,
+      name: parsed.name,
+      category: parsed.category || "other",
+      amount: parsed.amount,
+      currency: parsed.currency,
+      frequency: parsed.frequency,
+      start_date: parsed.nextDueDate,
+      next_due_date: parsed.nextDueDate,
+      status: "planned",
+      activity_id: activityId,
+      merchant: rawMerchant,
+      payment_method: rawPaymentMethod,
+      notes: rawNotes,
+    });
 
-  if (error) {
-    console.error("Erreur insertion scheduled_expenses :", error);
-    throw new Error(error.message || "Impossible de créer la dépense programmée.");
+    if (error) {
+      console.error("Erreur insertion scheduled_expenses :", error);
+      return { success: false, error: error.message || "Impossible de créer la dépense programmée." };
+    }
+
+    revalidatePath("/finances");
+    revalidatePath("/dashboard");
+    revalidatePath("/calendar");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Erreur lors de la programmation de la dépense." };
   }
-
-  revalidatePath("/finances");
-  revalidatePath("/dashboard");
-  revalidatePath("/calendar");
 }
 
 export async function deleteScheduledExpenseAction(id: string) {

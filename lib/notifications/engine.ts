@@ -511,7 +511,61 @@ export async function evaluateSmartReminders(
   }
 
   // ==========================================================================
-  // 6. CYCLE DE VIE DES TÂCHES (TASKS)
+  // 5.5 CYCLE DE VIE DES ACTIVITÉS — EXPIRATION & RENOUVELLEMENT DE CONTRAT
+  // ==========================================================================
+  if (prefsData?.activity_reminders !== false) {
+    const { data: userActivities } = await supabase
+      .from("activities")
+      .select("id, name, end_date, status, activity_compensation(amount, currency)")
+      .eq("user_id", userId)
+      .not("end_date", "is", null);
+
+    for (const act of userActivities ?? []) {
+      if (act.status === "archived" || !act.end_date || activeSnoozeEntityIds.has(act.id)) continue;
+
+      const endDT = DateTime.fromISO(act.end_date, { zone: userTimezone }).startOf("day");
+      const daysDiff = Math.floor(endDT.diff(userNow.startOf("day"), "days").days);
+
+      if (daysDiff === 7 || daysDiff === 3 || daysDiff === 1) {
+        candidates.push({
+          user_id: userId,
+          category: "activity",
+          kind: "activity_expiring_soon",
+          priority: daysDiff === 1 ? "high" : "normal",
+          status: "unread",
+          entity_type: "activity",
+          entity_id: act.id,
+          title: `Contrat/Activité arrivant à échéance : ${act.name}`,
+          body: `L'activité « ${act.name} » arrive à son terme dans ${daysDiff} jour(s) (le ${formatDateLocale(act.end_date, locale, userTimezone)}). Pensez à renouveler la période si le contrat se poursuit.`,
+          metadata: { activityId: act.id, name: act.name, endDate: act.end_date, days: daysDiff },
+          link: `/activities`,
+          scheduled_at: userNow.toISO()!,
+          idempotency_key: `activity:${act.id}:expiring_in_${daysDiff}_days`,
+          email_template: "activity_expiring",
+        });
+      } else if (daysDiff <= 0 && daysDiff >= -7) {
+        candidates.push({
+          user_id: userId,
+          category: "activity",
+          kind: "activity_expired",
+          priority: "high",
+          status: "unread",
+          entity_type: "activity",
+          entity_id: act.id,
+          title: `Activité expirée : ${act.name}`,
+          body: `Le contrat/mission « ${act.name} » est arrivé à expiration le ${formatDateLocale(act.end_date, locale, userTimezone)}. Cliquez pour la renouveler en 1 clic ou la conserver dans l'historique.`,
+          metadata: { activityId: act.id, name: act.name, endDate: act.end_date },
+          link: `/activities`,
+          scheduled_at: userNow.toISO()!,
+          idempotency_key: `activity:${act.id}:expired_${todayISO}`,
+          email_template: "activity_expired",
+        });
+      }
+    }
+  }
+
+  // ==========================================================================
+  // 6. CYCLE DE VIE DES TÂCHES (TASKS & RAPPELS PROGRAMMÉS)
   // ==========================================================================
   if (prefsData?.task_reminders !== false) {
     const { data: pendingTasks } = await supabase
@@ -551,6 +605,7 @@ export async function evaluateSmartReminders(
           link: `/tasks/${tsk.id}/edit`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `task:${tsk.id}:overdue_${todayISO}`,
+          email_template: "task_overdue",
         });
       } else if (userNow >= reminderTriggerDT || dueDT.hasSame(userNow, "day")) {
         const minutesUntil = dueDT.diff(userNow, "minutes").minutes;
@@ -572,6 +627,7 @@ export async function evaluateSmartReminders(
             link: `/tasks/${tsk.id}/edit`,
             scheduled_at: userNow.toISO()!,
             idempotency_key: `task:${tsk.id}:reminder_${todayISO}`,
+            email_template: "task_reminder",
           });
         } else {
           candidates.push({
@@ -588,6 +644,7 @@ export async function evaluateSmartReminders(
             link: `/tasks/${tsk.id}/edit`,
             scheduled_at: userNow.toISO()!,
             idempotency_key: `task:${tsk.id}:due_today_${todayISO}`,
+            email_template: "task_due_today",
           });
         }
       }

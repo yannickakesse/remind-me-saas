@@ -65,10 +65,22 @@ export function BudgetsSection({
               b.id === targetId ? { ...b, monthly_limit: limitNum, currency } : b
             )
           );
-          await updateBudget(targetId, formData);
+          const res = await updateBudget(targetId, formData);
+          if (res && !res.success) {
+            setLocalBudgets(budgets);
+            setError(res.error || "Impossible de modifier le budget.");
+            toast.push(res.error || "Impossible de modifier le budget.", "error");
+            return;
+          }
           toast.push("Budget mis à jour.", "success");
         } else {
-          await createBudget(formData);
+          const res = await createBudget(formData);
+          if (res && !res.success) {
+            setLocalBudgets(budgets);
+            setError(res.error || "Impossible de créer le budget.");
+            toast.push(res.error || "Impossible de créer le budget.", "error");
+            return;
+          }
           toast.push("Budget créé avec succès.", "success");
         }
         resetForm();

@@ -106,10 +106,22 @@ export function SavingsGoalsSection({
                 : g
             )
           );
-          await updateSavingsGoal(targetId, formData);
+          const res = await updateSavingsGoal(targetId, formData);
+          if (res && !res.success) {
+            setLocalGoals(goals);
+            setError(res.error || "Impossible de modifier l'objectif.");
+            toast.push(res.error || "Impossible de modifier l'objectif.", "error");
+            return;
+          }
           toast.push("Objectif d'épargne mis à jour.", "success");
         } else {
-          await createSavingsGoal(formData);
+          const res = await createSavingsGoal(formData);
+          if (res && !res.success) {
+            setLocalGoals(goals);
+            setError(res.error || "Impossible de créer l'objectif d'épargne.");
+            toast.push(res.error || "Impossible de créer l'objectif d'épargne.", "error");
+            return;
+          }
           toast.push("Objectif d'épargne créé avec succès.", "success");
         }
         resetForm();

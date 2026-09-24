@@ -1,26 +1,30 @@
 import { DateTime } from "luxon";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { aggregateFinancesForMonth } from "@/lib/finances/aggregate";
-import { FinancesView } from "@/components/finances/finances-view";
-import type { FinanceTab } from "@/components/finances/finance-tabs";
 import { getUserTimezone } from "@/lib/time/timezones";
+import { getUserSubscription } from "@/lib/subscriptions/server";
+import { PrintableStatement } from "@/components/finances/printable-statement";
 
 export const dynamic = "force-dynamic";
 
-export default async function FinancesPage({
+export default async function FinancesPrintPage({
   searchParams,
 }: {
-  searchParams?: { tab?: string; month?: string };
+  searchParams?: { month?: string };
 }) {
   const [user, profile] = await Promise.all([
     requireCurrentUser(),
     getCurrentProfile(),
   ]);
 
-  const timezone = getUserTimezone(profile);
+  if (!user) {
+    redirect("/login");
+  }
 
+  const timezone = getUserTimezone(profile);
   const defaultCurrency = profile?.default_currency ?? "XOF";
   const today = DateTime.now().setZone(timezone);
 
@@ -34,18 +38,15 @@ export default async function FinancesPage({
   const rangeEnd = currentMonth.endOf("month").toISODate()!;
 
   const supabase = createClient();
+  const userSub = await getUserSubscription(supabase, user.id);
 
-  // 1. Synchronisation rapide des revenus
+  // Synchronisation des revenus
   await ensureIncomeEntries(supabase, user.id, rangeStart, rangeEnd);
 
-  // 2. Requêtes parallélisées optimisées
   const [
     { data: incomeRows },
     { data: expenseRows },
-    { data: budgets },
-    { data: savingsGoals },
     { data: scheduledExpenses },
-    { data: activities },
   ] = await Promise.all([
     supabase
       .from("income")
@@ -62,43 +63,11 @@ export default async function FinancesPage({
       .lte("due_date", rangeEnd)
       .order("due_date", { ascending: true }),
     supabase
-      .from("budgets")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("category", { ascending: true }),
-    supabase
-      .from("savings_goals")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: true }),
-    supabase
       .from("scheduled_expenses")
       .select("*")
       .eq("user_id", user.id)
       .order("next_due_date", { ascending: true }),
-    supabase
-      .from("activities")
-      .select("id, name")
-      .eq("user_id", user.id)
-      .order("name", { ascending: true }),
   ]);
-
-  // Calcul du dépensé réel par catégorie pour les budgets (dépenses payées uniquement)
-  const budgetsWithSpent = (budgets ?? []).map((b) => {
-    const spent = (expenseRows ?? [])
-      .filter((e) => e.category === b.category && e.paid === true)
-      .reduce((sum, e) => sum + Number(e.amount), 0);
-    return { ...b, spent };
-  });
-
-  const currenciesList = [
-    { code: "XOF", symbol: "FCFA" },
-    { code: "EUR", symbol: "€" },
-    { code: "USD", symbol: "$" },
-    { code: "GBP", symbol: "£" },
-    { code: "CAD", symbol: "$" },
-    { code: "CHF", symbol: "CHF" },
-  ];
 
   const aggregates = aggregateFinancesForMonth(
     incomeRows ?? [],
@@ -106,22 +75,35 @@ export default async function FinancesPage({
     today.toISODate()!
   );
 
-  const initialTab: FinanceTab = (searchParams?.tab as FinanceTab) || "overview";
+  const docHash = Math.abs(
+    user.id.split("-").reduce((acc, part) => acc + parseInt(part, 16) || 0, 0)
+  ).toString(36).toUpperCase().padStart(4, "0");
+
+  const documentRef = `RM-STMT-${currentMonth.toFormat("yyyyMM")}-${docHash}`;
 
   return (
-    <FinancesView
-      initialTab={initialTab}
-      aggregates={aggregates}
+    <PrintableStatement
+      user={{
+        fullName: profile?.full_name ?? null,
+        email: user.email,
+        planName: userSub.entitlements.planName,
+      }}
+      period={{
+        monthLabel: currentMonth.setLocale("fr").toFormat("LLLL yyyy"),
+        generatedAtFormatted: today.setLocale("fr").toFormat("dd/MM/yyyy HH:mm"),
+        documentRef,
+      }}
+      defaultCurrency={defaultCurrency}
+      totals={{
+        totalIncomeReceived: aggregates.totalIncomeReceived,
+        totalIncomeExpected: aggregates.totalIncomePending,
+        totalExpensesPaid: aggregates.totalExpensesPaid,
+        totalExpensesPlanned: aggregates.totalExpensesPending,
+        netRealBalance: aggregates.netBalance,
+      }}
       incomeRows={incomeRows ?? []}
       expenseRows={expenseRows ?? []}
-      budgetsWithSpent={budgetsWithSpent}
-      savingsGoals={savingsGoals ?? []}
       scheduledExpenses={scheduledExpenses ?? []}
-      activities={activities ?? []}
-      currenciesList={currenciesList}
-      defaultCurrency={defaultCurrency}
-      rangeStart={rangeStart}
-      rangeEnd={rangeEnd}
     />
   );
 }

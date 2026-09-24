@@ -153,7 +153,11 @@ export function ScheduledExpensesSection({
     setSubmitting(true);
     const formData = new FormData(e.currentTarget);
     try {
-      await createScheduledExpenseAction(formData);
+      const res = await createScheduledExpenseAction(formData);
+      if (res && !res.success) {
+        toast.push(res.error || "Erreur lors de la programmation de la dépense.", "error");
+        return;
+      }
       toast.push("Dépense programmée avec succès.", "success");
       setIsModalOpen(false);
     } catch (err: any) {

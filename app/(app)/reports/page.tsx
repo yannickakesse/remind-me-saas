@@ -6,6 +6,7 @@ import {
   Wallet,
   Clock,
   Download,
+  Printer,
   Lock,
   Zap,
   ArrowRight,
@@ -97,12 +98,20 @@ export default async function ReportsPage({
         </div>
 
         <div className="flex items-center gap-2.5">
+          <Link
+            href={`/reports/print?from=${rangeStart}&to=${rangeEnd}`}
+            target="_blank"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-signal text-white text-xs font-bold shadow-xs hover:bg-signal-dark active:scale-95 transition-all"
+            data-tour="reports-pdf-btn"
+          >
+            <Printer className="w-3.5 h-3.5" /> Imprimer en PDF
+          </Link>
           <a
             href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
             className={buttonClasses("secondary", "sm")}
             data-tour="reports-export-btn"
           >
-            <Download className="w-3.5 h-3.5 mr-1" /> Exporter CSV
+            <Download className="w-3.5 h-3.5 mr-1" /> CSV
           </a>
         </div>
       </div>

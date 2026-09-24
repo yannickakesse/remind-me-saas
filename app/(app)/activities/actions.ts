@@ -411,19 +411,6 @@ export async function suspendActivity(activityId: string) {
         .update({ status: "suspended" })
         .eq("id", activityId)
         .eq("user_id", user.id),
-      // Supprimer immédiatement les revenus attendus non encaissés pour cette activité suspendue
-      adminSupabase
-        .from("income")
-        .delete()
-        .eq("activity_id", activityId)
-        .eq("received", false)
-        .eq("user_id", user.id),
-      supabase
-        .from("income")
-        .delete()
-        .eq("activity_id", activityId)
-        .eq("received", false)
-        .eq("user_id", user.id),
     ]);
 
     revalidatePath("/activities");
@@ -490,19 +477,6 @@ export async function archiveActivity(activityId: string) {
         .update({ status: "archived" })
         .eq("id", activityId)
         .eq("user_id", user.id),
-      // Supprimer les revenus attendus non encaissés pour cette activité archivée
-      adminSupabase
-        .from("income")
-        .delete()
-        .eq("activity_id", activityId)
-        .eq("received", false)
-        .eq("user_id", user.id),
-      supabase
-        .from("income")
-        .delete()
-        .eq("activity_id", activityId)
-        .eq("received", false)
-        .eq("user_id", user.id),
     ]);
 
     revalidatePath("/activities");
@@ -512,6 +486,77 @@ export async function archiveActivity(activityId: string) {
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Erreur lors de l'archivage." };
+  }
+}
+
+export async function renewActivity(
+  activityId: string,
+  options?: {
+    startDate?: string;
+    endDate?: string;
+    amount?: number;
+    currency?: string;
+  }
+) {
+  try {
+    const supabase = createClient();
+    const adminSupabase = createAdminClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Non authentifié." };
+
+    // Vérifier les quotas du forfait pour les activités actives
+    try {
+      await assertCanCreateActivity(supabase, user.id);
+    } catch (quotaErr: any) {
+      return { error: quotaErr.message || "Limite d'activités actives de votre forfait atteinte." };
+    }
+
+    const updatePayload: Record<string, any> = {
+      status: "active",
+      updated_at: new Date().toISOString(),
+    };
+
+    if (options?.startDate) updatePayload.start_date = options.startDate;
+    if (options?.endDate) updatePayload.end_date = options.endDate;
+
+    await Promise.allSettled([
+      adminSupabase.from("activities").update(updatePayload).eq("id", activityId).eq("user_id", user.id),
+      supabase.from("activities").update(updatePayload).eq("id", activityId).eq("user_id", user.id),
+    ]);
+
+    if (options?.amount !== undefined) {
+      const compUpdate: Record<string, any> = {
+        amount: options.amount,
+        updated_at: new Date().toISOString(),
+      };
+      if (options.currency) compUpdate.currency = options.currency;
+
+      await Promise.allSettled([
+        adminSupabase.from("activity_compensation").update(compUpdate).eq("activity_id", activityId).eq("user_id", user.id),
+        supabase.from("activity_compensation").update(compUpdate).eq("activity_id", activityId).eq("user_id", user.id),
+      ]);
+    }
+
+    // Synchronisation financière immédiate pour la nouvelle période
+    try {
+      const now = DateTime.now();
+      const startOfMonth = now.startOf("month").toISODate()!;
+      const endOfMonth = now.endOf("month").toISODate()!;
+      await ensureIncomeEntries(supabase, user.id, startOfMonth, endOfMonth);
+    } catch (syncErr) {
+      console.error("[renewActivity] sync error:", syncErr);
+    }
+
+    revalidatePath("/activities");
+    revalidatePath("/dashboard");
+    revalidatePath("/calendar");
+    revalidatePath("/finances");
+    revalidatePath("/reports");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err?.message || "Erreur lors du renouvellement de l'activité." };
   }
 }
 

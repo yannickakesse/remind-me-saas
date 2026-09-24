@@ -10,6 +10,7 @@ import { InteractiveProductTour } from "@/components/onboarding/interactive-prod
 import { HelpCenterButton } from "@/components/help/help-center-modal";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { NetworkStatus } from "@/components/ui/network-status";
+import { PwaRegistrar } from "@/components/pwa/pwa-registrar";
 import type { Notification } from "@/types/database";
 
 import {
@@ -82,7 +83,8 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-screen bg-canvas flex-col md:flex-row w-full max-w-full overflow-x-hidden">
-      {/* Moniteur d'état réseau & synchronisation asynchrone & sonneries de rappels */}
+      {/* Service Worker PWA, push registration & monitoring */}
+      <PwaRegistrar />
       <NetworkStatus />
       <NotificationSyncTrigger />
       <TaskSoundWatcher userId={user.id} />

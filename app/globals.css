@@ -388,3 +388,44 @@ button, a, input, select, textarea {
     transform: none !important;
   }
 }
+
+/* ============================================================================
+   6. PRINT / PDF ENGINE — Format A4 structuré, propre & haute fidélité
+   ============================================================================ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 10.5pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Masquer éléments d'interface web standard */
+  header:not(.print-header),
+  nav,
+  aside,
+  .bottom-nav,
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  /* Éviter les coupures de blocs / tableaux à cheval sur deux pages */
+  table,
+  tr,
+  .rounded-xl,
+  .rounded-2xl {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}

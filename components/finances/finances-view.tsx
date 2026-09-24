@@ -10,6 +10,7 @@ import {
   Plus,
   ArrowRight,
   Download,
+  Printer,
   Calendar,
   Check,
 } from "lucide-react";
@@ -157,6 +158,14 @@ export function FinancesView({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href={`/finances/print?month=${rangeStart.slice(0, 7)}`}
+            target="_blank"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-canvas-raised border border-ink-300 dark:border-ink-700 text-xs font-semibold text-ink-900 hover:bg-ink-100 transition-colors shadow-xs"
+            title="Imprimer ou enregistrer le relevé en PDF"
+          >
+            <Printer className="w-3.5 h-3.5 text-signal" /> Relevé PDF
+          </Link>
           <a
             href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
             download
@@ -164,7 +173,7 @@ export function FinancesView({
             className={buttonClasses("secondary", "sm")}
             title="Exporter les données financières au format CSV"
           >
-            <Download className="w-3.5 h-3.5 mr-1" /> Exporter
+            <Download className="w-3.5 h-3.5 mr-1" /> CSV
           </a>
           <Link
             href="/finances/income/new"

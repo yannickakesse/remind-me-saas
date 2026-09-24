@@ -61,29 +61,34 @@ export async function assertCanCreateActivity(
 
   if (max === Infinity) return;
 
-  const { count, error } = await supabase
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const { data: activities, error } = await supabase
     .from("activities")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId);
+    .select("id, status, end_date")
+    .eq("user_id", userId)
+    .eq("status", "active");
 
   if (error) return;
 
-  if (typeof count === "number") {
-    if (count > max) {
+  // Seules les activités 'active' dont la date de fin n'est pas expirée comptent dans le quota
+  const activeCount = (activities ?? []).filter(
+    (a) => !a.end_date || a.end_date >= todayISO
+  ).length;
+
+  if (activeCount > max) {
+    throw new Error(
+      `Votre plan ${sub.entitlements.planName} permet jusqu'à ${max} activités actives. Vous avez actuellement ${activeCount} activités actives. Vos données et activités historiques restent conservées, mais vous devrez renouveler ou libérer un créneau avant de pouvoir en créer de nouvelles.`
+    );
+  }
+  if (activeCount >= max) {
+    if (sub.plan === "free") {
       throw new Error(
-        `Votre plan ${sub.entitlements.planName} permet jusqu'à ${max} activités. Vous avez actuellement ${count} activités. Vos données existantes restent conservées, mais vous devrez revenir sous la limite avant de pouvoir en créer de nouvelles.`
+        "Vous avez atteint la limite de votre plan Free (3 activités actives). Passez au plan Pro pour gérer jusqu'à 15 activités."
       );
     }
-    if (count >= max) {
-      if (sub.plan === "free") {
-        throw new Error(
-          "Vous avez atteint la limite de votre plan Free (3 activités). Passez au plan Pro pour gérer jusqu'à 15 activités."
-        );
-      }
-      throw new Error(
-        "Vous avez atteint la limite de votre plan Pro (15 activités). Passez au plan Premium pour gérer des activités illimitées."
-      );
-    }
+    throw new Error(
+      "Vous avez atteint la limite de votre plan Pro (15 activités actives). Passez au plan Premium pour gérer des activités illimitées."
+    );
   }
 }
 
@@ -213,22 +218,31 @@ export async function getUserUsageCounts(
   supabase: SupabaseClient<Database>,
   userId: string
 ) {
+  const todayISO = new Date().toISOString().slice(0, 10);
   const [
-    { count: activitiesCount },
+    { data: activeActivities },
     { count: contactsCount },
     { count: orgsCount },
     { count: budgetsCount },
     { count: goalsCount },
   ] = await Promise.all([
-    supabase.from("activities").select("id", { count: "exact", head: true }).eq("user_id", userId),
+    supabase
+      .from("activities")
+      .select("id, end_date")
+      .eq("user_id", userId)
+      .eq("status", "active"),
     supabase.from("contacts").select("id", { count: "exact", head: true }).eq("user_id", userId),
     supabase.from("organizations").select("id", { count: "exact", head: true }).eq("user_id", userId),
     supabase.from("budgets").select("id", { count: "exact", head: true }).eq("user_id", userId),
     supabase.from("savings_goals").select("id", { count: "exact", head: true }).eq("user_id", userId),
   ]);
 
+  const activeCount = (activeActivities ?? []).filter(
+    (a) => !a.end_date || a.end_date >= todayISO
+  ).length;
+
   return {
-    activitiesCount: activitiesCount ?? 0,
+    activitiesCount: activeCount,
     contactsClientsCount: (contactsCount ?? 0) + (orgsCount ?? 0),
     budgetsCount: budgetsCount ?? 0,
     goalsCount: goalsCount ?? 0,

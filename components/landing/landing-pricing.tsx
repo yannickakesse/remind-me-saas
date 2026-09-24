@@ -98,9 +98,9 @@ export function LandingPricing() {
           </div>
 
           {/* Tier 2: Pro (Featured) */}
-          <div className="p-8 rounded-2xl bg-canvas-raised border-2 border-ink-950 shadow-xl shadow-ink-950/10 flex flex-col justify-between space-y-6 relative">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-ink-950 text-white text-[11px] font-bold tracking-wide uppercase shadow-sm">
-              <Sparkles className="w-3 h-3 text-gold" />
+          <div className="p-8 rounded-2xl bg-canvas-raised border-2 border-signal shadow-xl shadow-signal/10 flex flex-col justify-between space-y-6 relative">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-signal text-white text-[11px] font-bold tracking-wide uppercase shadow-sm">
+              <Sparkles className="w-3 h-3 text-white" />
               Le plus populaire
             </div>
 
@@ -161,7 +161,7 @@ export function LandingPricing() {
 
             <Link
               href="/register"
-              className="w-full py-3.5 px-4 rounded-full bg-ink-950 text-white font-semibold text-xs text-center shadow-md shadow-ink-950/20 hover:bg-ink-900 hover:shadow-lg transition-all tap-active"
+              className="w-full py-3.5 px-4 rounded-full bg-signal text-white font-semibold text-xs text-center shadow-md shadow-signal/20 hover:bg-signal-dark hover:shadow-lg transition-all tap-active"
             >
               Démarrer avec le Pro
             </Link>

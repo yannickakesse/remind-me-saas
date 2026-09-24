@@ -2,11 +2,35 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Briefcase, Building2, Wallet, Plus, Trash2, Archive, RotateCcw, Edit3, Pause, Play } from "lucide-react";
-import { archiveActivity, restoreActivity, deleteActivity, suspendActivity, resumeActivity } from "@/app/(app)/activities/actions";
+import {
+  Briefcase,
+  Building2,
+  Wallet,
+  Plus,
+  Trash2,
+  Archive,
+  RotateCcw,
+  Edit3,
+  Pause,
+  Play,
+  Calendar,
+  AlertCircle,
+  Clock,
+  Sparkles,
+  X,
+} from "lucide-react";
+import {
+  archiveActivity,
+  restoreActivity,
+  deleteActivity,
+  suspendActivity,
+  resumeActivity,
+  renewActivity,
+} from "@/app/(app)/activities/actions";
 import { buttonClasses, Button } from "@/components/ui/button";
 import { formatAmount } from "@/lib/finances/format";
 import { ACTIVITY_TYPES } from "@/lib/validation/activities";
+import { useToast } from "@/components/ui/toast";
 
 function typeLabel(type: string) {
   return ACTIVITY_TYPES.find((t) => t.value === type)?.label ?? type;
@@ -17,8 +41,10 @@ export interface ActivityViewItem {
   name: string;
   type: string;
   color: string | null;
-  status: string;
+  status: string; // 'active' | 'suspended' | 'archived' | 'expired'
   work_mode: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
   organizationName?: string | null;
   compensation?: {
     amount: number;
@@ -32,6 +58,7 @@ interface ActivitiesClientViewProps {
 }
 
 export function ActivitiesClientView({ initialActivities }: ActivitiesClientViewProps) {
+  const { push: toastPush } = useToast();
   const [activities, setActivities] = useState<ActivityViewItem[]>(initialActivities);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -39,9 +66,12 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
   const [restoringId, setRestoringId] = useState<string | null>(null);
   const [suspendingId, setSuspendingId] = useState<string | null>(null);
   const [resumingId, setResumingId] = useState<string | null>(null);
+  const [renewingActivity, setRenewingActivity] = useState<ActivityViewItem | null>(null);
+  const [renewSubmitting, setRenewSubmitting] = useState(false);
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
 
   const active = activities.filter((a) => a.status === "active");
+  const expired = activities.filter((a) => a.status === "expired");
   const suspended = activities.filter((a) => a.status === "suspended");
   const archived = activities.filter((a) => a.status === "archived");
 
@@ -50,7 +80,6 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
     setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
 
     const previousActivities = [...activities];
-    // Optimistic removal: remove immediately from UI
     setActivities((prev) => prev.filter((a) => a.id !== activityId));
     setConfirmDeleteId(null);
 
@@ -60,6 +89,8 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
         setActivities(previousActivities);
         setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur de suppression" }));
         setConfirmDeleteId(activityId);
+      } else {
+        toastPush("Activité supprimée avec succès.", "success");
       }
     } catch (err: any) {
       setActivities(previousActivities);
@@ -78,7 +109,6 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
     setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
 
     const previousActivities = [...activities];
-    // Optimistic status update to suspended
     setActivities((prev) =>
       prev.map((a) => (a.id === activityId ? { ...a, status: "suspended" } : a))
     );
@@ -88,6 +118,8 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
       if (res && res.error) {
         setActivities(previousActivities);
         setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur lors de la suspension" }));
+      } else {
+        toastPush("Activité mise en pause.", "info");
       }
     } catch (err: any) {
       setActivities(previousActivities);
@@ -105,7 +137,6 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
     setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
 
     const previousActivities = [...activities];
-    // Optimistic status update to active
     setActivities((prev) =>
       prev.map((a) => (a.id === activityId ? { ...a, status: "active" } : a))
     );
@@ -115,6 +146,8 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
       if (res && res.error) {
         setActivities(previousActivities);
         setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur lors de la réactivation" }));
+      } else {
+        toastPush("Activité réactivée avec succès.", "success");
       }
     } catch (err: any) {
       setActivities(previousActivities);
@@ -132,7 +165,6 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
     setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
 
     const previousActivities = [...activities];
-    // Optimistic status update
     setActivities((prev) =>
       prev.map((a) => (a.id === activityId ? { ...a, status: "archived" } : a))
     );
@@ -142,6 +174,8 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
       if (res && res.error) {
         setActivities(previousActivities);
         setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur d'archivage" }));
+      } else {
+        toastPush("Activité archivée (historique financier préservé).", "info");
       }
     } catch (err: any) {
       setActivities(previousActivities);
@@ -159,7 +193,6 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
     setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
 
     const previousActivities = [...activities];
-    // Optimistic status update
     setActivities((prev) =>
       prev.map((a) => (a.id === activityId ? { ...a, status: "active" } : a))
     );
@@ -169,6 +202,8 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
       if (res && res.error) {
         setActivities(previousActivities);
         setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur de restauration" }));
+      } else {
+        toastPush("Activité restaurée.", "success");
       }
     } catch (err: any) {
       setActivities(previousActivities);
@@ -181,6 +216,52 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
     }
   }
 
+  async function handleRenewSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!renewingActivity || renewSubmitting) return;
+
+    setRenewSubmitting(true);
+    const form = new FormData(e.currentTarget);
+    const newEndDate = (form.get("newEndDate") as string) || undefined;
+    const newAmountStr = form.get("newAmount") as string;
+    const newAmount = newAmountStr ? Number(newAmountStr) : undefined;
+
+    try {
+      const res = await renewActivity(renewingActivity.id, {
+        endDate: newEndDate,
+        amount: newAmount,
+      });
+
+      if (res && res.error) {
+        toastPush(res.error, "error");
+      } else {
+        setActivities((prev) =>
+          prev.map((a) =>
+            a.id === renewingActivity.id
+              ? {
+                  ...a,
+                  status: "active",
+                  endDate: newEndDate ?? null,
+                  compensation: a.compensation
+                    ? {
+                        ...a.compensation,
+                        amount: newAmount !== undefined ? newAmount : a.compensation.amount,
+                      }
+                    : null,
+                }
+              : a
+          )
+        );
+        toastPush(`Activité « ${renewingActivity.name} » renouvelée avec succès !`, "success");
+        setRenewingActivity(null);
+      }
+    } catch (err: any) {
+      toastPush(err?.message || "Erreur lors du renouvellement.", "error");
+    } finally {
+      setRenewSubmitting(false);
+    }
+  }
+
   return (
     <div className="space-y-8">
       {/* En-tête responsive */}
@@ -188,8 +269,10 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ink-950">Activités & Métiers</h1>
           <p className="text-sm text-ink-500">
-            {active.length} activité{active.length > 1 ? "s" : ""} active{active.length > 1 ? "s" : ""}
-            {suspended.length > 0 ? ` · ${suspended.length} en pause` : ""} gérée{active.length > 1 ? "s" : ""} au même endroit.
+            {active.length} active{active.length > 1 ? "s" : ""}
+            {expired.length > 0 ? ` · ${expired.length} expirée${expired.length > 1 ? "s" : ""}` : ""}
+            {suspended.length > 0 ? ` · ${suspended.length} en pause` : ""}
+            {archived.length > 0 ? ` · ${archived.length} archivée${archived.length > 1 ? "s" : ""}` : ""}
           </p>
         </div>
         <Link href="/activities/new" data-tour="activity-create" className={buttonClasses("primary", "md")}>
@@ -198,14 +281,15 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
         </Link>
       </div>
 
-      {active.length === 0 && suspended.length === 0 ? (
+      {/* 1. ACTIVITÉS ACTIVES */}
+      {active.length === 0 && expired.length === 0 && suspended.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-ink-300 bg-canvas-raised/50 p-10 text-center" data-tour="activities-list">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-signal-soft text-signal">
             <Briefcase className="h-6 w-6" />
           </div>
-          <h3 className="text-base font-bold text-ink-950">Vous n'avez pas encore d'activité</h3>
+          <h3 className="text-base font-bold text-ink-950">Vous n'avez pas encore d'activité active</h3>
           <p className="text-sm text-ink-500 mt-1 max-w-sm mx-auto">
-            Créez votre première activité (salariat, freelance, consulting, enseignement, etc.) pour organiser vos horaires et vos rémunérations.
+            Créez votre première activité (salariat, freelance, consulting, enseignement, etc.) pour organiser vos plannings et vos rémunérations.
           </p>
           <div className="mt-5">
             <Link href="/activities/new" data-tour="activity-create" className={buttonClasses("primary", "sm")}>
@@ -262,6 +346,13 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
                       </span>
                     ) : null}
 
+                    {activity.endDate ? (
+                      <span className="inline-flex items-center gap-1 text-ink-500 font-medium">
+                        <Calendar className="h-3.5 w-3.5 text-ink-400" />
+                        Fin : {new Date(activity.endDate).toLocaleDateString("fr-FR")}
+                      </span>
+                    ) : null}
+
                     {activity.work_mode ? (
                       <span className="text-ink-400 capitalize">
                         • {activity.work_mode}
@@ -313,7 +404,7 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
                           type="button"
                           onClick={() => handleSuspend(activity.id)}
                           disabled={isSuspending || isArchiving || isDeleting}
-                          title="Mettre en pause temporairement (non comptabilisé dans les finances)"
+                          title="Mettre en pause temporairement"
                           className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100/60 bg-amber-50 transition-colors min-h-[32px] inline-flex items-center gap-1"
                         >
                           <Pause className="w-3.5 h-3.5 text-amber-600" />
@@ -347,7 +438,88 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
         </div>
       )}
 
-      {/* Activités suspendues (En pause) */}
+      {/* 2. ACTIVITÉS EXPIRÉES (CONTRATS TERMINÉS / À RENOUVELER) */}
+      {expired.length > 0 ? (
+        <div className="space-y-3 pt-6 border-t border-purple-200/80">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-purple-900 flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-purple-600" /> Activités & Contrats expirés ({expired.length})
+              </h2>
+              <span className="text-xs text-purple-700 font-normal">
+                — Historique comptable conservé intact, libère le quota actif
+              </span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {expired.map((activity) => {
+              const isDeleting = deletingId === activity.id;
+              const isConfirmingDelete = confirmDeleteId === activity.id;
+              const itemError = errorMap[activity.id];
+
+              return (
+                <div
+                  key={activity.id}
+                  className="flex flex-col justify-between gap-3 rounded-xl border border-purple-300/80 bg-purple-50/40 p-4"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className="h-3 w-3 shrink-0 rounded-full opacity-60"
+                          style={{ backgroundColor: activity.color ?? "#1E3A5F" }}
+                        />
+                        <div className="min-w-0">
+                          <div className="font-semibold text-ink-950 text-sm truncate">{activity.name}</div>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full mt-0.5">
+                            <Clock className="w-2.5 h-2.5" /> Expirée le {activity.endDate ? new Date(activity.endDate).toLocaleDateString("fr-FR") : "terme échu"}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-semibold text-ink-600">
+                        {typeLabel(activity.type)}
+                      </span>
+                    </div>
+
+                    {activity.compensation ? (
+                      <div className="text-xs text-ink-600 font-medium">
+                        Rémunération historique :{" "}
+                        <span className="font-semibold text-ink-900">
+                          {formatAmount(activity.compensation.amount, activity.compensation.currency)}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="pt-2 border-t border-purple-200/60 flex items-center justify-between">
+                    <span className="text-[11px] text-ink-500">Toutes les données passées restent aux rapports</span>
+                    <div className="flex items-center gap-2">
+                      {itemError && <span className="text-danger text-xs">{itemError}</span>}
+                      <button
+                        type="button"
+                        onClick={() => setRenewingActivity(activity)}
+                        className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-purple-900 bg-purple-200/80 hover:bg-purple-300 transition-colors min-h-[32px] inline-flex items-center gap-1 shadow-xs"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-purple-700" />
+                        Renouveler / Réactiver
+                      </button>
+                      <Link
+                        href={`/activities/${activity.id}/edit`}
+                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        Modifier
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {/* 3. ACTIVITÉS SUSPENDUES (EN PAUSE) */}
       {suspended.length > 0 ? (
         <div className="space-y-3 pt-6 border-t border-amber-200/80">
           <div className="flex items-center gap-2">
@@ -383,52 +555,24 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
                     </div>
                   </div>
 
-                  {isConfirmingDelete ? (
-                    <div className="flex items-center gap-2 bg-danger/10 border border-danger/20 p-2 rounded-xl text-xs">
-                      <span className="text-danger font-semibold">Supprimer ?</span>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        loading={isDeleting}
-                        disabled={isDeleting}
-                        onClick={() => handleDelete(activity.id)}
-                      >
-                        Oui
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        disabled={isDeleting}
-                        onClick={() => setConfirmDeleteId(null)}
-                      >
-                        Annuler
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      {itemError && <span className="text-danger text-xs mr-2">{itemError}</span>}
-                      <button
-                        type="button"
-                        onClick={() => handleResume(activity.id)}
-                        disabled={isResuming || isDeleting}
-                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-100/80 hover:bg-emerald-200 transition-colors min-h-[32px] inline-flex items-center gap-1 shadow-xs"
-                      >
-                        <Play className="w-3.5 h-3.5 fill-emerald-800" />
-                        {isResuming ? "..." : "Reprendre / Activer"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDeleteId(activity.id)}
-                        disabled={isResuming || isDeleting}
-                        className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Supprimer
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {itemError && <span className="text-danger text-xs mr-2">{itemError}</span>}
+                    <button
+                      type="button"
+                      onClick={() => handleResume(activity.id)}
+                      disabled={isResuming || isDeleting}
+                      className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-100/80 hover:bg-emerald-200 transition-colors min-h-[32px] inline-flex items-center gap-1 shadow-xs"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-emerald-800" />
+                      {isResuming ? "..." : "Reprendre / Activer"}
+                    </button>
+                    <Link
+                      href={`/activities/${activity.id}/edit`}
+                      className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-600 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
                 </div>
               );
             })}
@@ -436,7 +580,7 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
         </div>
       ) : null}
 
-      {/* Activités archivées */}
+      {/* 4. ACTIVITÉS ARCHIVÉES */}
       {archived.length > 0 ? (
         <div className="space-y-3 pt-6 border-t border-ink-200">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
@@ -462,55 +606,115 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
                     <span className="font-medium text-ink-700 text-sm truncate">{activity.name}</span>
                   </div>
 
-                  {isConfirmingDelete ? (
-                    <div className="flex items-center gap-2 bg-danger/10 border border-danger/20 p-2 rounded-xl text-xs">
-                      <span className="text-danger font-semibold">Supprimer ?</span>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        loading={isDeleting}
-                        disabled={isDeleting}
-                        onClick={() => handleDelete(activity.id)}
-                      >
-                        Oui
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        disabled={isDeleting}
-                        onClick={() => setConfirmDeleteId(null)}
-                      >
-                        Annuler
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      {itemError && <span className="text-danger text-xs mr-2">{itemError}</span>}
-                      <button
-                        type="button"
-                        onClick={() => handleRestore(activity.id)}
-                        disabled={isRestoring || isDeleting}
-                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal-soft transition-colors min-h-[32px] inline-flex items-center gap-1"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        {isRestoring ? "..." : "Restaurer"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDeleteId(activity.id)}
-                        disabled={isRestoring || isDeleting}
-                        className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Supprimer
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {itemError && <span className="text-danger text-xs mr-2">{itemError}</span>}
+                    <button
+                      type="button"
+                      onClick={() => handleRestore(activity.id)}
+                      disabled={isRestoring || isDeleting}
+                      className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal-soft transition-colors min-h-[32px] inline-flex items-center gap-1"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      {isRestoring ? "..." : "Restaurer"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteId(activity.id)}
+                      disabled={isRestoring || isDeleting}
+                      className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Supprimer
+                    </button>
+                  </div>
                 </div>
               );
             })}
+          </div>
+        </div>
+      ) : null}
+
+      {/* MODAL DE RENOUVELLEMENT D'ACTIVITÉ */}
+      {renewingActivity ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-xs">
+          <div className="relative w-full max-w-md rounded-2xl border border-purple-300 bg-canvas-raised p-6 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setRenewingActivity(null)}
+              className="absolute right-4 top-4 rounded-lg p-1 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 text-purple-700">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-ink-950">Renouveler l'activité</h3>
+                <p className="text-xs text-ink-500">« {renewingActivity.name} »</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleRenewSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="newEndDate" className="block text-xs font-semibold text-ink-800 mb-1">
+                  Nouvelle date d'échéance / fin de contrat *
+                </label>
+                <input
+                  id="newEndDate"
+                  name="newEndDate"
+                  type="date"
+                  required
+                  defaultValue={
+                    new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+                  }
+                  className="w-full rounded-lg border border-ink-300 bg-canvas px-3 py-2 text-sm text-ink-950 focus:border-purple-600 focus:outline-none"
+                />
+                <p className="text-[11px] text-ink-500 mt-1">
+                  L'activité redeviendra active jusqu'à cette nouvelle date. L'historique précédent reste intact.
+                </p>
+              </div>
+
+              {renewingActivity.compensation ? (
+                <div>
+                  <label htmlFor="newAmount" className="block text-xs font-semibold text-ink-800 mb-1">
+                    Montant de rémunération ({renewingActivity.compensation.currency})
+                  </label>
+                  <input
+                    id="newAmount"
+                    name="newAmount"
+                    type="number"
+                    step="any"
+                    min="0"
+                    defaultValue={renewingActivity.compensation.amount}
+                    className="w-full rounded-lg border border-ink-300 bg-canvas px-3 py-2 text-sm text-ink-950 focus:border-purple-600 focus:outline-none"
+                  />
+                </div>
+              ) : null}
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-ink-100">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={renewSubmitting}
+                  onClick={() => setRenewingActivity(null)}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  loading={renewSubmitting}
+                  disabled={renewSubmitting}
+                  className="bg-purple-700 hover:bg-purple-800 text-white"
+                >
+                  Confirmer le renouvellement
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       ) : null}

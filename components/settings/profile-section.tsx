@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import { profileFormSchema } from "@/lib/validation/settings";
 import { updateProfile, updateAvatarUrl } from "@/app/(app)/settings/actions";
 import { TIMEZONE_OPTIONS, resolveAppropriateTimezone } from "@/lib/time/timezones";
+import { AvatarModal } from "./avatar-modal";
 
 interface ProfileSectionProps {
   userId: string;
@@ -53,37 +54,50 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
   const [weekStart, setWeekStart] = useState(String(profile.week_start));
   const [timeFormat, setTimeFormat] = useState(profile.time_format);
 
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
-    if (!file.type.startsWith("image/")) {
-      push("Le fichier doit être une image.", "error");
-      return;
-    }
-    if (file.size > MAX_AVATAR_BYTES) {
-      push("L'image doit faire moins de 2 Mo.", "error");
-      return;
-    }
-
+  async function handleAvatarSelect(fileOrUrl: Blob | string, isPreset: boolean) {
     setUploading(true);
+    const previousUrl = avatarUrl;
     try {
-      const supabase = createClient();
-      const extension = file.name.split(".").pop() ?? "jpg";
-      const path = `${userId}/avatar-${Date.now()}.${extension}`;
+      if (isPreset && typeof fileOrUrl === "string") {
+        // Enregistrement d'un avatar SVG prédéfini
+        setAvatarUrl(fileOrUrl);
+        await updateAvatarUrl(fileOrUrl);
+        push("Avatar appliqué avec succès.", "success");
+      } else if (fileOrUrl instanceof Blob) {
+        // Upload du blob compressé optimisé (WebP / JPEG) vers Supabase Storage
+        const supabase = createClient();
+        const extension = fileOrUrl.type === "image/webp" ? "webp" : "jpg";
+        const path = `${userId}/avatar-${Date.now()}.${extension}`;
 
-      const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
-      if (uploadError) throw uploadError;
+        const { error: uploadError } = await supabase.storage
+          .from("avatars")
+          .upload(path, fileOrUrl, { upsert: true, contentType: fileOrUrl.type });
 
-      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-      await updateAvatarUrl(data.publicUrl);
-      setAvatarUrl(data.publicUrl);
-      push("Photo de profil mise à jour.", "success");
-    } catch {
-      push("Impossible d'envoyer cette image. Réessayez.", "error");
+        if (uploadError) {
+          // Si le bucket de stockage échoue ou est indisponible, fallback vers dataUrl optimisé
+          console.warn("Storage upload warning, fallback to data url:", uploadError);
+          const reader = new FileReader();
+          reader.onload = async () => {
+            const dataUrl = reader.result as string;
+            setAvatarUrl(dataUrl);
+            await updateAvatarUrl(dataUrl);
+          };
+          reader.readAsDataURL(fileOrUrl);
+        } else {
+          const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+          setAvatarUrl(data.publicUrl);
+          await updateAvatarUrl(data.publicUrl);
+        }
+        push("Photo de profil mise à jour avec succès.", "success");
+      }
+    } catch (err: any) {
+      setAvatarUrl(previousUrl);
+      push("Impossible de mettre à jour la photo de profil. Veuillez réessayer.", "error");
+      throw err;
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
@@ -130,10 +144,14 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
     <div className="max-w-lg">
       <div className="mb-6 flex items-center gap-4">
         {avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- avatar externe (Supabase Storage), pas d'optimisation next/image nécessaire ici
-          <img src={avatarUrl} alt="Photo de profil" className="h-16 w-16 rounded-full object-cover" />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={avatarUrl}
+            alt="Photo de profil"
+            className="h-16 w-16 rounded-full object-cover ring-2 ring-ink-200 shadow-sm"
+          />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-signal-soft text-lg font-semibold text-signal">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-signal-soft text-lg font-semibold text-signal ring-2 ring-ink-200">
             {initials(fullName)}
           </div>
         )}
@@ -143,21 +161,22 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
             variant="secondary"
             size="sm"
             loading={uploading}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => setIsAvatarModalOpen(true)}
           >
-            Changer la photo
+            Changer la photo ou l&apos;avatar
           </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleAvatarChange}
-            aria-label="Choisir une photo de profil"
-          />
-          <p className="mt-1 text-xs text-ink-500">JPG ou PNG, 2 Mo maximum.</p>
+          <p className="mt-1 text-xs text-ink-500">
+            Sélectionnez une photo de smartphone (compressée automatiquement) ou un avatar stylisé.
+          </p>
         </div>
       </div>
+
+      <AvatarModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        currentAvatarUrl={avatarUrl}
+        onSelectAvatar={handleAvatarSelect}
+      />
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         <Field label="Nom complet" htmlFor="fullName" error={fieldErrors.fullName}>
