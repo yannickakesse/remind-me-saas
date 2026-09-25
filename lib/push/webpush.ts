@@ -5,10 +5,10 @@ import type { Database } from "@/types/database";
 // Configuration des clés VAPID par défaut pour le développement et la production
 const VAPID_PUBLIC_KEY =
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-  "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
+  "BE8s3t5tTHgVP9A-V5tKLq4vUCcFNU1m8bhDtFgwil3ORODoMl4Jmbo47rhMaTcNemPJb8c588D7oqj6VqYtVBU";
 const VAPID_PRIVATE_KEY =
   process.env.VAPID_PRIVATE_KEY ||
-  "UUxI8S9E0Lw3EeqPqg0Z7B1WJ3xUvC1E4F2G9H8I7J6";
+  "AJujz0Dr4yjB1S3LqhpVDlW8sd1Rd4XINt8wiK7UfCQ";
 const VAPID_SUBJECT =
   process.env.VAPID_SUBJECT || "mailto:support@remindme.io";
 
