@@ -82,7 +82,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
   return (
     <>
       {/* Top Mobile Bar (< 768px) — Header Mobile Moderne & Épuré avec Safe Area Inset pour iPhone / Android */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-4 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-2.5 shadow-xs w-full max-w-full safe-area-top">
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-4 py-2.5 safe-area-top shadow-xs w-full max-w-full">
         <Link href="/dashboard" className="flex items-center tap-active py-0.5">
           <RemindMeLogo size="sm" showText={true} />
         </Link>
@@ -118,7 +118,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           {/* Drawer content */}
           <div className="relative flex flex-col w-[85%] max-w-[320px] bg-canvas-raised h-full shadow-2xl z-10 border-r border-ink-200 overflow-y-auto">
             {/* Drawer Header avec Safe Area Inset Top */}
-            <div className="flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top,0px))] border-b border-ink-200 bg-canvas safe-area-top">
+            <div className="flex items-center justify-between p-4 border-b border-ink-200 bg-canvas safe-area-top">
               <RemindMeLogo size="sm" showText={true} />
 
               <button
@@ -253,7 +253,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
       <nav
         aria-label="Navigation mobile principale"
         data-tour="mobile-nav-bar"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-1 py-1 shadow-lg safe-area-bottom"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-1 pt-1 safe-area-bottom shadow-lg"
       >
         <Link
           href="/dashboard"
