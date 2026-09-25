@@ -138,6 +138,10 @@ create trigger set_scheduled_expenses_updated_at
   for each row execute procedure public.set_updated_at();
 
 -- 5. NOTIFICATIONS EXTENDUES, PRÉFÉRENCES & LOGS
+alter table notifications alter column entity_id type text;
+alter table notifications drop constraint if exists notifications_kind_check;
+alter table notifications drop constraint if exists notifications_entity_type_check;
+
 alter table notifications
   add column if not exists category text not null default 'general',
   add column if not exists priority text not null default 'normal' check (priority in ('low', 'normal', 'high', 'critical')),

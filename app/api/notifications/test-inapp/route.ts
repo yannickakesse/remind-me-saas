@@ -17,7 +17,7 @@ export async function POST() {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    const testId = `test_${Date.now()}`;
+    const testEntityId = crypto.randomUUID();
 
     const { data: inserted, error } = await supabase
       .from("notifications")
@@ -28,7 +28,7 @@ export async function POST() {
         priority: "normal",
         status: "unread",
         entity_type: "system",
-        entity_id: testId,
+        entity_id: testEntityId,
         title: "Test In-App — Remind Me opérationnel 🔔",
         body: "Votre centre de notifications in-app fonctionne parfaitement. Vous recevrez ici vos rappels de paiements et d'échéances.",
         link: "/notifications",
