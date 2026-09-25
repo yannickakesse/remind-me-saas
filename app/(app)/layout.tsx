@@ -94,7 +94,7 @@ export default async function AppLayout({
       <MobileNav unreadCount={unreadCount} />
 
       {/* Sidebar Desktop (>= 768px) */}
-      <aside className="hidden md:flex w-64 shrink-0 flex-col justify-between border-r border-ink-200 bg-canvas-raised px-4 py-6">
+      <aside className="hidden md:flex w-64 shrink-0 flex-col justify-between border-r border-ink-200 bg-canvas-raised px-4 py-6 print:hidden">
         <div className="space-y-6">
           {/* Logo & Titre */}
           <div className="flex items-center justify-between px-2 gap-2">
@@ -158,7 +158,7 @@ export default async function AppLayout({
       </aside>
 
       {/* Contenu principal avec padding adapté pour la bottom nav mobile */}
-      <main className="flex-1 p-3.5 sm:p-6 md:p-8 max-w-7xl mx-auto w-full min-w-0 max-w-full overflow-y-auto pb-24 md:pb-8">
+      <main className="flex-1 p-3.5 sm:p-6 md:p-8 max-w-7xl mx-auto w-full min-w-0 max-w-full overflow-y-auto pb-24 md:pb-8 print:p-0 print:m-0 print:pb-0 print:max-w-none">
         {children}
       </main>
     </div>

@@ -6,17 +6,17 @@ import type { Database } from "@/types/database";
 const VAPID_PUBLIC_KEY =
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
   "BE8s3t5tTHgVP9A-V5tKLq4vUCcFNU1m8bhDtFgwil3ORODoMl4Jmbo47rhMaTcNemPJb8c588D7oqj6VqYtVBU";
-const VAPID_PRIVATE_KEY =
-  process.env.VAPID_PRIVATE_KEY ||
-  "AJujz0Dr4yjB1S3LqhpVDlW8sd1Rd4XINt8wiK7UfCQ";
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 const VAPID_SUBJECT =
   process.env.VAPID_SUBJECT || "mailto:support@remindme.io";
 
-// Initialisation globale de web-push
-try {
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-} catch (e) {
-  console.debug("[WebPush] Initialisation VAPID:", e);
+// Initialisation globale de web-push (uniquement si les clés sont fournies)
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  try {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  } catch (e) {
+    console.debug("[WebPush] Initialisation VAPID:", e);
+  }
 }
 
 export interface WebPushPayload {

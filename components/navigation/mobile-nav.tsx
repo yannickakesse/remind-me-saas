@@ -82,7 +82,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
   return (
     <>
       {/* Top Mobile Bar (< 768px) — Header Mobile Moderne & Épuré avec Safe Area Inset pour iPhone / Android */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-4 py-2.5 safe-area-top shadow-xs w-full max-w-full">
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-4 py-2.5 safe-area-top shadow-xs w-full max-w-full print:hidden">
         <Link href="/dashboard" className="flex items-center tap-active py-0.5">
           <RemindMeLogo size="sm" showText={true} />
         </Link>
@@ -253,7 +253,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
       <nav
         aria-label="Navigation mobile principale"
         data-tour="mobile-nav-bar"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-1 pt-1 safe-area-bottom shadow-lg"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-1 pt-1 safe-area-bottom shadow-lg print:hidden"
       >
         <Link
           href="/dashboard"
