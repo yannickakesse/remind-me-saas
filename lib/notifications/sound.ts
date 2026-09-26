@@ -56,50 +56,84 @@ export function setSoundEnabled(enabled: boolean): void {
 }
 
 /**
- * Joue la sonnerie de rappel Remind Me (Carillon harmonique 2 tons D5 -> A5)
+ * Joue la sonnerie officielle de notification Remind Me
+ * Arpège cristallin 3 tons (E5 -> A5 -> E6) harmonieux et percussif
  */
-export function playNotificationChime(volume: number = 0.35): void {
+export function playNotificationChime(volume: number = 0.4): void {
   if (!isSoundEnabled()) return;
 
+  // 1. Tenter d'abord la lecture directe du fichier audio HD
+  if (typeof window !== "undefined" && typeof Audio !== "undefined") {
+    try {
+      const audio = new Audio("/sounds/notification.wav");
+      audio.volume = Math.min(1, Math.max(0, volume));
+      audio.play().catch(() => {
+        // En cas de blocage d'autoplay ou d'erreur réseau, fallback sur la Web Audio API
+        playSynthesizedChime(volume);
+      });
+      return;
+    } catch {
+      // Fallback direct
+    }
+  }
+
+  playSynthesizedChime(volume);
+}
+
+/**
+ * Synthétiseur de secours Web Audio API haute fidélité
+ */
+function playSynthesizedChime(volume: number = 0.4): void {
   const ctx = getAudioContext();
   if (!ctx) return;
 
   try {
     const now = ctx.currentTime;
 
-    // --- Note 1 : Ré (D5 - 587.33 Hz) ---
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
+    // Définition des 3 notes du carillon Remind Me (E5, A5, E6)
+    const notes = [
+      { delay: 0.00, freq: 659.25, dur: 0.45, gainRatio: 0.75, type: "sine" as OscillatorType },
+      { delay: 0.09, freq: 880.00, dur: 0.55, gainRatio: 0.85, type: "triangle" as OscillatorType },
+      { delay: 0.20, freq: 1318.51, dur: 0.90, gainRatio: 1.0, type: "sine" as OscillatorType },
+    ];
 
-    osc1.type = "sine";
-    osc1.frequency.setValueAtTime(587.33, now);
+    notes.forEach((note) => {
+      const noteTime = now + note.delay;
 
-    gain1.gain.setValueAtTime(0, now);
-    gain1.gain.linearRampToValueAtTime(volume, now + 0.03);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+      // Oscillateur principal
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
 
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
+      osc.type = note.type;
+      osc.frequency.setValueAtTime(note.freq, noteTime);
 
-    osc1.start(now);
-    osc1.stop(now + 0.5);
+      gain.gain.setValueAtTime(0, noteTime);
+      gain.gain.linearRampToValueAtTime(volume * note.gainRatio, noteTime + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteTime + note.dur);
 
-    // --- Note 2 : La (A5 - 880 Hz) avec harmonique ---
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
 
-    osc2.type = "triangle";
-    osc2.frequency.setValueAtTime(880, now + 0.12);
+      osc.start(noteTime);
+      osc.stop(noteTime + note.dur + 0.05);
 
-    gain2.gain.setValueAtTime(0, now + 0.12);
-    gain2.gain.linearRampToValueAtTime(volume * 0.9, now + 0.15);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+      // Harmonique cristalline d'attaque percussive (cloche / verre)
+      const harmonicOsc = ctx.createOscillator();
+      const harmonicGain = ctx.createGain();
 
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
+      harmonicOsc.type = "sine";
+      harmonicOsc.frequency.setValueAtTime(note.freq * 2.01, noteTime);
 
-    osc2.start(now + 0.12);
-    osc2.stop(now + 0.85);
+      harmonicGain.gain.setValueAtTime(0, noteTime);
+      harmonicGain.gain.linearRampToValueAtTime(volume * note.gainRatio * 0.35, noteTime + 0.003);
+      harmonicGain.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.15);
+
+      harmonicOsc.connect(harmonicGain);
+      harmonicGain.connect(ctx.destination);
+
+      harmonicOsc.start(noteTime);
+      harmonicOsc.stop(noteTime + 0.2);
+    });
   } catch (err) {
     console.warn("[RemindMe Audio] Failed to play chime:", err);
   }
@@ -111,8 +145,8 @@ export function playNotificationChime(volume: number = 0.35): void {
 export async function testChimeSound(): Promise<boolean> {
   const ctx = getAudioContext();
   if (ctx && ctx.state === "suspended") {
-    await ctx.resume();
+    await ctx.resume().catch(() => {});
   }
-  playNotificationChime(0.4);
+  playNotificationChime(0.45);
   return true;
 }
