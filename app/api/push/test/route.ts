@@ -36,8 +36,17 @@ export async function POST() {
       });
     }
 
+    if (result.successful === 0) {
+      return NextResponse.json({
+        success: false,
+        error: !process.env.VAPID_PRIVATE_KEY
+          ? "Clé VAPID_PRIVATE_KEY manquante dans vos variables d'environnement Vercel."
+          : "Échec de transmission push. Désactivez puis réactivez les notifications sur cet appareil.",
+      });
+    }
+
     return NextResponse.json({
-      success: result.successful > 0,
+      success: true,
       total: result.total,
       successful: result.successful,
       failed: result.failed,
