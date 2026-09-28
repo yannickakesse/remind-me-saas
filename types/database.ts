@@ -755,7 +755,19 @@ export type NotificationCategory =
   | "summary"
   | "system"
   | "general";
-export type SupportedLocale = "en" | "fr" | "es" | "de" | "pt";
+export type SupportedLocale =
+  | "fr"
+  | "en"
+  | "es"
+  | "de"
+  | "pt"
+  | "it"
+  | "nl"
+  | "ru"
+  | "zh"
+  | "ja"
+  | "ar"
+  | "hi";
 
 export type NotificationKind = string;
 export type NotificationEntityType = "task" | "income" | "expense" | "activity" | "scheduled_expense" | "security" | "system";

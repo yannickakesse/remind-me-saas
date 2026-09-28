@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { HelpCenterButton } from "@/components/help/help-center-modal";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
 import {
   LayoutDashboard,
@@ -88,6 +89,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
         </Link>
 
         <div className="flex items-center gap-1.5">
+          <LanguageSelector variant="pill" />
           <HelpCenterButton />
           <Link
             href="/notifications"

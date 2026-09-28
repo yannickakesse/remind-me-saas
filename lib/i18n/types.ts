@@ -1,17 +1,38 @@
-export type SupportedLocale = "en" | "fr" | "es" | "de" | "pt";
+export type SupportedLocale =
+  | "fr"
+  | "en"
+  | "es"
+  | "de"
+  | "pt"
+  | "it"
+  | "nl"
+  | "ru"
+  | "zh"
+  | "ja"
+  | "ar"
+  | "hi";
 
 export interface LocaleDefinition {
   code: SupportedLocale;
   label: string;
+  nativeLabel: string;
   flag: string;
+  direction?: "ltr" | "rtl";
 }
 
 export const SUPPORTED_LOCALES: LocaleDefinition[] = [
-  { code: "en", label: "English", flag: "🇺🇸" },
-  { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "de", label: "Deutsch", flag: "🇩🇪" },
-  { code: "pt", label: "Português", flag: "🇵🇹" },
+  { code: "fr", label: "Français", nativeLabel: "Français", flag: "🇫🇷" },
+  { code: "en", label: "Anglais", nativeLabel: "English", flag: "🇺🇸" },
+  { code: "es", label: "Espagnol", nativeLabel: "Español", flag: "🇪🇸" },
+  { code: "de", label: "Allemand", nativeLabel: "Deutsch", flag: "🇩🇪" },
+  { code: "pt", label: "Portugais", nativeLabel: "Português", flag: "🇧🇷" },
+  { code: "it", label: "Italien", nativeLabel: "Italiano", flag: "🇮🇹" },
+  { code: "nl", label: "Néerlandais", nativeLabel: "Nederlands", flag: "🇳🇱" },
+  { code: "ru", label: "Russe", nativeLabel: "Русский", flag: "🇷🇺" },
+  { code: "zh", label: "Chinois", nativeLabel: "中文", flag: "🇨🇳" },
+  { code: "ja", label: "Japonais", nativeLabel: "日本語", flag: "🇯🇵" },
+  { code: "ar", label: "Arabe", nativeLabel: "العربية", flag: "🇸🇦", direction: "rtl" },
+  { code: "hi", label: "Hindi", nativeLabel: "हिन्दी", flag: "🇮🇳" },
 ];
 
 export type TranslationKey =
@@ -25,6 +46,14 @@ export type TranslationKey =
   | "nav.clients"
   | "nav.reports"
   | "nav.settings"
+  | "nav.login"
+  | "nav.register"
+  | "nav.start"
+  | "nav.how_it_works"
+  | "nav.features"
+  | "nav.pricing"
+  | "nav.faq"
+  | "nav.language"
   // Attention required
   | "attention.title"
   | "attention.subtitle"
@@ -66,14 +95,19 @@ export type TranslationKey =
   | "notif.task_due_soon.body"
   | "notif.task_overdue.title"
   | "notif.task_overdue.body"
-  // Summaries
+  // Summaries & Routine
   | "notif.daily_summary.title"
   | "notif.daily_summary.body"
   | "notif.weekly_summary.title"
   | "notif.weekly_summary.body"
+  | "notif.morning_briefing.title"
+  | "notif.morning_briefing.body"
+  | "notif.evening_checkin.title"
+  | "notif.evening_checkin.body"
   // Actions & Controls
   | "actions.mark_received"
   | "actions.mark_paid"
+  | "actions.mark_done"
   | "actions.snooze"
   | "actions.snooze_1d"
   | "actions.snooze_3d"
@@ -85,4 +119,6 @@ export type TranslationKey =
   | "actions.filter_unread"
   | "actions.filter_overdue"
   | "actions.empty_title"
-  | "actions.empty_desc";
+  | "actions.empty_desc"
+  | "settings.language_title"
+  | "settings.language_desc";

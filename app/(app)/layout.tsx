@@ -12,6 +12,7 @@ import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { NetworkStatus } from "@/components/ui/network-status";
 import { PwaRegistrar } from "@/components/pwa/pwa-registrar";
 import { DailyWelcomeBanner } from "@/components/notifications/daily-welcome-banner";
+import { LanguageSelector } from "@/components/ui/language-selector";
 import type { Notification } from "@/types/database";
 
 import {
@@ -140,8 +141,12 @@ export default async function AppLayout({
           </nav>
         </div>
 
-        {/* Profil utilisateur en bas */}
-        <div className="border-t border-ink-100 pt-4 px-2">
+        {/* Profil utilisateur & Sélecteur de Langue en bas */}
+        <div className="border-t border-ink-100 pt-3 px-2 space-y-1.5">
+          <div className="flex items-center justify-between px-2">
+            <span className="text-[11px] font-medium text-ink-400">Langue</span>
+            <LanguageSelector variant="pill" />
+          </div>
           <Link
             href="/settings"
             className="flex items-center gap-3 rounded-lg p-2 hover:bg-ink-50 transition-colors"

@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import { profileFormSchema } from "@/lib/validation/settings";
 import { updateProfile, updateAvatarUrl } from "@/app/(app)/settings/actions";
 import { TIMEZONE_OPTIONS, resolveAppropriateTimezone } from "@/lib/time/timezones";
+import { SUPPORTED_LOCALES } from "@/lib/i18n/types";
 import { AvatarModal } from "./avatar-modal";
 
 interface ProfileSectionProps {
@@ -216,10 +217,13 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
           </Select>
         </Field>
 
-        <Field label="Langue" htmlFor="locale" error={fieldErrors.locale}>
+        <Field label="Langue de l'interface" htmlFor="locale" error={fieldErrors.locale}>
           <Select id="locale" value={locale} onChange={(e) => setLocale(e.target.value)}>
-            <option value="fr">Français</option>
-            <option value="en">English</option>
+            {SUPPORTED_LOCALES.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.flag} {l.nativeLabel} ({l.label})
+              </option>
+            ))}
           </Select>
         </Field>
 

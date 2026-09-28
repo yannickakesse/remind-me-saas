@@ -1,11 +1,26 @@
 import { z } from "zod";
 
+export const SUPPORTED_LOCALE_CODES = [
+  "fr",
+  "en",
+  "es",
+  "de",
+  "pt",
+  "it",
+  "nl",
+  "ru",
+  "zh",
+  "ja",
+  "ar",
+  "hi",
+] as const;
+
 export const profileFormSchema = z.object({
   fullName: z.string().min(2, "Nom trop court"),
   countryCode: z.string().length(2, "Sélectionnez un pays"),
   currencyCode: z.string().length(3, "Sélectionnez une devise"),
   timezone: z.string().min(1, "Sélectionnez un fuseau horaire"),
-  locale: z.enum(["fr", "en", "es", "de", "pt"]),
+  locale: z.enum(SUPPORTED_LOCALE_CODES),
   weekStart: z.coerce.number().int().min(0).max(6),
   timeFormat: z.enum(["12h", "24h"]),
 });
@@ -54,7 +69,7 @@ export const notifPrefsSchema = z.object({
   quiet_hours_enabled: z.boolean().default(false),
   quiet_hours_start: z.string().default("22:00"),
   quiet_hours_end: z.string().default("08:00"),
-  preferred_locale: z.enum(["fr", "en", "es", "de", "pt"]).default("fr"),
+  preferred_locale: z.enum(SUPPORTED_LOCALE_CODES).default("fr"),
 });
 export type NotifPrefsInput = z.infer<typeof notifPrefsSchema>;
 

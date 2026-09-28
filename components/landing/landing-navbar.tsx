@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { RemindMeLogo } from "./remindme-logo";
 import { useTheme } from "@/components/theme/theme-provider";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
 interface LandingNavbarProps {
   user: { email?: string; id?: string } | null;
@@ -126,14 +127,8 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
               </Link>
             )}
 
-            {/* Language / Region indicator pill */}
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-ink-200/80 dark:border-ink-800 text-[11px] font-medium text-ink-600 dark:text-ink-400 bg-canvas/80">
-              <svg className="w-3.5 h-3.5 text-ink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              </svg>
-              <span className="text-[11px] font-semibold text-ink-700 dark:text-ink-300">FR</span>
-            </div>
+            {/* Interactive Language Selector */}
+            <LanguageSelector variant="pill" />
 
             {/* Theme Toggle Button */}
             <button
@@ -218,7 +213,11 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                 <span className="text-ink-400">→</span>
               </a>
             </nav>
-            <div className="pt-2 border-t border-ink-100 dark:border-ink-800 flex flex-col gap-2">
+            <div className="pt-2 border-t border-ink-100 dark:border-ink-800 flex items-center justify-between px-1">
+              <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">Langue / Language :</span>
+              <LanguageSelector variant="pill" />
+            </div>
+            <div className="pt-1 flex flex-col gap-2">
               {user ? (
                 <Link
                   href="/dashboard"

@@ -6,6 +6,7 @@ import "./globals.css";
 import { THEME_INIT_SCRIPT } from "@/lib/theme/theme-script";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { LanguageProvider } from "@/components/i18n/language-provider";
 import { PWARegister } from "@/components/pwa/pwa-register";
 import { PwaInstallPrompt } from "@/components/pwa/pwa-install-prompt";
 import { NavigationProgressBar } from "@/components/ui/navigation-progress";
@@ -75,17 +76,19 @@ export default function RootLayout({
         </Script>
       </head>
       <body>
-        <ThemeProvider>
-          <ToastProvider>
-            <Suspense fallback={null}>
-              <NavigationProgressBar />
-            </Suspense>
-            <PWARegister />
-            <PwaInstallPrompt />
-            {children}
-            <Analytics />
-          </ToastProvider>
-        </ThemeProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Suspense fallback={null}>
+                <NavigationProgressBar />
+              </Suspense>
+              <PWARegister />
+              <PwaInstallPrompt />
+              {children}
+              <Analytics />
+            </ToastProvider>
+          </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
