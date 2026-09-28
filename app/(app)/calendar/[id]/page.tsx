@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { EVENT_STATUS_STYLES, eventStatusLabel } from "@/lib/validation/calendar";
 import { EventActions } from "@/components/calendar/event-actions";
 import { setEventStatus, rescheduleEvent, deleteManualEvent } from "../actions";
+import { resolveEntityNotifications } from "@/lib/notifications/engine";
 import type { CalendarEventStatus } from "@/types/database";
 
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
@@ -29,6 +30,11 @@ export default async function EventDetailPage({ params }: { params: { id: string
     .single();
 
   if (!event) notFound();
+
+  // Si l'événement est déjà terminé ou annulé, auto-résolution immédiate des alertes associées
+  if (event.status === "completed" || event.status === "cancelled" || event.status === "missed") {
+    await resolveEntityNotifications(supabase, event.id, user.id);
+  }
 
   const activity = Array.isArray(event.activities) ? event.activities[0] : event.activities;
   const organization = activity && Array.isArray(activity.organizations)

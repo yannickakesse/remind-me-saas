@@ -80,7 +80,7 @@ export async function resolveEntityNotifications(
       resolved_at: nowIso,
       read_at: nowIso,
     })
-    .eq("entity_id", entityId)
+    .or(`entity_id.eq.${entityId},id.eq.${entityId}`)
     .neq("status", "resolved");
 
   if (userId) {
@@ -222,8 +222,8 @@ export async function evaluateSmartReminders(
     supabase.from("expenses").select("id").eq("user_id", userId).eq("paid", true),
     supabase.from("tasks").select("id").eq("user_id", userId).in("status", ["done", "cancelled"]),
     supabase.from("scheduled_expenses").select("id").eq("user_id", userId).in("status", ["paid", "cancelled"]),
-    supabase.from("calendar_events").select("id").eq("user_id", userId).in("status", ["completed", "cancelled"]),
-    supabase.from("activities").select("id").eq("user_id", userId).in("status", ["archived", "suspended"]),
+    supabase.from("calendar_events").select("id").eq("user_id", userId).in("status", ["completed", "cancelled", "missed", "postponed"]),
+    supabase.from("activities").select("id").eq("user_id", userId).in("status", ["archived", "suspended", "expired"]),
     supabase.from("notifications").select("id, entity_id, snoozed_until").eq("user_id", userId).eq("status", "snoozed"),
   ]);
 

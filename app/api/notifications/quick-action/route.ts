@@ -3,7 +3,17 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
 const quickActionSchema = z.object({
-  action: z.enum(["mark_received", "mark_paid", "mark_task_done", "snooze", "mark_read", "dismiss"]),
+  action: z.enum([
+    "mark_received",
+    "mark_paid",
+    "mark_task_done",
+    "mark_event_done",
+    "mark_event_completed",
+    "mark_event_cancelled",
+    "snooze",
+    "mark_read",
+    "dismiss",
+  ]),
   notificationId: z.string().optional(),
   entityId: z.string().optional(),
   hours: z.number().positive().max(720).optional(),
@@ -28,17 +38,16 @@ export async function POST(request: Request) {
 
     const { action, notificationId, entityId, hours } = parsed.data;
     const nowIso = new Date().toISOString();
-    const todayDate = nowIso.split("T")[0];
+    const todayDate: string = nowIso.split("T")[0] || "";
 
+    // 1. MARQUER REVENU / PAIEMENT ENCAISSÉ
     if (action === "mark_received" && entityId) {
-      // 1. Mettre à jour le revenu (received = true, received_at automatique par trigger)
       await supabase
         .from("income")
         .update({ received: true, received_at: todayDate })
         .eq("id", entityId)
         .eq("user_id", user.id);
 
-      // 2. Résoudre toutes les notifications associées à ce revenu
       await supabase
         .from("notifications")
         .update({
@@ -64,6 +73,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, action: "mark_received" });
     }
 
+    // 2. MARQUER DÉPENSE OU DÉPENSE PROGRAMMÉE COMME PAYÉE
     if (action === "mark_paid" && entityId) {
       // Vérifier s'il s'agit d'une dépense ponctuelle
       const { data: exp } = await supabase
@@ -80,12 +90,58 @@ export async function POST(request: Request) {
           .eq("id", entityId)
           .eq("user_id", user.id);
       } else {
-        // Sinon dépense programmée
-        await supabase
+        // Dépense programmée récurrente ou ponctuelle
+        const { data: sch } = await supabase
           .from("scheduled_expenses")
-          .update({ status: "paid" })
+          .select("*")
           .eq("id", entityId)
-          .eq("user_id", user.id);
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (sch) {
+          const effectiveDueDate: string = sch.next_due_date || todayDate;
+          // Enregistrer la dépense payée dans la table expenses
+          await supabase.from("expenses").insert({
+            user_id: user.id,
+            label: sch.name || "Dépense programmée",
+            category: sch.category || "other",
+            amount: Number(sch.amount) || 0,
+            currency: sch.currency || "XOF",
+            due_date: effectiveDueDate,
+            paid: true,
+            activity_id: sch.activity_id || null,
+            notes: "Règlement effectué depuis le tableau de bord",
+          });
+
+          if (sch.frequency === "once") {
+            await supabase
+              .from("scheduled_expenses")
+              .update({ status: "paid" })
+              .eq("id", entityId)
+              .eq("user_id", user.id);
+          } else {
+            // Avancer la date pour le prochain cycle
+            const curDate = new Date(effectiveDueDate);
+            const nextDate = new Date(curDate);
+            if (sch.frequency === "daily") nextDate.setDate(nextDate.getDate() + 1);
+            else if (sch.frequency === "weekly") nextDate.setDate(nextDate.getDate() + 7);
+            else if (sch.frequency === "monthly") nextDate.setMonth(nextDate.getMonth() + 1);
+            else if (sch.frequency === "quarterly") nextDate.setMonth(nextDate.getMonth() + 3);
+            else if (sch.frequency === "yearly") nextDate.setFullYear(nextDate.getFullYear() + 1);
+            else nextDate.setMonth(nextDate.getMonth() + 1);
+
+            const nextDueDateStr = nextDate.toISOString().split("T")[0];
+
+            await supabase
+              .from("scheduled_expenses")
+              .update({
+                next_due_date: nextDueDateStr,
+                status: "planned",
+              })
+              .eq("id", entityId)
+              .eq("user_id", user.id);
+          }
+        }
       }
 
       await supabase
@@ -113,15 +169,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, action: "mark_paid" });
     }
 
+    // 3. MARQUER UNE TÂCHE COMME TERMINÉE
     if (action === "mark_task_done" && entityId) {
-      // 1. Marquer la tâche comme terminée
       await supabase
         .from("tasks")
         .update({ status: "done", completed_at: nowIso })
         .eq("id", entityId)
         .eq("user_id", user.id);
 
-      // 2. Auto-Stop des alertes
       await supabase
         .from("notifications")
         .update({
@@ -147,6 +202,73 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, action: "mark_task_done" });
     }
 
+    // 4. MARQUER UNE SÉANCE / ÉVÉNEMENT DE CALENDRIER COMME TERMINÉ
+    if ((action === "mark_event_done" || action === "mark_event_completed") && entityId) {
+      await supabase
+        .from("calendar_events")
+        .update({ status: "completed" })
+        .eq("id", entityId)
+        .eq("user_id", user.id);
+
+      await supabase
+        .from("notifications")
+        .update({
+          status: "resolved",
+          resolved_at: nowIso,
+          read_at: nowIso,
+        })
+        .eq("user_id", user.id)
+        .eq("entity_id", entityId);
+
+      if (notificationId) {
+        await supabase
+          .from("notifications")
+          .update({
+            status: "resolved",
+            resolved_at: nowIso,
+            read_at: nowIso,
+          })
+          .eq("id", notificationId)
+          .eq("user_id", user.id);
+      }
+
+      return NextResponse.json({ success: true, action: "mark_event_completed" });
+    }
+
+    // 5. ANNULER UN ÉVÉNEMENT DE CALENDRIER
+    if (action === "mark_event_cancelled" && entityId) {
+      await supabase
+        .from("calendar_events")
+        .update({ status: "cancelled" })
+        .eq("id", entityId)
+        .eq("user_id", user.id);
+
+      await supabase
+        .from("notifications")
+        .update({
+          status: "resolved",
+          resolved_at: nowIso,
+          read_at: nowIso,
+        })
+        .eq("user_id", user.id)
+        .eq("entity_id", entityId);
+
+      if (notificationId) {
+        await supabase
+          .from("notifications")
+          .update({
+            status: "resolved",
+            resolved_at: nowIso,
+            read_at: nowIso,
+          })
+          .eq("id", notificationId)
+          .eq("user_id", user.id);
+      }
+
+      return NextResponse.json({ success: true, action: "mark_event_cancelled" });
+    }
+
+    // 6. REPORTER (SNOOZE) UNE NOTIFICATION
     if (action === "snooze" && notificationId) {
       const snoozeHours = hours ?? 24;
       const snoozedUntil = new Date(Date.now() + snoozeHours * 60 * 60 * 1000).toISOString();
@@ -163,6 +285,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, action: "snooze", snoozedUntil });
     }
 
+    // 7. MARQUER COMME LUE
     if (action === "mark_read" && notificationId) {
       await supabase
         .from("notifications")
@@ -176,15 +299,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, action: "mark_read" });
     }
 
+    // 8. ÉCARTER (DISMISS) UNE NOTIFICATION
     if (action === "dismiss" && notificationId) {
       await supabase
         .from("notifications")
         .update({
           status: "dismissed",
+          resolved_at: nowIso,
           read_at: nowIso,
         })
         .eq("id", notificationId)
         .eq("user_id", user.id);
+
+      if (entityId) {
+        await supabase
+          .from("notifications")
+          .update({
+            status: "dismissed",
+            resolved_at: nowIso,
+            read_at: nowIso,
+          })
+          .eq("entity_id", entityId)
+          .eq("user_id", user.id);
+      }
 
       return NextResponse.json({ success: true, action: "dismiss" });
     }

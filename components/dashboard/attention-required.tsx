@@ -3,8 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, AlertCircle, Wallet, Clock, Check, CheckSquare, ArrowRight } from "lucide-react";
+import {
+  AlertTriangle,
+  AlertCircle,
+  Wallet,
+  Clock,
+  Check,
+  CheckSquare,
+  Calendar,
+  ArrowRight,
+  X,
+  Loader2,
+} from "lucide-react";
 import type { Notification } from "@/types/database";
+import { useLanguage } from "@/components/i18n/language-provider";
 
 interface AttentionRequiredProps {
   notifications: Notification[];
@@ -12,37 +24,42 @@ interface AttentionRequiredProps {
 
 export function AttentionRequired({ notifications }: AttentionRequiredProps) {
   const router = useRouter();
+  const { locale } = useLanguage();
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
-  // Uniquement les alertes NON RÉSOLUES, NON ÉCARTÉES et NON LUES
+  // Uniquement les alertes NON RÉSOLUES, NON ÉCARTÉES, NON LUES et NON DISMISSED LOCALEMENT
   const urgentItems = notifications.filter(
-    (n) => n.status === "unread" && !n.read_at
+    (n) => n.status === "unread" && !n.read_at && !dismissedIds.has(n.id)
   );
 
   if (urgentItems.length === 0) {
     return null;
   }
 
-  async function handleQuickAction(action: string, id: string, entityId: string) {
+  async function handleQuickAction(action: string, id: string, entityId?: string) {
     setResolvingId(id);
+    // Optimistic instant UI dismissal
+    setDismissedIds((prev) => new Set([...prev, id]));
+
     try {
       const res = await fetch("/api/notifications/quick-action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, notificationId: id, entityId }),
+        body: JSON.stringify({ action, notificationId: id, entityId: entityId || id }),
       });
       if (res.ok) {
         router.refresh();
       }
     } catch (e) {
-      console.error(e);
+      console.error("[AttentionRequired] quick-action error:", e);
     } finally {
       setResolvingId(null);
     }
   }
 
   return (
-    <div className="rounded-2xl border-2 border-warning/30 bg-warning-soft/10 p-4 sm:p-6 space-y-4 shadow-sm">
+    <div className="rounded-2xl border-2 border-warning/30 bg-warning-soft/10 p-4 sm:p-6 space-y-4 shadow-sm transition-all">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <span className="flex h-3 w-3 relative">
@@ -50,14 +67,20 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
             <span className="relative inline-flex rounded-full h-3 w-3 bg-danger" />
           </span>
           <h2 className="text-base font-bold text-ink-950">
-            Nécessite votre attention ({urgentItems.length})
+            {locale === "fr"
+              ? `Nécessite votre attention (${urgentItems.length})`
+              : locale === "es"
+              ? `Requiere su atención (${urgentItems.length})`
+              : locale === "de"
+              ? `Erfordert Ihre Aufmerksamkeit (${urgentItems.length})`
+              : `Requires your attention (${urgentItems.length})`}
           </h2>
         </div>
         <Link
           href="/notifications"
           className="text-xs font-semibold text-signal hover:underline flex items-center gap-1"
         >
-          Tout gérer <ArrowRight className="w-3.5 h-3.5" />
+          {locale === "fr" ? "Tout gérer" : "Manage all"} <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -65,14 +88,22 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
         {urgentItems.slice(0, 4).map((item) => {
           const isOverdue = item.kind.includes("overdue");
           const isPayment = item.category === "payment" || item.entity_type === "income";
-          const isExpense = item.category === "expense" || item.entity_type === "expense" || item.category === "scheduled_expense";
+          const isExpense =
+            item.category === "expense" ||
+            item.entity_type === "expense" ||
+            item.category === "scheduled_expense" ||
+            item.entity_type === "scheduled_expense";
           const isTask = item.category === "task" || item.entity_type === "task";
+          const isActivityOrEvent =
+            item.category === "activity" ||
+            item.entity_type === "activity" ||
+            item.kind.includes("activity");
           const isBusy = resolvingId === item.id;
 
           return (
             <div
               key={item.id}
-              className="p-3.5 rounded-xl border border-ink-200 bg-canvas-raised shadow-xs flex flex-col justify-between space-y-3"
+              className="p-3.5 rounded-xl border border-ink-200 bg-canvas-raised shadow-xs flex flex-col justify-between space-y-3 transition-all hover:border-ink-300"
             >
               <div className="flex items-start gap-2.5">
                 <span className="shrink-0 mt-0.5">
@@ -84,6 +115,8 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     <Clock className="w-4 h-4 text-warning" />
                   ) : isTask ? (
                     <CheckSquare className="w-4 h-4 text-signal" />
+                  ) : isActivityOrEvent ? (
+                    <Calendar className="w-4 h-4 text-signal" />
                   ) : (
                     <AlertTriangle className="w-4 h-4 text-warning" />
                   )}
@@ -94,7 +127,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                       {item.title}
                     </span>
                     <span
-                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${
                         item.priority === "critical"
                           ? "bg-danger text-white"
                           : item.priority === "high"
@@ -102,7 +135,13 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                           : "bg-signal-soft text-signal"
                       }`}
                     >
-                      {item.priority === "critical" ? "Critique" : "Urgent"}
+                      {item.priority === "critical"
+                        ? locale === "fr"
+                          ? "Critique"
+                          : "Critical"
+                        : locale === "fr"
+                        ? "Urgent"
+                        : "Urgent"}
                     </span>
                   </div>
                   <p className="text-xs text-ink-700 mt-0.5 leading-relaxed">
@@ -112,46 +151,76 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
               </div>
 
               {/* Inline Instant Actions */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-ink-100/60">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-ink-100/60 flex-wrap">
+                {/* Action Paiement Reçu */}
                 {isPayment && item.entity_id && (
                   <button
                     type="button"
                     disabled={isBusy}
                     onClick={() => handleQuickAction("mark_received", item.id, item.entity_id)}
-                    className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1"
+                    className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1 cursor-pointer"
                   >
-                    <Check className="w-3.5 h-3.5" /> {isBusy ? "Mise à jour..." : "Marquer comme reçu"}
+                    {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                    <span>{locale === "fr" ? "Marquer comme reçu" : "Mark as received"}</span>
                   </button>
                 )}
 
+                {/* Action Facture Payée */}
                 {isExpense && item.entity_id && (
                   <button
                     type="button"
                     disabled={isBusy}
                     onClick={() => handleQuickAction("mark_paid", item.id, item.entity_id)}
-                    className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1"
+                    className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1 cursor-pointer"
                   >
-                    <Check className="w-3.5 h-3.5" /> {isBusy ? "Mise à jour..." : "Marquer comme payé"}
+                    {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                    <span>{locale === "fr" ? "Marquer comme payé" : "Mark as paid"}</span>
                   </button>
                 )}
 
+                {/* Action Tâche Terminée */}
                 {isTask && item.entity_id && (
                   <button
                     type="button"
                     disabled={isBusy}
                     onClick={() => handleQuickAction("mark_task_done", item.id, item.entity_id)}
-                    className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1"
+                    className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1 cursor-pointer"
                   >
-                    <Check className="w-3.5 h-3.5" /> {isBusy ? "Mise à jour..." : "Terminer"}
+                    {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                    <span>{locale === "fr" ? "Terminer" : "Complete"}</span>
                   </button>
                 )}
 
+                {/* Action Séances passées / Activités : Confirmer la réalisation */}
+                {isActivityOrEvent && (
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() => handleQuickAction("mark_event_done", item.id, item.entity_id)}
+                    className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1 cursor-pointer"
+                  >
+                    {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                    <span>{locale === "fr" ? "Confirmer la séance" : "Confirm session"}</span>
+                  </button>
+                )}
+
+                {/* Bouton Détails */}
                 <Link
                   href={item.link || "/notifications"}
                   className="px-2.5 py-1.5 rounded-lg border border-ink-200 text-xs font-medium text-ink-700 hover:bg-ink-100 hover:text-ink-950 transition-colors"
                 >
-                  Détails
+                  {locale === "fr" ? "Détails" : "Details"}
                 </Link>
+
+                {/* Bouton Écarter / Dismiss */}
+                <button
+                  type="button"
+                  title={locale === "fr" ? "Écarter cette alerte" : "Dismiss alert"}
+                  onClick={() => handleQuickAction("dismiss", item.id, item.entity_id)}
+                  className="p-1.5 rounded-lg text-ink-400 hover:text-ink-700 hover:bg-ink-100 transition-colors cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           );

@@ -52,7 +52,40 @@ export function EventActions({
 
   return (
     <div className="flex flex-col gap-4">
-      {isPastDue && status === "planned" ? (
+      {status === "completed" ? (
+        <div className="rounded-lg border border-positive/30 bg-positive/10 px-4 py-3.5 space-y-3">
+          <div className="flex items-center gap-2 text-positive font-semibold text-sm">
+            <span className="flex h-2.5 w-2.5 rounded-full bg-positive" />
+            <span>Cette séance est validée comme terminée.</span>
+          </div>
+          <div className="flex flex-wrap gap-2 pt-1 border-t border-positive/20">
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => handleSetStatus("planned")}
+              className="rounded-md border border-ink-300 px-3 py-1.5 text-xs font-medium text-ink-700 hover:bg-canvas disabled:opacity-60 cursor-pointer"
+            >
+              Rétablir comme prévue
+            </button>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => setShowReschedule((v) => !v)}
+              className="rounded-md border border-ink-300 px-3 py-1.5 text-xs font-medium text-ink-700 hover:bg-canvas cursor-pointer"
+            >
+              Reporter à une autre date
+            </button>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => handleSetStatus("cancelled")}
+              className="rounded-md border border-ink-300 px-3 py-1.5 text-xs font-medium text-ink-500 hover:border-danger hover:text-danger disabled:opacity-60 cursor-pointer"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      ) : isPastDue && status === "planned" ? (
         <div className="rounded-lg border border-warning bg-warning-soft px-4 py-3">
           <p className="mb-3 font-medium text-ink-950">Avez-vous terminé cette activité ?</p>
           <div className="flex flex-wrap gap-2">
@@ -60,7 +93,7 @@ export function EventActions({
               type="button"
               disabled={pending}
               onClick={() => handleSetStatus("completed")}
-              className="rounded-md bg-positive px-3 py-1.5 text-sm font-medium text-white hover:bg-positive/90 disabled:opacity-60"
+              className="rounded-md bg-positive px-3 py-1.5 text-sm font-medium text-white hover:bg-positive/90 disabled:opacity-60 cursor-pointer"
             >
               Oui, terminé
             </button>
@@ -68,7 +101,7 @@ export function EventActions({
               type="button"
               disabled={pending}
               onClick={() => handleSetStatus("missed")}
-              className="rounded-md bg-danger px-3 py-1.5 text-sm font-medium text-white hover:bg-danger/90 disabled:opacity-60"
+              className="rounded-md bg-danger px-3 py-1.5 text-sm font-medium text-white hover:bg-danger/90 disabled:opacity-60 cursor-pointer"
             >
               Non, manqué
             </button>
@@ -76,7 +109,7 @@ export function EventActions({
               type="button"
               disabled={pending}
               onClick={() => setShowReschedule((v) => !v)}
-              className="rounded-md border border-ink-300 px-3 py-1.5 text-sm font-medium text-ink-700 hover:bg-signal-soft"
+              className="rounded-md border border-ink-300 px-3 py-1.5 text-sm font-medium text-ink-700 hover:bg-signal-soft cursor-pointer"
             >
               Reporter
             </button>
@@ -84,32 +117,30 @@ export function EventActions({
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {status !== "in_progress" && status !== "completed" && status !== "cancelled" ? (
+          {status !== "in_progress" && status !== "cancelled" ? (
             <button
               type="button"
               disabled={pending}
               onClick={() => handleSetStatus("in_progress")}
-              className="rounded-md border border-signal px-3 py-1.5 text-sm font-medium text-signal hover:bg-signal-soft disabled:opacity-60"
+              className="rounded-md border border-signal px-3 py-1.5 text-sm font-medium text-signal hover:bg-signal-soft disabled:opacity-60 cursor-pointer"
             >
               Marquer en cours
             </button>
           ) : null}
-          {status !== "completed" ? (
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => handleSetStatus("completed")}
-              className="rounded-md border border-positive px-3 py-1.5 text-sm font-medium text-positive hover:bg-positive-soft disabled:opacity-60"
-            >
-              Marquer terminé
-            </button>
-          ) : null}
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => handleSetStatus("completed")}
+            className="rounded-md border border-positive px-3 py-1.5 text-sm font-medium text-positive hover:bg-positive-soft disabled:opacity-60 cursor-pointer"
+          >
+            Marquer terminé
+          </button>
           {status !== "cancelled" ? (
             <button
               type="button"
               disabled={pending}
               onClick={() => setShowReschedule((v) => !v)}
-              className="rounded-md border border-ink-300 px-3 py-1.5 text-sm font-medium text-ink-700 hover:bg-signal-soft"
+              className="rounded-md border border-ink-300 px-3 py-1.5 text-sm font-medium text-ink-700 hover:bg-signal-soft cursor-pointer"
             >
               Reporter
             </button>
@@ -119,7 +150,7 @@ export function EventActions({
               type="button"
               disabled={pending}
               onClick={() => handleSetStatus("cancelled")}
-              className="rounded-md border border-ink-300 px-3 py-1.5 text-sm font-medium text-ink-500 hover:border-danger hover:text-danger disabled:opacity-60"
+              className="rounded-md border border-ink-300 px-3 py-1.5 text-sm font-medium text-ink-500 hover:border-danger hover:text-danger disabled:opacity-60 cursor-pointer"
             >
               Annuler
             </button>
