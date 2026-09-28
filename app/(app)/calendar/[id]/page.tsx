@@ -57,12 +57,26 @@ export default async function EventDetailPage({ params }: { params: { id: string
   }
 
   return (
-    <div className="mx-auto max-w-xl">
-      <Link href="/calendar" className="mb-6 inline-block text-sm font-medium text-signal hover:underline">
-        ← Retour au calendrier
-      </Link>
+    <div className="mx-auto max-w-xl space-y-4">
+      {/* Barre de navigation supérieure fluide */}
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <Link
+          href="/calendar"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-600 hover:text-signal transition-colors py-1.5 px-3 rounded-full bg-canvas-raised border border-ink-200/80 shadow-xs tap-active"
+        >
+          <span>←</span>
+          <span>Retour au calendrier</span>
+        </Link>
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-signal hover:text-signal-dark transition-colors py-1.5 px-3.5 rounded-full bg-signal-soft/60 border border-signal/30 shadow-xs tap-active"
+        >
+          <span>Tableau de bord</span>
+          <span>→</span>
+        </Link>
+      </div>
 
-      <div className="rounded-lg border border-ink-100 bg-canvas-raised p-6">
+      <div className="rounded-3xl border border-ink-200/80 dark:border-ink-800 bg-canvas-raised p-6 sm:p-7 shadow-xl">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <span

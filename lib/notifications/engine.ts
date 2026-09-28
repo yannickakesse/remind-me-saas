@@ -560,25 +560,58 @@ export async function evaluateSmartReminders(
           idempotency_key: `activity:${evt.id}:passed_${eventStart.toISODate()}`,
         });
       } else if (eventStart.hasSame(userNow, "day") && !isPast) {
-        if (minutesUntil <= 45 && minutesUntil >= -15) {
+        if (minutesUntil <= 35 && minutesUntil >= 20) {
+          // Rappel 30 minutes avant
           candidates.push({
             user_id: userId,
             category: "activity",
-            kind: "activity_reminder",
+            kind: "activity_reminder_30m",
+            priority: "high",
+            status: "unread",
+            entity_type: "activity",
+            entity_id: evt.id,
+            title: `⏰ Dans 30 min : ${evt.title}`,
+            body: `Votre activité « ${evt.title} » commence à ${eventStart.toFormat("HH:mm")}. Préparez-vous !`,
+            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil },
+            link: `/calendar/${evt.id}`,
+            scheduled_at: userNow.toISO()!,
+            idempotency_key: `activity:${evt.id}:m30_${eventStart.toISODate()}`,
+          });
+        } else if (minutesUntil < 20 && minutesUntil >= 5) {
+          // Rappel 15 minutes avant
+          candidates.push({
+            user_id: userId,
+            category: "activity",
+            kind: "activity_reminder_15m",
             priority: "critical",
             status: "unread",
             entity_type: "activity",
             entity_id: evt.id,
-            title: `Rappel imminent : ${evt.title}`,
-            body: minutesUntil > 0
-              ? `Votre séance « ${evt.title} » commence dans ${minutesUntil} minutes (à ${eventStart.toFormat("HH:mm")}).`
-              : `Votre séance « ${evt.title} » a commencé à ${eventStart.toFormat("HH:mm")}.`,
+            title: `⚡ Dans 15 min : ${evt.title}`,
+            body: `Votre activité « ${evt.title} » débute dans 15 minutes (à ${eventStart.toFormat("HH:mm")}).`,
             metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
-            idempotency_key: `activity:${evt.id}:imminent_${eventStart.toISODate()}`,
+            idempotency_key: `activity:${evt.id}:m15_${eventStart.toISODate()}`,
           });
-        } else if (minutesUntil > 45) {
+        } else if (minutesUntil < 5 && minutesUntil >= -15) {
+          // Rappel à l'heure exacte
+          candidates.push({
+            user_id: userId,
+            category: "activity",
+            kind: "activity_reminder_now",
+            priority: "critical",
+            status: "unread",
+            entity_type: "activity",
+            entity_id: evt.id,
+            title: `🎯 C'est l'heure : ${evt.title}`,
+            body: `Votre activité « ${evt.title} » commence maintenant (de ${eventStart.toFormat("HH:mm")} à ${eventEnd.toFormat("HH:mm")}).`,
+            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil },
+            link: `/calendar/${evt.id}`,
+            scheduled_at: userNow.toISO()!,
+            idempotency_key: `activity:${evt.id}:now_${eventStart.toISODate()}`,
+          });
+        } else if (minutesUntil > 35) {
           candidates.push({
             user_id: userId,
             category: "activity",
