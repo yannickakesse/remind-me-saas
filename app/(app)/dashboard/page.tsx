@@ -21,6 +21,7 @@ import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist
 import { AttentionRequired } from "@/components/dashboard/attention-required";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
+import { ensureNotifications } from "@/lib/notifications/sync";
 import { getUserTimezone } from "@/lib/time/timezones";
 import { typeLabel } from "@/lib/validation/activities";
 import { eventStatusLabel, getContrastTextColor } from "@/lib/validation/calendar";
@@ -42,8 +43,11 @@ export default async function DashboardPage() {
   const endOfMonth = now.endOf("month").toISODate()!;
   const todayIso = now.toISODate()!;
 
-  // Synchronisation dynamique des revenus attendus pour le mois en cours
-  await ensureIncomeEntries(supabase, user.id, startOfMonth, endOfMonth);
+  // Synchronisation dynamique des revenus attendus et des rappels intelligents
+  await Promise.allSettled([
+    ensureIncomeEntries(supabase, user.id, startOfMonth, endOfMonth),
+    ensureNotifications(supabase, user.id, timezone),
+  ]);
 
   const [
     { data: activities },
@@ -72,8 +76,7 @@ export default async function DashboardPage() {
       .from("tasks")
       .select("id, title, priority, due_date, status")
       .eq("user_id", user.id)
-      .neq("status", "done")
-      .neq("status", "archived")
+      .in("status", ["todo", "in_progress"])
       .lte("due_date", todayIso)
       .order("due_date", { ascending: true })
       .limit(5),
@@ -108,6 +111,7 @@ export default async function DashboardPage() {
       .from("notifications")
       .select("*")
       .eq("user_id", user.id)
+      .eq("status", "unread")
       .is("read_at", null)
       .neq("status", "resolved")
       .neq("status", "dismissed")

@@ -32,13 +32,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { updateNotificationPrefs } from "@/app/(app)/settings/actions";
-import { urlBase64ToUint8Array } from "@/lib/push/client";
+import { urlBase64ToUint8Array, DEFAULT_VAPID_PUBLIC_KEY } from "@/lib/push/client";
 import { isSoundEnabled, setSoundEnabled, testChimeSound } from "@/lib/notifications/sound";
 import type { NotificationPreference } from "@/types/database";
 
-const VAPID_PUBLIC_KEY =
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-  "BE8s3t5tTHgVP9A-V5tKLq4vUCcFNU1m8bhDtFgwil3ORODoMl4Jmbo47rhMaTcNemPJb8c588D7oqj6VqYtVBU";
+const VAPID_PUBLIC_KEY = DEFAULT_VAPID_PUBLIC_KEY;
 
 interface NotificationsSectionProps {
   notifPrefs: Record<string, unknown> | null;

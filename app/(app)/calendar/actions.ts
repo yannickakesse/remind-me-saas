@@ -6,6 +6,11 @@ import { DateTime } from "luxon";
 import { createClient } from "@/lib/supabase/server";
 import { manualEventSchema, rescheduleSchema } from "@/lib/validation/calendar";
 import { getUserTimezone } from "@/lib/time/timezones";
+import {
+  resolveEntityNotifications,
+  invalidateOutdatedEntityReminders,
+  triggerProactiveReminders,
+} from "@/lib/notifications/engine";
 import type { CalendarEventStatus } from "@/types/database";
 
 async function requireUserWithTimezone() {
@@ -25,12 +30,11 @@ async function requireUserWithTimezone() {
 }
 
 /**
- * Change le statut d'exécution d'une occurrence. C'est le mécanisme derrière
- * la question "Avez-vous terminé cette activité ?" côté UI (terminé / manqué)
- * ainsi que les changements manuels (en cours, annulé...).
+ * Change le statut d'exécution d'une occurrence.
+ * Auto-stop immédiat des rappels lors du passage à 'completed' ou 'cancelled'.
  */
 export async function setEventStatus(eventId: string, status: CalendarEventStatus) {
-  const { supabase, user } = await requireUserWithTimezone();
+  const { supabase, user, timezone } = await requireUserWithTimezone();
 
   const { error } = await supabase
     .from("calendar_events")
@@ -40,16 +44,21 @@ export async function setEventStatus(eventId: string, status: CalendarEventStatu
 
   if (error) throw new Error("Impossible de mettre à jour le statut de l'événement.");
 
+  // Auto-Stop ou recalibrage
+  if (status === "completed" || status === "cancelled") {
+    await resolveEntityNotifications(supabase, eventId, user.id);
+  } else {
+    await triggerProactiveReminders(supabase, user.id, timezone);
+  }
+
   revalidatePath("/calendar");
   revalidatePath(`/calendar/${eventId}`);
   revalidatePath("/dashboard");
+  revalidatePath("/notifications");
 }
 
 /**
- * Déplace une occurrence à une nouvelle date/heure. La durée d'origine est
- * conservée. L'occurrence devient une exception : original_starts_at retient
- * l'horaire théorique (une seule fois — un second report ne l'écrase pas),
- * pour que la génération automatique ne recrée jamais de doublon.
+ * Déplace une occurrence à une nouvelle date/heure.
  */
 export async function rescheduleEvent(eventId: string, formData: FormData) {
   const { supabase, user, timezone } = await requireUserWithTimezone();
@@ -110,8 +119,13 @@ export async function rescheduleEvent(eventId: string, formData: FormData) {
 
   if (error) throw new Error("Impossible de reporter cet événement.");
 
+  await invalidateOutdatedEntityReminders(supabase, eventId, user.id);
+  await triggerProactiveReminders(supabase, user.id, timezone);
+
   revalidatePath("/calendar");
   revalidatePath(`/calendar/${eventId}`);
+  revalidatePath("/dashboard");
+  revalidatePath("/notifications");
 }
 
 export async function cancelEvent(eventId: string) {
@@ -119,8 +133,7 @@ export async function cancelEvent(eventId: string) {
 }
 
 /**
- * Crée un événement ponctuel non lié à un horaire récurrent (schedule_id
- * null) — par exemple un rendez-vous exceptionnel pour une activité donnée.
+ * Crée un événement ponctuel.
  */
 export async function createManualEvent(formData: FormData) {
   const { supabase, user, timezone } = await requireUserWithTimezone();
@@ -174,16 +187,17 @@ export async function createManualEvent(formData: FormData) {
 
   if (error) throw new Error("Impossible de créer cet événement.");
 
+  await triggerProactiveReminders(supabase, user.id, timezone);
+
   revalidatePath("/calendar");
+  revalidatePath("/dashboard");
+  revalidatePath("/notifications");
 }
 
-/**
- * Supprime un événement manuel (schedule_id null uniquement) — un événement
- * généré depuis un horaire doit être annulé plutôt que supprimé, sous peine
- * d'être régénéré au prochain affichage du calendrier.
- */
 export async function deleteManualEvent(eventId: string) {
   const { supabase, user } = await requireUserWithTimezone();
+
+  await resolveEntityNotifications(supabase, eventId, user.id);
 
   const { error } = await supabase
     .from("calendar_events")
@@ -195,4 +209,6 @@ export async function deleteManualEvent(eventId: string) {
   if (error) throw new Error("Impossible de supprimer cet événement.");
 
   revalidatePath("/calendar");
+  revalidatePath("/dashboard");
+  revalidatePath("/notifications");
 }

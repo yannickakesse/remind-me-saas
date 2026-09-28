@@ -54,19 +54,45 @@ export async function markAllNotificationsRead() {
 export async function resolveNotification(notificationId: string, entityType?: string, entityId?: string) {
   const { supabase, user } = await requireUser();
   const nowIso = new Date().toISOString();
+  const today = nowIso.split("T")[0];
 
   if (entityType === "income" && entityId) {
     await supabase
       .from("income")
-      .update({ received: true, received_date: nowIso.split("T")[0] })
+      .update({ received: true, received_at: today })
       .eq("id", entityId)
       .eq("user_id", user.id);
   } else if (entityType === "expense" && entityId) {
     await supabase
       .from("expenses")
-      .update({ paid: true, paid_date: nowIso.split("T")[0] })
+      .update({ paid: true, paid_at: today })
       .eq("id", entityId)
       .eq("user_id", user.id);
+  } else if (entityType === "task" && entityId) {
+    await supabase
+      .from("tasks")
+      .update({ status: "done", completed_at: nowIso })
+      .eq("id", entityId)
+      .eq("user_id", user.id);
+  } else if (entityType === "scheduled_expense" && entityId) {
+    await supabase
+      .from("scheduled_expenses")
+      .update({ status: "paid" })
+      .eq("id", entityId)
+      .eq("user_id", user.id);
+  }
+
+  // Marquer toutes les notifications pour cette entité comme résolues
+  if (entityId) {
+    await supabase
+      .from("notifications")
+      .update({
+        status: "resolved",
+        resolved_at: nowIso,
+        read_at: nowIso,
+      })
+      .eq("user_id", user.id)
+      .eq("entity_id", entityId);
   }
 
   const { error } = await supabase

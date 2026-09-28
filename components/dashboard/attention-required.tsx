@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, AlertCircle, Wallet, Clock, Check, ArrowRight } from "lucide-react";
+import { AlertTriangle, AlertCircle, Wallet, Clock, Check, CheckSquare, ArrowRight } from "lucide-react";
 import type { Notification } from "@/types/database";
 
 interface AttentionRequiredProps {
@@ -14,8 +14,9 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
   const router = useRouter();
   const [resolvingId, setResolvingId] = useState<string | null>(null);
 
+  // Uniquement les alertes NON RÉSOLUES, NON ÉCARTÉES et NON LUES
   const urgentItems = notifications.filter(
-    (n) => n.status === "unread" || n.priority === "critical" || n.priority === "high"
+    (n) => n.status === "unread" && !n.read_at
   );
 
   if (urgentItems.length === 0) {
@@ -64,7 +65,8 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
         {urgentItems.slice(0, 4).map((item) => {
           const isOverdue = item.kind.includes("overdue");
           const isPayment = item.category === "payment" || item.entity_type === "income";
-          const isExpense = item.category === "expense" || item.entity_type === "expense";
+          const isExpense = item.category === "expense" || item.entity_type === "expense" || item.category === "scheduled_expense";
+          const isTask = item.category === "task" || item.entity_type === "task";
           const isBusy = resolvingId === item.id;
 
           return (
@@ -80,6 +82,8 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     <Wallet className="w-4 h-4 text-gold-dark" />
                   ) : isExpense ? (
                     <Clock className="w-4 h-4 text-warning" />
+                  ) : isTask ? (
+                    <CheckSquare className="w-4 h-4 text-signal" />
                   ) : (
                     <AlertTriangle className="w-4 h-4 text-warning" />
                   )}
@@ -109,7 +113,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
 
               {/* Inline Instant Actions */}
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-ink-100/60">
-                {isPayment && (
+                {isPayment && item.entity_id && (
                   <button
                     type="button"
                     disabled={isBusy}
@@ -120,7 +124,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                   </button>
                 )}
 
-                {isExpense && (
+                {isExpense && item.entity_id && (
                   <button
                     type="button"
                     disabled={isBusy}
@@ -128,6 +132,17 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1"
                   >
                     <Check className="w-3.5 h-3.5" /> {isBusy ? "Mise à jour..." : "Marquer comme payé"}
+                  </button>
+                )}
+
+                {isTask && item.entity_id && (
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() => handleQuickAction("mark_task_done", item.id, item.entity_id)}
+                    className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1"
+                  >
+                    <Check className="w-3.5 h-3.5" /> {isBusy ? "Mise à jour..." : "Terminer"}
                   </button>
                 )}
 

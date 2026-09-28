@@ -11,6 +11,7 @@ import { HelpCenterButton } from "@/components/help/help-center-modal";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { NetworkStatus } from "@/components/ui/network-status";
 import { PwaRegistrar } from "@/components/pwa/pwa-registrar";
+import { DailyWelcomeBanner } from "@/components/notifications/daily-welcome-banner";
 import type { Notification } from "@/types/database";
 
 import {
@@ -86,6 +87,7 @@ export default async function AppLayout({
       {/* Service Worker PWA, push registration & monitoring */}
       <PwaRegistrar />
       <NetworkStatus />
+      <DailyWelcomeBanner userName={profile?.full_name} timezone={getUserTimezone(profile)} />
       <NotificationSyncTrigger />
       <TaskSoundWatcher userId={user.id} />
       <InteractiveProductTour initialCompleted={tourCompleted} />

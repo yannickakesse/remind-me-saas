@@ -17,6 +17,10 @@ import {
   Trash2,
   X,
   ArrowRight,
+  Archive,
+  Calendar,
+  Sun,
+  Moon,
 } from "lucide-react";
 import type { Notification, NotificationPriority } from "@/types/database";
 import {
@@ -32,27 +36,49 @@ interface NotificationsCenterProps {
   timezone: string;
 }
 
-type TabKey = "all" | "unread" | "payment" | "expense" | "task";
+type TabKey = "active" | "unread" | "tasks" | "finances" | "history" | "all";
 
 export function NotificationsCenter({ initialNotifications, timezone }: NotificationsCenterProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [activeTab, setActiveTab] = useState<TabKey>("all");
+  const [activeTab, setActiveTab] = useState<TabKey>("active");
   const [searchQuery, setSearchQuery] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const unreadCount = initialNotifications.filter((n) => !n.read_at && n.status !== "read" && n.status !== "resolved").length;
+  const activeCount = initialNotifications.filter(
+    (n) => n.status !== "resolved" && n.status !== "dismissed"
+  ).length;
+
+  const unreadCount = initialNotifications.filter(
+    (n) => !n.read_at && n.status !== "read" && n.status !== "resolved" && n.status !== "dismissed"
+  ).length;
+
+  const resolvedCount = initialNotifications.filter(
+    (n) => n.status === "resolved" || n.status === "dismissed"
+  ).length;
 
   const filtered = initialNotifications.filter((n) => {
+    const isResolved = n.status === "resolved" || n.status === "dismissed";
+    const isUnread = !n.read_at && n.status !== "read" && !isResolved;
+    const isTask = n.category === "task" || n.category === "activity" || n.entity_type === "task";
+    const isFinance =
+      n.category === "payment" ||
+      n.category === "expense" ||
+      n.entity_type === "income" ||
+      n.entity_type === "expense" ||
+      n.entity_type === "scheduled_expense";
+
     // Tab filter
-    if (activeTab === "unread") {
-      if (n.read_at || n.status === "read" || n.status === "resolved") return false;
-    } else if (activeTab === "payment") {
-      if (n.category !== "payment" && n.entity_type !== "income") return false;
-    } else if (activeTab === "expense") {
-      if (n.category !== "expense" && n.entity_type !== "expense") return false;
-    } else if (activeTab === "task") {
-      if (n.category !== "task" && n.category !== "activity" && n.category !== "conflict") return false;
+    if (activeTab === "active") {
+      if (isResolved) return false;
+    } else if (activeTab === "unread") {
+      if (!isUnread) return false;
+    } else if (activeTab === "tasks") {
+      if (!isTask || isResolved) return false;
+    } else if (activeTab === "finances") {
+      if (!isFinance || isResolved) return false;
+    } else if (activeTab === "history") {
+      if (!isResolved) return false;
     }
 
     // Search query
@@ -123,11 +149,14 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
   };
 
   const getCategoryIcon = (category: string, kind: string) => {
+    if (kind === "morning_briefing") return <Sun className="w-5 h-5 text-amber-500 animate-pulse" />;
+    if (kind === "evening_checkin") return <Moon className="w-5 h-5 text-indigo-500" />;
     if (kind.includes("overdue")) return <AlertCircle className="w-5 h-5 text-danger" />;
     if (category === "payment") return <Wallet className="w-5 h-5 text-gold-dark" />;
     if (category === "expense") return <Clock className="w-5 h-5 text-warning" />;
     if (category === "task") return <CheckSquare className="w-5 h-5 text-signal" />;
     if (category === "activity") return <Briefcase className="w-5 h-5 text-signal" />;
+    if (category === "calendar") return <Calendar className="w-5 h-5 text-signal" />;
     if (category === "conflict") return <AlertTriangle className="w-5 h-5 text-warning" />;
     return <Bell className="w-5 h-5 text-ink-500" />;
   };
@@ -139,16 +168,16 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 truncate">
-              Centre de notifications
+              Centre de rappels & notifications
             </h1>
             {unreadCount > 0 && (
               <span className="px-2 py-0.5 rounded-full bg-danger text-white text-[11px] font-bold animate-pulse shrink-0">
-                {unreadCount} non lue{unreadCount > 1 ? "s" : ""}
+                {unreadCount} non lu{unreadCount > 1 ? "s" : ""}
               </span>
             )}
           </div>
           <p className="text-xs text-ink-500 mt-0.5">
-            Rappels d'activités, factures clients, échéances et tâches.
+            Rappels proactifs d'échéances, tâches à accomplir, dépenses et factures en attente.
           </p>
         </div>
 
@@ -169,11 +198,34 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
         <div className="w-full sm:w-auto overflow-x-auto no-scrollbar pb-0.5">
           <div className="flex items-center gap-1.5 p-1 rounded-xl bg-ink-100/70 border border-ink-200/60 min-w-max">
             {[
+              { key: "active", label: "Rappels actifs", count: activeCount },
+              { key: "unread", label: "Non lus", count: unreadCount },
+              {
+                key: "tasks",
+                label: "Tâches",
+                count: initialNotifications.filter(
+                  (n) =>
+                    (n.category === "task" || n.category === "activity" || n.entity_type === "task") &&
+                    n.status !== "resolved" &&
+                    n.status !== "dismissed"
+                ).length,
+              },
+              {
+                key: "finances",
+                label: "Finances",
+                count: initialNotifications.filter(
+                  (n) =>
+                    (n.category === "payment" ||
+                      n.category === "expense" ||
+                      n.entity_type === "income" ||
+                      n.entity_type === "expense" ||
+                      n.entity_type === "scheduled_expense") &&
+                    n.status !== "resolved" &&
+                    n.status !== "dismissed"
+                ).length,
+              },
+              { key: "history", label: "Historique / Résolus", count: resolvedCount },
               { key: "all", label: "Toutes", count: initialNotifications.length },
-              { key: "unread", label: "Non lues", count: unreadCount },
-              { key: "payment", label: "Paiements", count: initialNotifications.filter((n) => n.category === "payment").length },
-              { key: "expense", label: "Dépenses", count: initialNotifications.filter((n) => n.category === "expense").length },
-              { key: "task", label: "Tâches", count: initialNotifications.filter((n) => n.category === "task" || n.category === "activity").length },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -204,7 +256,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
         <div className="relative w-full sm:w-64 min-w-0">
           <input
             type="text"
-            placeholder="Rechercher une alerte..."
+            placeholder="Rechercher un rappel..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full px-3 py-2 text-xs rounded-xl bg-canvas-raised border border-ink-200 text-ink-950 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-signal min-h-[38px]"
@@ -225,24 +277,34 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
       {filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-ink-200 p-12 text-center bg-canvas-raised/50">
           <CheckCircle2 className="w-10 h-10 text-positive mx-auto mb-2" />
-          <h3 className="text-sm font-bold text-ink-950">Aucune notification à afficher</h3>
+          <h3 className="text-sm font-bold text-ink-950">
+            {activeTab === "history"
+              ? "Aucun historique résolu"
+              : activeTab === "unread"
+              ? "Tous les rappels ont été consultés"
+              : "Aucun rappel en attente"}
+          </h3>
           <p className="text-xs text-ink-500 max-w-sm mx-auto mt-1">
             {searchQuery
-              ? "Aucune notification ne correspond à votre recherche."
-              : activeTab === "unread"
-              ? "Vous êtes complètement à jour ! Aucune action urgente en attente."
+              ? "Aucun rappel ne correspond à votre recherche."
+              : activeTab === "active"
+              ? "Tout est à jour ! Remind Me vous alertera automatiquement dès qu'une tâche ou un paiement approchera de son échéance."
+              : activeTab === "history"
+              ? "Vos rappels terminés ou archivés s'afficheront ici."
               : "Les alertes et rappels automatiques apparaîtront ici dès qu'une échéance approche."}
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((item) => {
-            const isUnread = !item.read_at && item.status !== "read" && item.status !== "resolved";
-            const isResolved = item.status === "resolved";
+            const isResolved = item.status === "resolved" || item.status === "dismissed";
+            const isUnread = !item.read_at && item.status !== "read" && !isResolved;
             const isSnoozed = item.status === "snoozed";
             const isBusy = processingId === item.id || isPending;
             const isIncome = item.category === "payment" || item.entity_type === "income";
             const isExpense = item.category === "expense" || item.entity_type === "expense";
+            const isTask = item.category === "task" || item.entity_type === "task";
+            const isScheduledExpense = item.entity_type === "scheduled_expense";
 
             return (
               <div
@@ -252,8 +314,8 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                     ? "border-ink-100 bg-canvas-raised/50 opacity-60"
                     : isUnread
                     ? item.priority === "critical"
-                    ? "border-danger/40 bg-danger-soft/10 shadow-xs ring-1 ring-danger/20"
-                    : "border-signal/30 bg-signal-soft/10 shadow-xs"
+                      ? "border-danger/40 bg-danger-soft/10 shadow-xs ring-1 ring-danger/20"
+                      : "border-signal/30 bg-signal-soft/10 shadow-xs"
                     : "border-ink-200 bg-canvas-raised"
                 }`}
               >
@@ -316,26 +378,57 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
 
                   {/* Right: Actions */}
                   <div className="flex items-center justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-ink-100 flex-wrap">
-                    {/* Primary Entity Resolution */}
+                    {/* Primary Entity Resolution Buttons */}
+                    {!isResolved && isTask && item.entity_id && (
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => handleResolve(item.id, "task", item.entity_id)}
+                        className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1"
+                        title="Marquer la tâche comme terminée"
+                      >
+                        <Check className="w-3.5 h-3.5" /> Fait
+                      </button>
+                    )}
+
                     {!isResolved && isIncome && item.entity_id && (
                       <button
                         type="button"
                         disabled={isBusy}
                         onClick={() => handleResolve(item.id, "income", item.entity_id)}
                         className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1"
+                        title="Marquer le paiement client comme reçu"
                       >
-                        <Check className="w-3.5 h-3.5" /> Reçu
+                        <Check className="w-3.5 h-3.5" /> Encaissé
                       </button>
                     )}
 
-                    {!isResolved && isExpense && item.entity_id && (
+                    {!isResolved && (isExpense || isScheduledExpense) && item.entity_id && (
                       <button
                         type="button"
                         disabled={isBusy}
-                        onClick={() => handleResolve(item.id, "expense", item.entity_id)}
+                        onClick={() =>
+                          handleResolve(
+                            item.id,
+                            isScheduledExpense ? "scheduled_expense" : "expense",
+                            item.entity_id
+                          )
+                        }
                         className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1"
+                        title="Marquer la dépense comme payée"
                       >
                         <Check className="w-3.5 h-3.5" /> Payé
+                      </button>
+                    )}
+
+                    {!isResolved && !isTask && !isIncome && !isExpense && !isScheduledExpense && (
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => handleResolve(item.id, item.entity_type ?? undefined, item.entity_id ?? undefined)}
+                        className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1"
+                      >
+                        <Check className="w-3.5 h-3.5" /> Résoudre
                       </button>
                     )}
 
@@ -347,6 +440,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                           disabled={isBusy}
                           onClick={() => handleMarkRead(item.id)}
                           className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 hover:text-ink-950 hover:bg-ink-100 active:scale-95 transition-all tap-active"
+                          title="Marquer comme lu"
                         >
                           Lu
                         </button>

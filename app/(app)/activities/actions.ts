@@ -8,6 +8,7 @@ import { activityFormSchema } from "@/lib/validation/activities";
 import { assertNoScheduleConflicts } from "@/lib/activities/schedules";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { assertCanCreateActivity } from "@/lib/subscriptions/server";
+import { resolveEntityNotifications, triggerProactiveReminders } from "@/lib/notifications/engine";
 import { DateTime } from "luxon";
 
 /**
@@ -232,10 +233,13 @@ export async function createActivity(formData: FormData) {
       console.error("createActivity sync error:", syncErr);
     }
 
+    await triggerProactiveReminders(supabase, user.id);
+
     revalidatePath("/activities");
     revalidatePath("/dashboard");
     revalidatePath("/calendar");
     revalidatePath("/finances");
+    revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
     console.error("createActivity error:", err);
@@ -379,11 +383,14 @@ export async function updateActivity(activityId: string, formData: FormData) {
       console.error("updateActivity sync error:", syncErr);
     }
 
+    await triggerProactiveReminders(supabase, user.id);
+
     revalidatePath("/activities");
     revalidatePath(`/activities/${activityId}/edit`);
     revalidatePath("/dashboard");
     revalidatePath("/calendar");
     revalidatePath("/finances");
+    revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
     console.error("updateActivity error:", err);
@@ -413,11 +420,14 @@ export async function suspendActivity(activityId: string) {
         .eq("user_id", user.id),
     ]);
 
+    await resolveEntityNotifications(supabase, activityId, user.id);
+
     revalidatePath("/activities");
     revalidatePath("/dashboard");
     revalidatePath("/finances");
     revalidatePath("/reports");
     revalidatePath("/calendar");
+    revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Erreur lors de la suspension de l'activité." };
@@ -446,11 +456,14 @@ export async function resumeActivity(activityId: string) {
         .eq("user_id", user.id),
     ]);
 
+    await triggerProactiveReminders(supabase, user.id);
+
     revalidatePath("/activities");
     revalidatePath("/dashboard");
     revalidatePath("/finances");
     revalidatePath("/reports");
     revalidatePath("/calendar");
+    revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Erreur lors de la réactivation de l'activité." };
@@ -479,10 +492,13 @@ export async function archiveActivity(activityId: string) {
         .eq("user_id", user.id),
     ]);
 
+    await resolveEntityNotifications(supabase, activityId, user.id);
+
     revalidatePath("/activities");
     revalidatePath("/dashboard");
     revalidatePath("/finances");
     revalidatePath("/reports");
+    revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Erreur lors de l'archivage." };
@@ -549,11 +565,14 @@ export async function renewActivity(
       console.error("[renewActivity] sync error:", syncErr);
     }
 
+    await triggerProactiveReminders(supabase, user.id);
+
     revalidatePath("/activities");
     revalidatePath("/dashboard");
     revalidatePath("/calendar");
     revalidatePath("/finances");
     revalidatePath("/reports");
+    revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Erreur lors du renouvellement de l'activité." };
@@ -582,10 +601,13 @@ export async function restoreActivity(activityId: string) {
         .eq("user_id", user.id),
     ]);
 
+    await triggerProactiveReminders(supabase, user.id);
+
     revalidatePath("/activities");
     revalidatePath("/dashboard");
     revalidatePath("/finances");
     revalidatePath("/reports");
+    revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Erreur lors de la restauration." };
@@ -603,6 +625,9 @@ export async function deleteActivity(activityId: string) {
     }
 
     const adminSupabase = createAdminClient();
+
+    // Auto-Stop & Résolution de toutes les alertes liées à cette activité
+    await resolveEntityNotifications(supabase, activityId, user.id);
 
     // 1. Nettoyer les revenus et dépenses :
     // - Supprimer les revenus ATTENDUS / NON ENCAISSÉS (received = false) pour que les montants attendus reflètent immédiatement la réalité
@@ -767,6 +792,7 @@ export async function deleteActivity(activityId: string) {
     revalidatePath("/finances");
     revalidatePath("/reports");
     revalidatePath("/tasks");
+    revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
     console.error("deleteActivity error:", err);

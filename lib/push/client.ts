@@ -1,3 +1,7 @@
+export const DEFAULT_VAPID_PUBLIC_KEY =
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+  "BE8s3t5tTHgVP9A-V5tKLq4vUCcFNU1m8bhDtFgwil3ORODoMl4Jmbo47rhMaTcNemPJb8c588D7oqj6VqYtVBU";
+
 /**
  * Convertit une clé VAPID base64url en Uint8Array pour l'API pushManager.subscribe.
  */

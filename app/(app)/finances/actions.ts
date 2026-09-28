@@ -14,6 +14,11 @@ import {
   assertCanCreateBudget,
   assertCanCreateSavingsGoal,
 } from "@/lib/subscriptions/server";
+import {
+  resolveEntityNotifications,
+  invalidateOutdatedEntityReminders,
+  triggerProactiveReminders,
+} from "@/lib/notifications/engine";
 
 async function requireUser() {
   const supabase = createClient();
@@ -53,8 +58,12 @@ export async function createIncome(formData: FormData) {
 
   if (error) throw new Error("Impossible d'ajouter le revenu.");
 
+  // Évaluation immédiate des rappels pour le nouveau paiement
+  await triggerProactiveReminders(supabase, user.id);
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
+  revalidatePath("/notifications");
   redirect("/finances?tab=income");
 }
 
@@ -87,8 +96,12 @@ export async function updateIncome(id: string, formData: FormData) {
 
   if (error) throw new Error("Impossible de mettre à jour le revenu.");
 
+  await invalidateOutdatedEntityReminders(supabase, id, user.id);
+  await triggerProactiveReminders(supabase, user.id);
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
+  revalidatePath("/notifications");
   redirect("/finances?tab=income");
 }
 
@@ -105,9 +118,18 @@ export async function setIncomeReceived(id: string, received: boolean) {
     .eq("user_id", user.id);
 
   if (error) throw new Error("Erreur de mise à jour.");
+
+  // Auto-Stop immédiat si marqué comme reçu
+  if (received) {
+    await resolveEntityNotifications(supabase, id, user.id);
+  } else {
+    await triggerProactiveReminders(supabase, user.id);
+  }
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
   revalidatePath("/reports");
+  revalidatePath("/notifications");
 }
 
 export async function postponeIncomeAction(id: string, days: number = 7) {
@@ -132,16 +154,27 @@ export async function postponeIncomeAction(id: string, days: number = 7) {
     .eq("user_id", user.id);
 
   if (error) throw new Error("Erreur lors du report du revenu.");
+
+  // Désactiver les anciens rappels et recalibrer
+  await invalidateOutdatedEntityReminders(supabase, id, user.id);
+  await triggerProactiveReminders(supabase, user.id);
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
+  revalidatePath("/notifications");
 }
 
 export async function deleteIncome(id: string) {
   const { supabase, user } = await requireUser();
+
+  await resolveEntityNotifications(supabase, id, user.id);
+
   const { error } = await supabase.from("income").delete().eq("id", id).eq("user_id", user.id);
   if (error) throw new Error("Erreur de suppression.");
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
+  revalidatePath("/notifications");
 }
 
 // ----------------------------------------------------------------------------
@@ -176,8 +209,11 @@ export async function createExpense(formData: FormData) {
 
   if (error) throw new Error("Impossible d'ajouter la dépense.");
 
+  await triggerProactiveReminders(supabase, user.id);
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
+  revalidatePath("/notifications");
   redirect("/finances?tab=expenses");
 }
 
@@ -213,30 +249,52 @@ export async function updateExpense(id: string, formData: FormData) {
 
   if (error) throw new Error("Impossible de modifier la dépense.");
 
+  await invalidateOutdatedEntityReminders(supabase, id, user.id);
+  await triggerProactiveReminders(supabase, user.id);
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
+  revalidatePath("/notifications");
   redirect("/finances?tab=expenses");
 }
 
 export async function setExpensePaid(id: string, paid: boolean) {
   const { supabase, user } = await requireUser();
+  const today = new Date().toISOString().slice(0, 10);
   const { error } = await supabase
     .from("expenses")
-    .update({ paid })
+    .update({
+      paid,
+      paid_at: paid ? today : null,
+    })
     .eq("id", id)
     .eq("user_id", user.id);
 
   if (error) throw new Error("Erreur de mise à jour.");
+
+  // Auto-Stop & Résolution immédiate
+  if (paid) {
+    await resolveEntityNotifications(supabase, id, user.id);
+  } else {
+    await triggerProactiveReminders(supabase, user.id);
+  }
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
+  revalidatePath("/notifications");
 }
 
 export async function deleteExpense(id: string) {
   const { supabase, user } = await requireUser();
+
+  await resolveEntityNotifications(supabase, id, user.id);
+
   const { error } = await supabase.from("expenses").delete().eq("id", id).eq("user_id", user.id);
   if (error) throw new Error("Erreur de suppression.");
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
+  revalidatePath("/notifications");
 }
 
 // ----------------------------------------------------------------------------
@@ -473,9 +531,12 @@ export async function createScheduledExpenseAction(formData: FormData): Promise<
       return { success: false, error: error.message || "Impossible de créer la dépense programmée." };
     }
 
+    await triggerProactiveReminders(supabase, user.id);
+
     revalidatePath("/finances");
     revalidatePath("/dashboard");
     revalidatePath("/calendar");
+    revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err?.message || "Erreur lors de la programmation de la dépense." };
@@ -489,11 +550,13 @@ export async function deleteScheduledExpenseAction(id: string) {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Non authentifié");
 
+  await resolveEntityNotifications(supabase, id, user.id);
   await supabase.from("scheduled_expenses").delete().eq("id", id).eq("user_id", user.id);
 
   revalidatePath("/finances");
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
+  revalidatePath("/notifications");
 }
 
 export async function cancelScheduledExpenseAction(id: string) {
@@ -509,9 +572,13 @@ export async function cancelScheduledExpenseAction(id: string) {
     .eq("id", id)
     .eq("user_id", user.id);
 
+  // Auto-Stop immédiat des rappels pour cette dépense annulée
+  await resolveEntityNotifications(supabase, id, user.id);
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
+  revalidatePath("/notifications");
 }
 
 export async function postponeScheduledExpenseAction(id: string, days: number = 7) {
@@ -540,9 +607,13 @@ export async function postponeScheduledExpenseAction(id: string, days: number = 
     .eq("id", id)
     .eq("user_id", user.id);
 
+  await invalidateOutdatedEntityReminders(supabase, id, user.id);
+  await triggerProactiveReminders(supabase, user.id);
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
+  revalidatePath("/notifications");
 }
 
 export async function markScheduledExpensePaidAction(id: string) {
@@ -577,6 +648,9 @@ export async function markScheduledExpensePaidAction(id: string) {
     notes: item.notes ? `Issu de la dépense programmée : ${item.notes}` : "Issu d'une dépense programmée",
   });
 
+  // Auto-Stop des rappels pour l'échéance passée
+  await resolveEntityNotifications(supabase, id, user.id);
+
   // 2. Mettre à jour l'échéance ou le statut
   if (item.frequency === "once") {
     await supabase
@@ -607,7 +681,10 @@ export async function markScheduledExpensePaidAction(id: string) {
       .eq("user_id", user.id);
   }
 
+  await triggerProactiveReminders(supabase, user.id);
+
   revalidatePath("/finances");
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
+  revalidatePath("/notifications");
 }

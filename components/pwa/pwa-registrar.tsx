@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { urlBase64ToUint8Array } from "@/lib/push/client";
+import { urlBase64ToUint8Array, DEFAULT_VAPID_PUBLIC_KEY } from "@/lib/push/client";
 
-const VAPID_PUBLIC_KEY =
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-  "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
+const VAPID_PUBLIC_KEY = DEFAULT_VAPID_PUBLIC_KEY;
 
 /**
  * Composant client invisible de haut niveau qui enregistre automatiquement

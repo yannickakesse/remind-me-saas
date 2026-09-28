@@ -3,9 +3,9 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
 const quickActionSchema = z.object({
-  action: z.enum(["mark_received", "mark_paid", "snooze", "mark_read", "dismiss"]),
-  notificationId: z.string().uuid().optional(),
-  entityId: z.string().uuid().optional(),
+  action: z.enum(["mark_received", "mark_paid", "mark_task_done", "snooze", "mark_read", "dismiss"]),
+  notificationId: z.string().optional(),
+  entityId: z.string().optional(),
   hours: z.number().positive().max(720).optional(),
 });
 
@@ -28,20 +28,17 @@ export async function POST(request: Request) {
 
     const { action, notificationId, entityId, hours } = parsed.data;
     const nowIso = new Date().toISOString();
+    const todayDate = nowIso.split("T")[0];
 
     if (action === "mark_received" && entityId) {
-      // 1. Mettre à jour le revenu
+      // 1. Mettre à jour le revenu (received = true, received_at automatique par trigger)
       await supabase
         .from("income")
-        .update({ received: true, received_date: nowIso.split("T")[0] })
+        .update({ received: true, received_at: todayDate })
         .eq("id", entityId)
         .eq("user_id", user.id);
 
-      // 2. Résoudre la notification correspondante ainsi que toutes les notifications associées à ce revenu
-      const filter = notificationId
-        ? `id.eq.${notificationId},entity_id.eq.${entityId}`
-        : `entity_id.eq.${entityId}`;
-
+      // 2. Résoudre toutes les notifications associées à ce revenu
       await supabase
         .from("notifications")
         .update({
@@ -50,7 +47,19 @@ export async function POST(request: Request) {
           read_at: nowIso,
         })
         .eq("user_id", user.id)
-        .or(filter);
+        .eq("entity_id", entityId);
+
+      if (notificationId) {
+        await supabase
+          .from("notifications")
+          .update({
+            status: "resolved",
+            resolved_at: nowIso,
+            read_at: nowIso,
+          })
+          .eq("id", notificationId)
+          .eq("user_id", user.id);
+      }
 
       return NextResponse.json({ success: true, action: "mark_received" });
     }
@@ -67,7 +76,7 @@ export async function POST(request: Request) {
       if (exp) {
         await supabase
           .from("expenses")
-          .update({ paid: true, paid_date: nowIso.split("T")[0] })
+          .update({ paid: true, paid_at: todayDate })
           .eq("id", entityId)
           .eq("user_id", user.id);
       } else {
@@ -79,10 +88,6 @@ export async function POST(request: Request) {
           .eq("user_id", user.id);
       }
 
-      const filter = notificationId
-        ? `id.eq.${notificationId},entity_id.eq.${entityId}`
-        : `entity_id.eq.${entityId}`;
-
       await supabase
         .from("notifications")
         .update({
@@ -91,9 +96,55 @@ export async function POST(request: Request) {
           read_at: nowIso,
         })
         .eq("user_id", user.id)
-        .or(filter);
+        .eq("entity_id", entityId);
+
+      if (notificationId) {
+        await supabase
+          .from("notifications")
+          .update({
+            status: "resolved",
+            resolved_at: nowIso,
+            read_at: nowIso,
+          })
+          .eq("id", notificationId)
+          .eq("user_id", user.id);
+      }
 
       return NextResponse.json({ success: true, action: "mark_paid" });
+    }
+
+    if (action === "mark_task_done" && entityId) {
+      // 1. Marquer la tâche comme terminée
+      await supabase
+        .from("tasks")
+        .update({ status: "done", completed_at: nowIso })
+        .eq("id", entityId)
+        .eq("user_id", user.id);
+
+      // 2. Auto-Stop des alertes
+      await supabase
+        .from("notifications")
+        .update({
+          status: "resolved",
+          resolved_at: nowIso,
+          read_at: nowIso,
+        })
+        .eq("user_id", user.id)
+        .eq("entity_id", entityId);
+
+      if (notificationId) {
+        await supabase
+          .from("notifications")
+          .update({
+            status: "resolved",
+            resolved_at: nowIso,
+            read_at: nowIso,
+          })
+          .eq("id", notificationId)
+          .eq("user_id", user.id);
+      }
+
+      return NextResponse.json({ success: true, action: "mark_task_done" });
     }
 
     if (action === "snooze" && notificationId) {
