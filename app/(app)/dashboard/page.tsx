@@ -15,8 +15,8 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatAmount } from "@/lib/finances/format";
-import { StatCard } from "@/components/dashboard/stat-card";
-import { QuickActions } from "@/components/dashboard/quick-actions";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardKpis } from "@/components/dashboard/dashboard-kpis";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { AttentionRequired } from "@/components/dashboard/attention-required";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
@@ -148,20 +148,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
-      {/* Top Welcome & Quick Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" data-tour="dashboard-header">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 truncate">
-            Bonjour {profile?.full_name?.split(" ")[0] ?? ""}
-          </h1>
-          <p className="text-xs text-ink-500 mt-0.5">
-            {now.setLocale("fr").toFormat("cccc d LLLL yyyy")} — Vue d'ensemble de vos activités
-          </p>
-        </div>
-        <div data-tour="dashboard-quick-actions">
-          <QuickActions />
-        </div>
-      </div>
+      {/* Top Welcome & Quick Actions (Localized & Reactive) */}
+      <DashboardHeader userName={profile?.full_name} timezone={timezone} />
 
       {!onboardingComplete ? (
         <div data-tour="dashboard-onboarding">
@@ -169,37 +157,14 @@ export default async function DashboardPage() {
         </div>
       ) : null}
 
-      {/* Main KPI Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full min-w-0" data-tour="dashboard-kpi">
-        <StatCard
-          label="Paiements en attente"
-          value={formatAmount(incomeExpected, currency)}
-          helper="Revenus attendus"
-          tone="warning"
-          icon={Clock}
-        />
-        <StatCard
-          label="Total reçu"
-          value={formatAmount(incomeReceived, currency)}
-          helper="Argent encaissé"
-          tone="positive"
-          icon={TrendingUp}
-        />
-        <StatCard
-          label="Dépenses payées"
-          value={formatAmount(expensesPaid, currency)}
-          helper="Payé ce mois"
-          tone="danger"
-          icon={TrendingDown}
-        />
-        <StatCard
-          label="Solde net"
-          value={formatAmount(net, currency)}
-          helper="Total reçu − Dépenses payées"
-          tone={net >= 0 ? "positive" : "danger"}
-          icon={Wallet}
-        />
-      </div>
+      {/* Main KPI Stats (Localized & Reactive) */}
+      <DashboardKpis
+        incomeExpected={incomeExpected}
+        incomeReceived={incomeReceived}
+        expensesPaid={expensesPaid}
+        net={net}
+        currency={currency}
+      />
 
       {/* Smart Reminders Attention Required Widget */}
       {attentionNotifications && attentionNotifications.length > 0 ? (
