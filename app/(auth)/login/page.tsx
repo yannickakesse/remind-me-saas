@@ -3,17 +3,20 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2, Lock, ArrowRight } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { loginSchema } from "@/lib/validation/auth";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
+import { useLanguage } from "@/components/i18n/language-provider";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isConfirmed = searchParams.get("confirmed") === "true";
   const supabase = createClient();
+  const { t } = useLanguage();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,20 +63,21 @@ function LoginForm() {
 
   return (
     <div className="w-full max-w-sm space-y-6">
-      {/* Logo */}
-      <div className="flex justify-center">
+      {/* Top bar with Logo & Language Selector */}
+      <div className="flex items-center justify-between">
         <Link href="/" className="inline-flex items-center group">
           <RemindMeLogo size="md" showText={true} />
         </Link>
+        <LanguageSelector variant="pill" />
       </div>
 
       <div className="rounded-3xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised p-6 sm:p-8 shadow-xl">
         <div className="text-center mb-6">
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-ink-950">
-            Content de vous revoir
+            {t("auth.login_title")}
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-ink-500">
-            Connectez-vous pour retrouver vos activités et vos finances.
+            {t("auth.login_subtitle")}
           </p>
         </div>
 
@@ -82,33 +86,33 @@ function LoginForm() {
           <div className="mb-5 rounded-2xl bg-positive-soft border border-positive/20 p-3.5 flex items-start gap-3 animate-in fade-in duration-200">
             <CheckCircle2 className="h-5 w-5 text-positive shrink-0 mt-0.5" />
             <div className="text-xs text-positive-dark space-y-0.5">
-              <p className="font-bold text-positive">Compte activé avec succès !</p>
+              <p className="font-bold text-positive">{t("auth.account_confirmed_title")}</p>
               <p className="text-ink-600 dark:text-ink-400">
-                Connectez-vous avec votre e-mail et votre mot de passe pour accéder à votre espace.
+                {t("auth.account_confirmed_desc")}
               </p>
             </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-          <Field label="Email" htmlFor="email" error={fieldErrors.email}>
+          <Field label={t("auth.email")} htmlFor="email" error={fieldErrors.email}>
             <TextInput
               id="email"
               type="email"
               autoComplete="email"
               value={email}
-              placeholder="votre-email@exemple.com"
+              placeholder={t("auth.email_placeholder")}
               onChange={(e) => setEmail(e.target.value)}
             />
           </Field>
 
-          <Field label="Mot de passe" htmlFor="password" error={fieldErrors.password}>
+          <Field label={t("auth.password")} htmlFor="password" error={fieldErrors.password}>
             <TextInput
               id="password"
               type="password"
               autoComplete="current-password"
               value={password}
-              placeholder="Votre mot de passe"
+              placeholder={t("auth.password_placeholder")}
               onChange={(e) => setPassword(e.target.value)}
             />
           </Field>
@@ -120,22 +124,22 @@ function LoginForm() {
           ) : null}
 
           <PrimaryButton type="submit" disabled={loading}>
-            {loading ? "Connexion en cours..." : "Se connecter"}
+            {loading ? t("auth.btn_login_loading") : t("auth.btn_login")}
           </PrimaryButton>
         </form>
 
         <div className="mt-5 flex items-center justify-between text-xs">
           <Link href="/forgot-password" className="text-ink-500 hover:text-ink-950 transition-colors">
-            Mot de passe oublié ?
+            {t("auth.forgot_password_link")}
           </Link>
           <Link href="/register" className="text-signal font-semibold hover:underline">
-            Créer un compte
+            {t("auth.create_account")}
           </Link>
         </div>
       </div>
 
       <p className="text-center text-xs text-ink-400">
-        Remind Me • Vos activités, votre temps et votre argent sous contrôle.
+        {t("auth.footer_brand")}
       </p>
     </div>
   );
@@ -147,7 +151,7 @@ export default function LoginPage() {
       <Suspense
         fallback={
           <div className="flex items-center justify-center p-8 text-ink-500 text-sm">
-            Chargement...
+            ...
           </div>
         }
       >

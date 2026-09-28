@@ -1,19 +1,23 @@
+"use client";
+
 import { X, Check, Sparkles, AlertCircle } from "lucide-react";
+import { useLanguage } from "@/components/i18n/language-provider";
 
 export function LandingComparison() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-20 bg-canvas-raised border-y border-ink-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-semibold uppercase tracking-wider text-signal bg-signal-soft px-3 py-1 rounded-full">
-            Le Changement
+            {t("comparison.badge")}
           </span>
           <h2 className="text-3xl sm:text-4xl font-bold text-ink-950 mt-3 font-sans">
-            Le chaos de la pluriactivité vs La clarté Remind Me
+            {t("comparison.title")}
           </h2>
           <p className="text-base sm:text-lg text-ink-700 mt-4">
-            Gérer plusieurs vies professionnelles avec des outils traditionnels est épuisant.
-            Découvrez la différence d&apos;un outil pensé dès le départ pour le cumul d&apos;activités.
+            {t("comparison.subtitle")}
           </p>
         </div>
 
@@ -22,11 +26,11 @@ export function LandingComparison() {
           <div className="p-6 sm:p-8 rounded-3xl bg-canvas border border-danger/20 shadow-sm card-interactive relative overflow-hidden">
             <div className="absolute top-0 right-0 inline-flex items-center gap-1.5 px-4 py-1.5 bg-danger/10 text-danger font-semibold text-xs rounded-bl-xl border-l border-b border-danger/20">
               <AlertCircle className="w-3.5 h-3.5" />
-              AVANT (Le chaos quotidien)
+              {t("comparison.before_badge")}
             </div>
 
             <h3 className="text-xl font-bold text-ink-950 mb-6 flex items-center gap-2">
-              <span>Fragmentation mentale permanente</span>
+              <span>{t("comparison.before_title")}</span>
             </h3>
 
             <ul className="space-y-4 text-sm text-ink-700">
@@ -35,7 +39,8 @@ export function LandingComparison() {
                   <X className="w-3 h-3" strokeWidth={3} />
                 </span>
                 <span>
-                  <strong>Agendas dispersés :</strong> Vous synchronisez manuellement votre Google Calendar perso, votre Outlook pro et vos notes papier.
+                  <strong>{t("comparison.before_p1_title")} </strong>
+                  {t("comparison.before_p1_desc")}
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -43,7 +48,8 @@ export function LandingComparison() {
                   <X className="w-3 h-3" strokeWidth={3} />
                 </span>
                 <span>
-                  <strong>Doubles-réservations et conflits :</strong> Aucun outil ne vous alerte lorsqu&apos;un cours et un rendez-vous client tombent en même temps.
+                  <strong>{t("comparison.before_p2_title")} </strong>
+                  {t("comparison.before_p2_desc")}
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -51,7 +57,8 @@ export function LandingComparison() {
                   <X className="w-3 h-3" strokeWidth={3} />
                 </span>
                 <span>
-                  <strong>Angles morts financiers :</strong> Incapable de savoir exactement combien chaque activité vous rapporte net à la fin du mois.
+                  <strong>{t("comparison.before_p3_title")} </strong>
+                  {t("comparison.before_p3_desc")}
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -59,7 +66,8 @@ export function LandingComparison() {
                   <X className="w-3 h-3" strokeWidth={3} />
                 </span>
                 <span>
-                  <strong>Factures oubliées et impayés :</strong> Des retards de paiements qui passent inaperçus dans des classeurs de tableurs Excel.
+                  <strong>{t("comparison.before_p4_title")} </strong>
+                  {t("comparison.before_p4_desc")}
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -67,7 +75,8 @@ export function LandingComparison() {
                   <X className="w-3 h-3" strokeWidth={3} />
                 </span>
                 <span>
-                  <strong>Charges surprises :</strong> Abonnements récurrents et taxes qui tombent sans avoir été budgétées.
+                  <strong>{t("comparison.before_p5_title")} </strong>
+                  {t("comparison.before_p5_desc")}
                 </span>
               </li>
             </ul>
@@ -77,11 +86,11 @@ export function LandingComparison() {
           <div className="p-6 sm:p-8 rounded-3xl bg-canvas-raised border-2 border-signal/40 shadow-lg shadow-signal/5 card-interactive relative overflow-hidden">
             <div className="absolute top-0 right-0 inline-flex items-center gap-1.5 px-4 py-1.5 bg-signal text-white font-semibold text-xs rounded-bl-xl shadow-sm">
               <Sparkles className="w-3.5 h-3.5" />
-              AVEC REMIND ME (La sérénité totale)
+              {t("comparison.after_badge")}
             </div>
 
             <h3 className="text-xl font-bold text-ink-950 mb-6 flex items-center gap-2">
-              <span>Un cockpit unique et unifié</span>
+              <span>{t("comparison.after_title")}</span>
             </h3>
 
             <ul className="space-y-4 text-sm text-ink-950">
@@ -90,7 +99,8 @@ export function LandingComparison() {
                   <Check className="w-3 h-3" strokeWidth={3} />
                 </span>
                 <span>
-                  <strong>Visibilité à 360° :</strong> Toutes vos activités, contrats et taux horaires réunis dans un même centre de contrôle.
+                  <strong>{t("comparison.after_p1_title")} </strong>
+                  {t("comparison.after_p1_desc")}
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -98,7 +108,8 @@ export function LandingComparison() {
                   <Check className="w-3 h-3" strokeWidth={3} />
                 </span>
                 <span>
-                  <strong>Détection préventive des conflits :</strong> Le calendrier intelligent calcule instantanément les chevauchements d&apos;horaires et vous protège.
+                  <strong>{t("comparison.after_p2_title")} </strong>
+                  {t("comparison.after_p2_desc")}
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -106,7 +117,8 @@ export function LandingComparison() {
                   <Check className="w-3 h-3" strokeWidth={3} />
                 </span>
                 <span>
-                  <strong>Rentabilité nette en temps réel :</strong> Découvrez automatiquement quel rôle vous rémunère le mieux par heure investie.
+                  <strong>{t("comparison.after_p3_title")} </strong>
+                  {t("comparison.after_p3_desc")}
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -114,7 +126,8 @@ export function LandingComparison() {
                   <Check className="w-3 h-3" strokeWidth={3} />
                 </span>
                 <span>
-                  <strong>Suivi rigoureux des encaissements :</strong> Statuts dérivés automatiques (Reçu, En attente, En retard) pour ne rien laisser filer.
+                  <strong>{t("comparison.after_p4_title")} </strong>
+                  {t("comparison.after_p4_desc")}
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -122,7 +135,8 @@ export function LandingComparison() {
                   <Check className="w-3 h-3" strokeWidth={3} />
                 </span>
                 <span>
-                  <strong>Échéancier des dépenses programmées :</strong> Vos charges fixes sont anticipées sur votre trésorerie et votre calendrier.
+                  <strong>{t("comparison.after_p5_title")} </strong>
+                  {t("comparison.after_p5_desc")}
                 </span>
               </li>
             </ul>

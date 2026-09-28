@@ -8,9 +8,12 @@ import { registerSchema } from "@/lib/validation/auth";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { getAuthRedirectUrl } from "@/lib/auth/url";
+import { useLanguage } from "@/components/i18n/language-provider";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
 export default function RegisterPage() {
   const supabase = createClient();
+  const { t } = useLanguage();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -119,11 +122,12 @@ export default function RegisterPage() {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center px-4 py-12 bg-canvas">
         <div className="w-full max-w-md space-y-6">
-          {/* Logo */}
-          <div className="flex justify-center">
+          {/* Logo & Lang Selector */}
+          <div className="flex items-center justify-between">
             <Link href="/" className="inline-flex items-center group">
               <RemindMeLogo size="md" showText={true} />
             </Link>
+            <LanguageSelector variant="pill" />
           </div>
 
           {/* Card Explicative */}
@@ -136,15 +140,15 @@ export default function RegisterPage() {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-signal/10 text-signal text-xs font-bold">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                <span>Compte créé avec succès</span>
+                <span>{t("auth.verify_email_account_created")}</span>
               </div>
 
               <h1 className="text-xl sm:text-2xl font-black tracking-tight text-ink-950">
-                Vérifiez votre boîte mail
+                {t("auth.verify_email_title")}
               </h1>
 
               <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 leading-relaxed">
-                Nous venons d&apos;envoyer un e-mail de confirmation à :
+                {t("auth.verify_email_sent_to")}
               </p>
               <div className="inline-block px-3 py-1.5 rounded-xl bg-canvas border border-ink-200 dark:border-ink-100/20 font-bold text-xs sm:text-sm text-ink-950 break-all">
                 {email}
@@ -153,11 +157,11 @@ export default function RegisterPage() {
 
             {/* Instruction étape par étape */}
             <div className="rounded-2xl border border-ink-100 dark:border-ink-100/10 bg-canvas/60 p-4 text-left space-y-2">
-              <p className="text-xs font-bold text-ink-950">Que devez-vous faire ?</p>
+              <p className="text-xs font-bold text-ink-950">{t("auth.verify_email_what_to_do")}</p>
               <ol className="text-xs text-ink-600 dark:text-ink-400 space-y-1.5 list-decimal list-inside leading-relaxed">
-                <li>Ouvrez votre boîte de réception (vérifiez aussi les spams).</li>
-                <li>Cliquez sur le bouton <strong>« Confirmer mon adresse e-mail »</strong>.</li>
-                <li>Votre compte sera immédiatement activé et vous pourrez vous connecter.</li>
+                <li>{t("auth.verify_email_step1")}</li>
+                <li>{t("auth.verify_email_step2")}</li>
+                <li>{t("auth.verify_email_step3")}</li>
               </ol>
             </div>
 
@@ -170,7 +174,7 @@ export default function RegisterPage() {
                   rel="noopener noreferrer"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-4 py-3 text-xs font-bold text-white shadow-gold hover:brightness-110 active:scale-98 transition-all"
                 >
-                  <span>Ouvrir Gmail</span>
+                  <span>{t("auth.btn_open_gmail")}</span>
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               )}
@@ -182,7 +186,7 @@ export default function RegisterPage() {
                   rel="noopener noreferrer"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-4 py-3 text-xs font-bold text-white shadow-gold hover:brightness-110 active:scale-98 transition-all"
                 >
-                  <span>Ouvrir Outlook</span>
+                  <span>{t("auth.btn_open_outlook")}</span>
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               )}
@@ -191,7 +195,7 @@ export default function RegisterPage() {
               {resendSuccess && (
                 <div className="rounded-xl bg-positive-soft p-3 text-xs text-positive font-medium flex items-center justify-center gap-2">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  <span>Un nouvel e-mail de confirmation vient d&apos;être envoyé !</span>
+                  <span>{t("auth.resend_success")}</span>
                 </div>
               )}
 
@@ -199,15 +203,15 @@ export default function RegisterPage() {
                 type="button"
                 onClick={handleResendEmail}
                 disabled={resending || cooldown > 0}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-ink-200 dark:border-ink-100/20 bg-canvas px-4 py-2.5 text-xs font-bold text-ink-950 hover:bg-canvas-subtle disabled:opacity-50 transition-all"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-ink-200 dark:border-ink-100/20 bg-canvas px-4 py-2.5 text-xs font-bold text-ink-950 hover:bg-canvas-subtle disabled:opacity-50 transition-all cursor-pointer"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${resending ? "animate-spin" : ""}`} />
                 <span>
                   {resending
-                    ? "Envoi en cours..."
+                    ? t("auth.btn_resending_email")
                     : cooldown > 0
-                    ? `Renvoyer l'e-mail (${cooldown}s)`
-                    : "Renvoyer l'e-mail de confirmation"}
+                    ? t("auth.btn_resend_cooldown", { seconds: cooldown })
+                    : t("auth.btn_resend_email")}
                 </span>
               </button>
             </div>
@@ -217,21 +221,21 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setSubmitted(false)}
-                className="inline-flex items-center gap-1.5 text-ink-500 hover:text-ink-950 transition-colors"
+                className="inline-flex items-center gap-1.5 text-ink-500 hover:text-ink-950 transition-colors cursor-pointer"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Modifier mon adresse</span>
+                <span>{t("auth.btn_edit_email")}</span>
               </button>
 
               <Link href="/login" className="text-signal hover:underline font-semibold">
-                Aller à la connexion
+                {t("auth.btn_go_to_login")}
               </Link>
             </div>
           </div>
 
           {/* Footer */}
           <p className="text-center text-xs text-ink-400">
-            Remind Me • Vos activités, votre temps et votre argent sous contrôle.
+            {t("auth.footer_brand")}
           </p>
         </div>
       </main>
@@ -241,58 +245,59 @@ export default function RegisterPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-12 bg-canvas">
       <div className="w-full max-w-sm space-y-6">
-        {/* Logo */}
-        <div className="flex justify-center">
+        {/* Logo & Lang Selector */}
+        <div className="flex items-center justify-between">
           <Link href="/" className="inline-flex items-center group">
             <RemindMeLogo size="md" showText={true} />
           </Link>
+          <LanguageSelector variant="pill" />
         </div>
 
         <div className="rounded-3xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised p-6 sm:p-8 shadow-xl">
           <div className="text-center mb-6">
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-ink-950">
-              Créer votre compte
+              {t("auth.register_title")}
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-ink-500">
-              Un seul endroit pour toutes vos activités et vos finances.
+              {t("auth.register_subtitle")}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-            <Field label="Nom complet" htmlFor="fullName" error={fieldErrors.fullName}>
+            <Field label={t("auth.full_name")} htmlFor="fullName" error={fieldErrors.fullName}>
               <TextInput
                 id="fullName"
                 autoComplete="name"
                 value={fullName}
-                placeholder="Ex. Jean Dupont"
+                placeholder={t("auth.full_name_placeholder")}
                 onChange={(e) => setFullName(e.target.value)}
               />
             </Field>
 
-            <Field label="Email" htmlFor="email" error={fieldErrors.email}>
+            <Field label={t("auth.email")} htmlFor="email" error={fieldErrors.email}>
               <TextInput
                 id="email"
                 type="email"
                 autoComplete="email"
                 value={email}
-                placeholder="jean.dupont@exemple.com"
+                placeholder={t("auth.email_placeholder")}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </Field>
 
-            <Field label="Mot de passe" htmlFor="password" error={fieldErrors.password}>
+            <Field label={t("auth.password")} htmlFor="password" error={fieldErrors.password}>
               <TextInput
                 id="password"
                 type="password"
                 autoComplete="new-password"
                 value={password}
-                placeholder="8 caractères minimum"
+                placeholder={t("auth.password_placeholder")}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </Field>
 
             <Field
-              label="Confirmer le mot de passe"
+              label={t("auth.confirm_password")}
               htmlFor="confirmPassword"
               error={fieldErrors.confirmPassword}
             >
@@ -301,7 +306,7 @@ export default function RegisterPage() {
                 type="password"
                 autoComplete="new-password"
                 value={confirmPassword}
-                placeholder="Répétez votre mot de passe"
+                placeholder={t("auth.confirm_password_placeholder")}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </Field>
@@ -313,20 +318,20 @@ export default function RegisterPage() {
             ) : null}
 
             <PrimaryButton type="submit" disabled={loading}>
-              {loading ? "Création du compte..." : "Créer mon compte"}
+              {loading ? t("auth.btn_register_loading") : t("auth.btn_register")}
             </PrimaryButton>
           </form>
 
           <p className="mt-6 text-center text-xs text-ink-500">
-            Déjà un compte ?{" "}
+            {t("auth.already_account")}{" "}
             <Link href="/login" className="text-signal font-semibold hover:underline">
-              Se connecter
+              {t("auth.login_link")}
             </Link>
           </p>
         </div>
 
         <p className="text-center text-xs text-ink-400">
-          En créant un compte, vous acceptez nos conditions d&apos;utilisation.
+          {t("auth.terms_agree")}
         </p>
       </div>
     </main>

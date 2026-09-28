@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Wallet, CheckSquare, Bell, Check, Circle } from "lucide-react";
+import { useLanguage } from "@/components/i18n/language-provider";
 
 export function FloatingEcosystem() {
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Only enable mouse parallax on desktop / non-touch devices
@@ -35,38 +37,29 @@ export function FloatingEcosystem() {
       aria-hidden="true"
       className="absolute inset-0 pointer-events-none overflow-visible z-20 select-none"
     >
-      {/* =========================================================================
-          A. HORLOGE / CLOCK (TIME)
-          Position: Haut Gauche au-dessus du Dashboard
-          ========================================================================= */}
+      {/* A. HORLOGE / CLOCK */}
       <div
         style={{
           transform: `translate3d(${mouseOffset.x * 0.8}px, ${mouseOffset.y * 0.8}px, 0)`,
         }}
         className="hidden md:flex absolute -top-8 left-4 lg:left-8 animate-float-1 items-center gap-2.5 px-3 py-2 rounded-2xl bg-canvas-raised/95 border border-ink-200/80 shadow-md backdrop-blur-md"
       >
-        {/* Analog Clock Disc */}
         <div className="relative w-8 h-8 rounded-full bg-canvas border-2 border-signal/40 flex items-center justify-center shadow-inner">
           <div className="w-1 h-1 rounded-full bg-signal absolute z-10" />
-          {/* Hour Hand */}
           <div className="w-[1.5px] h-2.5 bg-ink-950 rounded-full absolute bottom-3.5 origin-bottom rotate-45" />
-          {/* Minute Hand (Smooth slow rotation) */}
           <div className="w-[1px] h-3 bg-signal rounded-full absolute bottom-3.5 origin-bottom animate-clock-hand" />
         </div>
         <div className="text-left">
           <span className="block text-[10px] uppercase font-bold tracking-wider text-signal leading-none">
-            Temps
+            {t("preview.kpi_hours_worked")}
           </span>
           <span className="text-[11px] font-semibold text-ink-950 font-mono">
-            35h cibles / sem.
+            {t("preview.kpi_hours_worked_helper")}
           </span>
         </div>
       </div>
 
-      {/* =========================================================================
-          B. CALENDRIER / AGENDA (PLANNING)
-          Position: Haut Droit
-          ========================================================================= */}
+      {/* B. CALENDRIER / AGENDA */}
       <div
         style={{
           transform: `translate3d(${-mouseOffset.x * 0.9}px, ${mouseOffset.y * 0.9}px, 0)`,
@@ -75,7 +68,7 @@ export function FloatingEcosystem() {
       >
         <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-ink-100">
           <span className="text-[10px] font-bold text-signal uppercase tracking-wider">
-            Septembre
+            {t("nav.calendar")}
           </span>
           <span className="w-1.5 h-1.5 rounded-full bg-positive" />
         </div>
@@ -87,14 +80,11 @@ export function FloatingEcosystem() {
           <span>14</span>
         </div>
         <span className="text-[9px] text-positive font-semibold mt-1">
-          ✓ 0 conflit d&apos;agenda
+          ✓ {t("workflow.s2_hl")}
         </span>
       </div>
 
-      {/* =========================================================================
-          C. BILLETS / ENCAISSEMENT (INCOME / MONEY)
-          Position: Milieu Gauche
-          ========================================================================= */}
+      {/* C. BILLETS / ENCAISSEMENT */}
       <div
         style={{
           transform: `translate3d(${mouseOffset.x * 1.2}px, ${-mouseOffset.y * 0.7}px, 0)`,
@@ -106,12 +96,12 @@ export function FloatingEcosystem() {
             <Wallet className="w-3.5 h-3.5" />
           </div>
           <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-positive-soft text-positive">
-            +18% ce mois
+            +18%
           </span>
         </div>
         <div className="mt-1">
           <span className="text-[10px] text-ink-500 font-medium block">
-            Revenus perçus
+            {t("preview.kpi_revenue_received")}
           </span>
           <span className="text-base font-extrabold text-positive font-mono">
             4 150.00 €
@@ -119,10 +109,7 @@ export function FloatingEcosystem() {
         </div>
       </div>
 
-      {/* =========================================================================
-          D. CARTE DE VISITE / CLIENT (PEOPLE / CLIENTS)
-          Position: Milieu Droit
-          ========================================================================= */}
+      {/* D. CLIENT CARD */}
       <div
         style={{
           transform: `translate3d(${-mouseOffset.x * 1.1}px, ${-mouseOffset.y * 1.1}px, 0)`,
@@ -145,10 +132,7 @@ export function FloatingEcosystem() {
         </div>
       </div>
 
-      {/* =========================================================================
-          E. CHECKLIST DES TÂCHES (TASKS)
-          Position: Bas Gauche
-          ========================================================================= */}
+      {/* E. CHECKLIST DES TÂCHES */}
       <div
         style={{
           transform: `translate3d(${mouseOffset.x * 0.9}px, ${mouseOffset.y * 1.2}px, 0)`,
@@ -158,7 +142,7 @@ export function FloatingEcosystem() {
         <div className="text-[10px] font-bold text-ink-950 uppercase tracking-wider flex items-center justify-between mb-1.5">
           <span className="inline-flex items-center gap-1">
             <CheckSquare className="w-3 h-3 text-signal" />
-            Tâches du jour
+            {t("dashboard.urgent_tasks")}
           </span>
           <span className="text-signal font-mono text-[9px]">3/4</span>
         </div>
@@ -178,10 +162,7 @@ export function FloatingEcosystem() {
         </div>
       </div>
 
-      {/* =========================================================================
-          F. SMART NOTIFICATION / REMINDER (NOTIFICATIONS)
-          Position: Près du bas droit
-          ========================================================================= */}
+      {/* F. SMART NOTIFICATION */}
       <div
         style={{
           transform: `translate3d(${-mouseOffset.x * 0.8}px, ${mouseOffset.y * 0.8}px, 0)`,
@@ -193,13 +174,13 @@ export function FloatingEcosystem() {
         </div>
         <div className="text-left min-w-0">
           <div className="flex items-center justify-between gap-1">
-            <span className="text-xs font-bold text-ink-950">Rappel Smart</span>
+            <span className="text-xs font-bold text-ink-950">{t("preview.smart_reminder")}</span>
             <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-warning-soft text-warning">
               J-1
             </span>
           </div>
           <p className="text-[10px] text-ink-600 mt-0.5 leading-snug">
-            Facture de <strong>1 250 €</strong> attendue demain
+            {t("preview.smart_reminder_desc")}
           </p>
         </div>
       </div>
