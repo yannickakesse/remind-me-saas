@@ -10,6 +10,7 @@ import { LanguageProvider } from "@/components/i18n/language-provider";
 import { PWARegister } from "@/components/pwa/pwa-register";
 import { PwaInstallPrompt } from "@/components/pwa/pwa-install-prompt";
 import { NavigationProgressBar } from "@/components/ui/navigation-progress";
+import { NetworkStatus } from "@/components/ui/network-status";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -82,6 +83,7 @@ export default function RootLayout({
               <Suspense fallback={null}>
                 <NavigationProgressBar />
               </Suspense>
+              <NetworkStatus />
               <PWARegister />
               <PwaInstallPrompt />
               {children}

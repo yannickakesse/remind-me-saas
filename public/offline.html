@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0B0F17">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Remind Me">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <title>Remind Me — Connexion requise</title>
+  <style>
+    :root {
+      --bg: #0B0F17;
+      --surface: #111827;
+      --surface-border: #1F2937;
+      --text-main: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --primary: #10B981;
+      --primary-hover: #059669;
+      --warning: #F59E0B;
+      --card-bg: rgba(17, 24, 39, 0.85);
+      --pulse-color: rgba(245, 158, 11, 0.35);
+    }
+
+    @media (prefers-color-scheme: light) {
+      body.light-theme {
+        --bg: #F8FAFC;
+        --surface: #FFFFFF;
+        --surface-border: #E2E8F0;
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --primary: #059669;
+        --primary-hover: #047857;
+        --warning: #D97706;
+        --card-bg: rgba(255, 255, 255, 0.92);
+        --pulse-color: rgba(217, 119, 6, 0.25);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glow */
+    .ambient-glow {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(245, 158, 11, 0.08) 50%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(40px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--surface-border);
+      border-radius: 1.5rem;
+      padding: 2.25rem 1.75rem;
+      text-align: center;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    }
+
+    /* App Brand & Radar Animation */
+    .brand-container {
+      position: relative;
+      width: 88px;
+      height: 88px;
+      margin: 0 auto 1.5rem auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .radar-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 50%;
+      border: 2px solid var(--warning);
+      animation: radarPulse 2.5s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+      opacity: 0;
+    }
+
+    .radar-ring:nth-child(2) {
+      animation-delay: 1.25s;
+    }
+
+    @keyframes radarPulse {
+      0% {
+        transform: scale(0.85);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    .app-icon {
+      position: relative;
+      z-index: 2;
+      width: 76px;
+      height: 76px;
+      border-radius: 1.25rem;
+      background: linear-gradient(135deg, #10B981, #047857);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      overflow: hidden;
+    }
+
+    .app-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .app-icon svg {
+      width: 40px;
+      height: 40px;
+      color: #FFFFFF;
+    }
+
+    /* Status Pill */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--warning);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--warning);
+      border-radius: 50%;
+      animation: blinkDot 1.6s infinite ease-in-out;
+    }
+
+    @keyframes blinkDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    h1 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+    }
+
+    p.description {
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 1.75rem;
+    }
+
+    /* Action Buttons */
+    .btn-retry {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.625rem;
+      width: 100%;
+      padding: 0.925rem 1.25rem;
+      background: linear-gradient(135deg, #10B981, #059669);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 0.875rem;
+      font-size: 0.975rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .btn-retry:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-retry:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-retry.loading {
+      opacity: 0.85;
+      pointer-events: none;
+    }
+
+    .btn-retry svg {
+      width: 20px;
+      height: 20px;
+      transition: transform 0.4s ease;
+    }
+
+    .btn-retry.loading svg {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Info card / Quick Tips */
+    .tips-box {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: rgba(31, 41, 55, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 0.875rem;
+      text-align: left;
+    }
+
+    .tips-title {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .tips-list {
+      list-style: none;
+      font-size: 0.775rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .tips-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .tips-list li::before {
+      content: "•";
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    /* Feedback Banner */
+    .feedback-msg {
+      margin-top: 1rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      min-height: 1.25rem;
+      transition: opacity 0.2s ease;
+    }
+
+    .feedback-msg.error {
+      color: #EF4444;
+    }
+
+    .feedback-msg.success {
+      color: #10B981;
+    }
+
+    /* Footer Brand */
+    .footer-brand {
+      margin-top: 1.75rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <main class="container">
+    <!-- Brand Icon with glowing radar -->
+    <div class="brand-container">
+      <div class="radar-ring"></div>
+      <div class="radar-ring"></div>
+      <div class="app-icon" id="appIcon">
+        <!-- Logo fallback SVG if image fails -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Offline status badge -->
+    <div class="status-badge" id="statusBadge">
+      <span class="status-dot"></span>
+      <span id="badgeText">Connexion requise</span>
+    </div>
+
+    <!-- Header & Description -->
+    <h1 id="offlineTitle">Pas de connexion Internet</h1>
+    <p class="description" id="offlineDesc">
+      Veuillez vous connecter à un réseau Wi-Fi ou aux données mobiles pour accéder à <strong>Remind Me</strong> et synchroniser vos rappels, tâches et finances.
+    </p>
+
+    <!-- Retry Action Button -->
+    <button class="btn-retry" id="retryBtn" onclick="attemptReconnect()">
+      <svg id="retryIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+        <path d="M21 3v5h-5"></path>
+      </svg>
+      <span id="retryText">Réessayer la connexion</span>
+    </button>
+
+    <div class="feedback-msg" id="feedbackMsg"></div>
+
+    <!-- Quick troubleshooting hints -->
+    <div class="tips-box">
+      <div class="tips-title" id="tipsTitle">
+        💡 Conseils de dépannage :
+      </div>
+      <ul class="tips-list" id="tipsList">
+        <li id="tip1">Vérifiez que le Wi-Fi ou vos données mobiles sont activés.</li>
+        <li id="tip2">Désactivez puis réactivez le Mode Avion.</li>
+        <li id="tip3">Rapprochez-vous d'une borne Wi-Fi ou d'une zone avec couverture.</li>
+      </ul>
+    </div>
+
+    <div class="footer-brand">Remind Me • Assistant Personnel & Pro</div>
+  </main>
+
+  <script>
+    // 12-Language Multilingual Dictionary for Offline Experience
+    const I18N = {
+      fr: {
+        badge: "Connexion requise",
+        title: "Pas de connexion Internet",
+        desc: "Veuillez vous connecter à un réseau Wi-Fi ou aux données mobiles pour accéder à <strong>Remind Me</strong> et synchroniser vos rappels, tâches et finances.",
+        retry: "Réessayer la connexion",
+        retrying: "Vérification en cours...",
+        failed: "Toujours hors-ligne. Vérifiez votre réseau puis réessayez.",
+        restored: "Connexion rétablie ! Chargement en cours...",
+        tipsTitle: "💡 Conseils de dépannage :",
+        tip1: "Vérifiez que le Wi-Fi ou vos données mobiles sont activés.",
+        tip2: "Désactivez puis réactivez le Mode Avion.",
+        tip3: "Rapprochez-vous d'une borne Wi-Fi ou d'une zone avec couverture.",
+        dir: "ltr"
+      },
+      en: {
+        badge: "Connection required",
+        title: "No Internet Connection",
+        desc: "Please connect to Wi-Fi or cellular mobile data to access <strong>Remind Me</strong> and synchronize your reminders, tasks, and finances.",
+        retry: "Retry connection",
+        retrying: "Checking connection...",
+        failed: "Still offline. Please check your network and try again.",
+        restored: "Connection restored! Loading...",
+        tipsTitle: "💡 Quick tips:",
+        tip1: "Check that Wi-Fi or cellular data is turned on.",
+        tip2: "Toggle Airplane mode off and on.",
+        tip3: "Move closer to your router or an area with better coverage.",
+        dir: "ltr"
+      },
+      es: {
+        badge: "Conexión requerida",
+        title: "Sin conexión a Internet",
+        desc: "Conéctese a una red Wi-Fi o datos móviles para acceder a <strong>Remind Me</strong> y sincronizar sus recordatorios, tareas y finanzas.",
+        retry: "Reintentar conexión",
+        retrying: "Comprobando conexión...",
+        failed: "Aún sin conexión. Verifique su red e inténtelo de nuevo.",
+        restored: "¡Conexión restablecida! Cargando...",
+        tipsTitle: "💡 Consejos útiles:",
+        tip1: "Compruebe que el Wi-Fi o los datos móviles estén activos.",
+        tip2: "Active y desactive el Modo Avión.",
+        tip3: "Acérquese al router o a una zona con mejor cobertura.",
+        dir: "ltr"
+      },
+      de: {
+        badge: "Verbindung erforderlich",
+        title: "Keine Internetverbindung",
+        desc: "Bitte verbinden Sie sich mit WLAN oder mobilen Daten, um auf <strong>Remind Me</strong> zuzugreifen und Ihre Erinnerungen zu synchronisieren.",
+        retry: "Verbindung erneut versuchen",
+        retrying: "Überprüfung läuft...",
+        failed: "Immer noch offline. Bitte Netzwerk prüfen.",
+        restored: "Verbindung wiederhergestellt! Laden...",
+        tipsTitle: "💡 Schnelle Tipps:",
+        tip1: "Prüfen Sie, ob WLAN oder mobile Daten aktiviert sind.",
+        tip2: "Flugmodus kurz ein- und wieder ausschalten.",
+        tip3: "In die Nähe des Routers begeben.",
+        dir: "ltr"
+      },
+      pt: {
+        badge: "Conexão necessária",
+        title: "Sem conexão com a Internet",
+        desc: "Conecte-se ao Wi-Fi ou dados móveis para acessar o <strong>Remind Me</strong> e sincronizar seus lembretes, tarefas e finanças.",
+        retry: "Tentar novamente",
+        retrying: "Verificando conexão...",
+        failed: "Ainda offline. Verifique sua rede e tente de novo.",
+        restored: "Conexão restabelecida! Carregando...",
+        tipsTitle: "💡 Dicas rápidas:",
+        tip1: "Verifique se o Wi-Fi ou dados móveis estão ativados.",
+        tip2: "Ative e desative o Modo Avião.",
+        tip3: "Aproxime-se do roteador ou de melhor cobertura.",
+        dir: "ltr"
+      },
+      it: {
+        badge: "Connessione richiesta",
+        title: "Nessuna connessione Internet",
+        desc: "Connettiti al Wi-Fi o ai dati mobili per accedere a <strong>Remind Me</strong> e sincronizzare promemoria, attività e finanze.",
+        retry: "Riprova connessione",
+        retrying: "Verifica in corso...",
+        failed: "Ancora offline. Controlla la rete e riprova.",
+        restored: "Connessione ripristinata! Caricamento...",
+        tipsTitle: "💡 Suggerimenti:",
+        tip1: "Verifica che il Wi-Fi o i dati mobili siano attivi.",
+        tip2: "Disattiva e riattiva la modalità aereo.",
+        tip3: "Avvicinati al router Wi-Fi.",
+        dir: "ltr"
+      },
+      nl: {
+        badge: "Verbinding vereist",
+        title: "Geen internetverbinding",
+        desc: "Maak verbinding met wifi of mobiele gegevens om toegang te krijgen tot <strong>Remind Me</strong> en je herinneringen te synchroniseren.",
+        retry: "Opnieuw proberen",
+        retrying: "Verbinding controleren...",
+        failed: "Nog steeds offline. Controleer je netwerk.",
+        restored: "Verbinding hersteld! Laden...",
+        tipsTitle: "💡 Tips:",
+        tip1: "Controleer of wifi of mobiele data is ingeschakeld.",
+        tip2: "Schakel de vliegtuigmodus in en uit.",
+        tip3: "Ga dichter bij de router staan.",
+        dir: "ltr"
+      },
+      ru: {
+        badge: "Требуется подключение",
+        title: "Нет подключения к Интернету",
+        desc: "Пожалуйста, подключитесь к Wi-Fi или мобильным данным для доступа к <strong>Remind Me</strong> и синхронизации напоминаний.",
+        retry: "Повторить попытку",
+        retrying: "Проверка сети...",
+        failed: "Все еще не в сети. Проверьте сеть и повторите попытку.",
+        restored: "Соединение восстановлено! Загрузка...",
+        tipsTitle: "💡 Советы:",
+        tip1: "Убедитесь, что Wi-Fi или передача данных включены.",
+        tip2: "Включите и выключите режим полета.",
+        tip3: "Подойдите ближе к источнику сигнала.",
+        dir: "ltr"
+      },
+      zh: {
+        badge: "需要网络连接",
+        title: "无网络连接",
+        desc: "请连接 Wi-Fi 或蜂窝移动数据以访问 <strong>Remind Me</strong> 并同步您的提醒、任务与财务。",
+        retry: "重新连接",
+        retrying: "正在检查连接...",
+        failed: "仍处于离线状态。请检查网络后重试。",
+        restored: "连接已恢复！正在加载...",
+        tipsTitle: "💡 排查建议：",
+        tip1: "请检查 Wi-Fi 或移动数据网络是否已开启。",
+        tip2: "尝试开关一次飞行模式。",
+        tip3: "移至网络信号较好的区域。",
+        dir: "ltr"
+      },
+      ja: {
+        badge: "接続が必要です",
+        title: "インターネット接続がありません",
+        desc: "Wi-Fiまたはモバイルデータ通信に接続して、<strong>Remind Me</strong> にアクセスし、リマインダーやタスクを同期してください。",
+        retry: "再試行する",
+        retrying: "接続を確認中...",
+        failed: "オフラインのままです。接続をご確認の上再試行してください。",
+        restored: "接続が回復しました！読み込み中...",
+        tipsTitle: "💡 トラブルシューティング：",
+        tip1: "Wi-Fiまたはモバイル通信が有効か確認してください。",
+        tip2: "機内モードのオン/オフをお試しください。",
+        tip3: "電波の良い場所に移動してください。",
+        dir: "ltr"
+      },
+      ar: {
+        badge: "الاتصال مطلوب",
+        title: "لا يوجد اتصال بالإنترنت",
+        desc: "يرجى الاتصال بشبكة Wi-Fi أو بيانات الهاتف المحمول للوصول إلى <strong>Remind Me</strong> ومزامنة تذكيراتك ومهامك وأموالك.",
+        retry: "إعادة المحاولة",
+        retrying: "جارٍ التحقق من الاتصال...",
+        failed: "ما زلت غير متصل. يرجى التحقق من الشبكة والمحاولة مجدداً.",
+        restored: "تمت استعادة الاتصال! جارٍ التحميل...",
+        tipsTitle: "💡 نصائح للحل:",
+        tip1: "تأكد من تفعيل شبكة Wi-Fi أو بيانات الهاتف.",
+        tip2: "قم بتشغيل وضع الطيران ثم إيقافه.",
+        tip3: "اقترب من جهاز التوجيه أو منطقة ذات تغطية أفضل.",
+        dir: "rtl"
+      },
+      hi: {
+        badge: "इंटरनेट कनेक्शन आवश्यक",
+        title: "कोई इंटरनेट कनेक्शन नहीं",
+        desc: "<strong>Remind Me</strong> का उपयोग करने और अपने रिमाइंडर्स को सिंक करने के लिए कृपया वाई-फाई या मोबाइल डेटा से कनेक्ट करें।",
+        retry: "पुनः प्रयास करें",
+        retrying: "कनेक्शन जाँचा जा रहा है...",
+        failed: "अभी भी ऑफ़लाइन है। कृपया नेटवर्क जांचें और पुनः प्रयास करें।",
+        restored: "कनेक्शन पुनः स्थापित! लोड हो रहा है...",
+        tipsTitle: "💡 समस्या निवारण सुझाव:",
+        tip1: "जाँचें कि वाई-फ़ाई या मोबाइल डेटा चालू है।",
+        tip2: "हवाई जहाज मोड को चालू और बंद करें।",
+        tip3: "बेहतर सिग्नल वाले क्षेत्र में जाएँ।",
+        dir: "ltr"
+      }
+    };
+
+    // Detect user's preferred language from localStorage or navigator
+    function getLocale() {
+      try {
+        const stored = localStorage.getItem("remindme_locale");
+        if (stored && I18N[stored]) return stored;
+      } catch (e) {}
+      const navLang = (navigator.language || navigator.userLanguage || "fr").toLowerCase().split("-")[0];
+      return I18N[navLang] ? navLang : "fr";
+    }
+
+    const currentLang = getLocale();
+    const t = I18N[currentLang] || I18N.fr;
+
+    // Apply translations and text direction (for RTL)
+    document.documentElement.lang = currentLang;
+    document.documentElement.dir = t.dir || "ltr";
+    document.getElementById("badgeText").innerText = t.badge;
+    document.getElementById("offlineTitle").innerText = t.title;
+    document.getElementById("offlineDesc").innerHTML = t.desc;
+    document.getElementById("retryText").innerText = t.retry;
+    document.getElementById("tipsTitle").innerText = t.tipsTitle;
+    document.getElementById("tip1").innerText = t.tip1;
+    document.getElementById("tip2").innerText = t.tip2;
+    document.getElementById("tip3").innerText = t.tip3;
+
+    // Try to load app logo image if cached
+    const iconContainer = document.getElementById("appIcon");
+    const logoImg = new Image();
+    logoImg.src = "/icons/icon-192x192.png";
+    logoImg.alt = "Remind Me";
+    logoImg.onload = () => {
+      iconContainer.innerHTML = "";
+      iconContainer.appendChild(logoImg);
+    };
+
+    // Reconnection detection function
+    async function checkOnlineStatus() {
+      if (!navigator.onLine) return false;
+      try {
+        // Cache-busting ping to test actual connectivity
+        const response = await fetch("/favicon.ico?_ping=" + Date.now(), {
+          method: "HEAD",
+          cache: "no-store"
+        });
+        return response.ok || response.status === 304;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    async function attemptReconnect() {
+      const retryBtn = document.getElementById("retryBtn");
+      const retryText = document.getElementById("retryText");
+      const feedbackMsg = document.getElementById("feedbackMsg");
+
+      retryBtn.classList.add("loading");
+      retryText.innerText = t.retrying;
+      feedbackMsg.className = "feedback-msg";
+      feedbackMsg.innerText = "";
+
+      const online = await checkOnlineStatus();
+
+      if (online) {
+        feedbackMsg.className = "feedback-msg success";
+        feedbackMsg.innerText = t.restored;
+        setTimeout(() => {
+          window.location.reload();
+        }, 600);
+      } else {
+        setTimeout(() => {
+          retryBtn.classList.remove("loading");
+          retryText.innerText = t.retry;
+          feedbackMsg.className = "feedback-msg error";
+          feedbackMsg.innerText = t.failed;
+        }, 800);
+      }
+    }
+
+    // Automatic reload when network connection is restored
+    window.addEventListener("online", () => {
+      const feedbackMsg = document.getElementById("feedbackMsg");
+      feedbackMsg.className = "feedback-msg success";
+      feedbackMsg.innerText = t.restored;
+      setTimeout(() => {
+        window.location.reload();
+      }, 700);
+    });
+  </script>
+</body>
+</html>

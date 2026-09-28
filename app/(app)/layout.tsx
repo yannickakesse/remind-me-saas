@@ -9,7 +9,6 @@ import { TaskSoundWatcher } from "@/components/notifications/task-sound-watcher"
 import { InteractiveProductTour } from "@/components/onboarding/interactive-product-tour";
 import { HelpCenterButton } from "@/components/help/help-center-modal";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
-import { NetworkStatus } from "@/components/ui/network-status";
 import { PwaRegistrar } from "@/components/pwa/pwa-registrar";
 import { DailyWelcomeBanner } from "@/components/notifications/daily-welcome-banner";
 import { LanguageSelector } from "@/components/ui/language-selector";
@@ -87,7 +86,6 @@ export default async function AppLayout({
     <div className="flex min-h-screen bg-canvas flex-col md:flex-row w-full max-w-full overflow-x-hidden">
       {/* Service Worker PWA, push registration & monitoring */}
       <PwaRegistrar />
-      <NetworkStatus />
       <DailyWelcomeBanner userName={profile?.full_name} timezone={getUserTimezone(profile)} />
       <NotificationSyncTrigger />
       <TaskSoundWatcher userId={user.id} />
