@@ -23,6 +23,7 @@ function LoginForm() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,12 +40,13 @@ function LoginForm() {
     }
     setFieldErrors({});
     setLoading(true);
+    window.dispatchEvent(new CustomEvent("remindme:loading-start"));
 
     const { error } = await supabase.auth.signInWithPassword(result.data);
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
+      window.dispatchEvent(new CustomEvent("remindme:loading-stop"));
       if (error.message.toLowerCase().includes("email not confirmed")) {
         setFormError(
           "Votre adresse e-mail n'a pas encore été confirmée. Veuillez vérifier votre boîte de réception et cliquer sur le lien reçu."
@@ -57,6 +59,8 @@ function LoginForm() {
       return;
     }
 
+    // Connexion réussie : on garde l'état de chargement actif pour une transition fluide
+    setSuccess(true);
     router.replace("/dashboard");
     router.refresh();
   }
@@ -123,7 +127,14 @@ function LoginForm() {
             </div>
           ) : null}
 
-          <PrimaryButton type="submit" disabled={loading}>
+          {success && (
+            <div className="rounded-xl bg-positive-soft p-3 text-xs text-positive font-medium flex items-center justify-center gap-2 animate-in fade-in duration-150">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-positive animate-spin" />
+              <span>{t("auth.btn_login_loading")}</span>
+            </div>
+          )}
+
+          <PrimaryButton type="submit" loading={loading} disabled={loading}>
             {loading ? t("auth.btn_login_loading") : t("auth.btn_login")}
           </PrimaryButton>
         </form>

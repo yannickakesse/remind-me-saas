@@ -30,11 +30,13 @@ export default function ForgotPasswordPage() {
     }
 
     setLoading(true);
+    window.dispatchEvent(new CustomEvent("remindme:loading-start"));
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       result.data.email,
       { redirectTo: getAuthRedirectUrl("/reset-password") }
     );
     setLoading(false);
+    window.dispatchEvent(new CustomEvent("remindme:loading-stop"));
 
     if (!resetError) setSent(true);
     else setSent(true);
@@ -102,8 +104,8 @@ export default function ForgotPasswordPage() {
               />
             </Field>
 
-            <PrimaryButton type="submit" disabled={loading}>
-              {loading ? "..." : t("auth.btn_send_reset")}
+            <PrimaryButton type="submit" loading={loading} disabled={loading}>
+              {loading ? t("auth.btn_send_reset") : t("auth.btn_send_reset")}
             </PrimaryButton>
           </form>
 

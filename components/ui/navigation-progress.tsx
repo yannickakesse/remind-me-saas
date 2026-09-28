@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 export function NavigationProgressBar() {
@@ -10,40 +10,41 @@ export function NavigationProgressBar() {
   const [progress, setProgress] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Démarrer la barre de progression
-  const startLoading = () => {
+  // Démarrer la barre de progression instantanément
+  const startLoading = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     setLoading(true);
-    setProgress(15);
+    setProgress(25);
 
     timerRef.current = setInterval(() => {
       setProgress((prev) => {
-        if (prev < 40) return prev + 12;
-        if (prev < 70) return prev + 6;
-        if (prev < 88) return prev + 2;
+        if (prev < 50) return prev + 15;
+        if (prev < 75) return prev + 8;
+        if (prev < 90) return prev + 3;
         return prev;
       });
-    }, 150);
-  };
+    }, 120);
+  }, []);
 
   // Terminer la barre de progression
-  const finishLoading = () => {
+  const finishLoading = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     setProgress(100);
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       setLoading(false);
       setProgress(0);
-    }, 300);
-  };
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Terminer dès que le chemin ou les paramètres changent
   useEffect(() => {
     finishLoading();
-  }, [pathname, searchParams]);
+  }, [pathname, searchParams, finishLoading]);
 
-  // Intercepter tous les clics sur les liens internes
+  // Intercepter les clics et interactions tactiles sur les liens internes
   useEffect(() => {
-    const handleDocumentClick = (e: MouseEvent) => {
+    const handleNavigationTrigger = (e: Event) => {
       const target = (e.target as HTMLElement)?.closest("a");
       if (!target) return;
 
@@ -56,12 +57,8 @@ export function NavigationProgressBar() {
         href.startsWith("/") &&
         !href.startsWith("#") &&
         !href.startsWith("/api") &&
-        targetAttr !== "_blank" &&
-        !e.ctrlKey &&
-        !e.metaKey &&
-        !e.shiftKey
+        targetAttr !== "_blank"
       ) {
-        // Si le lien est différent de la page actuelle
         const currentPath = window.location.pathname + window.location.search;
         if (href !== currentPath) {
           startLoading();
@@ -69,21 +66,20 @@ export function NavigationProgressBar() {
       }
     };
 
-    // Écouter les événements personnalisés globaux si déclenchés par du code
     const handleCustomStart = () => startLoading();
     const handleCustomStop = () => finishLoading();
 
-    document.addEventListener("click", handleDocumentClick, { capture: true });
+    document.addEventListener("click", handleNavigationTrigger, { capture: true });
     window.addEventListener("remindme:loading-start", handleCustomStart);
     window.addEventListener("remindme:loading-stop", handleCustomStop);
 
     return () => {
-      document.removeEventListener("click", handleDocumentClick, { capture: true });
+      document.removeEventListener("click", handleNavigationTrigger, { capture: true });
       window.removeEventListener("remindme:loading-start", handleCustomStart);
       window.removeEventListener("remindme:loading-stop", handleCustomStop);
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, []);
+  }, [startLoading, finishLoading]);
 
   if (!loading && progress === 0) return null;
 
@@ -91,19 +87,19 @@ export function NavigationProgressBar() {
     <>
       {/* Barre de progression ultra-fine lumineuse en haut de l'écran */}
       <div
-        className="fixed top-0 left-0 right-0 h-[3px] z-[999999] pointer-events-none transition-all duration-300 ease-out bg-transparent"
+        className="fixed top-0 left-0 right-0 h-[3px] z-[999999] pointer-events-none transition-all duration-200 ease-out bg-transparent"
         style={{ opacity: loading || progress === 100 ? 1 : 0 }}
       >
         <div
-          className="h-full bg-gradient-to-r from-gold via-signal to-gold-dark shadow-[0_0_12px_rgba(212,175,55,0.8),0_0_6px_rgba(245,158,11,0.6)] transition-all duration-200 ease-out"
+          className="h-full bg-gradient-to-r from-signal via-gold to-positive shadow-[0_0_12px_rgba(245,158,11,0.8),0_0_6px_rgba(16,185,129,0.6)] transition-all duration-150 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
 
-      {/* Badge flottant avec Spinner doré (avec support Safe Area pour encoches et Dynamic Island) */}
+      {/* Badge flottant avec Spinner doré instantané */}
       {loading && progress < 100 && (
-        <div className="fixed top-[max(1rem,env(safe-area-inset-top,0px))] right-4 z-[999999] pointer-events-none flex items-center gap-2.5 bg-ink-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-gold/40 shadow-xl text-[11px] font-bold text-white animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="w-3.5 h-3.5 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+        <div className="fixed top-[max(0.8rem,env(safe-area-inset-top,0px))] right-4 z-[999999] pointer-events-none flex items-center gap-2.5 bg-ink-950/90 dark:bg-canvas-raised/95 backdrop-blur-xl px-3.5 py-1.5 rounded-full border border-signal/40 shadow-2xl text-[11px] font-bold text-white animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="w-3.5 h-3.5 border-2 border-signal border-t-transparent rounded-full animate-spin" />
           <span className="tracking-wide">Chargement...</span>
         </div>
       )}

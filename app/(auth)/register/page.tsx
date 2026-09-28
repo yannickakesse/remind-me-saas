@@ -55,6 +55,7 @@ export default function RegisterPage() {
     }
     setFieldErrors({});
     setLoading(true);
+    window.dispatchEvent(new CustomEvent("remindme:loading-start"));
 
     const { error } = await supabase.auth.signUp({
       email: result.data.email,
@@ -66,6 +67,7 @@ export default function RegisterPage() {
     });
 
     setLoading(false);
+    window.dispatchEvent(new CustomEvent("remindme:loading-stop"));
 
     if (error) {
       setFormError(
@@ -317,7 +319,7 @@ export default function RegisterPage() {
               </div>
             ) : null}
 
-            <PrimaryButton type="submit" disabled={loading}>
+            <PrimaryButton type="submit" loading={loading} disabled={loading}>
               {loading ? t("auth.btn_register_loading") : t("auth.btn_register")}
             </PrimaryButton>
           </form>
