@@ -14,27 +14,7 @@ import { DailyWelcomeBanner } from "@/components/notifications/daily-welcome-ban
 import { LanguageSelector } from "@/components/ui/language-selector";
 import type { Notification } from "@/types/database";
 
-import {
-  LayoutDashboard,
-  Briefcase,
-  Calendar,
-  CheckSquare,
-  Wallet,
-  Users,
-  BarChart3,
-  Settings,
-} from "lucide-react";
-
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, tourKey: "nav-dashboard" },
-  { href: "/activities", label: "Activités", icon: Briefcase, tourKey: "nav-activities" },
-  { href: "/calendar", label: "Calendrier", icon: Calendar, tourKey: "nav-calendar" },
-  { href: "/tasks", label: "Tâches", icon: CheckSquare, tourKey: "nav-tasks" },
-  { href: "/finances", label: "Finances", icon: Wallet, tourKey: "nav-finances" },
-  { href: "/clients", label: "Clients", icon: Users, tourKey: "nav-clients" },
-  { href: "/reports", label: "Rapports", icon: BarChart3, tourKey: "nav-reports" },
-  { href: "/settings", label: "Paramètres", icon: Settings, tourKey: "nav-settings" },
-];
+import { SidebarNav } from "@/components/navigation/sidebar-nav";
 
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureNotifications } from "@/lib/notifications/sync";
@@ -119,24 +99,8 @@ export default async function AppLayout({
             <CommandPalette />
           </div>
 
-          {/* Navigation */}
-          <nav className="flex flex-col gap-1">
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  prefetch={true}
-                  data-tour={item.tourKey}
-                  className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-signal-soft hover:text-signal transition-colors"
-                >
-                  <Icon className="w-4 h-4 text-ink-500 group-hover:text-signal transition-colors shrink-0" strokeWidth={1.8} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Navigation Réactive & Multilingue */}
+          <SidebarNav />
         </div>
 
         {/* Profil utilisateur & Sélecteur de Langue en bas */}

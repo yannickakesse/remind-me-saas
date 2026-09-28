@@ -1,19 +1,31 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Globe, Check, ChevronDown, X } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
+import { Globe, Check, ChevronDown, X, Search } from "lucide-react";
 import { useLanguage } from "@/components/i18n/language-provider";
 import type { SupportedLocale } from "@/lib/i18n/types";
 
 interface LanguageSelectorProps {
   variant?: "pill" | "button" | "compact" | "drawer";
   className?: string;
+  showLabel?: boolean;
 }
 
-export function LanguageSelector({ variant = "pill", className = "" }: LanguageSelectorProps) {
-  const { locale, setLocale, locales } = useLanguage();
+export function LanguageSelector({
+  variant = "pill",
+  className = "",
+  showLabel = true,
+}: LanguageSelectorProps) {
+  const { locale, setLocale, locales, t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [search, setSearch] = useState("");
+  const [mounted, setMounted] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const currentLocale = locales.find((l) => l.code === locale) || locales[0] || {
     code: "fr" as SupportedLocale,
@@ -22,20 +34,37 @@ export function LanguageSelector({ variant = "pill", className = "" }: LanguageS
     flag: "🇫🇷",
   };
 
-  // Close when clicking outside
+  // Keyboard shortcut (Escape to close) & Auto-focus search input
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && isOpen) {
         setIsOpen(false);
       }
     }
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("keydown", handleKeyDown);
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+      document.body.style.overflow = "hidden";
+    } else {
+      setSearch("");
+      document.body.style.overflow = "";
     }
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
+
+  const filteredLocales = useMemo(() => {
+    if (!search.trim()) return locales;
+    const q = search.toLowerCase().trim();
+    return locales.filter(
+      (l) =>
+        l.code.toLowerCase().includes(q) ||
+        l.label.toLowerCase().includes(q) ||
+        l.nativeLabel.toLowerCase().includes(q)
+    );
+  }, [locales, search]);
 
   const handleSelect = async (code: SupportedLocale) => {
     await setLocale(code);
@@ -43,133 +72,217 @@ export function LanguageSelector({ variant = "pill", className = "" }: LanguageS
   };
 
   return (
-    <div className={`relative inline-block ${className}`} ref={containerRef}>
-      {/* Trigger Button */}
+    <>
+      {/* Trigger Button Variants */}
       {variant === "pill" && (
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => setIsOpen(true)}
           aria-expanded={isOpen}
           aria-label="Changer de langue / Change language"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-ink-200/80 dark:border-ink-800 text-[11px] font-medium text-ink-700 dark:text-ink-300 bg-canvas/90 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs tap-active cursor-pointer min-h-[32px]"
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-ink-200/90 dark:border-ink-700 text-[11px] font-semibold text-ink-800 dark:text-ink-200 bg-canvas-raised hover:bg-ink-100/80 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs tap-active cursor-pointer min-h-[32px] ${className}`}
         >
-          <Globe className="w-3.5 h-3.5 text-signal shrink-0" strokeWidth={2} />
-          <span className="text-[12px] shrink-0">{currentLocale.flag}</span>
-          <span className="font-bold text-[11px] uppercase tracking-wide">{currentLocale.code}</span>
-          <ChevronDown className={`w-3 h-3 text-ink-400 transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`} />
+          <Globe className="w-3.5 h-3.5 text-signal shrink-0" strokeWidth={2.2} />
+          <span className="text-[13px] leading-none shrink-0">{currentLocale.flag}</span>
+          <span className="font-bold uppercase tracking-wider text-[10px] text-ink-900 dark:text-white">
+            {currentLocale.code}
+          </span>
+          <ChevronDown className="w-3 h-3 text-ink-400 shrink-0" />
         </button>
       )}
 
       {variant === "compact" && (
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => setIsOpen(true)}
           aria-expanded={isOpen}
-          className="flex items-center justify-center p-2 rounded-xl text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active"
+          className={`flex items-center gap-1 p-2 rounded-xl text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active ${className}`}
           title="Changer de langue"
         >
-          <Globe className="w-4 h-4 text-signal" />
-          <span className="ml-1 text-xs font-bold uppercase">{currentLocale.code}</span>
+          <Globe className="w-4 h-4 text-signal" strokeWidth={2} />
+          <span className="text-xs font-bold uppercase">{currentLocale.code}</span>
         </button>
       )}
 
       {variant === "button" && (
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => setIsOpen(true)}
           aria-expanded={isOpen}
-          className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-ink-200 dark:border-ink-800 bg-canvas-raised text-xs font-semibold text-ink-950 dark:text-white hover:bg-ink-50 dark:hover:bg-ink-800 active:scale-98 transition-all shadow-xs"
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border border-ink-200 dark:border-ink-700 bg-canvas-raised hover:border-signal/50 hover:bg-signal-soft/10 active:scale-98 transition-all shadow-xs tap-active ${className}`}
         >
-          <div className="flex items-center gap-2.5">
-            <Globe className="w-4 h-4 text-signal shrink-0" />
-            <span className="text-sm">{currentLocale.flag}</span>
-            <span className="font-bold">{currentLocale.nativeLabel}</span>
-            <span className="text-ink-400 font-normal">({currentLocale.label})</span>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-signal-soft text-signal shrink-0">
+              <Globe className="w-4 h-4" strokeWidth={2.2} />
+            </div>
+            <div className="flex flex-col text-left min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-base">{currentLocale.flag}</span>
+                <span className="font-bold text-xs sm:text-sm text-ink-950 dark:text-white truncate">
+                  {currentLocale.nativeLabel}
+                </span>
+                <span className="px-1.5 py-0.2 rounded text-[10px] font-bold uppercase bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300">
+                  {currentLocale.code}
+                </span>
+              </div>
+              <span className="text-[11px] text-ink-400 truncate">{currentLocale.label}</span>
+            </div>
           </div>
-          <ChevronDown className={`w-4 h-4 text-ink-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+          <ChevronDown className="w-4 h-4 text-ink-400 shrink-0" />
         </button>
       )}
 
-      {/* Language Selection Modal / Popover */}
-      {isOpen && (
-        <>
-          {/* Mobile Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 sm:hidden animate-in fade-in duration-150"
-            onClick={() => setIsOpen(false)}
-          />
-
-          {/* Modal / Dropdown Content */}
-          <div
-            className={`
-              fixed sm:absolute z-50 
-              bottom-0 left-0 right-0 sm:bottom-auto sm:top-full sm:right-0 sm:left-auto sm:mt-2
-              w-full sm:w-80 max-h-[85vh] sm:max-h-96
-              bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-xl
-              border-t sm:border border-ink-200/80 dark:border-ink-800
-              rounded-t-3xl sm:rounded-2xl
-              shadow-2xl sm:shadow-xl
-              p-4 sm:p-3
-              overflow-hidden flex flex-col
-              animate-in fade-in slide-in-from-bottom-6 sm:slide-in-from-top-2 duration-200
-            `}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 mb-2 border-b border-ink-100 dark:border-ink-800">
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-signal" />
-                <h4 className="text-xs sm:text-sm font-bold text-ink-950 dark:text-white">
-                  Sélectionner la langue / Select language
-                </h4>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="p-1 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Language Options Grid */}
-            <div className="overflow-y-auto max-h-[60vh] sm:max-h-72 space-y-1 pr-1 custom-scrollbar">
-              {locales.map((loc) => {
-                const isSelected = loc.code === locale;
-                return (
-                  <button
-                    key={loc.code}
-                    type="button"
-                    onClick={() => handleSelect(loc.code)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all tap-active ${
-                      isSelected
-                        ? "bg-signal-soft text-signal font-bold shadow-xs ring-1 ring-signal/30"
-                        : "hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-700 dark:text-ink-300 font-medium"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="text-base shrink-0">{loc.flag}</span>
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs truncate font-bold text-ink-950 dark:text-white">
-                          {loc.nativeLabel}
-                        </span>
-                        <span className="text-[10px] text-ink-400 truncate">
-                          {loc.label} • <span className="uppercase">{loc.code}</span>
-                        </span>
-                      </div>
-                    </div>
-
-                    {isSelected && (
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-signal text-white shrink-0">
-                        <Check className="w-3 h-3" strokeWidth={3} />
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+      {variant === "drawer" && (
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl font-medium text-sm text-ink-700 hover:bg-ink-100 active:bg-ink-200 transition-all ${className}`}
+        >
+          <div className="flex items-center gap-3">
+            <Globe className="w-4 h-4 text-signal shrink-0" strokeWidth={1.8} />
+            <span>{t("nav.language")}</span>
           </div>
-        </>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm">{currentLocale.flag}</span>
+            <span className="text-xs font-bold uppercase text-ink-900">{currentLocale.code}</span>
+          </div>
+        </button>
       )}
-    </div>
+
+      {/* Portal-rendered Centered Modal Dialog — Guaranteed Never to be Clipped */}
+      {mounted &&
+        isOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 animate-in fade-in duration-150"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Sélection de la langue"
+          >
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-ink-950/60 backdrop-blur-sm transition-opacity"
+              onClick={() => setIsOpen(false)}
+            />
+
+            {/* Modal Card */}
+            <div className="relative w-full max-w-xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[80vh] z-10 animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-ink-100 dark:border-ink-800 bg-canvas/60">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-signal-soft text-signal">
+                    <Globe className="w-5 h-5" strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-ink-950 dark:text-white">
+                      {t("actions.select_language_title")}
+                    </h3>
+                    <p className="text-[11px] text-ink-500">
+                      {t("actions.select_language_subtitle")}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Fermer"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-ink-400 hover:text-ink-900 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="px-5 pt-3 pb-1">
+                <div className="relative flex items-center">
+                  <Search className="absolute left-3 w-4 h-4 text-ink-400" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={t("actions.search_language")}
+                    className="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-ink-200 dark:border-ink-700 bg-canvas dark:bg-ink-950 text-ink-900 dark:text-white placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-signal/40 transition-all"
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch("")}
+                      className="absolute right-2.5 p-1 rounded-md text-ink-400 hover:text-ink-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Languages Grid */}
+              <div className="p-4 sm:p-5 overflow-y-auto max-h-[50vh] space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {filteredLocales.map((loc) => {
+                    const isSelected = loc.code === locale;
+                    return (
+                      <button
+                        key={loc.code}
+                        type="button"
+                        onClick={() => handleSelect(loc.code)}
+                        className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all tap-active cursor-pointer ${
+                          isSelected
+                            ? "border-signal bg-signal-soft text-signal font-bold shadow-xs ring-2 ring-signal/30"
+                            : "border-ink-200 dark:border-ink-800 bg-canvas hover:border-signal/40 hover:bg-ink-50 dark:hover:bg-ink-800 text-ink-800 dark:text-ink-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-2xl shrink-0 drop-shadow-xs">{loc.flag}</span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs sm:text-sm font-bold text-ink-950 dark:text-white truncate">
+                              {loc.nativeLabel}
+                            </span>
+                            <div className="flex items-center gap-1 text-[11px] text-ink-400 truncate">
+                              <span>{loc.label}</span>
+                              <span>•</span>
+                              <span className="uppercase font-semibold text-[10px] text-ink-500">
+                                {loc.code}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {isSelected ? (
+                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-signal text-white shrink-0 shadow-xs">
+                            <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                          </div>
+                        ) : (
+                          <div className="h-5 w-5 rounded-full border border-ink-200 dark:border-ink-700 shrink-0 opacity-0 group-hover:opacity-100" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {filteredLocales.length === 0 && (
+                  <div className="py-8 text-center text-xs text-ink-400">
+                    Aucune langue ne correspond à votre recherche.
+                  </div>
+                )}
+              </div>
+
+              {/* Footer Note */}
+              <div className="px-5 py-3 border-t border-ink-100 dark:border-ink-800 bg-canvas/40 flex items-center justify-between gap-3 text-[11px] text-ink-400">
+                <p className="truncate">{t("actions.language_footer_note")}</p>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="px-3 py-1 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 shrink-0"
+                >
+                  {t("actions.close")}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 }

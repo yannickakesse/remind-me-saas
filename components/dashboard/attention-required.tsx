@@ -24,7 +24,7 @@ interface AttentionRequiredProps {
 
 export function AttentionRequired({ notifications }: AttentionRequiredProps) {
   const router = useRouter();
-  const { locale } = useLanguage();
+  const { t } = useLanguage();
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
@@ -66,21 +66,15 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger opacity-75" />
             <span className="relative inline-flex rounded-full h-3 w-3 bg-danger" />
           </span>
-          <h2 className="text-base font-bold text-ink-950">
-            {locale === "fr"
-              ? `Nécessite votre attention (${urgentItems.length})`
-              : locale === "es"
-              ? `Requiere su atención (${urgentItems.length})`
-              : locale === "de"
-              ? `Erfordert Ihre Aufmerksamkeit (${urgentItems.length})`
-              : `Requires your attention (${urgentItems.length})`}
+          <h2 className="text-base font-bold text-ink-950 dark:text-white">
+            {t("attention.title")} ({urgentItems.length})
           </h2>
         </div>
         <Link
           href="/notifications"
           className="text-xs font-semibold text-signal hover:underline flex items-center gap-1"
         >
-          {locale === "fr" ? "Tout gérer" : "Manage all"} <ArrowRight className="w-3.5 h-3.5" />
+          {t("attention.manage_all")} <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -103,7 +97,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
           return (
             <div
               key={item.id}
-              className="p-3.5 rounded-xl border border-ink-200 bg-canvas-raised shadow-xs flex flex-col justify-between space-y-3 transition-all hover:border-ink-300"
+              className="p-3.5 rounded-xl border border-ink-200 dark:border-ink-800 bg-canvas-raised dark:bg-ink-900 shadow-xs flex flex-col justify-between space-y-3 transition-all hover:border-ink-300 dark:hover:border-ink-700"
             >
               <div className="flex items-start gap-2.5">
                 <span className="shrink-0 mt-0.5">
@@ -123,7 +117,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-xs font-bold text-ink-950 truncate">
+                    <span className="text-xs font-bold text-ink-950 dark:text-white truncate">
                       {item.title}
                     </span>
                     <span
@@ -136,22 +130,20 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                       }`}
                     >
                       {item.priority === "critical"
-                        ? locale === "fr"
-                          ? "Critique"
-                          : "Critical"
-                        : locale === "fr"
-                        ? "Urgent"
-                        : "Urgent"}
+                        ? t("attention.critical")
+                        : item.priority === "high"
+                        ? t("attention.urgent")
+                        : t("attention.info")}
                     </span>
                   </div>
-                  <p className="text-xs text-ink-700 mt-0.5 leading-relaxed">
+                  <p className="text-xs text-ink-700 dark:text-ink-300 mt-0.5 leading-relaxed">
                     {item.body}
                   </p>
                 </div>
               </div>
 
               {/* Inline Instant Actions */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-ink-100/60 flex-wrap">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-ink-100/60 dark:border-ink-800 flex-wrap">
                 {/* Action Paiement Reçu */}
                 {isPayment && item.entity_id && (
                   <button
@@ -161,7 +153,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1 cursor-pointer"
                   >
                     {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                    <span>{locale === "fr" ? "Marquer comme reçu" : "Mark as received"}</span>
+                    <span>{t("actions.mark_received")}</span>
                   </button>
                 )}
 
@@ -174,7 +166,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1 cursor-pointer"
                   >
                     {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                    <span>{locale === "fr" ? "Marquer comme payé" : "Mark as paid"}</span>
+                    <span>{t("actions.mark_paid")}</span>
                   </button>
                 )}
 
@@ -187,7 +179,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1 cursor-pointer"
                   >
                     {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                    <span>{locale === "fr" ? "Terminer" : "Complete"}</span>
+                    <span>{t("actions.mark_done")}</span>
                   </button>
                 )}
 
@@ -200,24 +192,24 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1 cursor-pointer"
                   >
                     {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                    <span>{locale === "fr" ? "Confirmer la séance" : "Confirm session"}</span>
+                    <span>{t("attention.confirm_session")}</span>
                   </button>
                 )}
 
                 {/* Bouton Détails */}
                 <Link
                   href={item.link || "/notifications"}
-                  className="px-2.5 py-1.5 rounded-lg border border-ink-200 text-xs font-medium text-ink-700 hover:bg-ink-100 hover:text-ink-950 transition-colors"
+                  className="px-2.5 py-1.5 rounded-lg border border-ink-200 dark:border-ink-700 text-xs font-medium text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
                 >
-                  {locale === "fr" ? "Détails" : "Details"}
+                  {t("actions.view_item")}
                 </Link>
 
                 {/* Bouton Écarter / Dismiss */}
                 <button
                   type="button"
-                  title={locale === "fr" ? "Écarter cette alerte" : "Dismiss alert"}
+                  title={t("attention.dismiss")}
                   onClick={() => handleQuickAction("dismiss", item.id, item.entity_id)}
-                  className="p-1.5 rounded-lg text-ink-400 hover:text-ink-700 hover:bg-ink-100 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>

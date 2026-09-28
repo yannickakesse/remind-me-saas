@@ -1,26 +1,26 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { DateTime } from "luxon";
 import {
   Bell,
-  CheckCircle2,
-  AlertCircle,
-  AlertTriangle,
-  Wallet,
-  Clock,
-  CheckSquare,
-  Briefcase,
   Check,
+  CheckCircle2,
+  Clock,
   Trash2,
-  X,
   ArrowRight,
+  AlertCircle,
+  Briefcase,
   Calendar,
+  CheckSquare,
+  Wallet,
+  AlertTriangle,
   Sun,
   Moon,
   Loader2,
+  X,
 } from "lucide-react";
 import type { Notification, NotificationPriority } from "@/types/database";
 import {
@@ -41,7 +41,7 @@ type TabKey = "active" | "unread" | "tasks" | "finances" | "history" | "all";
 
 export function NotificationsCenter({ initialNotifications, timezone }: NotificationsCenterProps) {
   const router = useRouter();
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
   const [, startTransition] = useTransition();
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [activeTab, setActiveTab] = useState<TabKey>("active");
@@ -174,11 +174,11 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
   const getPriorityBadge = (priority: NotificationPriority) => {
     switch (priority) {
       case "critical":
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-danger text-white">{locale === "fr" ? "Critique" : "Critical"}</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-danger text-white">{t("attention.critical")}</span>;
       case "high":
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-warning-soft text-warning">{locale === "fr" ? "Urgent" : "Urgent"}</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-warning-soft text-warning">{t("attention.urgent")}</span>;
       case "normal":
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-signal-soft text-signal">Normal</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-signal-soft text-signal">{t("attention.info")}</span>;
       default:
         return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-ink-100 text-ink-600">Info</span>;
     }
@@ -203,19 +203,17 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 truncate">
-              {locale === "fr" ? "Centre de rappels & notifications" : "Reminders & Notifications Center"}
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white truncate">
+              {t("nav.notifications")}
             </h1>
             {unreadCount > 0 && (
               <span className="px-2 py-0.5 rounded-full bg-danger text-white text-[11px] font-bold animate-pulse shrink-0">
-                {unreadCount} {locale === "fr" ? "non lu" : "unread"}{unreadCount > 1 && locale === "fr" ? "s" : ""}
+                {unreadCount} {t("actions.filter_unread")}
               </span>
             )}
           </div>
           <p className="text-xs text-ink-500 mt-0.5">
-            {locale === "fr"
-              ? "Rappels proactifs d'échéances, tâches à accomplir, dépenses et factures en attente."
-              : "Proactive reminders for deadlines, tasks to complete, pending expenses and invoices."}
+            {t("attention.subtitle")}
           </p>
         </div>
 
@@ -223,9 +221,9 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
           <button
             type="button"
             onClick={handleMarkAllRead}
-            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-canvas-raised border border-ink-200 text-xs font-semibold text-ink-700 hover:bg-ink-100 active:scale-95 transition-all shadow-xs shrink-0 tap-active cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-xs font-semibold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs shrink-0 tap-active cursor-pointer"
           >
-            <Check className="w-3.5 h-3.5" /> {locale === "fr" ? "Tout marquer comme lu" : "Mark all as read"}
+            <Check className="w-3.5 h-3.5" /> {t("actions.mark_all_read")}
           </button>
         )}
       </div>
@@ -233,13 +231,13 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
       {/* Filter Tabs & Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 w-full min-w-0">
         <div className="w-full sm:w-auto overflow-x-auto no-scrollbar pb-0.5">
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-ink-100/70 border border-ink-200/60 min-w-max">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-ink-100/70 dark:bg-ink-900/70 border border-ink-200/60 dark:border-ink-800/60 min-w-max">
             {[
-              { key: "active", label: locale === "fr" ? "Rappels actifs" : "Active reminders", count: activeCount },
-              { key: "unread", label: locale === "fr" ? "Non lus" : "Unread", count: unreadCount },
+              { key: "active", label: t("actions.filter_active"), count: activeCount },
+              { key: "unread", label: t("actions.filter_unread"), count: unreadCount },
               {
                 key: "tasks",
-                label: locale === "fr" ? "Tâches" : "Tasks",
+                label: t("actions.filter_tasks"),
                 count: notifications.filter(
                   (n) =>
                     (n.category === "task" || n.category === "activity" || n.entity_type === "task") &&
@@ -249,7 +247,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
               },
               {
                 key: "finances",
-                label: locale === "fr" ? "Finances" : "Finances",
+                label: t("actions.filter_finances"),
                 count: notifications.filter(
                   (n) =>
                     (n.category === "payment" ||
@@ -261,8 +259,8 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                     n.status !== "dismissed"
                 ).length,
               },
-              { key: "history", label: locale === "fr" ? "Historique / Résolus" : "History / Resolved", count: resolvedCount },
-              { key: "all", label: locale === "fr" ? "Toutes" : "All", count: notifications.length },
+              { key: "history", label: t("actions.filter_history"), count: resolvedCount },
+              { key: "all", label: t("actions.filter_all"), count: notifications.length },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -270,15 +268,15 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                 onClick={() => setActiveTab(tab.key as TabKey)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 tap-active cursor-pointer ${
                   activeTab === tab.key
-                    ? "bg-canvas-raised text-ink-950 shadow-xs"
-                    : "text-ink-600 hover:text-ink-950"
+                    ? "bg-canvas-raised dark:bg-ink-800 text-ink-950 dark:text-white shadow-xs"
+                    : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
                 }`}
               >
                 <span>{tab.label}</span>
                 {tab.count > 0 && (
                   <span
                     className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                      activeTab === tab.key ? "bg-signal text-white" : "bg-ink-200 text-ink-700"
+                      activeTab === tab.key ? "bg-signal text-white" : "bg-ink-200 dark:bg-ink-700 text-ink-700 dark:text-ink-300"
                     }`}
                   >
                     {tab.count}
@@ -293,10 +291,10 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
         <div className="relative w-full sm:w-64 min-w-0">
           <input
             type="text"
-            placeholder={locale === "fr" ? "Rechercher un rappel..." : "Search reminder..."}
+            placeholder={t("actions.search_placeholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-xl bg-canvas-raised border border-ink-200 text-ink-950 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-signal min-h-[38px]"
+            className="w-full px-3 py-2 text-xs rounded-xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-700 text-ink-950 dark:text-white placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-signal min-h-[38px]"
           />
           {searchQuery && (
             <button
@@ -312,37 +310,13 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
 
       {/* Notifications List */}
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-ink-200 p-12 text-center bg-canvas-raised/50">
+        <div className="rounded-2xl border border-dashed border-ink-200 dark:border-ink-800 p-12 text-center bg-canvas-raised/50 dark:bg-ink-900/50">
           <CheckCircle2 className="w-10 h-10 text-positive mx-auto mb-2" />
-          <h3 className="text-sm font-bold text-ink-950">
-            {activeTab === "history"
-              ? locale === "fr"
-                ? "Aucun historique résolu"
-                : "No resolved history"
-              : activeTab === "unread"
-              ? locale === "fr"
-                ? "Tous les rappels ont été consultés"
-                : "All reminders have been viewed"
-              : locale === "fr"
-              ? "Aucun rappel en attente"
-              : "No pending reminders"}
+          <h3 className="text-sm font-bold text-ink-950 dark:text-white">
+            {t("actions.empty_title")}
           </h3>
           <p className="text-xs text-ink-500 max-w-sm mx-auto mt-1">
-            {searchQuery
-              ? locale === "fr"
-                ? "Aucun rappel ne correspond à votre recherche."
-                : "No reminders match your search query."
-              : activeTab === "active"
-              ? locale === "fr"
-                ? "Tout est à jour ! Remind Me vous alertera automatiquement dès qu'une tâche ou un paiement approchera de son échéance."
-                : "Everything is up to date! Remind Me will proactively alert you as deadlines approach."
-              : activeTab === "history"
-              ? locale === "fr"
-                ? "Vos rappels terminés ou archivés s'afficheront ici."
-                : "Your completed or archived reminders will appear here."
-              : locale === "fr"
-              ? "Les alertes et rappels automatiques apparaîtront ici dès qu'une échéance approche."
-              : "Automatic reminders will appear here as soon as an upcoming deadline arrives."}
+            {t("actions.empty_desc")}
           </p>
         </div>
       ) : (
@@ -366,12 +340,12 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                 key={item.id}
                 className={`p-3.5 sm:p-4 rounded-xl border transition-all duration-150 w-full min-w-0 ${
                   isResolved
-                    ? "border-ink-100 bg-canvas-raised/50 opacity-60"
+                    ? "border-ink-100 dark:border-ink-800/60 bg-canvas-raised/50 dark:bg-ink-900/30 opacity-60"
                     : isUnread
                     ? item.priority === "critical"
                       ? "border-danger/40 bg-danger-soft/10 shadow-xs ring-1 ring-danger/20"
                       : "border-signal/30 bg-signal-soft/10 shadow-xs"
-                    : "border-ink-200 bg-canvas-raised"
+                    : "border-ink-200 dark:border-ink-800 bg-canvas-raised dark:bg-ink-900"
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 min-w-0">
@@ -386,7 +360,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         {getPriorityBadge(item.priority)}
                         <h4
                           className={`text-xs sm:text-sm font-bold break-words ${
-                            isResolved ? "line-through text-ink-500" : "text-ink-950"
+                            isResolved ? "line-through text-ink-500" : "text-ink-950 dark:text-white"
                           }`}
                         >
                           {item.title}
@@ -396,24 +370,24 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         )}
                         {isResolved && (
                           <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-positive-soft text-positive inline-flex items-center gap-1">
-                            <Check className="w-3 h-3" /> {locale === "fr" ? "Résolu" : "Resolved"}
+                            <Check className="w-3 h-3" /> {t("actions.mark_completed")}
                           </span>
                         )}
                         {isSnoozed && (
                           <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-warning-soft text-warning inline-flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> {locale === "fr" ? "Reporté" : "Snoozed"}
+                            <Clock className="w-3 h-3" /> {t("actions.snooze")}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-xs text-ink-700 leading-relaxed break-words">
+                      <p className="text-xs text-ink-700 dark:text-ink-300 leading-relaxed break-words">
                         {item.body}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink-400 pt-1">
                         <span>
                           {DateTime.fromISO(item.created_at, { zone: timezone })
-                            .setLocale("fr")
+                            .setLocale(locale)
                             .toRelative()}
                         </span>
                         {item.link && (
@@ -423,7 +397,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                               href={item.link}
                               className="font-medium text-signal hover:underline inline-flex items-center gap-1"
                             >
-                              {locale === "fr" ? "Consulter" : "View"} <ArrowRight className="w-3 h-3" />
+                              {t("actions.view_item")} <ArrowRight className="w-3 h-3" />
                             </Link>
                           </>
                         )}
@@ -432,7 +406,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                   </div>
 
                   {/* Right: Actions */}
-                  <div className="flex items-center justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-ink-100 flex-wrap">
+                  <div className="flex items-center justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-ink-100 dark:border-ink-800 flex-wrap">
                     {/* Primary Entity Resolution Buttons */}
                     {!isResolved && isTask && item.entity_id && (
                       <button
@@ -440,10 +414,10 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         disabled={isThisBusy}
                         onClick={() => handleResolve(item.id, "task", item.entity_id)}
                         className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1 cursor-pointer"
-                        title="Marquer la tâche comme terminée"
+                        title={t("actions.mark_done")}
                       >
                         {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                        <span>{locale === "fr" ? "Fait" : "Done"}</span>
+                        <span>{t("actions.mark_done")}</span>
                       </button>
                     )}
 
@@ -453,10 +427,10 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         disabled={isThisBusy}
                         onClick={() => handleResolve(item.id, "income", item.entity_id)}
                         className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1 cursor-pointer"
-                        title="Marquer le paiement client comme reçu"
+                        title={t("actions.mark_received")}
                       >
                         {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                        <span>{locale === "fr" ? "Encaissé" : "Received"}</span>
+                        <span>{t("actions.mark_received")}</span>
                       </button>
                     )}
 
@@ -472,10 +446,10 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                           )
                         }
                         className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1 cursor-pointer"
-                        title="Marquer la dépense comme payée"
+                        title={t("actions.mark_paid")}
                       >
                         {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                        <span>{locale === "fr" ? "Payé" : "Paid"}</span>
+                        <span>{t("actions.mark_paid")}</span>
                       </button>
                     )}
 
@@ -485,10 +459,10 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         disabled={isThisBusy}
                         onClick={() => handleResolve(item.id, "activity", item.entity_id)}
                         className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1 cursor-pointer"
-                        title="Confirmer la séance comme effectuée"
+                        title={t("actions.mark_completed")}
                       >
                         {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                        <span>{locale === "fr" ? "Effectuée" : "Completed"}</span>
+                        <span>{t("actions.mark_completed")}</span>
                       </button>
                     )}
 
@@ -500,7 +474,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1 cursor-pointer"
                       >
                         {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                        <span>{locale === "fr" ? "Résoudre" : "Resolve"}</span>
+                        <span>{t("actions.mark_completed")}</span>
                       </button>
                     )}
 
@@ -511,7 +485,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                           type="button"
                           disabled={isThisBusy}
                           onClick={() => handleMarkRead(item.id)}
-                          className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 hover:text-ink-950 hover:bg-ink-100 active:scale-95 transition-all tap-active cursor-pointer"
+                          className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active cursor-pointer"
                           title="Marquer comme lu"
                         >
                           {locale === "fr" ? "Lu" : "Read"}
@@ -523,7 +497,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                           type="button"
                           disabled={isThisBusy}
                           onClick={() => handleSnooze(item.id, 24)}
-                          className="px-2 py-1.5 rounded-lg text-xs font-semibold text-ink-600 hover:text-ink-950 hover:bg-ink-100 active:scale-95 transition-all tap-active flex items-center gap-1 cursor-pointer"
+                          className="px-2 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active flex items-center gap-1 cursor-pointer"
                           title="Reporter de 24 heures"
                         >
                           <Clock className="w-3 h-3" /> +24h
@@ -535,7 +509,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         disabled={isThisBusy}
                         onClick={() => handleDelete(item.id)}
                         className="p-1.5 rounded-lg text-xs font-medium text-ink-400 hover:text-danger hover:bg-danger-soft/20 active:scale-95 transition-all tap-active inline-flex items-center justify-center cursor-pointer"
-                        title="Supprimer la notification"
+                        title={t("actions.delete")}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

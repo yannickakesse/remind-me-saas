@@ -22,17 +22,17 @@ export interface LocaleDefinition {
 
 export const SUPPORTED_LOCALES: LocaleDefinition[] = [
   { code: "fr", label: "Français", nativeLabel: "Français", flag: "🇫🇷" },
-  { code: "en", label: "Anglais", nativeLabel: "English", flag: "🇺🇸" },
-  { code: "es", label: "Espagnol", nativeLabel: "Español", flag: "🇪🇸" },
-  { code: "de", label: "Allemand", nativeLabel: "Deutsch", flag: "🇩🇪" },
-  { code: "pt", label: "Portugais", nativeLabel: "Português", flag: "🇧🇷" },
-  { code: "it", label: "Italien", nativeLabel: "Italiano", flag: "🇮🇹" },
-  { code: "nl", label: "Néerlandais", nativeLabel: "Nederlands", flag: "🇳🇱" },
-  { code: "ru", label: "Russe", nativeLabel: "Русский", flag: "🇷🇺" },
-  { code: "zh", label: "Chinois", nativeLabel: "中文", flag: "🇨🇳" },
-  { code: "ja", label: "Japonais", nativeLabel: "日本語", flag: "🇯🇵" },
-  { code: "ar", label: "Arabe", nativeLabel: "العربية", flag: "🇸🇦", direction: "rtl" },
-  { code: "hi", label: "Hindi", nativeLabel: "हिन्दी", flag: "🇮🇳" },
+  { code: "en", label: "English", nativeLabel: "English", flag: "🇺🇸" },
+  { code: "es", label: "Español", nativeLabel: "Español", flag: "🇪🇸" },
+  { code: "de", label: "Deutsch", nativeLabel: "Deutsch", flag: "🇩🇪" },
+  { code: "pt", label: "Português", nativeLabel: "Português", flag: "🇧🇷" },
+  { code: "it", label: "Italiano", nativeLabel: "Italiano", flag: "🇮🇹" },
+  { code: "nl", label: "Nederlands", nativeLabel: "Nederlands", flag: "🇳🇱" },
+  { code: "ru", label: "Русский", nativeLabel: "Русский", flag: "🇷🇺" },
+  { code: "zh", label: "中文", nativeLabel: "中文", flag: "🇨🇳" },
+  { code: "ja", label: "日本語", nativeLabel: "日本語", flag: "🇯🇵" },
+  { code: "ar", label: "العربية", nativeLabel: "العربية", flag: "🇸🇦", direction: "rtl" },
+  { code: "hi", label: "हिन्दी", nativeLabel: "हिन्दी", flag: "🇮🇳" },
 ];
 
 export type TranslationKey =
@@ -54,7 +54,19 @@ export type TranslationKey =
   | "nav.pricing"
   | "nav.faq"
   | "nav.language"
-  // Attention required
+  | "nav.menu"
+  | "nav.home"
+  | "nav.new_task"
+  | "nav.overview"
+  | "nav.income"
+  | "nav.expenses"
+  | "nav.scheduled_expenses"
+  | "nav.savings"
+  | "nav.budgets"
+  | "nav.general"
+  | "nav.my_account"
+
+  // Attention required / Dashboard
   | "attention.title"
   | "attention.subtitle"
   | "attention.all_clear"
@@ -63,6 +75,13 @@ export type TranslationKey =
   | "attention.urgent_task"
   | "attention.upcoming_activity"
   | "attention.conflit_alert"
+  | "attention.manage_all"
+  | "attention.confirm_session"
+  | "attention.dismiss"
+  | "attention.critical"
+  | "attention.urgent"
+  | "attention.info"
+
   // Activity notifications
   | "notif.activity_upcoming.title"
   | "notif.activity_upcoming.body"
@@ -70,6 +89,7 @@ export type TranslationKey =
   | "notif.activity_reminder.body"
   | "notif.activity_conflict.title"
   | "notif.activity_conflict.body"
+
   // Payment notifications
   | "notif.payment_upcoming.title"
   | "notif.payment_upcoming.body"
@@ -79,6 +99,7 @@ export type TranslationKey =
   | "notif.payment_overdue.body"
   | "notif.payment_received.title"
   | "notif.payment_received.body"
+
   // Expense notifications
   | "notif.expense_upcoming.title"
   | "notif.expense_upcoming.body"
@@ -88,6 +109,7 @@ export type TranslationKey =
   | "notif.expense_overdue.body"
   | "notif.expense_warning.title"
   | "notif.expense_warning.body"
+
   // Task notifications
   | "notif.task_due_today.title"
   | "notif.task_due_today.body"
@@ -95,6 +117,7 @@ export type TranslationKey =
   | "notif.task_due_soon.body"
   | "notif.task_overdue.title"
   | "notif.task_overdue.body"
+
   // Summaries & Routine
   | "notif.daily_summary.title"
   | "notif.daily_summary.body"
@@ -104,21 +127,38 @@ export type TranslationKey =
   | "notif.morning_briefing.body"
   | "notif.evening_checkin.title"
   | "notif.evening_checkin.body"
+
   // Actions & Controls
   | "actions.mark_received"
   | "actions.mark_paid"
   | "actions.mark_done"
+  | "actions.mark_completed"
   | "actions.snooze"
   | "actions.snooze_1d"
   | "actions.snooze_3d"
   | "actions.snooze_1w"
   | "actions.view_item"
   | "actions.dismiss"
+  | "actions.delete"
   | "actions.mark_all_read"
   | "actions.filter_all"
+  | "actions.filter_active"
   | "actions.filter_unread"
+  | "actions.filter_tasks"
+  | "actions.filter_finances"
+  | "actions.filter_history"
   | "actions.filter_overdue"
   | "actions.empty_title"
   | "actions.empty_desc"
+  | "actions.search_placeholder"
+  | "actions.search_language"
+  | "actions.select_language_title"
+  | "actions.select_language_subtitle"
+  | "actions.language_footer_note"
+  | "actions.close"
+
+  // Settings & Theme
   | "settings.language_title"
-  | "settings.language_desc";
+  | "settings.language_desc"
+  | "settings.theme_title"
+  | "settings.theme_desc";

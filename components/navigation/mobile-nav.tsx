@@ -6,6 +6,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { HelpCenterButton } from "@/components/help/help-center-modal";
 import { LanguageSelector } from "@/components/ui/language-selector";
+import { useLanguage } from "@/components/i18n/language-provider";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import {
   LayoutDashboard,
@@ -26,7 +28,6 @@ import {
   X,
   ChevronDown,
   ChevronRight,
-  ShieldCheck,
   Plus,
 } from "lucide-react";
 
@@ -37,6 +38,7 @@ interface MobileNavProps {
 export function MobileNav({ unreadCount }: MobileNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [financesOpen, setFinancesOpen] = useState(true);
 
@@ -57,33 +59,33 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
     };
   }, [isOpen]);
 
-  const navLinks = [
-    { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, tourKey: "nav-dashboard-mobile" },
-    { href: "/calendar", label: "Calendrier", icon: Calendar, tourKey: "nav-calendar-mobile" },
-    { href: "/activities", label: "Activités", icon: Briefcase, tourKey: "nav-activities" },
-    { href: "/tasks", label: "Tâches", icon: CheckSquare, tourKey: "nav-tasks-mobile" },
+  const navLinks: { href: string; labelKey: TranslationKey; icon: any; tourKey: string }[] = [
+    { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard, tourKey: "nav-dashboard-mobile" },
+    { href: "/calendar", labelKey: "nav.calendar", icon: Calendar, tourKey: "nav-calendar-mobile" },
+    { href: "/activities", labelKey: "nav.activities", icon: Briefcase, tourKey: "nav-activities" },
+    { href: "/tasks", labelKey: "nav.tasks", icon: CheckSquare, tourKey: "nav-tasks-mobile" },
   ];
 
-  const financeSubLinks = [
-    { href: "/finances", label: "Vue globale", icon: Wallet },
-    { href: "/finances?tab=income", label: "Revenus", icon: TrendingUp },
-    { href: "/finances?tab=expenses", label: "Dépenses payées", icon: TrendingDown },
-    { href: "/finances?tab=scheduled", label: "Dépenses programmées", icon: Clock },
-    { href: "/finances?tab=savings", label: "Épargne & Objectifs", icon: PiggyBank },
-    { href: "/finances?tab=budgets", label: "Budgets mensuels", icon: Target },
+  const financeSubLinks: { href: string; labelKey: TranslationKey; icon: any }[] = [
+    { href: "/finances", labelKey: "nav.overview", icon: Wallet },
+    { href: "/finances?tab=income", labelKey: "nav.income", icon: TrendingUp },
+    { href: "/finances?tab=expenses", labelKey: "nav.expenses", icon: TrendingDown },
+    { href: "/finances?tab=scheduled", labelKey: "nav.scheduled_expenses", icon: Clock },
+    { href: "/finances?tab=savings", labelKey: "nav.savings", icon: PiggyBank },
+    { href: "/finances?tab=budgets", labelKey: "nav.budgets", icon: Target },
   ];
 
-  const secondaryLinks = [
-    { href: "/clients", label: "Clients & Contacts", icon: Users, tourKey: "nav-clients-mobile" },
-    { href: "/reports", label: "Rapports & Rentabilité", icon: BarChart3, tourKey: "nav-reports-mobile" },
-    { href: "/notifications", label: "Notifications", icon: Bell, badge: unreadCount, tourKey: "nav-notifications-mobile" },
-    { href: "/settings", label: "Paramètres", icon: Settings, tourKey: "nav-settings-mobile" },
+  const secondaryLinks: { href: string; labelKey: TranslationKey; icon: any; badge?: number | null; tourKey: string }[] = [
+    { href: "/clients", labelKey: "nav.clients", icon: Users, tourKey: "nav-clients-mobile" },
+    { href: "/reports", labelKey: "nav.reports", icon: BarChart3, tourKey: "nav-reports-mobile" },
+    { href: "/notifications", labelKey: "nav.notifications", icon: Bell, badge: unreadCount, tourKey: "nav-notifications-mobile" },
+    { href: "/settings", labelKey: "nav.settings", icon: Settings, tourKey: "nav-settings-mobile" },
   ];
 
   return (
     <>
-      {/* Top Mobile Bar (< 768px) — Header Mobile Moderne & Épuré avec Safe Area Inset pour iPhone / Android */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-4 py-2.5 safe-area-top shadow-xs w-full max-w-full print:hidden">
+      {/* Top Mobile Bar (< 768px) — Header Mobile Moderne & Épuré */}
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 dark:border-ink-800 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md px-4 py-2.5 safe-area-top shadow-xs w-full max-w-full print:hidden">
         <Link href="/dashboard" className="flex items-center tap-active py-0.5">
           <RemindMeLogo size="sm" showText={true} />
         </Link>
@@ -94,10 +96,10 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           <Link
             href="/notifications"
             aria-label="Notifications"
-            className="relative flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 hover:bg-ink-100 active:scale-95 transition-all tap-active"
+            className="relative flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active"
             data-tour="mobile-notification-bell"
           >
-            <Bell className="w-5 h-5 text-ink-700" strokeWidth={1.8} />
+            <Bell className="w-5 h-5 text-ink-700 dark:text-ink-300" strokeWidth={1.8} />
             {unreadCount ? (
               <span className="absolute top-1.5 right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white shadow-xs animate-pulse">
                 {unreadCount > 99 ? "99+" : unreadCount}
@@ -118,16 +120,16 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           />
 
           {/* Drawer content */}
-          <div className="relative flex flex-col w-[85%] max-w-[320px] bg-canvas-raised h-full shadow-2xl z-10 border-r border-ink-200 overflow-y-auto">
-            {/* Drawer Header avec Safe Area Inset Top */}
-            <div className="flex items-center justify-between p-4 border-b border-ink-200 bg-canvas safe-area-top">
+          <div className="relative flex flex-col w-[85%] max-w-[320px] bg-canvas-raised dark:bg-ink-900 h-full shadow-2xl z-10 border-r border-ink-200 dark:border-ink-800 overflow-y-auto">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between p-4 border-b border-ink-200 dark:border-ink-800 bg-canvas dark:bg-ink-950 safe-area-top">
               <RemindMeLogo size="sm" showText={true} />
 
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
                 aria-label="Fermer le menu"
-                className="flex items-center justify-center h-9 w-9 rounded-lg text-ink-500 hover:bg-ink-100 active:scale-90 transition-transform"
+                className="flex items-center justify-center h-9 w-9 rounded-lg text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-90 transition-transform"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -148,11 +150,11 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all min-h-[44px] ${
                       isActive
                         ? "bg-signal text-white font-semibold shadow-xs"
-                        : "text-ink-700 hover:bg-ink-100 active:bg-ink-200"
+                        : "text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:bg-ink-200"
                     }`}
                   >
                     <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-ink-500"}`} strokeWidth={1.8} />
-                    <span>{item.label}</span>
+                    <span>{t(item.labelKey)}</span>
                   </Link>
                 );
               })}
@@ -162,10 +164,10 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                 <button
                   type="button"
                   onClick={() => setFinancesOpen(!financesOpen)}
-                  className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold uppercase tracking-wider text-ink-500 hover:text-ink-800"
+                  className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold uppercase tracking-wider text-ink-500 hover:text-ink-800 dark:hover:text-ink-200"
                 >
                   <span className="flex items-center gap-2">
-                    <Wallet className="w-3.5 h-3.5 text-gold-dark" /> FINANCES
+                    <Wallet className="w-3.5 h-3.5 text-gold-dark" /> {t("nav.finances")}
                   </span>
                   <span>
                     {financesOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
@@ -189,11 +191,11 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                           className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors min-h-[40px] ${
                             isActive
                               ? "bg-gold-soft/40 text-gold-dark font-bold"
-                              : "text-ink-700 hover:bg-ink-100 active:bg-ink-200"
+                              : "text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:bg-ink-200"
                           }`}
                         >
                           <SubIcon className="w-3.5 h-3.5 text-gold-dark shrink-0" strokeWidth={1.8} />
-                          <span>{sub.label}</span>
+                          <span>{t(sub.labelKey)}</span>
                         </Link>
                       );
                     })}
@@ -201,9 +203,9 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                 )}
               </div>
 
-              <div className="pt-2 border-t border-ink-200">
+              <div className="pt-2 border-t border-ink-200 dark:border-ink-800">
                 <div className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-ink-500">
-                  GÉNÉRAL
+                  {t("nav.general")}
                 </div>
                 {secondaryLinks.map((item) => {
                   const isActive = pathname === item.href;
@@ -218,12 +220,12 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                       className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all min-h-[44px] ${
                         isActive
                           ? "bg-signal text-white font-semibold shadow-xs"
-                          : "text-ink-700 hover:bg-ink-100 active:bg-ink-200"
+                          : "text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:bg-ink-200"
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-ink-500"}`} strokeWidth={1.8} />
-                        <span>{item.label}</span>
+                        <span>{t(item.labelKey)}</span>
                       </div>
                       {item.badge ? (
                         <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
@@ -234,17 +236,22 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                   );
                 })}
               </div>
+
+              {/* Language Selector inside Drawer */}
+              <div className="pt-2 border-t border-ink-200 dark:border-ink-800">
+                <LanguageSelector variant="drawer" />
+              </div>
             </div>
 
             {/* Quick action bar in drawer footer */}
-            <div className="p-3 border-t border-ink-200 bg-canvas space-y-2">
+            <div className="p-3 border-t border-ink-200 dark:border-ink-800 bg-canvas dark:bg-ink-950 space-y-2">
               <Link
                 href="/tasks/new"
                 prefetch={true}
                 onClick={() => setIsOpen(false)}
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-signal text-white text-xs font-semibold shadow-xs active:scale-98 transition-transform"
               >
-                <Plus className="w-4 h-4" /> Nouvelle Tâche
+                <Plus className="w-4 h-4" /> {t("nav.new_task")}
               </Link>
             </div>
           </div>
@@ -255,7 +262,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
       <nav
         aria-label="Navigation mobile principale"
         data-tour="mobile-nav-bar"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-ink-200 bg-canvas-raised/95 backdrop-blur-md px-1 pt-1 safe-area-bottom shadow-lg print:hidden"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-ink-200 dark:border-ink-800 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md px-1 pt-1 safe-area-bottom shadow-lg print:hidden"
       >
         <Link
           href="/dashboard"
@@ -264,11 +271,11 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname === "/dashboard"
               ? "text-signal font-bold"
-              : "text-ink-500 hover:text-ink-800 font-medium"
+              : "text-ink-500 dark:text-ink-400 hover:text-ink-800 font-medium"
           }`}
         >
           <LayoutDashboard className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname === "/dashboard" ? 2.2 : 1.8} />
-          <span className="text-[10px] leading-tight">Accueil</span>
+          <span className="text-[10px] leading-tight">{t("nav.home")}</span>
         </Link>
 
         <Link
@@ -278,11 +285,11 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname.startsWith("/calendar")
               ? "text-signal font-bold"
-              : "text-ink-500 hover:text-ink-800 font-medium"
+              : "text-ink-500 dark:text-ink-400 hover:text-ink-800 font-medium"
           }`}
         >
           <Calendar className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname.startsWith("/calendar") ? 2.2 : 1.8} />
-          <span className="text-[10px] leading-tight">Calendrier</span>
+          <span className="text-[10px] leading-tight">{t("nav.calendar")}</span>
         </Link>
 
         <Link
@@ -292,11 +299,11 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname.startsWith("/tasks")
               ? "text-signal font-bold"
-              : "text-ink-500 hover:text-ink-800 font-medium"
+              : "text-ink-500 dark:text-ink-400 hover:text-ink-800 font-medium"
           }`}
         >
           <CheckSquare className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname.startsWith("/tasks") ? 2.2 : 1.8} />
-          <span className="text-[10px] leading-tight">Tâches</span>
+          <span className="text-[10px] leading-tight">{t("nav.tasks")}</span>
         </Link>
 
         <Link
@@ -306,21 +313,21 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
             pathname.startsWith("/finances")
               ? "text-signal font-bold"
-              : "text-ink-500 hover:text-ink-800 font-medium"
+              : "text-ink-500 dark:text-ink-400 hover:text-ink-800 font-medium"
           }`}
         >
           <Wallet className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname.startsWith("/finances") ? 2.2 : 1.8} />
-          <span className="text-[10px] leading-tight">Finances</span>
+          <span className="text-[10px] leading-tight">{t("nav.finances")}</span>
         </Link>
 
         <button
           type="button"
           onClick={() => setIsOpen(true)}
           data-tour="nav-menu"
-          className="flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] text-ink-500 hover:text-ink-800 font-medium tap-active focus:outline-none"
+          className="flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] text-ink-500 dark:text-ink-400 hover:text-ink-800 font-medium tap-active focus:outline-none"
         >
           <Menu className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={1.8} />
-          <span className="text-[10px] leading-tight">Menu</span>
+          <span className="text-[10px] leading-tight">{t("nav.menu")}</span>
         </button>
       </nav>
     </>
