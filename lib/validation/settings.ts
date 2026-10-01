@@ -70,6 +70,10 @@ export const notifPrefsSchema = z.object({
   quiet_hours_start: z.string().default("22:00"),
   quiet_hours_end: z.string().default("08:00"),
   preferred_locale: z.enum(SUPPORTED_LOCALE_CODES).default("fr"),
+  voice_reminders: z.boolean().default(true),
+  voice_type: z.enum(["system", "female", "male"]).default("system"),
+  voice_language: z.enum(["fr", "en", "es"]).default("fr"),
+  repeat_voice: z.coerce.number().int().min(0).max(2).default(0),
 });
 export type NotifPrefsInput = z.infer<typeof notifPrefsSchema>;
 

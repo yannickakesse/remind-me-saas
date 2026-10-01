@@ -5,6 +5,7 @@ import { t, formatCurrencyLocale, formatDateLocale } from "@/lib/i18n/format";
 import { sendNotificationEmail } from "@/lib/email/service";
 import { sendNotificationPush } from "@/lib/push/service";
 import { ensureCalendarEvents } from "@/lib/calendar/sync";
+import { generateVoiceMessage } from "@/lib/voice/generator";
 
 export interface ReminderCandidate {
   user_id: string;
@@ -222,7 +223,7 @@ export async function evaluateSmartReminders(
     supabase.from("expenses").select("id").eq("user_id", userId).eq("paid", true),
     supabase.from("tasks").select("id").eq("user_id", userId).in("status", ["done", "cancelled"]),
     supabase.from("scheduled_expenses").select("id").eq("user_id", userId).in("status", ["paid", "cancelled"]),
-    supabase.from("calendar_events").select("id").eq("user_id", userId).in("status", ["completed", "cancelled", "missed", "postponed"]),
+    supabase.from("calendar_events").select("id, activity_id").eq("user_id", userId).in("status", ["completed", "cancelled", "missed", "postponed"]),
     supabase.from("activities").select("id").eq("user_id", userId).in("status", ["archived", "suspended", "expired"]),
     supabase.from("notifications").select("id, entity_id, snoozed_until").eq("user_id", userId).eq("status", "snoozed"),
   ]);
@@ -520,18 +521,19 @@ export async function evaluateSmartReminders(
   }
 
   // ==========================================================================
-  // 5. CYCLE DE VIE DES ACTIVITÉS & CRÉNEAUX (CALENDAR EVENTS)
+  // 5. CYCLE DE VIE DES ACTIVITÉS & CRÉNEAUX (CALENDAR EVENTS) — Horizon Max 3 Jours
   // ==========================================================================
   if (prefsData?.activity_reminders !== false) {
     const past7daysIso = userNow.minus({ days: 7 }).toUTC().toISO()!;
-    const next48hIso = userNow.plus({ hours: 48 }).toUTC().toISO()!;
+    // Horizon strict de 3 jours max pour les activités futures (règle standard 3 jours)
+    const next3daysIso = userNow.plus({ days: 3 }).endOf("day").toUTC().toISO()!;
     const { data: eventList } = await supabase
       .from("calendar_events")
-      .select("id, title, starts_at, ends_at, status, activity_id")
+      .select("id, title, starts_at, ends_at, status, activity_id, activities(id, name, voice_reminder_enabled)")
       .eq("user_id", userId)
       .neq("status", "cancelled")
       .gte("starts_at", past7daysIso)
-      .lte("starts_at", next48hIso)
+      .lte("starts_at", next3daysIso)
       .order("starts_at", { ascending: true });
 
     for (const evt of eventList ?? []) {
@@ -541,6 +543,16 @@ export async function evaluateSmartReminders(
       const eventEnd = DateTime.fromISO(evt.ends_at, { zone: userTimezone });
       const minutesUntil = Math.floor(eventStart.diff(userNow, "minutes").minutes);
       const isPast = eventEnd < userNow || eventStart < userNow.minus({ hours: 1 });
+      const daysDiff = Math.floor(eventStart.startOf("day").diff(userNow.startOf("day"), "days").days);
+
+      const voiceReminderEnabled = (evt as any).activities?.voice_reminder_enabled !== false;
+      const voiceText = generateVoiceMessage({
+        userName: profileData?.full_name,
+        activityTitle: evt.title,
+        timeStr: eventStart.toFormat("HH:mm"),
+        category: "activity",
+        language: (locale as any) || "fr",
+      });
 
       if (isPast && evt.status === "planned") {
         const daysAgo = Math.max(0, Math.floor(userNow.diff(eventStart, "days").days));
@@ -548,13 +560,23 @@ export async function evaluateSmartReminders(
           user_id: userId,
           category: "activity",
           kind: "activity_overdue",
-          priority: "high",
+          priority: daysAgo >= 1 ? "critical" : "high",
           status: "unread",
           entity_type: "activity",
           entity_id: evt.id,
-          title: `Séance passée : ${evt.title}`,
+          title: daysAgo >= 1
+            ? `⚠️ Séance non confirmée (${daysAgo}j de retard) : ${evt.title}`
+            : `Séance passée : ${evt.title}`,
           body: `Votre séance « ${evt.title} » du ${formatDateLocale(eventStart.toISODate()!, locale, userTimezone)} est terminée. Confirmez sa réalisation.`,
-          metadata: { title: evt.title, starts_at: evt.starts_at, daysAgo },
+          metadata: {
+            title: evt.title,
+            starts_at: evt.starts_at,
+            daysAgo,
+            is_yesterday_overdue: daysAgo >= 1,
+            overdue_badge: daysAgo >= 1 ? "danger" : "warning",
+            voice_reminder_enabled: voiceReminderEnabled,
+            voice_text: voiceText,
+          },
           link: `/calendar/${evt.id}`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `activity:${evt.id}:passed_${eventStart.toISODate()}`,
@@ -572,7 +594,7 @@ export async function evaluateSmartReminders(
             entity_id: evt.id,
             title: `⏰ Dans 30 min : ${evt.title}`,
             body: `Votre activité « ${evt.title} » commence à ${eventStart.toFormat("HH:mm")}. Préparez-vous !`,
-            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil },
+            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
             idempotency_key: `activity:${evt.id}:m30_${eventStart.toISODate()}`,
@@ -589,7 +611,7 @@ export async function evaluateSmartReminders(
             entity_id: evt.id,
             title: `⚡ Dans 15 min : ${evt.title}`,
             body: `Votre activité « ${evt.title} » débute dans 15 minutes (à ${eventStart.toFormat("HH:mm")}).`,
-            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil },
+            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
             idempotency_key: `activity:${evt.id}:m15_${eventStart.toISODate()}`,
@@ -606,7 +628,7 @@ export async function evaluateSmartReminders(
             entity_id: evt.id,
             title: `🎯 C'est l'heure : ${evt.title}`,
             body: `Votre activité « ${evt.title} » commence maintenant (de ${eventStart.toFormat("HH:mm")} à ${eventEnd.toFormat("HH:mm")}).`,
-            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil },
+            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
             idempotency_key: `activity:${evt.id}:now_${eventStart.toISODate()}`,
@@ -622,13 +644,13 @@ export async function evaluateSmartReminders(
             entity_id: evt.id,
             title: `Séance aujourd'hui : ${evt.title}`,
             body: `Vous avez « ${evt.title} » prévue aujourd'hui de ${eventStart.toFormat("HH:mm")} à ${eventEnd.toFormat("HH:mm")}.`,
-            metadata: { title: evt.title, starts_at: evt.starts_at },
+            metadata: { title: evt.title, starts_at: evt.starts_at, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
             idempotency_key: `activity:${evt.id}:today_${eventStart.toISODate()}`,
           });
         }
-      } else if (eventStart.hasSame(userNow.plus({ days: 1 }), "day")) {
+      } else if (daysDiff === 1) {
         candidates.push({
           user_id: userId,
           category: "activity",
@@ -639,10 +661,27 @@ export async function evaluateSmartReminders(
           entity_id: evt.id,
           title: `Séance demain : ${evt.title}`,
           body: `N'oubliez pas votre séance « ${evt.title} » demain à ${eventStart.toFormat("HH:mm")}.`,
-          metadata: { title: evt.title, starts_at: evt.starts_at },
+          metadata: { title: evt.title, starts_at: evt.starts_at, days: 1, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
           link: `/calendar/${evt.id}`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `activity:${evt.id}:tomorrow_${eventStart.toISODate()}`,
+        });
+      } else if (daysDiff === 2 || daysDiff === 3) {
+        // Rappel standard 3 jours / 2 jours avant l'activité
+        candidates.push({
+          user_id: userId,
+          category: "activity",
+          kind: "activity_upcoming",
+          priority: "normal",
+          status: "unread",
+          entity_type: "activity",
+          entity_id: evt.id,
+          title: `Séance dans ${daysDiff} jours : ${evt.title}`,
+          body: `Votre séance « ${evt.title} » aura lieu le ${formatDateLocale(eventStart.toISODate()!, locale, userTimezone)} à ${eventStart.toFormat("HH:mm")}.`,
+          metadata: { title: evt.title, starts_at: evt.starts_at, days: daysDiff, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
+          link: `/calendar/${evt.id}`,
+          scheduled_at: userNow.toISO()!,
+          idempotency_key: `activity:${evt.id}:minus_${daysDiff}_days`,
         });
       }
     }
@@ -696,7 +735,7 @@ export async function evaluateSmartReminders(
           metadata: { activityId: act.id, name: act.name, endDate: act.end_date },
           link: `/activities`,
           scheduled_at: userNow.toISO()!,
-          idempotency_key: `activity:${act.id}:expired_${todayISO}`,
+          idempotency_key: `activity:${act.id}:expired_${act.end_date}`,
           email_template: "activity_expired",
         });
       }
@@ -933,11 +972,12 @@ export async function evaluateSmartReminders(
   }
 
   // ==========================================================================
-  // 8.5 ROUTINE QUOTIDIENNE : BRIEFING DU MATIN & DÉBRIEFING DU SOIR
+  // 8.5 ROUTINE QUOTIDIENNE : BRIEFING DU MATIN (5h-6h+) & DÉBRIEFING DU SOIR (20h-21h+)
   // ==========================================================================
-  // 1. Briefing du Matin (6h00 - 14h00) : Récapitulatif proactif du programme du jour
-  if (userNow.hour >= 6 && userNow.hour < 14) {
-    const [{ data: todayTasks }, { data: todayEvents }, { data: todayExpenses }, { data: todayIncomes }] = await Promise.all([
+  // 1. Briefing du Matin (5h00 - 11h00) : Récapitulatif proactif du programme du jour + Rappel d'hier
+  if (userNow.hour >= 5 && userNow.hour < 11) {
+    const yesterdayISO = userNow.minus({ days: 1 }).toISODate()!;
+    const [{ data: todayTasks }, { data: todayEvents }, { data: todayExpenses }, { data: todayIncomes }, { data: yesterdayEvents }] = await Promise.all([
       supabase
         .from("tasks")
         .select("id, title, priority, due_time")
@@ -963,37 +1003,51 @@ export async function evaluateSmartReminders(
         .eq("user_id", userId)
         .eq("received", false)
         .eq("due_date", todayISO),
+      supabase
+        .from("calendar_events")
+        .select("id, title")
+        .eq("user_id", userId)
+        .eq("status", "planned")
+        .gte("starts_at", userNow.minus({ days: 1 }).startOf("day").toISO()!)
+        .lte("starts_at", userNow.minus({ days: 1 }).endOf("day").toISO()!),
     ]);
 
     const taskCount = todayTasks?.length || 0;
     const eventCount = todayEvents?.length || 0;
     const expenseCount = todayExpenses?.length || 0;
     const incomeCount = todayIncomes?.length || 0;
+    const yesterdayUnconfirmed = yesterdayEvents?.length || 0;
     const totalCount = taskCount + eventCount + expenseCount + incomeCount;
 
-    if (totalCount > 0) {
+    if (totalCount > 0 || yesterdayUnconfirmed > 0) {
       const parts: string[] = [];
       if (taskCount > 0) parts.push(`${taskCount} tâche(s)`);
-      if (eventCount > 0) parts.push(`${eventCount} rendez-vous/séance(s)`);
+      if (eventCount > 0) parts.push(`${eventCount} séance(s)`);
       if (expenseCount > 0) parts.push(`${expenseCount} dépense(s)`);
-      if (incomeCount > 0) parts.push(`${incomeCount} paiement(s) client(s)`);
+      if (incomeCount > 0) parts.push(`${incomeCount} paiement(s)`);
+
+      const overdueNote = yesterdayUnconfirmed > 0
+        ? ` et ⚠️ ${yesterdayUnconfirmed} séance(s) d'hier à confirmer`
+        : "";
 
       candidates.push({
         user_id: userId,
         category: "summary",
         kind: "morning_briefing",
-        priority: "high",
+        priority: yesterdayUnconfirmed > 0 ? "critical" : "high",
         status: "unread",
         entity_type: "summary",
         entity_id: `briefing_${todayISO}`,
-        title: `🌅 Programme du jour : ${totalCount} activité(s) aujourd'hui`,
-        body: `Bonjour ! Vous avez ${parts.join(", ")} au programme aujourd'hui. Bon courage pour votre journée !`,
+        title: `🌅 Programme du matin : ${totalCount} activité(s) aujourd'hui`,
+        body: `Bonjour ! Vous avez ${parts.join(", ")}${overdueNote}. Excellente journée !`,
         metadata: {
           date: todayISO,
           taskCount,
           eventCount,
           expenseCount,
           incomeCount,
+          yesterdayUnconfirmed,
+          is_yesterday_overdue: yesterdayUnconfirmed > 0,
         },
         link: "/dashboard",
         scheduled_at: userNow.toISO()!,
@@ -1003,9 +1057,9 @@ export async function evaluateSmartReminders(
     }
   }
 
-  // 2. Débriefing du Soir (18h00 - 23h59) : Contrôle de fin de journée pour clore et cocher les activités
-  if (userNow.hour >= 18) {
-    const [{ data: uncompletedTasks }, { data: uncompletedExpenses }, { data: uncompletedIncomes }] = await Promise.all([
+  // 2. Débriefing du Soir (20h00 - 23h59) : Contrôle de fin de journée pour clore et confirmer les séances
+  if (userNow.hour >= 20) {
+    const [{ data: uncompletedTasks }, { data: uncompletedExpenses }, { data: uncompletedIncomes }, { data: unconfirmedTodayEvents }] = await Promise.all([
       supabase
         .from("tasks")
         .select("id, title")
@@ -1024,12 +1078,19 @@ export async function evaluateSmartReminders(
         .eq("user_id", userId)
         .eq("received", false)
         .lte("due_date", todayISO),
+      supabase
+        .from("calendar_events")
+        .select("id, title")
+        .eq("user_id", userId)
+        .eq("status", "planned")
+        .lte("starts_at", userNow.endOf("day").toISO()!),
     ]);
 
     const remainingTasks = uncompletedTasks?.length || 0;
     const remainingExpenses = uncompletedExpenses?.length || 0;
     const remainingIncomes = uncompletedIncomes?.length || 0;
-    const totalRemaining = remainingTasks + remainingExpenses + remainingIncomes;
+    const remainingEvents = unconfirmedTodayEvents?.length || 0;
+    const totalRemaining = remainingTasks + remainingExpenses + remainingIncomes + remainingEvents;
 
     if (totalRemaining > 0) {
       candidates.push({
@@ -1041,12 +1102,13 @@ export async function evaluateSmartReminders(
         entity_type: "summary",
         entity_id: `checkin_${todayISO}`,
         title: `🌙 Bilan du soir : Clôture de vos activités du jour`,
-        body: `Il vous reste ${totalRemaining} élément(s) en attente (tâches ou règlements). Marquez-les comme faits pour garder votre journée à jour !`,
+        body: `Il vous reste ${totalRemaining} élément(s) en attente (séances à confirmer, tâches ou règlements). Marquez-les comme faits pour clore sereinement votre journée !`,
         metadata: {
           date: todayISO,
           remainingTasks,
           remainingExpenses,
           remainingIncomes,
+          remainingEvents,
         },
         link: "/dashboard",
         scheduled_at: userNow.toISO()!,

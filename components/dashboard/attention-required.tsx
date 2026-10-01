@@ -80,7 +80,8 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {urgentItems.slice(0, 4).map((item) => {
-          const isOverdue = item.kind.includes("overdue");
+          const isYesterdayOverdue = !!item.metadata?.is_yesterday_overdue || (item.metadata?.daysAgo && item.metadata.daysAgo >= 1);
+          const isOverdue = item.kind.includes("overdue") || isYesterdayOverdue;
           const isPayment = item.category === "payment" || item.entity_type === "income";
           const isExpense =
             item.category === "expense" ||
@@ -97,11 +98,17 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
           return (
             <div
               key={item.id}
-              className="p-3.5 rounded-xl border border-ink-200 dark:border-ink-800 bg-canvas-raised dark:bg-ink-900 shadow-xs flex flex-col justify-between space-y-3 transition-all hover:border-ink-300 dark:hover:border-ink-700"
+              className={`p-3.5 rounded-xl border shadow-xs flex flex-col justify-between space-y-3 transition-all ${
+                isYesterdayOverdue
+                  ? "border-danger/50 dark:border-danger/60 bg-danger-soft/15 dark:bg-danger/10 hover:border-danger"
+                  : "border-ink-200 dark:border-ink-800 bg-canvas-raised dark:bg-ink-900 hover:border-ink-300 dark:hover:border-ink-700"
+              }`}
             >
               <div className="flex items-start gap-2.5">
                 <span className="shrink-0 mt-0.5">
-                  {isOverdue ? (
+                  {isYesterdayOverdue ? (
+                    <AlertCircle className="w-4 h-4 text-danger animate-pulse" />
+                  ) : isOverdue ? (
                     <AlertCircle className="w-4 h-4 text-danger" />
                   ) : isPayment ? (
                     <Wallet className="w-4 h-4 text-gold-dark" />
@@ -120,21 +127,28 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     <span className="text-xs font-bold text-ink-950 dark:text-white truncate">
                       {item.title}
                     </span>
-                    <span
-                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${
-                        item.priority === "critical"
-                          ? "bg-danger text-white"
+                    <div className="flex items-center gap-1 shrink-0">
+                      {isYesterdayOverdue && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-600 text-white">
+                          En retard
+                        </span>
+                      )}
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${
+                          item.priority === "critical"
+                            ? "bg-danger text-white"
+                            : item.priority === "high"
+                            ? "bg-warning-soft text-warning"
+                            : "bg-signal-soft text-signal"
+                        }`}
+                      >
+                        {item.priority === "critical"
+                          ? t("attention.critical")
                           : item.priority === "high"
-                          ? "bg-warning-soft text-warning"
-                          : "bg-signal-soft text-signal"
-                      }`}
-                    >
-                      {item.priority === "critical"
-                        ? t("attention.critical")
-                        : item.priority === "high"
-                        ? t("attention.urgent")
-                        : t("attention.info")}
-                    </span>
+                          ? t("attention.urgent")
+                          : t("attention.info")}
+                      </span>
+                    </div>
                   </div>
                   <p className="text-xs text-ink-700 dark:text-ink-300 mt-0.5 leading-relaxed">
                     {item.body}

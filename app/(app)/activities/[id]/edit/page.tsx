@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { Copy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ActivityForm } from "@/components/shared/activity-form";
 import { updateActivity, deleteActivity } from "../../actions";
@@ -63,8 +65,19 @@ export default async function EditActivityPage({
 
   return (
     <div data-tour="edit-activity-container">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-ink-950">Modifier {activity.name}</h1>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-ink-950">Modifier {activity.name}</h1>
+          <p className="text-sm text-ink-500">Mettez à jour les horaires, la rémunération ou les coordonnées.</p>
+        </div>
+        <Link
+          href={`/activities/new?duplicate_from=${activity.id}`}
+          title="Dupliquer cette activité pour créer une nouvelle occurrence"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-canvas px-3 py-2 text-xs font-semibold text-ink-700 hover:bg-ink-50 hover:border-ink-300 transition-all self-start sm:self-auto shadow-2xs"
+        >
+          <Copy className="w-3.5 h-3.5 text-ink-500" />
+          Dupliquer pour modifier
+        </Link>
       </div>
 
       <ActivityForm
@@ -102,6 +115,7 @@ export default async function EditActivityPage({
           frequency: compensation?.frequency ?? "monthly",
           paymentDay: compensation?.payment_day ? String(compensation.payment_day) : "",
           paymentTerms: compensation?.payment_terms ?? "",
+          voiceReminderEnabled: activity.voice_reminder_enabled ?? true,
         }}
       />
     </div>

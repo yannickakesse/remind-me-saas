@@ -11,6 +11,7 @@ import {
   Archive,
   RotateCcw,
   Edit3,
+  Copy,
   Pause,
   Play,
   Calendar,
@@ -400,6 +401,14 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
                           <Edit3 className="w-3.5 h-3.5" />
                           Modifier
                         </Link>
+                        <Link
+                          href={`/activities/new?duplicate_from=${activity.id}`}
+                          title="Dupliquer cette activité pour créer une nouvelle occurrence rapidement"
+                          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:text-ink-950 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                        >
+                          <Copy className="w-3.5 h-3.5 text-ink-500" />
+                          Dupliquer
+                        </Link>
                         <button
                           type="button"
                           onClick={() => handleSuspend(activity.id)}
@@ -501,8 +510,16 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
                         className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-purple-900 bg-purple-200/80 hover:bg-purple-300 transition-colors min-h-[32px] inline-flex items-center gap-1 shadow-xs"
                       >
                         <Sparkles className="w-3.5 h-3.5 text-purple-700" />
-                        Renouveler / Réactiver
+                        Renouveler
                       </button>
+                      <Link
+                        href={`/activities/new?duplicate_from=${activity.id}`}
+                        title="Dupliquer cette activité pour créer une nouvelle occurrence"
+                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-purple-900 hover:bg-purple-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        Dupliquer
+                      </Link>
                       <Link
                         href={`/activities/${activity.id}/edit`}
                         className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
@@ -567,6 +584,14 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
                       {isResuming ? "..." : "Reprendre / Activer"}
                     </button>
                     <Link
+                      href={`/activities/new?duplicate_from=${activity.id}`}
+                      title="Dupliquer cette activité"
+                      className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      Dupliquer
+                    </Link>
+                    <Link
                       href={`/activities/${activity.id}/edit`}
                       className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-600 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
                     >
@@ -608,6 +633,14 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
 
                   <div className="flex items-center gap-2">
                     {itemError && <span className="text-danger text-xs mr-2">{itemError}</span>}
+                    <Link
+                      href={`/activities/new?duplicate_from=${activity.id}`}
+                      title="Dupliquer cette activité archivée"
+                      className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      Dupliquer
+                    </Link>
                     <button
                       type="button"
                       onClick={() => handleRestore(activity.id)}

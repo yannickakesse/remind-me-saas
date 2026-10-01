@@ -21,7 +21,9 @@ import {
   Moon,
   Loader2,
   X,
+  Volume2,
 } from "lucide-react";
+import { speakVoiceReminder, getLocalVoiceSettings } from "@/lib/voice";
 import type { Notification, NotificationPriority } from "@/types/database";
 import {
   markNotificationRead,
@@ -503,6 +505,25 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                           <Clock className="w-3 h-3" /> +24h
                         </button>
                       )}
+
+                      {/* Bouton de lecture vocale instantanée */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const prefs = getLocalVoiceSettings();
+                          const textToSpeak = (item as any).metadata?.voice_text || `${item.title}. ${item.body}`;
+                          speakVoiceReminder({
+                            text: textToSpeak,
+                            language: prefs.voice_language,
+                            voiceType: prefs.voice_type,
+                            repeat: 0,
+                          });
+                        }}
+                        className="p-1.5 rounded-lg text-ink-600 dark:text-ink-400 hover:text-signal dark:hover:text-signal hover:bg-signal-soft/30 active:scale-95 transition-all cursor-pointer"
+                        title="Écouter ce rappel à voix haute"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                      </button>
 
                       <button
                         type="button"

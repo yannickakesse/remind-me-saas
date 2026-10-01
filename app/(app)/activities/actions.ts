@@ -8,7 +8,7 @@ import { activityFormSchema } from "@/lib/validation/activities";
 import { assertNoScheduleConflicts } from "@/lib/activities/schedules";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { assertCanCreateActivity } from "@/lib/subscriptions/server";
-import { resolveEntityNotifications, triggerProactiveReminders } from "@/lib/notifications/engine";
+import { resolveEntityNotifications, invalidateOutdatedEntityReminders, triggerProactiveReminders } from "@/lib/notifications/engine";
 import { DateTime } from "luxon";
 
 /**
@@ -100,6 +100,10 @@ function parseFormData(formData: FormData) {
       category: formData.get("category") || undefined,
       color: formData.get("color"),
       type: formData.get("type"),
+      voiceReminderEnabled:
+        formData.get("voiceReminderEnabled") === "on" ||
+        formData.get("voiceReminderEnabled") === "true" ||
+        formData.get("voiceReminderEnabled") === null,
     },
     organization: {
       organizationName: formData.get("organizationName") || undefined,
@@ -184,6 +188,7 @@ export async function createActivity(formData: FormData) {
         location: parsed.organization.location || null,
         start_date: parsed.schedule.startDate || null,
         end_date: parsed.schedule.endDate || null,
+        voice_reminder_enabled: parsed.info.voiceReminderEnabled,
       })
       .select("id")
       .single();
@@ -299,6 +304,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
         location: parsed.organization.location || null,
         start_date: parsed.schedule.startDate || null,
         end_date: parsed.schedule.endDate || null,
+        voice_reminder_enabled: parsed.info.voiceReminderEnabled,
       })
       .eq("id", activityId)
       .eq("user_id", user.id);
@@ -383,6 +389,22 @@ export async function updateActivity(activityId: string, formData: FormData) {
       console.error("updateActivity sync error:", syncErr);
     }
 
+    // Nettoyage proactif des futurs événements de calendrier "planned" pour cette activité
+    // afin qu'ils soient synchronisés et régénérés fidèlement avec les nouveaux horaires lors du prochain affichage
+    try {
+      const nowIso = DateTime.now().toISO()!;
+      await supabase
+        .from("calendar_events")
+        .delete()
+        .eq("activity_id", activityId)
+        .eq("status", "planned")
+        .gte("starts_at", nowIso);
+    } catch (calErr) {
+      console.warn("updateActivity calendar cleanup warning:", calErr);
+    }
+
+    // Invalider les anciens rappels obsolètes pour recalculer les alertes selon le nouvel horaire
+    await invalidateOutdatedEntityReminders(supabase, activityId, user.id);
     await triggerProactiveReminders(supabase, user.id);
 
     revalidatePath("/activities");

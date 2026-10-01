@@ -258,77 +258,99 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
         </div>
       )}
 
-      {/* Bottom Navigation Bar (< 768px) */}
+      {/* Bottom Navigation Bar (< 768px) — Centrée, équilibrée & ultra-réactive */}
       <nav
         aria-label="Navigation mobile principale"
         data-tour="mobile-nav-bar"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-ink-200 dark:border-ink-800 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md px-1 pt-1 safe-area-bottom shadow-lg print:hidden"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-ink-200/80 dark:border-ink-800/80 bg-canvas-raised/95 dark:bg-ink-950/95 backdrop-blur-xl safe-area-bottom shadow-xl print:hidden"
       >
-        <Link
-          href="/dashboard"
-          prefetch={true}
-          data-tour="nav-dashboard"
-          className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
-            pathname === "/dashboard"
-              ? "text-signal font-bold"
-              : "text-ink-500 dark:text-ink-400 hover:text-ink-800 font-medium"
-          }`}
-        >
-          <LayoutDashboard className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname === "/dashboard" ? 2.2 : 1.8} />
-          <span className="text-[10px] leading-tight">{t("nav.home")}</span>
-        </Link>
+        <div className="max-w-md mx-auto w-full flex items-center justify-around px-2 py-1.5">
+          <Link
+            href="/dashboard"
+            prefetch={true}
+            data-tour="nav-dashboard"
+            className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all duration-150 select-none active:scale-90 active:opacity-75 ${
+              pathname === "/dashboard"
+                ? "text-signal font-bold bg-signal/10 dark:bg-signal/20"
+                : "text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium"
+            }`}
+          >
+            <LayoutDashboard
+              className={`w-5 h-5 mb-1 shrink-0 transition-transform ${
+                pathname === "/dashboard" ? "scale-110 text-signal" : ""
+              }`}
+              strokeWidth={pathname === "/dashboard" ? 2.3 : 1.8}
+            />
+            <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.home")}</span>
+          </Link>
 
-        <Link
-          href="/calendar"
-          prefetch={true}
-          data-tour="nav-calendar"
-          className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
-            pathname.startsWith("/calendar")
-              ? "text-signal font-bold"
-              : "text-ink-500 dark:text-ink-400 hover:text-ink-800 font-medium"
-          }`}
-        >
-          <Calendar className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname.startsWith("/calendar") ? 2.2 : 1.8} />
-          <span className="text-[10px] leading-tight">{t("nav.calendar")}</span>
-        </Link>
+          <Link
+            href="/calendar"
+            prefetch={true}
+            data-tour="nav-calendar"
+            className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all duration-150 select-none active:scale-90 active:opacity-75 ${
+              pathname.startsWith("/calendar")
+                ? "text-signal font-bold bg-signal/10 dark:bg-signal/20"
+                : "text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium"
+            }`}
+          >
+            <Calendar
+              className={`w-5 h-5 mb-1 shrink-0 transition-transform ${
+                pathname.startsWith("/calendar") ? "scale-110 text-signal" : ""
+              }`}
+              strokeWidth={pathname.startsWith("/calendar") ? 2.3 : 1.8}
+            />
+            <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.calendar")}</span>
+          </Link>
 
-        <Link
-          href="/tasks"
-          prefetch={true}
-          data-tour="nav-tasks"
-          className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
-            pathname.startsWith("/tasks")
-              ? "text-signal font-bold"
-              : "text-ink-500 dark:text-ink-400 hover:text-ink-800 font-medium"
-          }`}
-        >
-          <CheckSquare className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname.startsWith("/tasks") ? 2.2 : 1.8} />
-          <span className="text-[10px] leading-tight">{t("nav.tasks")}</span>
-        </Link>
+          <Link
+            href="/tasks"
+            prefetch={true}
+            data-tour="nav-tasks"
+            className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all duration-150 select-none active:scale-90 active:opacity-75 ${
+              pathname.startsWith("/tasks")
+                ? "text-signal font-bold bg-signal/10 dark:bg-signal/20"
+                : "text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium"
+            }`}
+          >
+            <CheckSquare
+              className={`w-5 h-5 mb-1 shrink-0 transition-transform ${
+                pathname.startsWith("/tasks") ? "scale-110 text-signal" : ""
+              }`}
+              strokeWidth={pathname.startsWith("/tasks") ? 2.3 : 1.8}
+            />
+            <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.tasks")}</span>
+          </Link>
 
-        <Link
-          href="/finances"
-          prefetch={true}
-          data-tour="nav-finances"
-          className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] tap-active ${
-            pathname.startsWith("/finances")
-              ? "text-signal font-bold"
-              : "text-ink-500 dark:text-ink-400 hover:text-ink-800 font-medium"
-          }`}
-        >
-          <Wallet className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={pathname.startsWith("/finances") ? 2.2 : 1.8} />
-          <span className="text-[10px] leading-tight">{t("nav.finances")}</span>
-        </Link>
+          <Link
+            href="/finances"
+            prefetch={true}
+            data-tour="nav-finances"
+            className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all duration-150 select-none active:scale-90 active:opacity-75 ${
+              pathname.startsWith("/finances")
+                ? "text-signal font-bold bg-signal/10 dark:bg-signal/20"
+                : "text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium"
+            }`}
+          >
+            <Wallet
+              className={`w-5 h-5 mb-1 shrink-0 transition-transform ${
+                pathname.startsWith("/finances") ? "scale-110 text-signal" : ""
+              }`}
+              strokeWidth={pathname.startsWith("/finances") ? 2.3 : 1.8}
+            />
+            <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.finances")}</span>
+          </Link>
 
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          data-tour="nav-menu"
-          className="flex flex-col items-center justify-center py-1 px-2 rounded-xl min-w-[56px] min-h-[48px] text-ink-500 dark:text-ink-400 hover:text-ink-800 font-medium tap-active focus:outline-none"
-        >
-          <Menu className="w-5 h-5 mb-0.5 shrink-0" strokeWidth={1.8} />
-          <span className="text-[10px] leading-tight">{t("nav.menu")}</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            data-tour="nav-menu"
+            className="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium transition-all duration-150 select-none active:scale-90 active:opacity-75 focus:outline-none cursor-pointer"
+          >
+            <Menu className="w-5 h-5 mb-1 shrink-0" strokeWidth={1.8} />
+            <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.menu")}</span>
+          </button>
+        </div>
       </nav>
     </>
   );

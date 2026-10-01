@@ -103,14 +103,14 @@ self.addEventListener("fetch", (event) => {
   // Ne pas bloquer les requêtes API, Server Actions ou Next.js RSC en ligne
 });
 
-// 4. Web Push Event Handler (Système de notifications Push Mobile & Desktop)
+// 4. Web Push Event Handler (Système de notifications Push Mobile & Desktop avec Rappels Vocaux)
 self.addEventListener("push", (event) => {
   let data = {
     title: "Remind Me",
     body: "Vous avez une nouvelle notification.",
     icon: "/icons/icon-192x192.png",
     badge: "/icons/badge-72x72.png",
-    data: { url: "/notifications" },
+    data: { url: "/notifications", voice_text: null, voice_reminder_enabled: true },
   };
 
   if (event.data) {
@@ -121,7 +121,11 @@ self.addEventListener("push", (event) => {
         body: json.body || data.body,
         icon: json.icon || data.icon,
         badge: json.badge || data.badge,
-        data: json.data || { url: json.link || "/notifications" },
+        data: json.data || {
+          url: json.link || "/notifications",
+          voice_text: json.voice_text || null,
+          voice_reminder_enabled: json.voice_reminder_enabled !== false,
+        },
       };
     } catch {
       data.body = event.data.text();
@@ -133,28 +137,64 @@ self.addEventListener("push", (event) => {
     icon: data.icon,
     badge: data.badge,
     data: data.data,
-    vibrate: [100, 50, 100],
+    vibrate: [200, 100, 200, 100, 200],
     tag: (data.data && data.data.category) || "remindme-alert",
     renotify: true,
+    actions: [
+      { action: "listen", title: "🔊 Écouter" },
+      { action: "open", title: "Ouvrir" },
+    ],
   };
 
+  // Notifier tous les onglets / PWA ouverts en arrière-plan pour lecture vocale immédiate
+  const broadcastPromise = self.clients
+    .matchAll({ type: "window", includeUncontrolled: true })
+    .then((windowClients) => {
+      for (const client of windowClients) {
+        client.postMessage({
+          type: "REMINDME_VOICE_NOTIFICATION",
+          payload: {
+            title: data.title,
+            body: data.body,
+            voice_text: data.data?.voice_text,
+            voice_reminder_enabled: data.data?.voice_reminder_enabled !== false,
+            data: data.data,
+          },
+        });
+      }
+    });
+
   event.waitUntil(
-    self.registration.showNotification(data.title, notificationOptions)
+    Promise.all([
+      self.registration.showNotification(data.title, notificationOptions),
+      broadcastPromise,
+    ])
   );
 });
 
-// 5. Notification Click Handler (Routage direct vers l'entité concernée)
+// 5. Notification Click Handler (Déverrouillage téléphone & lecture vocale immédiate)
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const targetUrl =
-    (event.notification.data && event.notification.data.url) || "/notifications";
+  const baseUrl = (event.notification.data && event.notification.data.url) || "/notifications";
+  const hasVoice = Boolean(event.notification.data && event.notification.data.voice_text);
+  const isActionListen = event.action === "listen";
+
+  const targetUrl = hasVoice || isActionListen
+    ? (baseUrl.includes("?") ? `${baseUrl}&speak_voice=1` : `${baseUrl}?speak_voice=1`)
+    : baseUrl;
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
         if ("focus" in client) {
           client.focus();
+          if (hasVoice) {
+            client.postMessage({
+              type: "REMINDME_TRIGGER_VOICE_SPEAK",
+              voice_text: event.notification.data.voice_text,
+            });
+          }
           if ("navigate" in client) {
             return client.navigate(targetUrl);
           }

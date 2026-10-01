@@ -16,14 +16,20 @@ export async function GET() {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("timezone, country_code")
-      .eq("id", user.id)
-      .maybeSingle();
+    const [{ data: profile }, { data: prefs }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("timezone, country_code, full_name, locale")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("notification_preferences")
+        .select("voice_reminders, voice_type, voice_language, repeat_voice")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
 
     const timezone = getUserTimezone(profile);
-
 
     // 1. Évaluer les rappels récents
     await evaluateSmartReminders(supabase, user.id, timezone);
@@ -31,7 +37,7 @@ export async function GET() {
     // 2. Récupérer les notifications non lues actives
     const { data: unread } = await supabase
       .from("notifications")
-      .select("id, title, body, category, kind, link, priority, created_at")
+      .select("id, title, body, category, kind, link, priority, metadata, created_at")
       .eq("user_id", user.id)
       .is("read_at", null)
       .neq("status", "resolved")
@@ -43,6 +49,13 @@ export async function GET() {
       success: true,
       unread: unread || [],
       count: unread?.length || 0,
+      userName: profile?.full_name || null,
+      voicePrefs: {
+        voice_reminders: prefs?.voice_reminders ?? true,
+        voice_type: prefs?.voice_type ?? "system",
+        voice_language: prefs?.voice_language ?? "fr",
+        repeat_voice: prefs?.repeat_voice ?? 0,
+      },
     });
   } catch (error: any) {
     console.error("[Notifications:Poll] Erreur:", error);

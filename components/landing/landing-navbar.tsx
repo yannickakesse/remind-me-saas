@@ -80,17 +80,18 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Direct Sign in / Action Pill */}
             {user ? (
               <Link
                 href="/dashboard"
                 prefetch={true}
-                className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active shrink-0"
               >
-                <span>{t("nav.dashboard")}</span>
+                <span className="hidden sm:inline">{t("nav.dashboard")}</span>
+                <span className="sm:hidden">Tableau de bord</span>
                 <svg
-                  className="w-3.5 h-3.5"
+                  className="w-3.5 h-3.5 shrink-0"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -103,7 +104,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
               <Link
                 href="/login"
                 prefetch={true}
-                className="inline-flex items-center gap-1 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active"
+                className="inline-flex items-center gap-1 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active shrink-0"
               >
                 <span>{t("landing.nav_login")}</span>
               </Link>
@@ -114,7 +115,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
               <Link
                 href="/register"
                 prefetch={true}
-                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active"
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
               >
                 <span>{t("landing.nav_start")}</span>
                 <svg
@@ -129,13 +130,15 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
               </Link>
             )}
 
-            {/* Interactive Language Selector */}
-            <LanguageSelector variant="pill" />
+            {/* Interactive Language Selector (Visible on Desktop/Tablet, accessible in Drawer on Mobile) */}
+            <div className="hidden sm:inline-flex">
+              <LanguageSelector variant="pill" />
+            </div>
 
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-1.5 sm:p-2 rounded-full text-ink-500 hover:text-ink-950 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
+              className="p-1.5 sm:p-2 rounded-full text-ink-500 hover:text-ink-950 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0"
               title={theme === "dark" ? "Mode clair" : "Mode sombre"}
               aria-label="Changer le thème"
             >

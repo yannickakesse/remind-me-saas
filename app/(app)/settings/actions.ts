@@ -87,6 +87,10 @@ export async function updateNotificationPrefs(formData: FormData) {
     quiet_hours_start: (formData.get("quiet_hours_start") as string) || "22:00",
     quiet_hours_end: (formData.get("quiet_hours_end") as string) || "08:00",
     preferred_locale: (formData.get("preferred_locale") as string) || "fr",
+    voice_reminders: formData.get("voice_reminders") === "on",
+    voice_type: (formData.get("voice_type") as string) || "system",
+    voice_language: (formData.get("voice_language") as string) || "fr",
+    repeat_voice: formData.get("repeat_voice") ? Number(formData.get("repeat_voice")) : 0,
   });
 
   if (!parsed.success) throw new Error("Formulaire invalide.");
@@ -107,6 +111,10 @@ export async function updateNotificationPrefs(formData: FormData) {
       quiet_hours_start: parsed.data.quiet_hours_start,
       quiet_hours_end: parsed.data.quiet_hours_end,
       preferred_locale: parsed.data.preferred_locale,
+      voice_reminders: parsed.data.voice_reminders,
+      voice_type: parsed.data.voice_type,
+      voice_language: parsed.data.voice_language,
+      repeat_voice: parsed.data.repeat_voice,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 

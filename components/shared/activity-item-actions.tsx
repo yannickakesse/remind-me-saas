@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Trash2, Archive, RotateCcw, Edit3, Pause, Play } from "lucide-react";
+import { Trash2, Archive, RotateCcw, Edit3, Copy, Pause, Play } from "lucide-react";
 import { archiveActivity, restoreActivity, deleteActivity, suspendActivity, resumeActivity } from "@/app/(app)/activities/actions";
 import { Button } from "@/components/ui/button";
 
@@ -148,6 +148,14 @@ export function ActivityItemActions({
     return (
       <div className="flex items-center gap-2">
         {error && <span className="text-danger text-xs mr-2">{error}</span>}
+        <Link
+          href={`/activities/new?duplicate_from=${activityId}`}
+          title="Dupliquer cette activité archivée"
+          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
+        >
+          <Copy className="w-3.5 h-3.5" />
+          Dupliquer
+        </Link>
         <button
           type="button"
           onClick={handleRestore}
@@ -183,6 +191,14 @@ export function ActivityItemActions({
           <Play className="w-3.5 h-3.5 fill-emerald-800" />
           Reprendre / Activer
         </button>
+        <Link
+          href={`/activities/new?duplicate_from=${activityId}`}
+          title="Dupliquer cette activité"
+          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
+        >
+          <Copy className="w-3.5 h-3.5" />
+          Dupliquer
+        </Link>
         <button
           type="button"
           onClick={() => setShowDeleteConfirm(true)}
@@ -206,6 +222,14 @@ export function ActivityItemActions({
         >
           <Edit3 className="w-3.5 h-3.5" />
           Modifier
+        </Link>
+        <Link
+          href={`/activities/new?duplicate_from=${activityId}`}
+          title="Dupliquer cette activité pour créer une nouvelle occurrence"
+          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:text-ink-950 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
+        >
+          <Copy className="w-3.5 h-3.5 text-ink-500" />
+          Dupliquer
         </Link>
         <button
           type="button"

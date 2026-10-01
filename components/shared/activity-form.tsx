@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, Clock, Plus, Trash2, AlertTriangle } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, Plus, Trash2, AlertTriangle, Volume2 } from "lucide-react";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,6 +52,7 @@ interface ActivityFormProps {
     frequency: string;
     paymentDay: string;
     paymentTerms: string;
+    voiceReminderEnabled?: boolean;
   };
   submitLabel?: string;
 }
@@ -76,6 +77,9 @@ export function ActivityForm({
   const [color, setColor] = useState(initial?.color ?? COLORS[0]!);
   const [variableHours, setVariableHours] = useState(
     initial?.variableHours ?? false
+  );
+  const [voiceReminderEnabled, setVoiceReminderEnabled] = useState(
+    initial?.voiceReminderEnabled ?? true
   );
   const [schedules, setSchedules] = useState<ScheduleRow[]>(
     initial?.schedules ?? []
@@ -174,6 +178,7 @@ export function ActivityForm({
     const formData = new FormData(e.currentTarget);
     formData.set("color", color);
     formData.set("schedulesJson", JSON.stringify(schedules));
+    formData.set("voiceReminderEnabled", voiceReminderEnabled ? "on" : "off");
 
     try {
       const res = await action(formData);
@@ -408,6 +413,39 @@ export function ActivityForm({
         )}
       </section>
 
+      {/* ---- Rappel Vocal Intelligent ---- */}
+      <section className="rounded-xl border border-signal/30 bg-signal-soft/15 p-4 sm:p-5 shadow-sm space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-signal text-white shrink-0 mt-0.5">
+              <Volume2 className="w-4 h-4" />
+            </div>
+            <div>
+              <label htmlFor="voiceReminderEnabled" className="text-sm font-bold text-ink-950 flex items-center gap-2 cursor-pointer">
+                Lire ce rappel à voix haute
+                <span className="px-2 py-0.2 rounded text-[10px] font-bold bg-signal-soft text-signal border border-signal/20">
+                  Synthèse vocale
+                </span>
+              </label>
+              <p className="text-xs text-ink-600 mt-1 leading-relaxed">
+                Annoncer automatiquement cette activité par synthèse vocale sur votre appareil au moment du rappel (ex. : « Bonjour Yannick. Vous avez une réunion à 15 heures »).
+              </p>
+            </div>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+            <input
+              type="checkbox"
+              id="voiceReminderEnabled"
+              name="voiceReminderEnabled"
+              checked={voiceReminderEnabled}
+              onChange={(e) => setVoiceReminderEnabled(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-ink-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ink-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-signal"></div>
+          </label>
+        </div>
+      </section>
+
       {/* ---- Accordéon : Détails complémentaires (optionnels) ---- */}
       <section className="rounded-xl border border-ink-200/80 bg-canvas overflow-hidden shadow-sm">
         <button
@@ -622,7 +660,11 @@ export function ActivityForm({
             data-tour="activity-form-submit"
             className="w-full sm:w-auto sm:min-w-[180px]"
           >
-            {submitting ? "Enregistrement..." : submitLabel}
+            {submitting
+              ? currentActivityId
+                ? "Mise à jour en cours..."
+                : "Création en cours..."
+              : submitLabel}
           </Button>
         </div>
       </div>

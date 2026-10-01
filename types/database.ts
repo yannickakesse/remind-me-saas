@@ -237,6 +237,7 @@ export interface Database {
           location: string | null;
           start_date: string | null;
           end_date: string | null;
+          voice_reminder_enabled?: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -256,6 +257,7 @@ export interface Database {
           location?: string | null;
           start_date?: string | null;
           end_date?: string | null;
+          voice_reminder_enabled?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["activities"]["Insert"]>;
         Relationships: [
@@ -639,6 +641,10 @@ export interface Database {
           quiet_hours_start: string;
           quiet_hours_end: string;
           preferred_locale: SupportedLocale;
+          voice_reminders?: boolean;
+          voice_type?: "system" | "female" | "male";
+          voice_language?: "fr" | "en" | "es";
+          repeat_voice?: number;
           updated_at: string;
         };
         Insert: {
@@ -661,6 +667,10 @@ export interface Database {
           quiet_hours_start?: string;
           quiet_hours_end?: string;
           preferred_locale?: SupportedLocale;
+          voice_reminders?: boolean;
+          voice_type?: "system" | "female" | "male";
+          voice_language?: "fr" | "en" | "es";
+          repeat_voice?: number;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["notification_preferences"]["Insert"]>;

@@ -45,6 +45,7 @@ export const activityInfoSchema = z.object({
     "salaried_job", "freelance", "contract", "mission", "own_business",
     "commerce", "coaching", "consulting", "teaching", "side_activity", "other",
   ]),
+  voiceReminderEnabled: z.boolean().default(true),
 });
 
 // ---- Organisation -----------------------------------------------------------

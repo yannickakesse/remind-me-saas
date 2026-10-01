@@ -106,7 +106,7 @@ export async function resolveNotification(
       await supabase
         .from("calendar_events")
         .update({ status: "completed" })
-        .eq("id", entityId)
+        .or(`id.eq.${entityId},activity_id.eq.${entityId}`)
         .eq("user_id", user.id);
     }
     // 5. DÉPENSE PROGRAMMÉE (SCHEDULED EXPENSE)

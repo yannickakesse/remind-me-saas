@@ -202,23 +202,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, action: "mark_task_done" });
     }
 
-    // 4. MARQUER UNE SÉANCE / ÉVÉNEMENT DE CALENDRIER COMME TERMINÉ
-    if ((action === "mark_event_done" || action === "mark_event_completed") && entityId) {
-      await supabase
-        .from("calendar_events")
-        .update({ status: "completed" })
-        .eq("id", entityId)
-        .eq("user_id", user.id);
+    // 4. MARQUER UNE SÉANCE / ÉVÉNEMENT DE CALENDRIER OU ACTIVITÉ COMME TERMINÉ
+    if ((action === "mark_event_done" || action === "mark_event_completed") && (entityId || notificationId)) {
+      if (entityId) {
+        // 1. Mettre à jour dans calendar_events (par id direct ou par activity_id)
+        await supabase
+          .from("calendar_events")
+          .update({ status: "completed" })
+          .or(`id.eq.${entityId},activity_id.eq.${entityId}`)
+          .eq("user_id", user.id);
 
-      await supabase
-        .from("notifications")
-        .update({
-          status: "resolved",
-          resolved_at: nowIso,
-          read_at: nowIso,
-        })
-        .eq("user_id", user.id)
-        .eq("entity_id", entityId);
+        // 2. Résoudre immédiatement toutes les notifications associées à cette entité
+        await supabase
+          .from("notifications")
+          .update({
+            status: "resolved",
+            resolved_at: nowIso,
+            read_at: nowIso,
+          })
+          .eq("user_id", user.id)
+          .eq("entity_id", entityId);
+      }
 
       if (notificationId) {
         await supabase

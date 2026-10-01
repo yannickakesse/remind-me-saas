@@ -33,7 +33,21 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { updateNotificationPrefs } from "@/app/(app)/settings/actions";
 import { urlBase64ToUint8Array, DEFAULT_VAPID_PUBLIC_KEY } from "@/lib/push/client";
-import { isSoundEnabled, setSoundEnabled, testChimeSound } from "@/lib/notifications/sound";
+import {
+  isSoundEnabled,
+  setSoundEnabled,
+  testChimeSound,
+} from "@/lib/notifications/sound";
+import {
+  initVoiceEngine,
+  speakVoiceReminder,
+  stopSpeaking,
+  generateVoiceMessage,
+  saveLocalVoiceSettings,
+  getLocalVoiceSettings,
+  isSpeechSupported,
+} from "@/lib/voice";
+import type { VoiceType, VoiceLanguage, RepeatVoice } from "@/lib/voice";
 import type { NotificationPreference } from "@/types/database";
 
 const VAPID_PUBLIC_KEY = DEFAULT_VAPID_PUBLIC_KEY;
@@ -104,8 +118,24 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
     notificationPreferences?.preferred_locale ?? (notifPrefs?.preferred_locale as string ?? "fr")
   );
 
+  // Préférences Vocales Intelligentes (Text-to-Speech)
+  const [voiceReminders, setVoiceReminders] = useState(
+    notificationPreferences?.voice_reminders ?? (notifPrefs?.voice_reminders as boolean ?? true)
+  );
+  const [voiceType, setVoiceType] = useState<VoiceType>(
+    (notificationPreferences?.voice_type as VoiceType) ?? ((notifPrefs?.voice_type as VoiceType) || "system")
+  );
+  const [voiceLanguage, setVoiceLanguage] = useState<VoiceLanguage>(
+    (notificationPreferences?.voice_language as VoiceLanguage) ?? ((notifPrefs?.voice_language as VoiceLanguage) || "fr")
+  );
+  const [repeatVoice, setRepeatVoice] = useState<RepeatVoice>(
+    ((notificationPreferences?.repeat_voice ?? Number(notifPrefs?.repeat_voice) ?? 0) as RepeatVoice)
+  );
+
   const [saving, setSaving] = useState(false);
   const [soundEnabled, setLocalSoundEnabled] = useState(true);
+  const [testingVoice, setTestingVoice] = useState(false);
+  const [voiceSampleText, setVoiceSampleText] = useState<string | null>(null);
 
   // Tests & États réels de chaque canal
   const [testingInApp, setTestingInApp] = useState(false);
@@ -121,7 +151,15 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
 
   useEffect(() => {
     setLocalSoundEnabled(isSoundEnabled());
-  }, []);
+    initVoiceEngine();
+    const local = getLocalVoiceSettings();
+    if (notificationPreferences?.voice_reminders === undefined && notifPrefs?.voice_reminders === undefined) {
+      setVoiceReminders(local.voice_reminders);
+      setVoiceType(local.voice_type);
+      setVoiceLanguage(local.voice_language);
+      setRepeatVoice(local.repeat_voice);
+    }
+  }, [notificationPreferences, notifPrefs]);
 
   function handleToggleSound(enabled: boolean) {
     setLocalSoundEnabled(enabled);
@@ -134,6 +172,44 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   async function handleTestChime() {
     await testChimeSound();
     push("🔔 Le carillon audio Remind Me a été joué avec succès !", "success");
+  }
+
+  function handleToggleVoiceReminders(enabled: boolean) {
+    setVoiceReminders(enabled);
+    saveLocalVoiceSettings({ voice_reminders: enabled });
+  }
+
+  async function handleTestVoice() {
+    setTestingVoice(true);
+    const sampleText = generateVoiceMessage({
+      userName: "Yannick",
+      activityTitle: "Réunion avec Monsieur Kouassi",
+      timeStr: "15:00",
+      category: "activity",
+      language: voiceLanguage,
+    });
+    setVoiceSampleText(sampleText);
+
+    try {
+      saveLocalVoiceSettings({
+        voice_reminders: voiceReminders,
+        voice_type: voiceType,
+        voice_language: voiceLanguage,
+        repeat_voice: repeatVoice,
+      });
+
+      await speakVoiceReminder({
+        text: sampleText,
+        language: voiceLanguage,
+        voiceType,
+        repeat: repeatVoice,
+      });
+      push("🔊 Synthèse vocale exécutée avec succès !", "success");
+    } catch {
+      push("Impossible d'exécuter la synthèse vocale sur ce navigateur.", "error");
+    } finally {
+      setTestingVoice(false);
+    }
   }
 
   // Détection de l'environnement PWA & Web Push
@@ -385,6 +461,19 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       formData.set("quiet_hours_start", quietHoursStart);
       formData.set("quiet_hours_end", quietHoursEnd);
       formData.set("preferred_locale", preferredLocale);
+
+      if (voiceReminders) formData.set("voice_reminders", "on");
+      formData.set("voice_type", voiceType);
+      formData.set("voice_language", voiceLanguage);
+      formData.set("repeat_voice", String(repeatVoice));
+
+      // Synchronisation locale immédiate
+      saveLocalVoiceSettings({
+        voice_reminders: voiceReminders,
+        voice_type: voiceType,
+        voice_language: voiceLanguage,
+        repeat_voice: repeatVoice,
+      });
 
       await updateNotificationPrefs(formData);
       push("Préférences de notifications enregistrées avec succès.", "success");
@@ -665,48 +754,205 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         </div>
       </div>
 
-      {/* Section 1.5: Sonnerie Audio de Rappel */}
-      <div className="p-4 rounded-2xl border border-signal/30 bg-signal-soft/20 space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-xl bg-signal text-white shrink-0 mt-0.5">
-              {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-ink-950">Carillon sonore officiel Remind Me</span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                  soundEnabled ? "bg-positive-soft text-positive" : "bg-ink-100 text-ink-600"
-                }`}>
-                  {soundEnabled ? "Son activé" : "Son coupé"}
-                </span>
+      {/* Section 1.5: Sonnerie Audio & Rappels Vocaux Intelligents */}
+      <div className="space-y-4">
+        {/* Carillon Sonore Officiel */}
+        <div className="p-4 rounded-2xl border border-signal/30 bg-signal-soft/20 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-signal text-white shrink-0 mt-0.5">
+                {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               </div>
-              <p className="text-xs text-ink-600 mt-0.5">
-                Joue un carillon agréable au moment exact des échéances de tâches et alertes urgentes.
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-ink-950">Carillon sonore officiel Remind Me</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    soundEnabled ? "bg-positive-soft text-positive" : "bg-ink-100 text-ink-600"
+                  }`}>
+                    {soundEnabled ? "Son activé" : "Son coupé"}
+                  </span>
+                </div>
+                <p className="text-xs text-ink-600 mt-0.5">
+                  Joue un carillon agréable au moment exact des échéances de tâches et alertes urgentes.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={handleTestChime}
+                className="text-xs"
+              >
+                <Play className="w-3.5 h-3.5 mr-1.5 fill-current text-signal" /> Écouter
+              </Button>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={soundEnabled}
+                  onChange={(e) => handleToggleSound(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-ink-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ink-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-signal"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Rappels Vocaux Intelligents (Text-to-Speech) */}
+        <div className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-4 ${
+          voiceReminders
+            ? "border-signal/50 bg-signal-soft/25 shadow-sm"
+            : "border-ink-200 bg-canvas-raised"
+        }`}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-signal text-white shrink-0 mt-0.5 shadow-sm">
+                <Volume2 className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-bold text-ink-950">🔊 Rappels vocaux intelligents (Text-to-Speech)</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    voiceReminders ? "bg-positive-soft text-positive border border-positive/20" : "bg-ink-100 text-ink-600"
+                  }`}>
+                    {voiceReminders ? "Lecture vocale active" : "Désactivé"}
+                  </span>
+                </div>
+                <p className="text-xs text-ink-600 mt-1 leading-relaxed">
+                  Lit automatiquement vos rappels à voix haute sur votre téléphone avec le moteur natif (sans coût IA), lorsque l'application est ouverte ou consultée.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={voiceReminders}
+                  onChange={(e) => handleToggleVoiceReminders(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-ink-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ink-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-signal"></div>
+              </label>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              onClick={handleTestChime}
-              className="text-xs"
-            >
-              <Play className="w-3.5 h-3.5 mr-1.5 fill-current text-signal" /> Écouter
-            </Button>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={soundEnabled}
-                onChange={(e) => handleToggleSound(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-ink-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ink-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-signal"></div>
-            </label>
-          </div>
+          {voiceReminders && (
+            <div className="pt-3 border-t border-signal/20 space-y-4 animate-in fade-in">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                {/* 1. Langue de la voix */}
+                <div>
+                  <label className="block text-xs font-bold text-ink-900 mb-1.5 flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-signal" />
+                    🌍 Langue de la voix
+                  </label>
+                  <select
+                    value={voiceLanguage}
+                    onChange={(e) => {
+                      const val = e.target.value as VoiceLanguage;
+                      setVoiceLanguage(val);
+                      saveLocalVoiceSettings({ voice_language: val });
+                    }}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal"
+                  >
+                    <option value="fr">🇫🇷 Français (Par défaut)</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="es">🇪🇸 Español</option>
+                  </select>
+                </div>
+
+                {/* 2. Type de voix */}
+                <div>
+                  <label className="block text-xs font-bold text-ink-900 mb-1.5 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-signal" />
+                    👤 Type de voix
+                  </label>
+                  <select
+                    value={voiceType}
+                    onChange={(e) => {
+                      const val = e.target.value as VoiceType;
+                      setVoiceType(val);
+                      saveLocalVoiceSettings({ voice_type: val });
+                    }}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal"
+                  >
+                    <option value="system">⚙️ Voix système par défaut</option>
+                    <option value="female">👩 Voix féminine</option>
+                    <option value="male">👨 Voix masculine</option>
+                  </select>
+                </div>
+
+                {/* 3. Répétition */}
+                <div>
+                  <label className="block text-xs font-bold text-ink-900 mb-1.5 flex items-center gap-1.5">
+                    <RefreshCw className="w-3.5 h-3.5 text-signal" />
+                    🔁 Répétition
+                  </label>
+                  <select
+                    value={repeatVoice}
+                    onChange={(e) => {
+                      const val = Number(e.target.value) as RepeatVoice;
+                      setRepeatVoice(val);
+                      saveLocalVoiceSettings({ repeat_voice: val });
+                    }}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal"
+                  >
+                    <option value={0}>1 seule fois (sans répétition)</option>
+                    <option value={1}>Répéter 1 fois (2 lectures)</option>
+                    <option value={2}>Répéter 2 fois (3 lectures)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Barre de test interactif & Aperçu */}
+              <div className="p-3 rounded-xl bg-canvas border border-ink-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] font-bold text-ink-800 flex items-center gap-1.5">
+                    <span>Aperçu du rappel vocal généré :</span>
+                  </div>
+                  <p className="text-xs text-ink-600 italic truncate mt-0.5 font-medium">
+                    {voiceSampleText || generateVoiceMessage({
+                      userName: "Yannick",
+                      activityTitle: "Réunion avec Monsieur Kouassi",
+                      timeStr: "15:00",
+                      category: "activity",
+                      language: voiceLanguage,
+                    })}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {testingVoice && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        stopSpeaking();
+                        setTestingVoice(false);
+                      }}
+                      className="text-xs text-danger"
+                    >
+                      Arrêter
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="primary"
+                    loading={testingVoice}
+                    onClick={handleTestVoice}
+                    className="text-xs py-1.5"
+                  >
+                    <Play className="w-3.5 h-3.5 mr-1.5 fill-current" /> Tester la voix
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
