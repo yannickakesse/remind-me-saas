@@ -325,7 +325,7 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
             return (
               <div
                 key={activity.id}
-                className="flex flex-col justify-between gap-4 rounded-xl border border-ink-200 bg-canvas-raised p-5 hover:border-ink-300 hover:shadow-xs transition-all"
+                className="flex flex-col justify-between gap-4 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md p-6 hover:border-signal/50 hover:shadow-md transition-all shadow-xs"
               >
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">

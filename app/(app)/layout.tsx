@@ -59,7 +59,7 @@ export default async function AppLayout({
   const tourCompleted = Boolean(tourState?.completed || tourState?.skipped);
 
   return (
-    <div className="flex min-h-screen bg-canvas flex-col md:flex-row w-full max-w-full overflow-x-hidden">
+    <div className="flex min-h-screen md:h-screen w-full overflow-hidden bg-canvas text-ink-950 dark:text-white flex-col md:flex-row">
       {/* Service Worker PWA, push registration & instant background precaching */}
       <PwaRegistrar />
       <BackgroundPreloader />
@@ -71,11 +71,11 @@ export default async function AppLayout({
       {/* Header & Bottom Nav Mobile (< 768px) */}
       <MobileNav unreadCount={unreadCount} />
 
-      {/* Sidebar Desktop (>= 768px) */}
-      <aside className="hidden md:flex w-64 shrink-0 flex-col justify-between border-r border-ink-200 bg-canvas-raised px-4 py-6 print:hidden">
-        <div className="space-y-6">
+      {/* Sidebar Desktop (>= 768px) — Toujours fixe, propre et jamais coupée */}
+      <aside className="hidden md:flex w-64 shrink-0 flex-col justify-between border-r border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md px-4 py-6 h-screen z-30 shadow-xs print:hidden">
+        <div className="space-y-6 flex-1 min-h-0 flex flex-col">
           {/* Logo & Titre */}
-          <div className="flex items-center justify-between px-2 gap-2">
+          <div className="flex items-center justify-between px-2 gap-2 shrink-0">
             <Link href="/dashboard" className="flex items-center group">
               <RemindMeLogo size="sm" showText={true} />
             </Link>
@@ -92,23 +92,25 @@ export default async function AppLayout({
           </div>
 
           {/* Recherche Globale / Command Palette */}
-          <div className="px-1">
+          <div className="px-1 shrink-0">
             <CommandPalette />
           </div>
 
           {/* Navigation Réactive & Multilingue */}
-          <SidebarNav />
+          <div className="flex-1 overflow-y-auto no-scrollbar">
+            <SidebarNav />
+          </div>
         </div>
 
         {/* Profil utilisateur & Sélecteur de Langue en bas */}
-        <div className="border-t border-ink-100 pt-3 px-2 space-y-1.5">
+        <div className="border-t border-ink-200/80 dark:border-ink-800/80 pt-3 px-2 space-y-1.5 shrink-0">
           <div className="flex items-center justify-between px-2">
-            <span className="text-[11px] font-medium text-ink-400">Langue</span>
+            <span className="text-[11px] font-medium text-ink-500">Langue</span>
             <LanguageSelector variant="pill" />
           </div>
           <Link
             href="/settings"
-            className="group flex items-center gap-3 rounded-xl p-2.5 hover:bg-ink-100/70 dark:hover:bg-ink-800/60 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            className="group flex items-center gap-3 rounded-2xl p-2.5 hover:bg-ink-100/70 dark:hover:bg-ink-800/60 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
             {profile.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -132,9 +134,11 @@ export default async function AppLayout({
         </div>
       </aside>
 
-      {/* Contenu principal avec padding adapté pour la bottom nav mobile */}
-      <main className="flex-1 p-3.5 sm:p-6 md:p-8 max-w-7xl mx-auto w-full min-w-0 max-w-full overflow-y-auto pb-24 md:pb-8 print:p-0 print:m-0 print:pb-0 print:max-w-none">
-        {children}
+      {/* Contenu principal défilable avec scroll indépendant */}
+      <main className="flex-1 min-h-screen md:min-h-0 md:h-screen overflow-y-auto overflow-x-hidden min-w-0 p-3.5 sm:p-6 md:p-8 pb-24 md:pb-8 relative isolate">
+        <div className="max-w-7xl mx-auto w-full min-w-0 space-y-6">
+          {children}
+        </div>
       </main>
     </div>
   );

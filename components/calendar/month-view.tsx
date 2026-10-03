@@ -38,16 +38,16 @@ export function MonthView({
   const weekdayLabels = days.slice(0, 7).map((d) => d.setLocale("fr").toFormat("ccc"));
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-ink-100 shadow-xs">
+    <div className="overflow-x-auto rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm p-1.5 sm:p-3">
       <div className="min-w-[640px]">
-        <div className="grid grid-cols-7 border-b border-ink-100 bg-canvas-raised">
+        <div className="grid grid-cols-7 border-b border-ink-200/80 dark:border-ink-800/80 bg-canvas/80 dark:bg-ink-950/80 rounded-2xl mb-1">
           {weekdayLabels.map((label) => (
-            <div key={label} className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-ink-500">
+            <div key={label} className="px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wider text-ink-600 dark:text-ink-400">
               {label}
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7">
+        <div className="grid grid-cols-7 rounded-2xl overflow-hidden border border-ink-200/80 dark:border-ink-800/80">
           {days.map((day) => {
             const iso = day.toISODate()!;
             const isCurrentMonth = day.month === anchor.month;
@@ -58,30 +58,30 @@ export function MonthView({
             return (
               <div
                 key={iso}
-                className={`min-h-[110px] border-b border-r border-ink-100 p-1.5 last:border-r-0 ${
-                  isCurrentMonth ? "bg-canvas-raised" : "bg-canvas"
+                className={`min-h-[115px] border-b border-r border-ink-200/70 dark:border-ink-800/70 p-2 last:border-r-0 ${
+                  isCurrentMonth ? "bg-canvas-raised dark:bg-slate-900" : "bg-canvas/60 dark:bg-ink-950/60"
                 }`}
               >
                 <Link
                   href={`/calendar?view=day&date=${iso}`}
-                  className={`mb-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
+                  className={`mb-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-transform hover:scale-110 ${
                     isToday
-                      ? "bg-signal font-semibold text-white"
+                      ? "bg-signal font-extrabold text-white shadow-xs"
                       : isCurrentMonth
-                        ? "text-ink-950"
-                        : "text-ink-300"
+                        ? "text-ink-950 dark:text-white hover:text-signal"
+                        : "text-ink-400 dark:text-ink-600"
                   }`}
                 >
                   {day.day}
                 </Link>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   {dayEvents.slice(0, MAX_VISIBLE_PER_DAY).map((event) => (
                     <EventPill key={event.id} event={event} timezone={timezone} hasConflict={conflictIds.has(event.id)} />
                   ))}
                   {overflow > 0 ? (
                     <Link
                       href={`/calendar?view=day&date=${iso}`}
-                      className="px-1 text-xs font-medium text-signal hover:underline"
+                      className="px-1 text-xs font-bold text-signal hover:underline"
                     >
                       +{overflow} de plus
                     </Link>
