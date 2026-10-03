@@ -155,17 +155,17 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
   }
 
   return (
-    <div className="max-w-lg">
+    <div className="max-w-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-md">
       <div className="mb-6 flex items-center gap-4">
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={avatarUrl}
             alt="Photo de profil"
-            className="h-16 w-16 rounded-full object-cover ring-2 ring-ink-200 shadow-sm"
+            className="h-16 w-16 rounded-full object-cover ring-2 ring-zinc-300 dark:ring-zinc-700 shadow-sm"
           />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-signal-soft text-lg font-semibold text-signal ring-2 ring-ink-200">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-signal-soft text-lg font-bold text-signal ring-2 ring-zinc-300 dark:ring-zinc-700">
             {initials(computedFullName || profile.full_name)}
           </div>
         )}
@@ -176,10 +176,11 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
             size="sm"
             loading={uploading}
             onClick={() => setIsAvatarModalOpen(true)}
+            className="font-bold text-xs"
           >
             Changer la photo ou l&apos;avatar
           </Button>
-          <p className="mt-1 text-xs text-ink-500">
+          <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300 font-medium">
             Sélectionnez une photo de smartphone (compressée automatiquement) ou un avatar stylisé.
           </p>
         </div>
@@ -271,22 +272,22 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
           </Select>
         </Field>
 
-        <Button type="submit" loading={saving} className="self-start">
+        <Button type="submit" loading={saving} className="self-start font-bold">
           Enregistrer
         </Button>
       </form>
 
       {/* Carte d'Aide & Relance du Guide Interactif */}
-      <div className="mt-8 pt-6 border-t border-ink-200">
-        <div className="rounded-2xl border border-ink-200 bg-canvas-raised p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/80 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-ink-950 flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gold/15 text-gold-dark font-extrabold text-xs">
+            <h3 className="text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gold/15 text-gold-dark font-black text-xs">
                 ?
               </span>
               Guide & Visite Interactive
             </h3>
-            <p className="text-xs text-ink-600 leading-relaxed">
+            <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed font-medium">
               Besoin de revoir le fonctionnement de Remind Me ? Relancez le tour interactif pas-à-pas à tout moment.
             </p>
           </div>

@@ -60,19 +60,19 @@ export function SecuritySection() {
   }
 
   return (
-    <div className="max-w-md space-y-6">
+    <div className="max-w-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-md space-y-6">
       <div>
-        <h3 className="text-base font-bold text-ink-950 flex items-center gap-2">
+        <h3 className="text-base font-extrabold text-zinc-950 dark:text-white flex items-center gap-2">
           <KeyRound className="w-4 h-4 text-signal" />
-          Sécurité & Mot de passe
+          Sécurité &amp; Mot de passe
         </h3>
-        <p className="text-xs text-ink-500 mt-1">
+        <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 font-medium">
           Mettez à jour votre mot de passe pour garantir la protection de vos données d'activités et financières.
         </p>
       </div>
 
       {globalError && (
-        <div className="rounded-xl border border-danger/30 bg-danger-soft p-3.5 text-xs font-semibold text-danger animate-in fade-in">
+        <div className="rounded-xl border border-rose-300 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 p-3.5 text-xs font-bold text-rose-700 dark:text-rose-300 animate-in fade-in">
           {globalError}
         </div>
       )}
@@ -124,7 +124,7 @@ export function SecuritySection() {
         </Field>
 
         <div className="pt-2">
-          <Button type="submit" loading={saving} className="w-full sm:w-auto">
+          <Button type="submit" loading={saving} className="w-full sm:w-auto font-bold">
             <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
             Mettre à jour le mot de passe
           </Button>

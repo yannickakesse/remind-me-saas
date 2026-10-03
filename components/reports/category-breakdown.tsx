@@ -23,15 +23,15 @@ export function CategoryBreakdown({
   const currentItems = activeMode === "expenses" ? effectiveExpenseItems : incomeItems;
 
   return (
-    <div className="rounded-2xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-5 sm:p-6 space-y-4 shadow-xs">
+    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 sm:p-6 space-y-4 shadow-md">
       {/* Header & Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-ink-100 dark:border-ink-800/80 pb-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3.5">
         <div>
-          <h3 className="font-bold text-ink-950 dark:text-ink-50 text-base flex items-center gap-2">
+          <h3 className="font-extrabold text-zinc-950 dark:text-white text-base flex items-center gap-2">
             <PieChart className="w-4 h-4 text-signal" />
             Répartition par Catégorie
           </h3>
-          <p className="text-xs text-ink-500 mt-0.5">
+          <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5 font-medium">
             {activeMode === "expenses"
               ? "Identifiez les postes qui consomment le plus de trésorerie"
               : "Identifiez les activités & sources qui génèrent le plus de revenus"}
@@ -39,17 +39,17 @@ export function CategoryBreakdown({
         </div>
 
         {/* Toggle Mode Buttons */}
-        <div className="flex items-center gap-1 bg-ink-100/70 dark:bg-ink-800/80 p-1 rounded-xl shrink-0 self-start sm:self-auto">
+        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl shrink-0 self-start sm:self-auto border border-zinc-200 dark:border-zinc-700">
           <button
             type="button"
             onClick={() => setActiveMode("expenses")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeMode === "expenses"
-                ? "bg-canvas-raised text-danger shadow-xs"
-                : "text-ink-600 dark:text-ink-400 hover:text-ink-950"
+                ? "bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 shadow-xs"
+                : "text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"
             }`}
           >
-            <TrendingDown className="w-3.5 h-3.5 text-danger" />
+            <TrendingDown className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
             Dépenses ({effectiveExpenseItems.length})
           </button>
           <button
@@ -57,7 +57,7 @@ export function CategoryBreakdown({
             onClick={() => setActiveMode("income")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeMode === "income"
-                ? "bg-canvas-raised text-positive shadow-xs"
+                ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-xs"
                 : "text-ink-600 dark:text-ink-400 hover:text-ink-950"
             }`}
           >
@@ -92,25 +92,25 @@ export function CategoryBreakdown({
                     <span
                       className={`h-2.5 w-2.5 rounded-full shrink-0 ${
                         activeMode === "expenses"
-                          ? "bg-danger"
-                          : "bg-positive"
+                          ? "bg-rose-500"
+                          : "bg-emerald-500"
                       }`}
                     />
-                    <span className="font-semibold text-ink-900 dark:text-ink-100 truncate">
+                    <span className="font-bold text-zinc-900 dark:text-white truncate">
                       {label}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-extrabold text-ink-950 dark:text-ink-50">
+                    <span className="font-extrabold text-zinc-950 dark:text-white">
                       {formatAmount(item.amount, item.currency)}
                     </span>
-                    <span className="text-[11px] font-bold text-ink-500 bg-ink-100 dark:bg-ink-800 px-1.5 py-0.5 rounded-md">
+                    <span className="text-[11px] font-black text-zinc-700 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-1.5 py-0.5 rounded-md">
                       {item.percentage}%
                     </span>
                   </div>
                 </div>
 
-                <div className="h-2 w-full rounded-full bg-ink-100 dark:bg-ink-800 overflow-hidden">
+                <div className="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       activeMode === "expenses"

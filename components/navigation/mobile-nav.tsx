@@ -29,7 +29,9 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
+  LogOut,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface MobileNavProps {
   unreadCount?: number | null;
@@ -114,35 +116,29 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
         <div className="md:hidden fixed inset-0 z-50 flex">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-ink-950/60 backdrop-blur-xs transition-opacity duration-200"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-200"
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
 
-          {/* Drawer content */}
-          <div className="relative flex flex-col w-[85%] max-w-[320px] bg-canvas-raised/98 dark:bg-ink-900/98 h-full shadow-2xl z-10 border-r border-ink-200 dark:border-ink-800 overflow-y-auto backdrop-blur-md">
-            {/* Fond d'écran du menu tiroir */}
-            <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10 opacity-20 dark:opacity-15"
-              style={{ backgroundImage: "url('/images/backgrounds/drawer-bg.jpg')" }}
-            />
-
+          {/* Drawer content — Fond solide blanc / sombre avec contraste parfait */}
+          <div className="relative flex flex-col w-[85%] max-w-[320px] bg-white dark:bg-zinc-950 h-full shadow-2xl z-10 border-r border-zinc-200 dark:border-zinc-800 overflow-y-auto">
             {/* Drawer Header */}
-            <div className="flex items-center justify-between p-4 border-b border-ink-200 dark:border-ink-800 bg-canvas/95 dark:bg-ink-950/95 safe-area-top backdrop-blur-sm">
+            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 safe-area-top">
               <RemindMeLogo size="sm" showText={true} />
 
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
                 aria-label="Fermer le menu"
-                className="flex items-center justify-center h-9 w-9 rounded-lg text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-90 transition-transform"
+                className="flex items-center justify-center h-9 w-9 rounded-lg text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 active:scale-90 transition-transform"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Navigation links list */}
-            <div className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+            {/* Navigation links list — Texte en noir pur et blanc pur */}
+            <div className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto bg-white dark:bg-zinc-950">
               {navLinks.map((item) => {
                 const isActive = pathname === item.href;
                 const Icon = item.icon;
@@ -153,14 +149,16 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                     prefetch={true}
                     data-tour={item.tourKey}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all min-h-[44px] ${
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-sm transition-all min-h-[44px] ${
                       isActive
-                        ? "bg-signal text-white font-semibold shadow-xs"
-                        : "text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:bg-ink-200"
+                        ? "bg-signal text-white font-extrabold shadow-sm"
+                        : "text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 active:bg-zinc-200"
                     }`}
                   >
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-ink-500"}`} strokeWidth={1.8} />
-                    <span>{t(item.labelKey)}</span>
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-signal"}`} strokeWidth={2} />
+                    <span className={isActive ? "text-white" : "text-zinc-950 dark:text-white font-bold"}>
+                      {t(item.labelKey)}
+                    </span>
                   </Link>
                 );
               })}
@@ -170,18 +168,18 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                 <button
                   type="button"
                   onClick={() => setFinancesOpen(!financesOpen)}
-                  className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold uppercase tracking-wider text-ink-500 hover:text-ink-800 dark:hover:text-ink-200"
+                  className="flex items-center justify-between w-full px-3 py-2 text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-zinc-100 hover:text-signal"
                 >
                   <span className="flex items-center gap-2">
-                    <Wallet className="w-3.5 h-3.5 text-gold-dark" /> {t("nav.finances")}
+                    <Wallet className="w-4 h-4 text-signal" /> {t("nav.finances")}
                   </span>
                   <span>
-                    {financesOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                    {financesOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                   </span>
                 </button>
 
                 {financesOpen && (
-                  <div className="pl-3 mt-1 space-y-1 border-l-2 border-gold/30 ml-3">
+                  <div className="pl-3 mt-1 space-y-1 border-l-2 border-signal/40 ml-3">
                     {financeSubLinks.map((sub) => {
                       const tabParam = searchParams?.get("tab");
                       const isOverview = sub.href === "/finances" && !tabParam;
@@ -194,14 +192,14 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                           href={sub.href}
                           prefetch={true}
                           onClick={() => setIsOpen(false)}
-                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors min-h-[40px] ${
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors min-h-[40px] ${
                             isActive
-                              ? "bg-gold-soft/40 text-gold-dark font-bold"
-                              : "text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:bg-ink-200"
+                              ? "bg-signal/15 text-signal font-extrabold border border-signal/30"
+                              : "text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 active:bg-zinc-200"
                           }`}
                         >
-                          <SubIcon className="w-3.5 h-3.5 text-gold-dark shrink-0" strokeWidth={1.8} />
-                          <span>{t(sub.labelKey)}</span>
+                          <SubIcon className="w-3.5 h-3.5 text-signal shrink-0" strokeWidth={2} />
+                          <span className="text-zinc-950 dark:text-white font-bold">{t(sub.labelKey)}</span>
                         </Link>
                       );
                     })}
@@ -209,8 +207,8 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                 )}
               </div>
 
-              <div className="pt-2 border-t border-ink-200 dark:border-ink-800">
-                <div className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-ink-500">
+              <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                <div className="px-3 py-1.5 text-xs font-black uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
                   {t("nav.general")}
                 </div>
                 {secondaryLinks.map((item) => {
@@ -223,15 +221,17 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                       prefetch={true}
                       data-tour={item.tourKey}
                       onClick={() => setIsOpen(false)}
-                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all min-h-[44px] ${
+                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-sm transition-all min-h-[44px] ${
                         isActive
-                          ? "bg-signal text-white font-semibold shadow-xs"
-                          : "text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:bg-ink-200"
+                          ? "bg-signal text-white font-extrabold shadow-sm"
+                          : "text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 active:bg-zinc-200"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-ink-500"}`} strokeWidth={1.8} />
-                        <span>{t(item.labelKey)}</span>
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-signal"}`} strokeWidth={2} />
+                        <span className={isActive ? "text-white" : "text-zinc-950 dark:text-white font-bold"}>
+                          {t(item.labelKey)}
+                        </span>
                       </div>
                       {item.badge ? (
                         <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
@@ -244,21 +244,39 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
               </div>
 
               {/* Language Selector inside Drawer */}
-              <div className="pt-2 border-t border-ink-200 dark:border-ink-800">
+              <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
                 <LanguageSelector variant="drawer" />
               </div>
             </div>
 
-            {/* Quick action bar in drawer footer */}
-            <div className="p-3 border-t border-ink-200 dark:border-ink-800 bg-canvas dark:bg-ink-950 space-y-2">
+            {/* Quick action bar & Bouton Se Déconnecter in drawer footer */}
+            <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 space-y-2">
               <Link
                 href="/tasks/new"
                 prefetch={true}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-signal text-white text-xs font-semibold shadow-xs active:scale-98 transition-transform"
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-signal text-white text-xs font-bold shadow-xs active:scale-98 transition-transform"
               >
                 <Plus className="w-4 h-4" /> {t("nav.new_task")}
               </Link>
+
+              {/* Bouton Se Déconnecter */}
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const supabase = createClient();
+                    await supabase.auth.signOut();
+                  } catch (e) {
+                    console.error(e);
+                  }
+                  window.location.href = "/login";
+                }}
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 text-xs font-bold hover:bg-red-100 dark:hover:bg-red-900/60 active:scale-98 transition-all cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Se déconnecter</span>
+              </button>
             </div>
           </div>
         </div>

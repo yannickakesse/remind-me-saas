@@ -86,28 +86,28 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
     hoveredIdx !== null ? items[hoveredIdx] : (items[items.length - 1] ?? items[0]);
 
   return (
-    <div className="rounded-2xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-5 sm:p-6 space-y-5 shadow-xs">
+    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 sm:p-6 space-y-5 shadow-md">
       {/* Header & Legend */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-ink-100 dark:border-ink-800/80 pb-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3.5">
         <div>
-          <h3 className="font-bold text-ink-950 dark:text-ink-50 text-base flex items-center gap-2">
+          <h3 className="font-extrabold text-zinc-950 dark:text-white text-base flex items-center gap-2">
             <Activity className="w-4 h-4 text-signal" />
             Évolution & Courbe Mensuelle
           </h3>
-          <p className="text-xs text-ink-500 mt-0.5">
+          <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5 font-medium">
             Suivi visuel des courbes de revenus vs dépenses
           </p>
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-3 text-xs shrink-0 bg-canvas dark:bg-ink-900/60 px-3 py-1.5 rounded-xl border border-ink-100 dark:border-ink-800">
+        <div className="flex items-center gap-3 text-xs shrink-0 bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700">
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-1 rounded-full bg-emerald-500" />
-            <span className="font-semibold text-ink-700 dark:text-ink-300">Revenus</span>
+            <span className="font-bold text-zinc-900 dark:text-white">Revenus</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-1 rounded-full bg-rose-500" />
-            <span className="font-semibold text-ink-700 dark:text-ink-300">Dépenses</span>
+            <span className="font-bold text-zinc-900 dark:text-white">Dépenses</span>
           </div>
         </div>
       </div>

@@ -737,17 +737,17 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           </div>
 
           {/* 4. WhatsApp (Statut véridique & Architecture prête) */}
-          <div className="p-3.5 rounded-xl border border-ink-200 bg-canvas-raised space-y-2.5 sm:col-span-2 opacity-85">
+          <div className="p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl shadow-md space-y-2.5 sm:col-span-2">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <MessageSquare className="w-4 h-4 text-ink-500" />
-                <span className="text-xs font-bold text-ink-950">WhatsApp Business</span>
+                <MessageSquare className="w-4 h-4 text-signal" />
+                <span className="text-xs font-black text-zinc-950 dark:text-white">WhatsApp Business</span>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-ink-100 text-ink-600 border border-ink-200">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
                 Non configuré (En attente d'API)
               </span>
             </div>
-            <p className="text-[11px] text-ink-500 leading-relaxed">
+            <p className="text-[11px] text-zinc-600 dark:text-zinc-300 leading-relaxed font-medium">
               L'architecture technique pour l'API officielle (Twilio / Meta Cloud API) est intégrée. Aucun envoi n'est simulé tant que vos identifiants d'API officiels ne sont pas renseignés.
             </p>
           </div>
@@ -757,22 +757,22 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       {/* Section 1.5: Sonnerie Audio & Rappels Vocaux Intelligents */}
       <div className="space-y-4">
         {/* Carillon Sonore Officiel */}
-        <div className="p-4 rounded-2xl border border-signal/30 bg-signal-soft/20 space-y-3">
+        <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl shadow-md space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-signal text-white shrink-0 mt-0.5">
+              <div className="p-2.5 rounded-xl bg-signal text-white shrink-0 mt-0.5 shadow-sm">
                 {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-ink-950">Carillon sonore officiel Remind Me</span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                    soundEnabled ? "bg-positive-soft text-positive" : "bg-ink-100 text-ink-600"
+                  <span className="text-sm font-black text-zinc-950 dark:text-white">Carillon sonore officiel Remind Me</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                    soundEnabled ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                   }`}>
                     {soundEnabled ? "Son activé" : "Son coupé"}
                   </span>
                 </div>
-                <p className="text-xs text-ink-600 mt-0.5">
+                <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium mt-1">
                   Joue un carillon agréable au moment exact des échéances de tâches et alertes urgentes.
                 </p>
               </div>
@@ -784,7 +784,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 size="sm"
                 variant="secondary"
                 onClick={handleTestChime}
-                className="text-xs"
+                className="text-xs font-bold"
               >
                 <Play className="w-3.5 h-3.5 mr-1.5 fill-current text-signal" /> Écouter
               </Button>
@@ -795,18 +795,14 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                   onChange={(e) => handleToggleSound(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-ink-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ink-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-signal"></div>
+                <div className="w-11 h-6 bg-zinc-300 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-signal"></div>
               </label>
             </div>
           </div>
         </div>
 
         {/* Rappels Vocaux Intelligents (Text-to-Speech) */}
-        <div className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-4 ${
-          voiceReminders
-            ? "border-signal/50 bg-signal-soft/25 shadow-sm"
-            : "border-ink-200 bg-canvas-raised"
-        }`}>
+        <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl shadow-md space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-start gap-3">
               <div className="p-2.5 rounded-xl bg-signal text-white shrink-0 mt-0.5 shadow-sm">
@@ -814,14 +810,14 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-bold text-ink-950">🔊 Rappels vocaux intelligents (Text-to-Speech)</span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                    voiceReminders ? "bg-positive-soft text-positive border border-positive/20" : "bg-ink-100 text-ink-600"
+                  <span className="text-sm font-black text-zinc-950 dark:text-white">🔊 Rappels vocaux intelligents (Text-to-Speech)</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                    voiceReminders ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                   }`}>
                     {voiceReminders ? "Lecture vocale active" : "Désactivé"}
                   </span>
                 </div>
-                <p className="text-xs text-ink-600 mt-1 leading-relaxed">
+                <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium mt-1 leading-relaxed">
                   Lit automatiquement vos rappels à voix haute sur votre téléphone avec le moteur natif (sans coût IA), lorsque l'application est ouverte ou consultée.
                 </p>
               </div>
@@ -835,17 +831,17 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                   onChange={(e) => handleToggleVoiceReminders(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-ink-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ink-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-signal"></div>
+                <div className="w-11 h-6 bg-zinc-300 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-signal"></div>
               </label>
             </div>
           </div>
 
           {voiceReminders && (
-            <div className="pt-3 border-t border-signal/20 space-y-4 animate-in fade-in">
+            <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-4 animate-in fade-in">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 {/* 1. Langue de la voix */}
                 <div>
-                  <label className="block text-xs font-bold text-ink-900 mb-1.5 flex items-center gap-1.5">
+                  <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
                     <Globe className="w-3.5 h-3.5 text-signal" />
                     🌍 Langue de la voix
                   </label>
@@ -856,7 +852,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                       setVoiceLanguage(val);
                       saveLocalVoiceSettings({ voice_language: val });
                     }}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal"
+                    className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal"
                   >
                     <option value="fr">🇫🇷 Français (Par défaut)</option>
                     <option value="en">🇬🇧 English</option>
@@ -866,7 +862,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
 
                 {/* 2. Type de voix */}
                 <div>
-                  <label className="block text-xs font-bold text-ink-900 mb-1.5 flex items-center gap-1.5">
+                  <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-signal" />
                     👤 Type de voix
                   </label>
@@ -877,7 +873,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                       setVoiceType(val);
                       saveLocalVoiceSettings({ voice_type: val });
                     }}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal"
+                    className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal"
                   >
                     <option value="system">⚙️ Voix système par défaut</option>
                     <option value="female">👩 Voix féminine</option>

@@ -149,44 +149,44 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
           return (
             <div
               key={pKey}
-              className={`rounded-2xl border p-6 flex flex-col justify-between transition-all relative ${
+              className={`rounded-3xl border p-6 flex flex-col justify-between transition-all relative backdrop-blur-xl ${
                 isCurrent
-                  ? "border-signal bg-signal-soft/30 shadow-md ring-2 ring-signal"
+                  ? "border-signal bg-signal/10 dark:bg-signal/20 shadow-lg ring-2 ring-signal"
                   : pKey === "premium"
-                  ? "border-gold/40 bg-canvas-raised hover:border-gold shadow-xs"
-                  : "border-ink-200 bg-canvas-raised hover:border-ink-300 shadow-xs"
+                  ? "border-amber-400/50 bg-white/95 dark:bg-zinc-900/95 hover:border-amber-500 shadow-md"
+                  : "border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 hover:border-zinc-300 shadow-md"
               }`}
             >
               {pKey === "premium" && !isCurrent && (
-                <div className="absolute -top-3 right-4 rounded-full bg-gradient-to-r from-gold to-gold-dark px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
+                <div className="absolute -top-3 right-4 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
                   <Sparkles className="w-3 h-3" /> Recommandé
                 </div>
               )}
 
               <div>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-ink-950">{p.planName}</h3>
+                  <h3 className="text-lg font-extrabold text-zinc-950 dark:text-white">{p.planName}</h3>
                   {isCurrent && (
-                    <span className="rounded-full bg-signal px-2.5 py-0.5 text-xs font-bold text-white">
+                    <span className="rounded-full bg-signal px-2.5 py-0.5 text-xs font-bold text-white shadow-2xs">
                       Plan Actuel
                     </span>
                   )}
                 </div>
 
                 <div className="mt-4 flex items-baseline">
-                  <span className="text-3xl font-extrabold text-ink-950">{priceDisplay}</span>
-                  <span className="text-xs text-ink-500 ml-1">/ mois</span>
+                  <span className="text-3xl font-black text-zinc-950 dark:text-white">{priceDisplay}</span>
+                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 ml-1">/ mois</span>
                 </div>
                 {billingCycle === "yearly" && p.priceYearly > 0 && (
-                  <p className="text-[10px] text-ink-500 mt-0.5">
+                  <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">
                     Facturé {p.priceYearly} € par an
                   </p>
                 )}
 
                 {/* Liste des quotas et droits */}
-                <ul className="mt-6 space-y-2.5 text-xs text-ink-700">
+                <ul className="mt-6 space-y-2.5 text-xs text-zinc-800 dark:text-zinc-200 font-medium">
                   <li className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                    <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" strokeWidth={2.5} />
                     <span>
                       {p.maxActivities === Infinity ? (
                         <strong>Activités illimitées</strong>

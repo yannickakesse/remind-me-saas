@@ -150,69 +150,69 @@ export default async function ReportsPage({
 
       {/* Cartes KPI Synthèse */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-tour="reports-kpi">
-        <div className="rounded-2xl border border-ink-200 bg-canvas-raised p-5 shadow-xs hover:border-gold/40 transition-all">
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 shadow-md hover:border-gold/40 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+            <span className="text-xs font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
               Revenus Reçus (Encaissés)
             </span>
             <TrendingUp className="w-4 h-4 text-gold-dark" />
           </div>
-          <p className="mt-2 text-2xl font-extrabold text-gold-dark dark:text-gold-light">
+          <p className="mt-2 text-2xl font-black text-amber-600 dark:text-amber-400">
             {formatAmount(totalIncomeReceived, defaultCurrency)}
           </p>
-          <p className="mt-1 text-xs text-ink-500">
+          <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
             {extraReceivedStr ? `(${extraReceivedStr}) · ` : ""}
             {totalIncomeExpected > 0 ? `+${formatAmount(totalIncomeExpected, defaultCurrency)} attendus` : "Aucun revenu en attente"}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-ink-200 bg-canvas-raised p-5 shadow-xs hover:border-gold/40 transition-all">
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 shadow-md hover:border-gold/40 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+            <span className="text-xs font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
               Dépenses Payées
             </span>
-            <TrendingDown className="w-4 h-4 text-ink-500" />
+            <TrendingDown className="w-4 h-4 text-rose-500" />
           </div>
-          <p className="mt-2 text-2xl font-extrabold text-ink-950">
+          <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">
             {formatAmount(totalExpensesPaid, defaultCurrency)}
           </p>
-          <p className="mt-1 text-xs text-ink-500">
+          <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
             {totalExpensesPlanned > 0 ? `${formatAmount(totalExpensesPlanned, defaultCurrency)} prévues` : "Toutes payées"}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-ink-200 bg-canvas-raised p-5 shadow-xs hover:border-gold/40 transition-all">
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 shadow-md hover:border-gold/40 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+            <span className="text-xs font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
               Solde Réel (Net)
             </span>
-            <Wallet className="w-4 h-4 text-positive" />
+            <Wallet className="w-4 h-4 text-emerald-500" />
           </div>
           <p
-            className={`mt-2 text-2xl font-extrabold ${
-              realNetBalance >= 0 ? "text-positive" : "text-danger"
+            className={`mt-2 text-2xl font-black ${
+              realNetBalance >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
             }`}
           >
             {formatAmount(realNetBalance, defaultCurrency)}
           </p>
-          <p className="mt-1 text-xs text-ink-500">Reçus − Dépenses Payées</p>
+          <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Reçus − Dépenses Payées</p>
         </div>
 
-        <div className="rounded-2xl border border-ink-200 bg-canvas-raised p-5 shadow-xs hover:border-gold/40 transition-all">
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 shadow-md hover:border-gold/40 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+            <span className="text-xs font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
               Rentabilité Horaire
             </span>
             <Clock className="w-4 h-4 text-signal" />
           </div>
           {hasHourlyProfitability ? (
             <>
-              <p className="mt-2 text-xl sm:text-2xl font-extrabold text-ink-950">
+              <p className="mt-2 text-xl sm:text-2xl font-black text-zinc-950 dark:text-white">
                 {averageHourlyRate !== null
                   ? `${formatAmount(averageHourlyRate, defaultCurrency)}/h`
                   : "Données insuffisantes"}
               </p>
-              <p className="mt-1 text-xs text-ink-500">
+              <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                 {totalHoursWorked > 0
                   ? `Pour ${totalHoursWorked} h travaillées au total`
                   : "Planifiez des séances dans le calendrier"}
@@ -223,7 +223,7 @@ export default async function ReportsPage({
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-bold bg-signal-soft text-signal">
                 <Lock className="w-3 h-3" /> Forfait Pro requis
               </span>
-              <p className="mt-1 text-xs text-ink-500">
+              <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                 Calcul automatique de votre taux horaire net.
               </p>
             </div>

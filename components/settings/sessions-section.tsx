@@ -23,23 +23,24 @@ export function SessionsSection({ email, lastSignInAt }: SessionsSectionProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
-    <div className="max-w-lg">
-      <h3 className="mb-1 text-sm font-semibold text-ink-950">Session actuelle</h3>
-      <p className="mb-4 text-sm text-ink-500">
-        La liste détaillée des appareils connectés n'est pas encore disponible — en attendant,
-        vous pouvez déconnecter toutes les sessions actives d'un coup.
-      </p>
+    <div className="max-w-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-md space-y-5">
+      <div>
+        <h3 className="text-base font-extrabold text-zinc-950 dark:text-white">Session actuelle</h3>
+        <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 font-medium leading-relaxed">
+          Gérez votre session active ou déconnectez tous vos appareils d'un seul clic en cas de doute.
+        </p>
+      </div>
 
-      <div className="mb-6 rounded-lg border border-ink-100 px-4 py-3">
-        <p className="text-sm font-medium text-ink-950">{email}</p>
+      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/80 p-4 space-y-1">
+        <p className="text-sm font-bold text-zinc-950 dark:text-white">{email}</p>
         {lastSignInAt ? (
-          <p className="text-xs text-ink-500">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
             Dernière connexion : {new Date(lastSignInAt).toLocaleString("fr-FR")}
           </p>
         ) : null}
       </div>
 
-      <Button variant="danger" size="sm" onClick={() => setConfirmOpen(true)}>
+      <Button variant="danger" size="sm" onClick={() => setConfirmOpen(true)} className="font-bold">
         Déconnecter tous les appareils
       </Button>
 

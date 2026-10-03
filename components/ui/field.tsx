@@ -10,12 +10,12 @@ interface FieldProps {
 export function Field({ label, htmlFor, error, children }: FieldProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={htmlFor} className="text-sm font-medium text-ink-700">
+      <label htmlFor={htmlFor} className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white transition-colors">
         {label}
       </label>
       {children}
       {error ? (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-xs font-semibold text-danger">
           {error}
         </p>
       ) : null}
@@ -29,7 +29,7 @@ export function TextInput(
   return (
     <input
       {...props}
-      className={`w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950 placeholder:text-ink-500 focus:border-signal transition-colors ${
+      className={`w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3.5 py-2.5 text-zinc-950 dark:text-white font-medium placeholder:text-zinc-500 focus:border-signal focus:ring-1 focus:ring-signal outline-none transition-colors shadow-2xs ${
         props.className ?? ""
       }`}
     />
