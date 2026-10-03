@@ -14,6 +14,7 @@ export type SupportedLocale =
 
 export interface LocaleDefinition {
   code: SupportedLocale;
+  countryCode: string;
   label: string;
   nativeLabel: string;
   flag: string;
@@ -21,18 +22,18 @@ export interface LocaleDefinition {
 }
 
 export const SUPPORTED_LOCALES: LocaleDefinition[] = [
-  { code: "fr", label: "Français", nativeLabel: "Français", flag: "🇫🇷" },
-  { code: "en", label: "Anglais", nativeLabel: "English", flag: "🇺🇸" },
-  { code: "es", label: "Espagnol", nativeLabel: "Español", flag: "🇪🇸" },
-  { code: "de", label: "Allemand", nativeLabel: "Deutsch", flag: "🇩🇪" },
-  { code: "pt", label: "Portugais", nativeLabel: "Português", flag: "🇧🇷" },
-  { code: "it", label: "Italien", nativeLabel: "Italiano", flag: "🇮🇹" },
-  { code: "nl", label: "Néerlandais", nativeLabel: "Nederlands", flag: "🇳🇱" },
-  { code: "ru", label: "Russe", nativeLabel: "Русский", flag: "🇷🇺" },
-  { code: "zh", label: "Chinois", nativeLabel: "中文", flag: "🇨🇳" },
-  { code: "ja", label: "Japonais", nativeLabel: "日本語", flag: "🇯🇵" },
-  { code: "ar", label: "Arabe", nativeLabel: "العربية", flag: "🇸🇦", direction: "rtl" },
-  { code: "hi", label: "Hindi", nativeLabel: "हिन्दी", flag: "🇮🇳" },
+  { code: "fr", countryCode: "FR", label: "Français", nativeLabel: "Français", flag: "🇫🇷" },
+  { code: "en", countryCode: "US", label: "Anglais (US/UK)", nativeLabel: "English", flag: "🇺🇸" },
+  { code: "es", countryCode: "ES", label: "Espagnol", nativeLabel: "Español", flag: "🇪🇸" },
+  { code: "de", countryCode: "DE", label: "Allemand", nativeLabel: "Deutsch", flag: "🇩🇪" },
+  { code: "pt", countryCode: "BR", label: "Portugais", nativeLabel: "Português", flag: "🇧🇷" },
+  { code: "it", countryCode: "IT", label: "Italien", nativeLabel: "Italiano", flag: "🇮🇹" },
+  { code: "nl", countryCode: "NL", label: "Néerlandais", nativeLabel: "Nederlands", flag: "🇳🇱" },
+  { code: "ru", countryCode: "RU", label: "Russe", nativeLabel: "Русский", flag: "🇷🇺" },
+  { code: "zh", countryCode: "CN", label: "Chinois", nativeLabel: "中文", flag: "🇨🇳" },
+  { code: "ja", countryCode: "JP", label: "Japonais", nativeLabel: "日本語", flag: "🇯🇵" },
+  { code: "ar", countryCode: "SA", label: "Arabe", nativeLabel: "العربية", flag: "🇸🇦", direction: "rtl" },
+  { code: "hi", countryCode: "IN", label: "Hindi", nativeLabel: "हिन्दी", flag: "🇮🇳" },
 ];
 
 export type TranslationKey =

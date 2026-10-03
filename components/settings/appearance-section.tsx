@@ -2,6 +2,7 @@
 
 import { useTheme, type ThemePreference } from "@/components/theme/theme-provider";
 import { useLanguage } from "@/components/i18n/language-provider";
+import { CountryFlag } from "@/components/ui/country-flag";
 import { Globe, Check, Sun, Moon, Laptop } from "lucide-react";
 
 const THEME_OPTIONS: { value: ThemePreference; labelKey: string; descKey: string; icon: any }[] = [
@@ -44,8 +45,8 @@ export function AppearanceSection() {
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink-100 dark:bg-ink-800 text-xl border border-ink-200 dark:border-ink-700">
-                    {loc.flag}
+                  <div className="flex h-10 w-11 shrink-0 items-center justify-center rounded-xl bg-ink-100 dark:bg-ink-800 border border-ink-200 dark:border-ink-700 p-1">
+                    <CountryFlag code={loc.countryCode || loc.code} size="lg" />
                   </div>
                   <div className="min-w-0 flex flex-col">
                     <span className={`text-xs truncate font-bold ${isSelected ? "text-signal" : "text-ink-950 dark:text-white"}`}>

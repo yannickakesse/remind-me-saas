@@ -130,9 +130,12 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
               </Link>
             )}
 
-            {/* Interactive Language Selector (Visible on Desktop/Tablet, accessible in Drawer on Mobile) */}
+            {/* Interactive Language Selector (Pill on Desktop/Tablet, Compact on Mobile) */}
             <div className="hidden sm:inline-flex">
               <LanguageSelector variant="pill" />
+            </div>
+            <div className="sm:hidden inline-flex">
+              <LanguageSelector variant="compact" />
             </div>
 
             {/* Theme Toggle Button */}

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Globe, Check, ChevronDown, X, Search } from "lucide-react";
 import { useLanguage } from "@/components/i18n/language-provider";
+import { CountryFlag } from "@/components/ui/country-flag";
 import type { SupportedLocale } from "@/lib/i18n/types";
 
 interface LanguageSelectorProps {
@@ -27,6 +28,7 @@ export function LanguageSelector({
 
   const currentLocale = locales.find((l) => l.code === locale) || locales[0] || {
     code: "fr" as SupportedLocale,
+    countryCode: "FR",
     label: "Français",
     nativeLabel: "Français",
     flag: "🇫🇷",
@@ -59,6 +61,7 @@ export function LanguageSelector({
     return locales.filter(
       (l) =>
         l.code.toLowerCase().includes(q) ||
+        (l.countryCode && l.countryCode.toLowerCase().includes(q)) ||
         l.label.toLowerCase().includes(q) ||
         l.nativeLabel.toLowerCase().includes(q)
     );
@@ -80,7 +83,7 @@ export function LanguageSelector({
           aria-label="Changer de langue / Change language"
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full border border-ink-200 dark:border-ink-800 text-xs font-semibold text-ink-900 dark:text-ink-100 bg-canvas-raised hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs tap-active cursor-pointer min-h-[34px] ${className}`}
         >
-          <span className="text-base leading-none shrink-0 drop-shadow-xs">{currentLocale.flag}</span>
+          <CountryFlag code={currentLocale.countryCode || currentLocale.code} size="md" className="rounded-xs shadow-2xs" />
           <span className="font-bold text-xs text-ink-950 dark:text-white">
             {currentLocale.label}
           </span>
@@ -99,7 +102,7 @@ export function LanguageSelector({
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-ink-200 dark:border-ink-800 bg-canvas-raised text-ink-800 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active ${className}`}
           title="Changer de langue"
         >
-          <span className="text-base leading-none">{currentLocale.flag}</span>
+          <CountryFlag code={currentLocale.countryCode || currentLocale.code} size="md" />
           <span className="text-xs font-bold uppercase">{currentLocale.code}</span>
         </button>
       )}
@@ -112,8 +115,8 @@ export function LanguageSelector({
           className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border border-ink-200 dark:border-ink-800 bg-canvas-raised hover:border-signal/50 hover:bg-signal-soft/10 active:scale-98 transition-all shadow-xs tap-active ${className}`}
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-100 dark:bg-ink-800 text-2xl shrink-0 border border-ink-200 dark:border-ink-700">
-              {currentLocale.flag}
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-100 dark:bg-ink-800 shrink-0 border border-ink-200 dark:border-ink-700">
+              <CountryFlag code={currentLocale.countryCode || currentLocale.code} size="lg" />
             </div>
             <div className="flex flex-col text-left min-w-0">
               <div className="flex items-center gap-2">
@@ -138,7 +141,7 @@ export function LanguageSelector({
           className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl font-medium text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 transition-all ${className}`}
         >
           <div className="flex items-center gap-3">
-            <span className="text-xl leading-none">{currentLocale.flag}</span>
+            <CountryFlag code={currentLocale.countryCode || currentLocale.code} size="lg" />
             <span className="font-semibold">{currentLocale.label}</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -233,8 +236,8 @@ export function LanguageSelector({
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xs text-2xl">
-                            {loc.flag}
+                          <div className="flex h-11 w-12 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xs p-1">
+                            <CountryFlag code={loc.countryCode || loc.code} size="xl" />
                           </div>
                           <div className="flex flex-col min-w-0">
                             <div className="flex items-center gap-1.5">

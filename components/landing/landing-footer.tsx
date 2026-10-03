@@ -4,6 +4,7 @@ import Link from "next/link";
 import { RemindMeLogo } from "./remindme-logo";
 import { useTheme } from "@/components/theme/theme-provider";
 import { useLanguage } from "@/components/i18n/language-provider";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
 export function LandingFooter() {
   const { theme, setTheme } = useTheme();
@@ -118,6 +119,10 @@ export function LandingFooter() {
                   {t("footer.theme_system")}
                 </button>
               </div>
+            </div>
+            <div className="space-y-1 pt-2">
+              <label className="text-xs text-ink-500 block">{t("nav.language")}</label>
+              <LanguageSelector variant="pill" />
             </div>
           </div>
         </div>
