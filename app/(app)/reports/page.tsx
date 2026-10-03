@@ -86,10 +86,14 @@ export default async function ReportsPage({
 
   return (
     <div className="space-y-8" data-tour="reports-container">
-      {/* En-tête de page avec bannière visuelle retravaillée */}
+      {/* En-tête de page avec bannière visuelle retravaillée et visible */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-8 shadow-xs">
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          className="absolute right-0 top-0 bottom-0 w-1/3 sm:w-1/2 bg-contain bg-right bg-no-repeat opacity-85 dark:opacity-80 pointer-events-none hidden sm:block"
+          style={{ backgroundImage: "url('/images/backgrounds/reports-bg.jpg')" }}
+        />
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-35 pointer-events-none sm:hidden"
           style={{ backgroundImage: "url('/images/backgrounds/reports-bg.jpg')" }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
@@ -102,7 +106,7 @@ export default async function ReportsPage({
               </span>
               Rapports &amp; Rentabilité
             </h1>
-            <p className="text-sm text-ink-500 mt-1">
+            <p className="text-sm text-ink-500 mt-1 max-w-xl">
               Analysez la profitabilité réelle de vos activités, vos heures investies et vos flux de trésorerie.
             </p>
           </div>
@@ -130,8 +134,8 @@ export default async function ReportsPage({
       {/* Sélecteur de période */}
       <PeriodFilter from={rangeStart} to={rangeEnd} />
 
-      {/* Bannière d'alerte en cas de déficit (Dépenses > Revenus) */}
-      {isDeficit && (
+      {/* Bannière d'information / alerte si dépenses dépassent les revenus encaissés */}
+      {isDeficit && totalIncomeReceived > 0 && (
         <div className="rounded-2xl border border-danger/40 bg-gradient-to-r from-danger-soft/50 via-danger-soft/20 to-canvas-raised p-4 sm:p-5 shadow-xs flex items-start gap-3.5 animate-in fade-in duration-300">
           <div className="p-2.5 rounded-xl bg-danger text-white shrink-0 mt-0.5 shadow-sm">
             <TrendingDown className="w-5 h-5" />
@@ -141,7 +145,7 @@ export default async function ReportsPage({
               Attention : Situation de Déficit Détectée
             </h3>
             <p className="text-xs sm:text-sm text-ink-700 dark:text-ink-300 leading-relaxed">
-              Vos dépenses payées (<strong>{formatAmount(totalExpensesPaid, defaultCurrency)}</strong>) dépassent vos revenus encaissés (<strong>{formatAmount(totalIncomeReceived, defaultCurrency)}</strong>) avec un solde négatif de <span className="font-extrabold text-danger">{formatAmount(realNetBalance, defaultCurrency)}</span> sur la période sélectionnée.
+              Vos dépenses payées (<strong>{formatAmount(totalExpensesPaid, defaultCurrency)}</strong>) dépassent vos revenus encaissés (<strong>{formatAmount(totalIncomeReceived, defaultCurrency)}</strong>) avec un solde net de <span className="font-extrabold text-danger">{formatAmount(realNetBalance, defaultCurrency)}</span> sur la période sélectionnée.
             </p>
           </div>
         </div>

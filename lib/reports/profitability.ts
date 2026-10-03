@@ -188,7 +188,7 @@ export async function calculateProfitabilityReport(
 
   // 5. Ventilation des dépenses réelles payées par catégorie
   const catTotals = new Map<string, { amount: number; currency: string }>();
-  let totalExpensesPaidOverall = 0;
+  let sumExpensesAll = 0;
 
   (expenseEntries ?? []).forEach((e) => {
     const cat = e.category || "other";
@@ -197,10 +197,8 @@ export async function calculateProfitabilityReport(
     const cur = catTotals.get(key) ?? { amount: 0, currency: curr };
     const amount = Number(e.amount);
     cur.amount += amount;
+    sumExpensesAll += amount;
     catTotals.set(key, cur);
-    if (e.paid) {
-      totalExpensesPaidOverall += amount;
-    }
   });
 
   const categoryBreakdown: CategoryBreakdownItem[] = [];
@@ -208,7 +206,7 @@ export async function calculateProfitabilityReport(
     const parts = key.split("::");
     const cat = parts[0] || "other";
     const percentage =
-      totalExpensesPaidOverall > 0 ? Math.round((val.amount / totalExpensesPaidOverall) * 100) : 0;
+      sumExpensesAll > 0 ? Math.round((val.amount / sumExpensesAll) * 100) : 0;
     categoryBreakdown.push({
       category: cat,
       amount: val.amount,
@@ -220,7 +218,7 @@ export async function calculateProfitabilityReport(
 
   // 5b. Ventilation des revenus par activité / source
   const incTotals = new Map<string, { label: string; amount: number; currency: string }>();
-  let totalIncomeReceivedOverall = 0;
+  let sumIncomeAll = 0;
 
   (incomeEntries ?? []).forEach((i) => {
     const actId = i.activity_id ?? "unassigned";
@@ -230,16 +228,14 @@ export async function calculateProfitabilityReport(
     const cur = incTotals.get(key) ?? { label: actName, amount: 0, currency: curr };
     const amount = Number(i.amount);
     cur.amount += amount;
+    sumIncomeAll += amount;
     incTotals.set(key, cur);
-    if (i.received) {
-      totalIncomeReceivedOverall += amount;
-    }
   });
 
   const incomeBreakdown: CategoryBreakdownItem[] = [];
   incTotals.forEach((val) => {
     const percentage =
-      totalIncomeReceivedOverall > 0 ? Math.round((val.amount / totalIncomeReceivedOverall) * 100) : 0;
+      sumIncomeAll > 0 ? Math.round((val.amount / sumIncomeAll) * 100) : 0;
     incomeBreakdown.push({
       category: val.label,
       amount: val.amount,

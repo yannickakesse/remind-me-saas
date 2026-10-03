@@ -171,11 +171,16 @@ export function ScheduledExpensesSection({
     <div className="space-y-6">
       {/* Header with summary card and new button, styled with scheduled-expenses-bg.jpg */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-7 shadow-xs">
+        {/* Scheduled Expenses Background Illustration — clearly visible */}
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          className="absolute right-0 top-0 bottom-0 w-1/3 sm:w-1/2 bg-contain bg-right bg-no-repeat opacity-85 dark:opacity-80 pointer-events-none hidden sm:block"
           style={{ backgroundImage: "url('/images/backgrounds/scheduled-expenses-bg.jpg')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-35 pointer-events-none sm:hidden"
+          style={{ backgroundImage: "url('/images/backgrounds/scheduled-expenses-bg.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/85 to-transparent pointer-events-none" />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -278,10 +283,10 @@ export function ScheduledExpensesSection({
                     : "border-ink-200 dark:border-ink-800"
                 }`}
               >
-                {/* Cancelled Stamp Background Watermark */}
+                {/* Cancelled Stamp Background Watermark — bold & clearly visible */}
                 {isCancelled && (
                   <div
-                    className="absolute right-4 top-4 w-24 h-24 bg-contain bg-no-repeat bg-center opacity-25 dark:opacity-35 pointer-events-none rotate-[-12deg]"
+                    className="absolute right-2 top-2 w-28 h-28 bg-contain bg-no-repeat bg-center opacity-70 dark:opacity-85 pointer-events-none rotate-[-12deg] drop-shadow-sm"
                     style={{ backgroundImage: "url('/images/backgrounds/cancelled-expenses-bg.jpg')" }}
                   />
                 )}

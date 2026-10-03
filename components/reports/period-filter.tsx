@@ -13,6 +13,8 @@ export function PeriodFilter({ from, to }: { from: string; to: string }) {
   const now = DateTime.now();
   const monthStart = now.startOf("month").toISODate()!;
   const monthEnd = now.endOf("month").toISODate()!;
+  const lastMonthStart = now.minus({ months: 1 }).startOf("month").toISODate()!;
+  const lastMonthEnd = now.minus({ months: 1 }).endOf("month").toISODate()!;
   const quarterStart = now.startOf("quarter").toISODate()!;
   const quarterEnd = now.endOf("quarter").toISODate()!;
   const yearStart = now.startOf("year").toISODate()!;
@@ -21,6 +23,7 @@ export function PeriodFilter({ from, to }: { from: string; to: string }) {
   const last12End = now.endOf("month").toISODate()!;
 
   const isCurrentMonth = from === monthStart && to === monthEnd;
+  const isLastMonth = from === lastMonthStart && to === lastMonthEnd;
   const isCurrentQuarter = from === quarterStart && to === quarterEnd;
   const isCurrentYear = from === yearStart && to === yearEnd;
   const isLast12 = from === last12Start && to === last12End;
@@ -32,19 +35,24 @@ export function PeriodFilter({ from, to }: { from: string; to: string }) {
 
   const periodLabel = isCurrentMonth
     ? `Ce mois-ci (${now.setLocale("fr").toFormat("MMMM yyyy")})`
+    : isLastMonth
+    ? `Mois dernier (${now.minus({ months: 1 }).setLocale("fr").toFormat("MMMM yyyy")})`
     : isCurrentQuarter
     ? `Ce trimestre (${now.setLocale("fr").toFormat("qqq yyyy")} — 3 mois)`
     : isCurrentYear
     ? `Année en cours (${now.year} — 12 mois)`
     : `Période du ${startDT.toFormat("dd/MM/yyyy")} au ${endDT.toFormat("dd/MM/yyyy")} (~${diffMonths} mois)`;
 
-  function applyPreset(preset: "month" | "quarter" | "year" | "last12") {
+  function applyPreset(preset: "month" | "lastMonth" | "quarter" | "year" | "last12") {
     let start = "";
     let end = "";
 
     if (preset === "month") {
       start = monthStart;
       end = monthEnd;
+    } else if (preset === "lastMonth") {
+      start = lastMonthStart;
+      end = lastMonthEnd;
     } else if (preset === "quarter") {
       start = quarterStart;
       end = quarterEnd;
@@ -82,6 +90,17 @@ export function PeriodFilter({ from, to }: { from: string; to: string }) {
             }`}
           >
             Ce mois-ci
+          </button>
+          <button
+            type="button"
+            onClick={() => applyPreset("lastMonth")}
+            className={`rounded-lg px-3 py-1.5 transition-colors ${
+              isLastMonth
+                ? "bg-signal text-white font-bold shadow-sm"
+                : "bg-ink-100 text-ink-700 hover:bg-ink-200"
+            }`}
+          >
+            Mois dernier
           </button>
           <button
             type="button"

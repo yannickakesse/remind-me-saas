@@ -180,13 +180,17 @@ export function SavingsGoalsSection({
 
   return (
     <div className="space-y-6">
-      {/* En-tête avec bannière visuelle retravaillée */}
+      {/* En-tête avec bannière visuelle retravaillée et visible */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-7 shadow-xs">
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          className="absolute right-0 top-0 bottom-0 w-1/3 sm:w-1/2 bg-contain bg-right bg-no-repeat opacity-85 dark:opacity-80 pointer-events-none hidden sm:block"
           style={{ backgroundImage: "url('/images/backgrounds/savings-bg.jpg')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-35 pointer-events-none sm:hidden"
+          style={{ backgroundImage: "url('/images/backgrounds/savings-bg.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/85 to-transparent pointer-events-none" />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

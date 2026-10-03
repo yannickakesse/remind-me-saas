@@ -204,7 +204,11 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
       {/* Header with Title, Background Ambience and Global Actions */}
       <div className="relative overflow-hidden rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 p-5 sm:p-6 shadow-xs">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-15 dark:opacity-25 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          className="absolute right-0 top-0 bottom-0 w-1/3 sm:w-1/2 bg-contain bg-right bg-no-repeat opacity-90 dark:opacity-85 pointer-events-none hidden sm:block"
+          style={{ backgroundImage: `url('/images/backgrounds/notifications-bg.jpg')` }}
+        />
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-35 dark:opacity-40 pointer-events-none sm:hidden"
           style={{ backgroundImage: `url('/images/backgrounds/notifications-bg.jpg')` }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/85 to-transparent dark:from-ink-900 dark:via-ink-900/85 pointer-events-none" />
