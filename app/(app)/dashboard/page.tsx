@@ -147,9 +147,17 @@ export default async function DashboardPage() {
   const onboardingComplete = checklistItems.every((item) => item.done);
 
   return (
-    <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
+    <div className="relative isolate min-h-full w-full space-y-5 max-w-7xl mx-auto min-w-0">
+      {/* Fond d'écran global du Dashboard */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10"
+        style={{ backgroundImage: "url('/images/backgrounds/dashboard-bg.jpg')" }}
+      />
+
       {/* Top Welcome & Quick Actions (Localized & Reactive) */}
-      <DashboardHeader userName={profile?.full_name} timezone={timezone} />
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-5 sm:p-7 shadow-xs">
+        <DashboardHeader userName={profile?.full_name} timezone={timezone} />
+      </div>
 
       {!onboardingComplete ? (
         <div data-tour="dashboard-onboarding">
@@ -177,7 +185,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Tâches urgentes */}
         {urgentTasks && urgentTasks.length > 0 ? (
-          <div className="p-4 rounded-xl border border-danger/30 bg-canvas-raised space-y-3" data-tour="dashboard-urgent-tasks">
+          <div className="p-5 rounded-3xl border border-danger/30 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3" data-tour="dashboard-urgent-tasks">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wider text-danger flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5" /> Tâches urgentes ({urgentTasks.length})
@@ -191,9 +199,9 @@ export default async function DashboardPage() {
                 <li key={task.id}>
                   <Link
                     href={`/tasks/${task.id}/edit`}
-                    className="flex items-center justify-between p-2.5 rounded-lg border border-ink-100 bg-canvas text-xs hover:border-ink-300 transition-colors"
+                    className="flex items-center justify-between p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs hover:border-ink-300 transition-colors"
                   >
-                    <span className="font-semibold text-ink-950 truncate mr-2">{task.title}</span>
+                    <span className="font-semibold text-ink-950 dark:text-white truncate mr-2">{task.title}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${TASK_PRIORITY_STYLES[task.priority]}`}>
                       {taskPriorityLabel(task.priority)}
                     </span>
@@ -206,9 +214,9 @@ export default async function DashboardPage() {
 
         {/* Prochaines Dépenses Programmées */}
         {scheduledExpenses && scheduledExpenses.length > 0 ? (
-          <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3" data-tour="dashboard-scheduled-expenses">
+          <div className="p-5 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3" data-tour="dashboard-scheduled-expenses">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-ink-600 flex items-center gap-1.5">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-amber-600" /> Prochaines dépenses programmées
               </h2>
               <Link href="/finances?tab=scheduled" className="text-xs text-signal hover:underline flex items-center gap-0.5">
@@ -233,16 +241,16 @@ export default async function DashboardPage() {
                   <li key={exp.id}>
                     <Link
                       href="/finances?tab=scheduled"
-                      className="flex items-center justify-between p-2.5 rounded-lg border border-ink-100 bg-canvas text-xs hover:border-ink-300 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs hover:border-ink-300 transition-colors"
                     >
                       <div>
-                        <div className="font-semibold text-ink-950">{exp.name}</div>
+                        <div className="font-semibold text-ink-950 dark:text-white">{exp.name}</div>
                         <div className="text-[10px] text-ink-500">
                           {exp.category} • Échéance : {exp.next_due_date}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-ink-950">
+                        <div className="font-bold text-ink-950 dark:text-white">
                           {formatAmount(exp.amount, exp.currency)}
                         </div>
                         <div className={`text-[10px] font-bold ${daysDiff <= 3 ? "text-danger" : "text-ink-500"}`}>
@@ -261,9 +269,9 @@ export default async function DashboardPage() {
       {/* Today Schedule & Activities */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Aujourd'hui */}
-        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3" data-tour="dashboard-today">
+        <div className="p-5 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3" data-tour="dashboard-today">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-600 flex items-center gap-1.5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-signal" /> Aujourd'hui
             </h2>
             <Link href="/calendar" className="text-xs text-signal hover:underline flex items-center gap-0.5">
@@ -287,7 +295,7 @@ export default async function DashboardPage() {
                   <li key={event.id}>
                     <Link
                       href={`/calendar/${event.id}`}
-                      className="flex items-center justify-between p-2.5 rounded-lg border border-ink-100 bg-canvas text-xs hover:border-ink-300 transition-colors shadow-2xs"
+                      className="flex items-center justify-between p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs hover:border-ink-300 transition-colors shadow-2xs"
                     >
                       <div className="flex items-center gap-2.5">
                         <span
@@ -297,7 +305,7 @@ export default async function DashboardPage() {
                           {start}
                         </span>
                         <div>
-                          <div className="font-semibold text-ink-950">{event.title}</div>
+                          <div className="font-semibold text-ink-950 dark:text-white">{event.title}</div>
                           <div className="text-[10px] text-ink-500">
                             {start} – {end}
                           </div>
@@ -315,9 +323,9 @@ export default async function DashboardPage() {
         </div>
 
         {/* Vos Activités */}
-        <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3" data-tour="dashboard-activities">
+        <div className="p-5 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3" data-tour="dashboard-activities">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-600 flex items-center gap-1.5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
               <Briefcase className="w-3.5 h-3.5 text-signal" /> Vos activités ({activities?.length ?? 0})
             </h2>
             <Link href="/activities" className="text-xs text-signal hover:underline flex items-center gap-0.5">
@@ -338,18 +346,18 @@ export default async function DashboardPage() {
                 return (
                   <li
                     key={activity.id}
-                    className="flex items-center gap-3 p-2.5 rounded-lg border border-ink-100 bg-canvas text-xs"
+                    className="flex items-center gap-3 p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs"
                   >
                     <span
                       className="h-3 w-3 shrink-0 rounded-full"
                       style={{ backgroundColor: activity.color ?? "#1E3A5F" }}
                     />
                     <div className="flex-1 truncate">
-                      <div className="font-semibold text-ink-950 truncate">{activity.name}</div>
+                      <div className="font-semibold text-ink-950 dark:text-white truncate">{activity.name}</div>
                       <div className="text-[10px] text-ink-500">{typeLabel(activity.type)}</div>
                     </div>
                     {comp ? (
-                      <div className="font-bold text-ink-900">
+                      <div className="font-bold text-ink-900 dark:text-ink-100">
                         {formatAmount(comp.amount, comp.currency)}
                       </div>
                     ) : null}

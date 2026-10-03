@@ -120,9 +120,15 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           />
 
           {/* Drawer content */}
-          <div className="relative flex flex-col w-[85%] max-w-[320px] bg-canvas-raised dark:bg-ink-900 h-full shadow-2xl z-10 border-r border-ink-200 dark:border-ink-800 overflow-y-auto">
+          <div className="relative flex flex-col w-[85%] max-w-[320px] bg-canvas-raised/98 dark:bg-ink-900/98 h-full shadow-2xl z-10 border-r border-ink-200 dark:border-ink-800 overflow-y-auto backdrop-blur-md">
+            {/* Fond d'écran du menu tiroir */}
+            <div
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10 opacity-20 dark:opacity-15"
+              style={{ backgroundImage: "url('/images/backgrounds/drawer-bg.jpg')" }}
+            />
+
             {/* Drawer Header */}
-            <div className="flex items-center justify-between p-4 border-b border-ink-200 dark:border-ink-800 bg-canvas dark:bg-ink-950 safe-area-top">
+            <div className="flex items-center justify-between p-4 border-b border-ink-200 dark:border-ink-800 bg-canvas/95 dark:bg-ink-950/95 safe-area-top backdrop-blur-sm">
               <RemindMeLogo size="sm" showText={true} />
 
               <button

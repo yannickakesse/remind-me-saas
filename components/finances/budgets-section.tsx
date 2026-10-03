@@ -134,19 +134,19 @@ export function BudgetsSection({
 
       {/* Formulaire d'ajout / édition */}
       {isAdding || editingId ? (
-        <form onSubmit={handleSave} className="rounded-xl border border-ink-200 bg-canvas-raised p-5 shadow-sm space-y-4 max-w-xl">
-          <h3 className="font-semibold text-ink-950">
+        <form onSubmit={handleSave} className="rounded-2xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas dark:bg-ink-950 p-5 shadow-sm space-y-4 max-w-xl">
+          <h3 className="font-bold text-ink-950 dark:text-white">
             {editingId ? "Modifier le budget" : "Nouveau budget mensuel"}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-ink-700 mb-1">Catégorie</label>
+              <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">Catégorie</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 disabled={Boolean(editingId)}
-                className="w-full rounded-lg border border-ink-300 bg-canvas px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
+                className="w-full rounded-xl border border-ink-300 dark:border-ink-700 bg-canvas-raised dark:bg-ink-900 px-3 py-2 text-sm text-ink-950 dark:text-white focus:border-signal focus:outline-none"
               >
                 {EXPENSE_CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>
@@ -157,12 +157,12 @@ export function BudgetsSection({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-ink-700 mb-1">Devise</label>
+              <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">Devise</label>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
                 disabled={Boolean(editingId)}
-                className="w-full rounded-lg border border-ink-300 bg-canvas px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
+                className="w-full rounded-xl border border-ink-300 dark:border-ink-700 bg-canvas-raised dark:bg-ink-900 px-3 py-2 text-sm text-ink-950 dark:text-white focus:border-signal focus:outline-none"
               >
                 {currencies.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -174,7 +174,7 @@ export function BudgetsSection({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-ink-700 mb-1">Plafond mensuel</label>
+            <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">Plafond mensuel</label>
             <input
               type="number"
               step="0.01"
@@ -183,26 +183,26 @@ export function BudgetsSection({
               value={monthlyLimit}
               onChange={(e) => setMonthlyLimit(e.target.value)}
               placeholder="Ex : 150000"
-              className="w-full rounded-lg border border-ink-300 bg-canvas px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
+              className="w-full rounded-xl border border-ink-300 dark:border-ink-700 bg-canvas-raised dark:bg-ink-900 px-3 py-2 text-sm text-ink-950 dark:text-white focus:border-signal focus:outline-none"
             />
           </div>
 
           {error ? (
-            <p className="text-xs font-medium text-danger">{error}</p>
+            <p className="text-xs font-semibold text-danger">{error}</p>
           ) : null}
 
           <div className="flex items-center gap-2 pt-2">
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-lg bg-signal px-4 py-2 text-sm font-medium text-white hover:bg-signal/90 disabled:opacity-50"
+              className="rounded-xl bg-signal px-4 py-2 text-sm font-semibold text-white hover:bg-signal/90 disabled:opacity-50 cursor-pointer"
             >
               {isPending ? "Enregistrement..." : editingId ? "Mettre à jour" : "Créer le budget"}
             </button>
             <button
               type="button"
               onClick={resetForm}
-              className="rounded-lg border border-ink-300 px-4 py-2 text-sm font-medium text-ink-700 hover:bg-ink-50"
+              className="rounded-xl border border-ink-300 dark:border-ink-700 px-4 py-2 text-sm font-semibold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 cursor-pointer"
             >
               Annuler
             </button>
@@ -212,15 +212,15 @@ export function BudgetsSection({
 
       {/* Liste des budgets */}
       {localBudgets.length === 0 && !isAdding ? (
-        <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised/50 p-8 text-center">
-          <p className="font-semibold text-ink-950">Aucun budget défini</p>
+        <div className="rounded-2xl border border-dashed border-ink-300 dark:border-ink-700 bg-canvas dark:bg-ink-950 p-8 text-center">
+          <p className="font-bold text-ink-950 dark:text-white text-base">Aucun budget défini</p>
           <p className="text-sm text-ink-500 mt-1 max-w-md mx-auto">
             Définissez des limites de dépenses mensuelles par catégorie (Logement, Déplacements, Logiciels, etc.) pour suivre votre consommation en direct.
           </p>
           <button
             type="button"
             onClick={() => setIsAdding(true)}
-            className="mt-4 rounded-lg bg-signal px-4 py-2 text-sm font-medium text-white hover:bg-signal/90"
+            className="mt-4 rounded-xl bg-signal px-4 py-2 text-sm font-semibold text-white hover:bg-signal/90 cursor-pointer shadow-xs"
           >
             + Créer mon premier budget
           </button>
@@ -239,17 +239,17 @@ export function BudgetsSection({
             return (
               <div
                 key={b.id}
-                className={`rounded-xl border bg-canvas-raised p-5 transition-shadow hover:shadow-sm ${
+                className={`rounded-2xl border bg-canvas dark:bg-ink-950 p-5 transition-shadow hover:shadow-sm ${
                   isExceeded
-                    ? "border-danger/40 bg-danger/[0.02]"
+                    ? "border-danger/60 bg-danger/[0.04]"
                     : isNearLimit
-                    ? "border-warning/40 bg-warning/[0.02]"
-                    : "border-ink-200"
+                    ? "border-warning/60 bg-warning/[0.04]"
+                    : "border-ink-200 dark:border-ink-800"
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <span className="font-semibold text-ink-950 text-base">
+                    <span className="font-bold text-ink-950 dark:text-white text-base">
                       {expenseCategoryLabel(b.category)}
                     </span>
                     <p className="text-xs text-ink-500 mt-0.5">
@@ -267,14 +267,14 @@ export function BudgetsSection({
                         setMonthlyLimit(String(b.monthly_limit));
                         setIsAdding(false);
                       }}
-                      className="rounded px-2 py-1 text-xs font-medium text-signal hover:bg-signal-soft"
+                      className="rounded-lg px-2.5 py-1 text-xs font-semibold text-signal hover:bg-signal-soft cursor-pointer"
                     >
                       Modifier
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(b.id)}
-                      className="rounded px-2 py-1 text-xs font-medium text-ink-400 hover:text-danger hover:bg-danger-soft/50"
+                      className="rounded-lg px-2.5 py-1 text-xs font-semibold text-ink-400 hover:text-danger hover:bg-danger-soft/50 cursor-pointer"
                     >
                       Supprimer
                     </button>
@@ -284,15 +284,15 @@ export function BudgetsSection({
                 {/* Barre de progression */}
                 <div className="mt-4 space-y-1.5">
                   <div className="flex justify-between text-xs">
-                    <span className="font-medium text-ink-700">
+                    <span className="font-semibold text-ink-900 dark:text-ink-100">
                       Dépensé : {formatAmount(spent, b.currency)}
                     </span>
                     <span
-                      className={`font-semibold ${
+                      className={`font-bold ${
                         isExceeded
                           ? "text-danger"
                           : isNearLimit
-                          ? "text-warning"
+                          ? "text-amber-600 dark:text-amber-400"
                           : "text-positive"
                       }`}
                     >
@@ -302,13 +302,13 @@ export function BudgetsSection({
                     </span>
                   </div>
 
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-ink-100">
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-ink-200 dark:bg-ink-800">
                     <div
                       className={`h-full transition-all duration-300 rounded-full ${
                         isExceeded
                           ? "bg-danger"
                           : isNearLimit
-                          ? "bg-warning"
+                          ? "bg-amber-500"
                           : "bg-signal"
                       }`}
                       style={{ width: `${Math.min(100, percentage)}%` }}

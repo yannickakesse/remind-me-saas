@@ -10,6 +10,7 @@ import { InteractiveProductTour } from "@/components/onboarding/interactive-prod
 import { HelpCenterButton } from "@/components/help/help-center-modal";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { PwaRegistrar } from "@/components/pwa/pwa-registrar";
+import { BackgroundPreloader } from "@/components/pwa/background-preloader";
 import { DailyWelcomeBanner } from "@/components/notifications/daily-welcome-banner";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import type { Notification } from "@/types/database";
@@ -59,8 +60,9 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-screen bg-canvas flex-col md:flex-row w-full max-w-full overflow-x-hidden">
-      {/* Service Worker PWA, push registration & monitoring */}
+      {/* Service Worker PWA, push registration & instant background precaching */}
       <PwaRegistrar />
+      <BackgroundPreloader />
       <DailyWelcomeBanner userName={profile?.full_name} timezone={getUserTimezone(profile)} />
       <NotificationSyncTrigger />
       <TaskSoundWatcher userId={user.id} />

@@ -374,7 +374,7 @@ export function FinancesView({
 
       {/* Tab: SCHEDULED EXPENSES */}
       {activeTab === "scheduled" && (
-        <div className="animate-in fade-in-50 duration-150">
+        <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md p-5 sm:p-7 shadow-sm animate-in fade-in-50 duration-150">
           <ScheduledExpensesSection
             scheduledExpenses={scheduledExpenses}
             defaultCurrency={defaultCurrency}
@@ -385,7 +385,7 @@ export function FinancesView({
 
       {/* Tab: BUDGETS */}
       {activeTab === "budgets" && (
-        <div className="animate-in fade-in-50 duration-150">
+        <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md p-5 sm:p-7 shadow-sm animate-in fade-in-50 duration-150">
           <BudgetsSection
             budgets={budgetsWithSpent}
             currencies={currenciesList}
@@ -396,7 +396,7 @@ export function FinancesView({
 
       {/* Tab: SAVINGS */}
       {activeTab === "savings" && (
-        <div className="animate-in fade-in-50 duration-150">
+        <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md p-5 sm:p-7 shadow-sm animate-in fade-in-50 duration-150">
           <SavingsGoalsSection
             goals={savingsGoals}
             currencies={currenciesList}
@@ -407,10 +407,10 @@ export function FinancesView({
 
       {/* Tab: INCOME */}
       {activeTab === "income" && (
-        <div className="p-4 sm:p-6 rounded-xl border border-ink-200 bg-canvas-raised space-y-4 min-w-0 animate-in fade-in-50 duration-150">
+        <div className="p-5 sm:p-7 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md space-y-4 min-w-0 animate-in fade-in-50 duration-150 shadow-sm">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <h3 className="font-bold text-sm sm:text-base text-ink-950 truncate">Revenus du mois</h3>
+              <h3 className="font-bold text-sm sm:text-base text-ink-950 dark:text-white truncate">Revenus du mois</h3>
               <p className="text-xs text-ink-500">
                 Encaissez vos paiements reçus pour les intégrer à votre Total reçu et Solde net.
               </p>
@@ -421,11 +421,11 @@ export function FinancesView({
           </div>
 
           {(incomes ?? []).length === 0 ? (
-            <div className="p-8 text-center rounded-xl border border-dashed border-ink-300 bg-canvas space-y-3">
+            <div className="p-8 text-center rounded-2xl border border-dashed border-ink-300 dark:border-ink-700 bg-canvas dark:bg-ink-950 space-y-3">
               <div className="w-10 h-10 rounded-full bg-positive-soft text-positive flex items-center justify-center mx-auto">
                 <TrendingUp className="w-5 h-5" />
               </div>
-              <p className="font-semibold text-ink-950 text-sm">Aucun revenu pour ce mois</p>
+              <p className="font-semibold text-ink-950 dark:text-white text-sm">Aucun revenu pour ce mois</p>
               <p className="text-xs text-ink-500 max-w-sm mx-auto">
                 Ajoutez vos prestations, contrats ou salaires pour suivre vos encaissements et votre chiffre d'affaires.
               </p>
@@ -434,14 +434,14 @@ export function FinancesView({
               </Link>
             </div>
           ) : (
-            <div className="divide-y divide-ink-100">
+            <div className="divide-y divide-ink-100 dark:divide-ink-800">
               {(incomes ?? []).map((inc) => {
                 const isLoading = actionLoadingId === inc.id;
                 return (
                   <div key={inc.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-ink-950 truncate" title={inc.label}>
+                        <span className="font-bold text-sm text-ink-950 dark:text-white truncate" title={inc.label}>
                           {inc.label}
                         </span>
                         <span
@@ -460,7 +460,7 @@ export function FinancesView({
 
                     <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
                       <div className="text-right">
-                        <div className="font-bold text-sm text-ink-950">
+                        <div className="font-bold text-sm text-ink-950 dark:text-white">
                           {formatAmount(inc.amount, inc.currency)}
                         </div>
                       </div>
@@ -472,7 +472,7 @@ export function FinancesView({
                               type="button"
                               disabled={isLoading}
                               onClick={() => handleToggleIncomeReceived(inc.id, false)}
-                              className="px-2.5 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1"
+                              className="px-2.5 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
                               title="Confirmer l'encaissement et ajouter au Solde Net"
                             >
                               <Check className="w-3.5 h-3.5" /> Encaisser
@@ -481,7 +481,7 @@ export function FinancesView({
                               type="button"
                               disabled={isLoading}
                               onClick={() => handlePostponeIncome(inc.id)}
-                              className="px-2 py-1.5 rounded-lg border border-ink-200 text-ink-700 bg-canvas text-xs font-medium hover:bg-ink-100 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1"
+                              className="px-2 py-1.5 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-300 bg-canvas dark:bg-ink-950 text-xs font-medium hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
                               title="Reporter l'échéance de 7 jours"
                             >
                               <Clock className="w-3 h-3 text-amber-600" /> Reporter (+7j)
@@ -492,7 +492,7 @@ export function FinancesView({
                             type="button"
                             disabled={isLoading}
                             onClick={() => handleToggleIncomeReceived(inc.id, true)}
-                            className="px-2 py-1 rounded-lg border border-ink-200 text-ink-500 hover:text-ink-800 text-[11px] font-medium transition-colors"
+                            className="px-2 py-1 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 text-[11px] font-medium transition-colors cursor-pointer"
                             title="Remettre ce revenu en attente"
                           >
                             Annuler l'encaissement
@@ -510,17 +510,17 @@ export function FinancesView({
 
       {/* Tab: EXPENSES */}
       {activeTab === "expenses" && (
-        <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-5 sm:p-7 space-y-5 min-w-0 animate-in fade-in-50 duration-150 shadow-xs">
+        <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md p-5 sm:p-7 space-y-5 min-w-0 animate-in fade-in-50 duration-150 shadow-sm">
           {/* 100$ burning dollar illustration — clearly visible */}
           <div 
             className="absolute right-0 top-0 bottom-0 w-1/3 sm:w-1/2 bg-contain bg-right bg-no-repeat opacity-90 dark:opacity-85 pointer-events-none hidden sm:block"
             style={{ backgroundImage: "url('/images/backgrounds/expenses-bg.jpg')" }}
           />
           <div 
-            className="absolute inset-0 bg-cover bg-center opacity-35 dark:opacity-40 pointer-events-none sm:hidden"
+            className="absolute inset-0 bg-cover bg-center opacity-25 dark:opacity-30 pointer-events-none sm:hidden"
             style={{ backgroundImage: "url('/images/backgrounds/expenses-bg.jpg')" }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/85 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
 
           <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -544,11 +544,11 @@ export function FinancesView({
           </div>
 
           {(expenseRows ?? []).length === 0 ? (
-            <div className="p-8 text-center rounded-xl border border-dashed border-ink-300 bg-canvas space-y-3">
+            <div className="relative z-10 p-8 text-center rounded-2xl border border-dashed border-ink-300 dark:border-ink-700 bg-canvas dark:bg-ink-950 space-y-3">
               <div className="w-10 h-10 rounded-full bg-danger-soft text-danger flex items-center justify-center mx-auto">
                 <TrendingDown className="w-5 h-5" />
               </div>
-              <p className="font-semibold text-ink-950 text-sm">Aucune dépense payée pour ce mois</p>
+              <p className="font-semibold text-ink-950 dark:text-white text-sm">Aucune dépense payée pour ce mois</p>
               <p className="text-xs text-ink-500 max-w-sm mx-auto">
                 Les dépenses payées sont automatiquement enregistrées lorsque vous marquez une dépense programmée comme payée.
               </p>
@@ -561,11 +561,11 @@ export function FinancesView({
               </button>
             </div>
           ) : (
-            <div className="divide-y divide-ink-100">
+            <div className="relative z-10 divide-y divide-ink-100 dark:divide-ink-800">
               {(expenseRows ?? []).map((exp) => (
                 <div key={exp.id} className="py-3 flex items-center justify-between gap-3 min-w-0">
                   <div className="min-w-0 flex-1">
-                    <div className="font-bold text-sm text-ink-950 truncate" title={exp.label}>
+                    <div className="font-bold text-sm text-ink-950 dark:text-white truncate" title={exp.label}>
                       {exp.label}
                     </div>
                     <div className="text-xs text-ink-500 truncate">
@@ -573,7 +573,7 @@ export function FinancesView({
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="font-bold text-sm text-ink-950">
+                    <div className="font-bold text-sm text-ink-950 dark:text-white">
                       {formatAmount(exp.amount, exp.currency)}
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-positive-soft text-positive inline-block mt-0.5 border border-positive/30">

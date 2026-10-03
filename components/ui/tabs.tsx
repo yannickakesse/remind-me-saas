@@ -36,31 +36,46 @@ export function Tabs({ items, defaultTabId }: TabsProps) {
   const active = items.find((item) => item.id === activeId) ?? items[0];
 
   return (
-    <div className="w-full min-w-0">
-      <div className="w-full max-w-full overflow-x-auto no-scrollbar border-b border-ink-100 mb-6">
-        <div role="tablist" aria-label="Sections des paramètres" className="flex items-center gap-1 min-w-max pb-px">
-          {items.map((item, index) => (
-            <button
-              key={item.id}
-              id={`tab-${item.id}`}
-              role="tab"
-              type="button"
-              aria-selected={item.id === activeId}
-              tabIndex={item.id === activeId ? 0 : -1}
-              onClick={() => setActiveId(item.id)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              className={`-mb-px border-b-2 px-3.5 py-2.5 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap tap-active ${
-                item.id === activeId
-                  ? "border-signal text-signal"
-                  : "border-transparent text-ink-500 hover:text-ink-950"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+    <div className="w-full min-w-0 space-y-4">
+      {/* Tab bar in solid opaque pill container */}
+      <div className="w-full max-w-full overflow-x-auto no-scrollbar pb-1">
+        <div
+          role="tablist"
+          aria-label="Sections des paramètres"
+          className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-canvas-raised/98 dark:bg-slate-900/98 border border-ink-200/90 dark:border-ink-800/90 shadow-xs min-w-max"
+        >
+          {items.map((item, index) => {
+            const isActive = item.id === activeId;
+            return (
+              <button
+                key={item.id}
+                id={`tab-${item.id}`}
+                role="tab"
+                type="button"
+                aria-selected={isActive}
+                tabIndex={isActive ? 0 : -1}
+                onClick={() => setActiveId(item.id)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                className={`px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all whitespace-nowrap tap-active cursor-pointer ${
+                  isActive
+                    ? "bg-signal text-white shadow-xs scale-[1.02]"
+                    : "text-ink-600 dark:text-ink-300 hover:text-ink-950 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800"
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
       </div>
-      <div role="tabpanel" className="w-full min-w-0">{active?.content}</div>
+
+      {/* Tab content in solid high-contrast card */}
+      <div
+        role="tabpanel"
+        className="w-full min-w-0 bg-canvas-raised/98 dark:bg-slate-900/98 border border-ink-200/90 dark:border-ink-800/90 p-5 sm:p-7 rounded-3xl shadow-sm text-ink-950 dark:text-white"
+      >
+        {active?.content}
+      </div>
     </div>
   );
 }

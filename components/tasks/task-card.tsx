@@ -121,12 +121,12 @@ export function TaskCard({ task }: TaskCardProps) {
 
   return (
     <div
-      className={`group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border bg-canvas-raised p-3.5 sm:p-4 transition-all duration-150 hover:shadow-xs w-full min-w-0 ${
+      className={`group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md p-4 transition-all duration-150 shadow-sm w-full min-w-0 ${
         isDone
-          ? "border-ink-200 bg-canvas/60 opacity-65"
+          ? "border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98"
           : isOverdue
-          ? "border-danger/30 bg-danger/[0.02]"
-          : "border-ink-200 hover:border-ink-300"
+          ? "border-danger/40 bg-danger/[0.03]"
+          : "border-ink-200/90 dark:border-ink-800/90 hover:border-signal/50"
       } ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
       <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -135,12 +135,12 @@ export function TaskCard({ task }: TaskCardProps) {
           type="button"
           onClick={handleToggleCheck}
           aria-label={isDone ? "Marquer comme non terminée" : "Marquer comme terminée"}
-          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-all tap-active ${
+          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-all tap-active cursor-pointer ${
             isDone
               ? "border-positive bg-positive text-white"
               : isInProgress
               ? "border-signal bg-signal-soft text-signal"
-              : "border-ink-300 hover:border-signal bg-canvas-raised"
+              : "border-ink-300 dark:border-ink-700 hover:border-signal bg-canvas dark:bg-ink-950"
           }`}
         >
           {isDone ? (
@@ -160,8 +160,8 @@ export function TaskCard({ task }: TaskCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
             <span
-              className={`font-semibold text-ink-950 text-sm sm:text-base leading-snug break-words ${
-                isDone ? "line-through text-ink-500" : ""
+              className={`font-bold text-sm sm:text-base leading-snug break-words ${
+                isDone ? "line-through text-ink-500 dark:text-ink-400" : "text-ink-950 dark:text-white"
               }`}
             >
               {task.title}

@@ -78,7 +78,43 @@ export function DataSection() {
         </div>
       </div>
 
-      {/* Section 2: Suppression de compte */}
+      {/* Section 2: Gestion du Cache Local & Performance */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-base font-bold text-ink-950 dark:text-white flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-signal" />
+            Cache Local & Stockage Hors-Ligne
+          </h3>
+          <p className="text-xs text-ink-500 mt-1">
+            Les fonds d'écran, logos et icônes sont mis en cache localement dans votre navigateur pour un affichage instantané à 0 ms. Vous pouvez vider ce cache si nécessaire pour libérer de l'espace ou forcer le rafraîchissement.
+          </p>
+        </div>
+
+        <div className="p-5 rounded-2xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas dark:bg-ink-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+          <div className="space-y-1">
+            <h4 className="text-sm font-bold text-ink-950 dark:text-white">Cache des images & fonds d'écran</h4>
+            <p className="text-xs text-ink-500">
+              Efface le stockage Service Worker et recharge instantanément les assets en mémoire.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={async () => {
+              if ("caches" in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map((k) => caches.delete(k)));
+              }
+              window.location.reload();
+            }}
+            className="shrink-0 px-4 py-2.5 rounded-xl border border-ink-300 dark:border-ink-700 bg-canvas-raised dark:bg-ink-900 text-xs font-semibold text-ink-900 dark:text-white hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs cursor-pointer"
+          >
+            🧹 Vider le cache & recharger
+          </button>
+        </div>
+      </div>
+
+      {/* Section 3: Suppression de compte */}
       <div className="rounded-2xl border border-danger/30 bg-danger-soft/40 p-5 space-y-3">
         <div className="flex items-center gap-2 text-danger">
           <AlertTriangle className="w-4 h-4 shrink-0" />

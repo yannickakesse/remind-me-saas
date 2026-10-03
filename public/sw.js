@@ -12,6 +12,20 @@ const PRECACHE_ASSETS = [
   "/icons/badge-72x72.png",
   "/icons/favicon-32x32.png",
   "/brand/logo.jpg",
+  "/images/backgrounds/dashboard-bg.jpg",
+  "/images/backgrounds/drawer-bg.jpg",
+  "/images/backgrounds/activities-bg.jpg",
+  "/images/backgrounds/tasks-bg.jpg",
+  "/images/backgrounds/finances-overview-bg.jpg",
+  "/images/backgrounds/expenses-bg.jpg",
+  "/images/backgrounds/scheduled-expenses-bg.jpg",
+  "/images/backgrounds/savings-bg.jpg",
+  "/images/backgrounds/cancelled-expenses-bg.jpg",
+  "/images/backgrounds/clients-call-bg.jpg",
+  "/images/backgrounds/contacts-bg.jpg",
+  "/images/backgrounds/reports-bg.jpg",
+  "/images/backgrounds/notifications-bg.jpg",
+  "/images/backgrounds/settings-bg.jpg",
 ];
 
 // 1. Installation & Pre-caching de la page hors-ligne et des assets clés
@@ -74,11 +88,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Assets statiques (icônes, logos, manifest, favicon, images de marque) : Cache-first avec rafraîchissement
+  // Assets statiques (icônes, logos, manifest, favicon, images de fond) : Cache-first avec rafraîchissement
   const url = new URL(request.url);
   if (
     url.pathname.startsWith("/icons/") ||
     url.pathname.startsWith("/brand/") ||
+    url.pathname.startsWith("/images/backgrounds/") ||
     url.pathname === "/manifest.webmanifest" ||
     url.pathname === "/favicon.ico" ||
     url.pathname === "/offline.html"
