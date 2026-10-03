@@ -76,7 +76,7 @@ export function LandingHero() {
           </Link>
 
           <a
-            href="#product-demo"
+            href="#motion-design"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full bg-canvas-raised border border-ink-200 dark:border-ink-800 text-ink-950 font-semibold text-sm sm:text-base hover:bg-ink-100 dark:hover:bg-ink-900 hover:border-ink-300 btn-premium tap-active shadow-xs"
           >
             <svg

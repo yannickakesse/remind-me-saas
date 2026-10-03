@@ -13,7 +13,7 @@ import {
   Calendar,
   Wallet,
   TrendingUp,
-  CheckCircle2,
+  Clock,
 } from "lucide-react";
 import { useLanguage } from "@/components/i18n/language-provider";
 
@@ -61,11 +61,45 @@ export function LandingVideoShowcase() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(45);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(3);
   const [showControls, setShowControls] = useState(true);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-play muted on load / scroll
+  // Compte à rebours de 3 secondes avant démarrage automatique de la vidéo
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Assurer le mode silencieux pour contourner la restriction de lecture automatique des navigateurs
+    video.muted = true;
+    setIsMuted(true);
+
+    let remaining = 3;
+    const interval = setInterval(() => {
+      remaining -= 1;
+      if (remaining > 0) {
+        setCountdown(remaining);
+      } else {
+        setCountdown(null);
+        clearInterval(interval);
+        // Lancer la lecture automatique après exactement 3 secondes
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true);
+            })
+            .catch((err) => {
+              console.log("Lecture automatique en attente d'interaction:", err);
+            });
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Synchronisation des événements vidéo
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -84,28 +118,27 @@ export function LandingVideoShowcase() {
       setIsPlaying(false);
     };
 
+    const handlePlay = () => {
+      setIsPlaying(true);
+      setCountdown(null);
+    };
+
+    const handlePause = () => {
+      setIsPlaying(false);
+    };
+
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("ended", handleEnded);
-
-    // Tentative de lecture automatique silencieuse
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          setIsPlaying(true);
-          setHasStartedPlaying(true);
-        })
-        .catch(() => {
-          // Autoplay bloqué par le navigateur, en attente de l'interaction utilisateur
-          setIsPlaying(false);
-        });
-    }
+    video.addEventListener("play", handlePlay);
+    video.addEventListener("pause", handlePause);
 
     return () => {
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("ended", handleEnded);
+      video.removeEventListener("play", handlePlay);
+      video.removeEventListener("pause", handlePause);
     };
   }, []);
 
@@ -123,15 +156,12 @@ export function LandingVideoShowcase() {
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
+    setCountdown(null);
 
     if (video.paused) {
-      video.play().then(() => {
-        setIsPlaying(true);
-        setHasStartedPlaying(true);
-      });
+      video.play().catch((err) => console.error(err));
     } else {
       video.pause();
-      setIsPlaying(false);
     }
   };
 
@@ -153,25 +183,21 @@ export function LandingVideoShowcase() {
   const jumpToChapter = (time: number) => {
     const video = videoRef.current;
     if (!video) return;
+    setCountdown(null);
     video.currentTime = time;
     setCurrentTime(time);
     if (video.paused) {
-      video.play().then(() => {
-        setIsPlaying(true);
-        setHasStartedPlaying(true);
-      });
+      video.play().catch((err) => console.error(err));
     }
   };
 
   const restartVideo = () => {
     const video = videoRef.current;
     if (!video) return;
+    setCountdown(null);
     video.currentTime = 0;
     setCurrentTime(0);
-    video.play().then(() => {
-      setIsPlaying(true);
-      setHasStartedPlaying(true);
-    });
+    video.play().catch((err) => console.error(err));
   };
 
   const toggleFullscreen = () => {
@@ -197,27 +223,12 @@ export function LandingVideoShowcase() {
   const currentChapter: VideoChapter = (CHAPTERS.slice().reverse().find((chap) => currentTime >= chap.time) || CHAPTERS[0]) as VideoChapter;
 
   return (
-    <section id="motion-design" className="py-20 lg:py-28 relative overflow-hidden bg-canvas">
-      {/* Glow d'arrière-plan immersif */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[900px] h-[500px] bg-gradient-to-tr from-signal/15 via-gold/15 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
+    <section id="motion-design" className="pt-2 pb-20 lg:pb-28 relative overflow-hidden bg-canvas">
+      {/* Halo lumineux d'arrière-plan */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] sm:w-[1000px] h-[550px] bg-gradient-to-tr from-signal/20 via-gold/15 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-signal-soft border border-signal/20 text-signal text-xs font-bold uppercase tracking-wider mb-4 shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Motion Design Officiel • 45s</span>
-          </div>
-
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ink-950 tracking-tight leading-tight">
-            Découvrez Remind Me en Action
-          </h2>
-          <p className="mt-4 text-base sm:text-lg text-ink-600 max-w-2xl mx-auto leading-relaxed">
-            Plongez dans l&apos;expérience en vidéo : de la gestion fluide de vos multiples projets jusqu&apos;à la rentabilité globale en temps réel.
-          </p>
-        </div>
-
-        {/* Cinema Video Container */}
+        {/* Cadre Cockpit Vidéo Premium */}
         <div
           ref={containerRef}
           onMouseMove={() => {
@@ -232,11 +243,40 @@ export function LandingVideoShowcase() {
           }}
           className="relative group rounded-3xl overflow-hidden bg-ink-950 border border-ink-800 shadow-2xl transition-all duration-300 ring-1 ring-white/10"
         >
-          {/* Ambient Lighting Behind Video */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 pointer-events-none" />
+          {/* Barre supérieure style application / Mac OS */}
+          <div className="bg-ink-900/90 border-b border-white/10 px-4 py-2.5 flex items-center justify-between gap-3 backdrop-blur-md">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
+              </div>
+              <span className="text-[11px] font-mono text-ink-400 ml-2 hidden sm:inline-block">
+                remindme.io • motion-design-officiel.mp4
+              </span>
+            </div>
 
-          {/* Video Player */}
-          <div className="relative aspect-video w-full flex items-center justify-center bg-black cursor-pointer" onClick={togglePlay}>
+            <div className="flex items-center gap-2">
+              {countdown !== null ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-signal-soft text-signal border border-signal/20 animate-pulse">
+                  <Clock className="w-3 h-3" />
+                  <span>Démarrage auto dans {countdown}s...</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-positive-soft text-positive border border-positive/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />
+                  <span>{isPlaying ? "En lecture" : "En pause"}</span>
+                </span>
+              )}
+
+              <span className="hidden md:inline-flex px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-white/10 text-white">
+                45 SECONDES • 16:9
+              </span>
+            </div>
+          </div>
+
+          {/* Lecteur Vidéo */}
+          <div className="relative aspect-video w-full flex items-center justify-center bg-black cursor-pointer select-none" onClick={togglePlay}>
             <video
               ref={videoRef}
               src="/remindme-intro.mp4"
@@ -244,12 +284,12 @@ export function LandingVideoShowcase() {
               muted={isMuted}
               loop
               preload="auto"
-              className="w-full h-full object-contain rounded-3xl"
+              className="w-full h-full object-contain bg-black"
             />
 
-            {/* Overlay Big Play Button when paused */}
+            {/* Bouton Play central si la vidéo est en pause */}
             {!isPlaying && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px] transition-all">
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] transition-all">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -261,32 +301,37 @@ export function LandingVideoShowcase() {
                 >
                   <Play className="w-9 h-9 sm:w-11 sm:h-11 ml-1 fill-white" />
                 </button>
+                {countdown !== null && (
+                  <p className="mt-3 text-xs sm:text-sm font-semibold text-white/90 drop-shadow">
+                    Lancement automatique dans {countdown}s
+                  </p>
+                )}
               </div>
             )}
 
-            {/* Unmute Floating Banner if video is playing muted */}
-            {isPlaying && isMuted && (
+            {/* Bannière flottante pour activer le son en 1 clic */}
+            {isMuted && (
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleMute();
                 }}
-                className="absolute top-4 right-4 z-25 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-black/70 hover:bg-black/90 text-white text-xs font-bold backdrop-blur-md border border-white/20 shadow-lg cursor-pointer transition-all hover:scale-105"
+                className="absolute top-4 right-4 z-25 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-signal hover:bg-signal-dark text-white text-xs font-bold backdrop-blur-md border border-white/20 shadow-xl cursor-pointer transition-all hover:scale-105 animate-bounce"
               >
-                <VolumeX className="w-4 h-4 text-signal" />
-                <span>Activer le son</span>
+                <VolumeX className="w-4 h-4" />
+                <span>Activer le son 🔊</span>
               </button>
             )}
           </div>
 
-          {/* Custom Sleek Video Controls Bar */}
+          {/* Barre de contrôles personnalisée */}
           <div
-            className={`absolute bottom-0 left-0 right-0 z-30 p-4 sm:p-6 bg-gradient-to-t from-black via-black/80 to-transparent transition-opacity duration-300 ${
+            className={`absolute bottom-0 left-0 right-0 z-30 p-4 sm:p-5 bg-gradient-to-t from-black via-black/85 to-transparent transition-opacity duration-300 ${
               showControls || !isPlaying ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
             }`}
           >
-            {/* Scrubber Progress Bar */}
+            {/* Scrubber Timeline */}
             <div className="relative mb-3 flex items-center group/scrubber">
               <input
                 type="range"
@@ -303,9 +348,9 @@ export function LandingVideoShowcase() {
               />
             </div>
 
-            {/* Control Buttons & Timestamp */}
+            {/* Boutons d'actions */}
             <div className="flex items-center justify-between text-white text-xs sm:text-sm font-medium">
-              <div className="flex items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-2.5 sm:gap-3.5">
                 {/* Play / Pause */}
                 <button
                   type="button"
@@ -336,15 +381,14 @@ export function LandingVideoShowcase() {
                   {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-signal" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </button>
 
-                {/* Time Display */}
+                {/* Timestamp */}
                 <span className="font-mono text-xs sm:text-sm text-ink-300">
                   {formatTime(currentTime)} / {formatTime(duration)}
                 </span>
               </div>
 
-              {/* Right Controls */}
+              {/* Titre du chapitre en cours & Plein écran */}
               <div className="flex items-center gap-3">
-                {/* Active Chapter Label */}
                 {currentChapter && (
                   <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 text-white text-xs font-bold backdrop-blur-sm border border-white/10">
                     <span className="w-2 h-2 rounded-full bg-signal animate-pulse" />
@@ -352,7 +396,6 @@ export function LandingVideoShowcase() {
                   </span>
                 )}
 
-                {/* Fullscreen Button */}
                 <button
                   type="button"
                   onClick={toggleFullscreen}
@@ -366,7 +409,7 @@ export function LandingVideoShowcase() {
           </div>
         </div>
 
-        {/* Interactive Chapters Bar */}
+        {/* 4 Chapitres Cliquables Directs */}
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {CHAPTERS.map((chap) => {
             const Icon = chap.icon;

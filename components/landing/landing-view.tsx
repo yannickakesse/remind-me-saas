@@ -33,14 +33,14 @@ export function LandingView({ user }: LandingViewProps) {
       <LandingNavbar user={user} />
 
       <main className="flex-1">
-        {/* 1. Hero Section */}
+        {/* 1. Hero Section (Description & CTA) */}
         <LandingHero />
 
-        {/* 2. Interactive Live Product Preview ("The Product As The Hero") */}
-        <LandingProductPreview />
-
-        {/* 3. Official 45s Motion Design Video Showcase */}
+        {/* 2. FIRST VISUAL: Official 45s Motion Design Video Showcase (Plays automatically after 3s) */}
         <LandingVideoShowcase />
+
+        {/* 3. Interactive Live Product Preview ("The Product Cockpit") */}
+        <LandingProductPreview />
 
         {/* 4. Problem vs Solution Comparison */}
         <LandingComparison />
