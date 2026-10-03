@@ -121,34 +121,43 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
 
   return (
     <div className="space-y-5 w-full min-w-0 max-w-full">
-      {/* En-tête principal */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 truncate">
-            Tâches & Actions
-          </h1>
-          <p className="text-xs text-ink-500 mt-0.5 truncate">
-            {counts.all} active{counts.all > 1 ? "s" : ""}
-            {counts.overdue > 0 ? (
-              <span className="ml-2 font-semibold text-danger">
-                • {counts.overdue} en retard
-              </span>
-            ) : null}
-            {counts.today > 0 ? (
-              <span className="ml-2 font-semibold text-warning">
-                • {counts.today} aujourd'hui
-              </span>
-            ) : null}
-          </p>
-        </div>
+      {/* En-tête principal avec bannière visuelle retravaillée */}
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-5 sm:p-6 shadow-xs">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          style={{ backgroundImage: "url('/images/backgrounds/tasks-bg.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
 
-        <div className="shrink-0">
-          <Link href="/tasks/new" data-tour="task-create" className={buttonClasses("primary", "sm")}>
-            <svg className="mr-1 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Nouvelle tâche
-          </Link>
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2 truncate">
+              <span className="p-1.5 rounded-xl bg-signal text-white shadow-xs">
+                <CheckSquare className="h-4 w-4" />
+              </span>
+              Tâches &amp; To-Do List
+            </h1>
+            <p className="text-xs text-ink-500 mt-1 truncate">
+              {counts.all} active{counts.all > 1 ? "s" : ""}
+              {counts.overdue > 0 ? (
+                <span className="ml-2 font-semibold text-danger">
+                  • {counts.overdue} en retard
+                </span>
+              ) : null}
+              {counts.today > 0 ? (
+                <span className="ml-2 font-semibold text-warning">
+                  • {counts.today} aujourd'hui
+                </span>
+              ) : null}
+            </p>
+          </div>
+
+          <div className="shrink-0">
+            <Link href="/tasks/new" data-tour="task-create" className={buttonClasses("primary", "sm")}>
+              <Plus className="mr-1 h-3.5 w-3.5" />
+              Nouvelle tâche
+            </Link>
+          </div>
         </div>
       </div>
 

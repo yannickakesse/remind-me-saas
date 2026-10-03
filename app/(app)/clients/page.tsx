@@ -35,27 +35,35 @@ export default async function ClientsPage() {
 
   return (
     <div className="space-y-10">
-      {/* En-tête */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-tour="clients-header">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-ink-950 flex items-center gap-2">
-            <span className="bg-signal text-white p-1.5 rounded-xl shadow-xs inline-flex">
-              <Users className="w-5 h-5" />
-            </span>
-            Clients & Contacts
-          </h1>
-          <p className="text-sm text-ink-500 mt-1">
-            Répertoire centralisé de vos organisations partenaires, écoles, clients et contacts.
-          </p>
-        </div>
+      {/* En-tête avec bannière visuelle retravaillée */}
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-8 shadow-xs" data-tour="clients-header">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          style={{ backgroundImage: "url('/images/backgrounds/contacts-bg.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Link href="/clients/organizations/new" className={buttonClasses("secondary", "sm")}>
-            <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle organisation
-          </Link>
-          <Link href="/clients/contacts/new" data-tour="client-create" className={buttonClasses("primary", "sm")}>
-            <Plus className="w-3.5 h-3.5 mr-1" /> Nouveau contact
-          </Link>
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2.5">
+              <span className="p-2 rounded-xl bg-signal text-white shadow-xs">
+                <Users className="w-5 h-5" />
+              </span>
+              Clients &amp; Contacts
+            </h1>
+            <p className="text-sm text-ink-500 mt-1">
+              Répertoire centralisé de vos organisations partenaires, écoles, clients et contacts.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Link href="/clients/organizations/new" className={buttonClasses("secondary", "sm")}>
+              <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle organisation
+            </Link>
+            <Link href="/clients/contacts/new" data-tour="client-create" className={buttonClasses("primary", "sm")}>
+              <Plus className="w-3.5 h-3.5 mr-1" /> Nouveau contact
+            </Link>
+          </div>
         </div>
       </div>
 

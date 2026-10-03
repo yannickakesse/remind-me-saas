@@ -39,9 +39,18 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div>
-      <h1 className="mb-1 text-2xl font-semibold text-ink-950">Paramètres</h1>
-      <p className="mb-8 text-ink-500">Gérez votre profil, votre compte et vos préférences.</p>
+    <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-2xl bg-canvas-raised border border-ink-200 dark:border-ink-800 p-5 sm:p-6 shadow-xs">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-25 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          style={{ backgroundImage: `url('/images/backgrounds/settings-bg.jpg')` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
+        <div className="relative z-10">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white">Paramètres</h1>
+          <p className="mt-1 text-xs sm:text-sm text-ink-500">Gérez votre profil, votre compte et vos préférences.</p>
+        </div>
+      </div>
 
       <div data-tour="settings-tabs">
         <Tabs

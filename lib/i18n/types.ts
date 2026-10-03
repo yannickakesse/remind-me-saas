@@ -22,17 +22,17 @@ export interface LocaleDefinition {
 
 export const SUPPORTED_LOCALES: LocaleDefinition[] = [
   { code: "fr", label: "Français", nativeLabel: "Français", flag: "🇫🇷" },
-  { code: "en", label: "English", nativeLabel: "English", flag: "🇺🇸" },
-  { code: "es", label: "Español", nativeLabel: "Español", flag: "🇪🇸" },
-  { code: "de", label: "Deutsch", nativeLabel: "Deutsch", flag: "🇩🇪" },
-  { code: "pt", label: "Português", nativeLabel: "Português", flag: "🇧🇷" },
-  { code: "it", label: "Italiano", nativeLabel: "Italiano", flag: "🇮🇹" },
-  { code: "nl", label: "Nederlands", nativeLabel: "Nederlands", flag: "🇳🇱" },
-  { code: "ru", label: "Русский", nativeLabel: "Русский", flag: "🇷🇺" },
-  { code: "zh", label: "中文", nativeLabel: "中文", flag: "🇨🇳" },
-  { code: "ja", label: "日本語", nativeLabel: "日本語", flag: "🇯🇵" },
-  { code: "ar", label: "العربية", nativeLabel: "العربية", flag: "🇸🇦", direction: "rtl" },
-  { code: "hi", label: "हिन्दी", nativeLabel: "हिन्दी", flag: "🇮🇳" },
+  { code: "en", label: "Anglais", nativeLabel: "English", flag: "🇺🇸" },
+  { code: "es", label: "Espagnol", nativeLabel: "Español", flag: "🇪🇸" },
+  { code: "de", label: "Allemand", nativeLabel: "Deutsch", flag: "🇩🇪" },
+  { code: "pt", label: "Portugais", nativeLabel: "Português", flag: "🇧🇷" },
+  { code: "it", label: "Italien", nativeLabel: "Italiano", flag: "🇮🇹" },
+  { code: "nl", label: "Néerlandais", nativeLabel: "Nederlands", flag: "🇳🇱" },
+  { code: "ru", label: "Russe", nativeLabel: "Русский", flag: "🇷🇺" },
+  { code: "zh", label: "Chinois", nativeLabel: "中文", flag: "🇨🇳" },
+  { code: "ja", label: "Japonais", nativeLabel: "日本語", flag: "🇯🇵" },
+  { code: "ar", label: "Arabe", nativeLabel: "العربية", flag: "🇸🇦", direction: "rtl" },
+  { code: "hi", label: "Hindi", nativeLabel: "हिन्दी", flag: "🇮🇳" },
 ];
 
 export type TranslationKey =

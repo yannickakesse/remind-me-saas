@@ -15,7 +15,8 @@ export default function RegisterPage() {
   const supabase = createClient();
   const { t } = useLanguage();
 
-  const [fullName, setFullName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -39,8 +40,10 @@ export default function RegisterPage() {
     e.preventDefault();
     setFormError(null);
 
+    const computedFullName = [lastName.trim(), firstName.trim()].filter(Boolean).join(" ");
+
     const result = registerSchema.safeParse({
-      fullName,
+      fullName: computedFullName,
       email,
       password,
       confirmPassword,
@@ -48,7 +51,11 @@ export default function RegisterPage() {
     if (!result.success) {
       const errors: Record<string, string> = {};
       for (const issue of result.error.issues) {
-        errors[issue.path[0] as string] = issue.message;
+        if (issue.path[0] === "fullName") {
+          errors.lastName = "Le nom est obligatoire (au moins 2 caractères)";
+        } else {
+          errors[issue.path[0] as string] = issue.message;
+        }
       }
       setFieldErrors(errors);
       return;
@@ -266,15 +273,28 @@ export default function RegisterPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-            <Field label={t("auth.full_name")} htmlFor="fullName" error={fieldErrors.fullName}>
-              <TextInput
-                id="fullName"
-                autoComplete="name"
-                value={fullName}
-                placeholder={t("auth.full_name_placeholder")}
-                onChange={(e) => setFullName(e.target.value)}
-              />
-            </Field>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field label="Nom *" htmlFor="lastName" error={fieldErrors.lastName}>
+                <TextInput
+                  id="lastName"
+                  autoComplete="family-name"
+                  value={lastName}
+                  placeholder="Ex: Kouassi"
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
+              </Field>
+
+              <Field label="Prénom (facultatif)" htmlFor="firstName" error={fieldErrors.firstName}>
+                <TextInput
+                  id="firstName"
+                  autoComplete="given-name"
+                  value={firstName}
+                  placeholder="Ex: Yannick"
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </Field>
+            </div>
 
             <Field label={t("auth.email")} htmlFor="email" error={fieldErrors.email}>
               <TextInput

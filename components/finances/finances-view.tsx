@@ -143,51 +143,59 @@ export function FinancesView({
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3" data-tour="finance-header">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 truncate flex items-center gap-2">
-            <span className="bg-gradient-to-r from-gold to-gold-dark text-white p-1.5 rounded-xl shadow-gold-subtle inline-flex">
-              <Wallet className="w-5 h-5" />
-            </span>
-            Gestion Financière
-          </h1>
-          <p className="text-xs text-ink-500 mt-0.5">
-            Suivez vos encaissements, dépenses et échéances en un coup d'œil.
-          </p>
-        </div>
+      {/* Header avec bannière visuelle retravaillée */}
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-5 sm:p-7 shadow-xs" data-tour="finance-header">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          style={{ backgroundImage: "url('/images/backgrounds/finances-overview-bg.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
 
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href={`/finances/print?month=${rangeStart.slice(0, 7)}`}
-            target="_blank"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-canvas-raised border border-ink-300 dark:border-ink-700 text-xs font-semibold text-ink-900 hover:bg-ink-100 transition-colors shadow-xs"
-            title="Imprimer ou enregistrer le relevé en PDF"
-          >
-            <Printer className="w-3.5 h-3.5 text-signal" /> Relevé PDF
-          </Link>
-          <a
-            href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
-            download
-            data-tour="finance-export"
-            className={buttonClasses("secondary", "sm")}
-            title="Exporter les données financières au format CSV"
-          >
-            <Download className="w-3.5 h-3.5 mr-1" /> CSV
-          </a>
-          <Link
-            href="/finances/income/new"
-            className={buttonClasses("primary", "sm")}
-          >
-            <Plus className="w-3.5 h-3.5 mr-1" /> Revenu
-          </Link>
-          <button
-            type="button"
-            onClick={() => handleTabChange("scheduled")}
-            className={buttonClasses("secondary", "sm")}
-          >
-            <Plus className="w-3.5 h-3.5 mr-1" /> Programmer une dépense
-          </button>
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 truncate flex items-center gap-2.5">
+              <span className="bg-gradient-to-r from-gold to-gold-dark text-white p-2 rounded-xl shadow-gold-subtle inline-flex">
+                <Wallet className="w-5 h-5" />
+              </span>
+              Gestion Financière &amp; Factures
+            </h1>
+            <p className="text-xs text-ink-500 mt-1">
+              Suivez vos encaissements, dépenses et échéances en un coup d'œil.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href={`/finances/print?month=${rangeStart.slice(0, 7)}`}
+              target="_blank"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-canvas border border-ink-300 dark:border-ink-700 text-xs font-semibold text-ink-900 dark:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shadow-xs"
+              title="Imprimer ou enregistrer le relevé en PDF"
+            >
+              <Printer className="w-3.5 h-3.5 text-signal" /> Relevé PDF
+            </Link>
+            <a
+              href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
+              download
+              data-tour="finance-export"
+              className={buttonClasses("secondary", "sm")}
+              title="Exporter les données financières au format CSV"
+            >
+              <Download className="w-3.5 h-3.5 mr-1" /> CSV
+            </a>
+            <Link
+              href="/finances/income/new"
+              className={buttonClasses("primary", "sm")}
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" /> Revenu
+            </Link>
+            <button
+              type="button"
+              onClick={() => handleTabChange("scheduled")}
+              className={buttonClasses("secondary", "sm")}
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" /> Programmer une dépense
+            </button>
+          </div>
         </div>
       </div>
 
@@ -493,11 +501,22 @@ export function FinancesView({
 
       {/* Tab: EXPENSES */}
       {activeTab === "expenses" && (
-        <div className="p-4 sm:p-6 rounded-xl border border-ink-200 bg-canvas-raised space-y-4 min-w-0 animate-in fade-in-50 duration-150">
-          <div className="flex items-center justify-between gap-2">
+        <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-5 sm:p-7 space-y-5 min-w-0 animate-in fade-in-50 duration-150 shadow-xs">
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+            style={{ backgroundImage: "url('/images/backgrounds/expenses-bg.jpg')" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="font-bold text-sm sm:text-base text-ink-950 truncate">Dépenses payées du mois</h3>
-              <p className="text-xs text-ink-500">
+              <h3 className="font-extrabold text-base sm:text-lg text-ink-950 dark:text-ink-50 flex items-center gap-2 truncate">
+                <span className="p-1.5 rounded-xl bg-danger text-white shadow-xs">
+                  <TrendingDown className="w-4 h-4" />
+                </span>
+                Dépenses payées du mois
+              </h3>
+              <p className="text-xs text-ink-500 mt-1">
                 Historique des décaissements réels déduits du Solde Net.
               </p>
             </div>

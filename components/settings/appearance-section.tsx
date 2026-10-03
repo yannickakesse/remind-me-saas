@@ -28,7 +28,7 @@ export function AppearanceSection() {
           {t("settings.language_desc")}
         </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {locales.map((loc) => {
             const isSelected = loc.code === locale;
             return (
@@ -37,27 +37,29 @@ export function AppearanceSection() {
                 type="button"
                 onClick={() => setLocale(loc.code)}
                 aria-pressed={isSelected}
-                className={`relative flex items-center justify-between p-3 rounded-2xl border text-left transition-all tap-active cursor-pointer ${
+                className={`relative flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all tap-active cursor-pointer ${
                   isSelected
                     ? "border-signal bg-signal-soft shadow-xs ring-2 ring-signal/30"
                     : "border-ink-200 dark:border-ink-800 bg-canvas-raised dark:bg-ink-900 hover:border-signal/40 hover:bg-ink-50 dark:hover:bg-ink-800"
                 }`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="text-xl shrink-0">{loc.flag}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink-100 dark:bg-ink-800 text-xl border border-ink-200 dark:border-ink-700">
+                    {loc.flag}
+                  </div>
                   <div className="min-w-0 flex flex-col">
                     <span className={`text-xs truncate font-bold ${isSelected ? "text-signal" : "text-ink-950 dark:text-white"}`}>
-                      {loc.nativeLabel}
+                      {loc.label}
                     </span>
-                    <span className="text-[10px] text-ink-400 truncate uppercase">
-                      {loc.code}
+                    <span className="text-[10px] text-ink-400 truncate">
+                      {loc.nativeLabel}
                     </span>
                   </div>
                 </div>
 
                 {isSelected && (
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-signal text-white shrink-0 shadow-xs">
-                    <Check className="w-2.5 h-2.5" strokeWidth={3} />
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-signal text-white shrink-0 shadow-xs">
+                    <Check className="w-3 h-3" strokeWidth={3} />
                   </span>
                 )}
               </button>

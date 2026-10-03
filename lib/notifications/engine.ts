@@ -129,19 +129,45 @@ export async function invalidateOutdatedEntityReminders(
 }
 
 /**
- * Déclenchement proactif immédiat de l'évaluation des rappels pour un utilisateur.
+ * Déclenchement proactif asynchrone et non-bloquant de l'évaluation des rappels.
+ * Ne bloque JAMAIS la réponse de la Server Action ou du rendu à l'utilisateur.
+ * L'évaluation se poursuit en arrière-plan en toute sécurité avec confinement total des erreurs.
  */
-export async function triggerProactiveReminders(
+export function triggerProactiveReminders(
   supabase: SupabaseClient<Database>,
   userId: string,
   timezone = "UTC"
 ): Promise<ReminderEngineResult> {
-  try {
-    return await evaluateSmartReminders(supabase, userId, timezone);
-  } catch (err) {
-    console.error("[triggerProactiveReminders] Execution error:", err);
-    return { processed: 0, inserted: 0, emailCount: 0, pushCount: 0, resolvedCleanups: 0 };
+  // Lancer l'évaluation en tâche de fond isolée
+  const backgroundTask = (async (): Promise<ReminderEngineResult> => {
+    try {
+      return await evaluateSmartReminders(supabase, userId, timezone);
+    } catch (err) {
+      console.error("[triggerProactiveReminders background error]:", err);
+      return { processed: 0, inserted: 0, emailCount: 0, pushCount: 0, resolvedCleanups: 0 };
+    }
+  })();
+
+  // Support runtime Vercel / Edge waitUntil si disponible
+  if (typeof (globalThis as any).waitUntil === "function") {
+    try {
+      (globalThis as any).waitUntil(backgroundTask);
+    } catch (_) {}
   }
+
+  // Fallback sécurisé : capturer toute rejection non gérée
+  backgroundTask.catch((err) => {
+    console.error("[triggerProactiveReminders unhandled background]:", err);
+  });
+
+  // Retourner immédiatement un résultat résolu pour libérer instantanément la Server Action (0 ms)
+  return Promise.resolve({
+    processed: 0,
+    inserted: 0,
+    emailCount: 0,
+    pushCount: 0,
+    resolvedCleanups: 0,
+  });
 }
 
 /**

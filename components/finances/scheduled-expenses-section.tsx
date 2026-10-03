@@ -169,30 +169,43 @@ export function ScheduledExpensesSection({
 
   return (
     <div className="space-y-6">
-      {/* Header with summary card and new button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-ink-200 bg-canvas-raised shadow-xs">
-        <div>
-          <h2 className="text-base font-bold text-ink-950">Dépenses Programmées & Récurrentes</h2>
-          <p className="text-xs text-ink-500 mt-0.5">
-            Planifiez vos loyers, abonnements, factures et suivez vos échéances futures.
-          </p>
-        </div>
+      {/* Header with summary card and new button, styled with scheduled-expenses-bg.jpg */}
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-7 shadow-xs">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          style={{ backgroundImage: "url('/images/backgrounds/scheduled-expenses-bg.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
 
-        <div className="flex items-center gap-3">
-          <div className="text-right hidden sm:block">
-            <span className="text-xs text-ink-500">Total prévisionnel : </span>
-            <span className="font-bold text-sm text-ink-950">
-              {formatAmount(totalPlannedThisMonth, defaultCurrency)}
-            </span>
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2">
+              <span className="p-1.5 rounded-xl bg-signal text-white shadow-xs">
+                <Clock className="w-4 h-4" />
+              </span>
+              Dépenses Programmées &amp; Récurrentes
+            </h2>
+            <p className="text-xs text-ink-500 mt-1">
+              Planifiez vos charges régulières (loyers, abonnements, factures) et anticipez votre trésorerie.
+            </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-signal text-white text-xs font-semibold hover:bg-signal/90 active:scale-95 transition-all shadow-xs"
-          >
-            <Plus className="w-4 h-4" /> Programmer une dépense
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden sm:block">
+              <span className="text-xs text-ink-500">Total prévisionnel : </span>
+              <span className="font-bold text-sm text-ink-950 dark:text-ink-50">
+                {formatAmount(totalPlannedThisMonth, defaultCurrency)}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-signal text-white text-xs font-semibold hover:bg-signal/90 active:scale-95 transition-all shadow-xs"
+            >
+              <Plus className="w-4 h-4" /> Programmer une dépense
+            </button>
+          </div>
         </div>
       </div>
 
@@ -222,35 +235,61 @@ export function ScheduledExpensesSection({
 
       {/* Expenses Cards List */}
       {filtered.length === 0 ? (
-        <div className="p-8 text-center rounded-xl border border-dashed border-ink-300 bg-canvas-raised">
-          <Clock className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-          <div className="font-bold text-sm text-ink-900">Aucune dépense programmée</div>
-          <div className="text-xs text-ink-500 mt-1 max-w-sm mx-auto">
-            Programmez vos charges régulières (abonnements, électricité, internet, loyer) pour anticiper votre trésorerie.
+        <div className="p-8 text-center rounded-2xl border border-dashed border-ink-300 dark:border-ink-800 bg-canvas-raised">
+          {filter === "cancelled" ? (
+            <div
+              className="w-16 h-16 mx-auto mb-3 bg-contain bg-no-repeat bg-center opacity-70"
+              style={{ backgroundImage: "url('/images/backgrounds/cancelled-expenses-bg.jpg')" }}
+            />
+          ) : (
+            <Clock className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+          )}
+          <div className="font-bold text-sm text-ink-900 dark:text-ink-100">
+            {filter === "cancelled" ? "Aucune dépense annulée" : "Aucune dépense programmée"}
           </div>
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="mt-4 px-4 py-2 rounded-lg bg-signal text-white text-xs font-semibold active:scale-95 transition-transform"
-          >
-            Programmer maintenant
-          </button>
+          <div className="text-xs text-ink-500 mt-1 max-w-sm mx-auto">
+            {filter === "cancelled"
+              ? "Toutes vos charges récurrentes sont actuellement actives, planifiées ou payées."
+              : "Programmez vos charges régulières (abonnements, électricité, internet, loyer) pour anticiper votre trésorerie."}
+          </div>
+          {filter !== "cancelled" && (
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="mt-4 px-4 py-2 rounded-xl bg-signal text-white text-xs font-semibold active:scale-95 transition-transform"
+            >
+              Programmer maintenant
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((item) => {
             const statusInfo = scheduledStatusLabel(item.status);
             const isLoading = actionLoadingId === item.id;
+            const isCancelled = item.status === "cancelled";
 
             return (
               <div
                 key={item.id}
-                className="p-4 rounded-xl border border-ink-200 bg-canvas-raised shadow-xs flex flex-col justify-between space-y-4 hover:border-gold/40 transition-colors"
+                className={`relative overflow-hidden p-5 rounded-2xl border bg-canvas-raised shadow-xs flex flex-col justify-between space-y-4 hover:border-gold/40 transition-colors ${
+                  isCancelled
+                    ? "border-danger/40 bg-danger-soft/5 opacity-85"
+                    : "border-ink-200 dark:border-ink-800"
+                }`}
               >
-                <div>
+                {/* Cancelled Stamp Background Watermark */}
+                {isCancelled && (
+                  <div
+                    className="absolute right-4 top-4 w-24 h-24 bg-contain bg-no-repeat bg-center opacity-25 dark:opacity-35 pointer-events-none rotate-[-12deg]"
+                    style={{ backgroundImage: "url('/images/backgrounds/cancelled-expenses-bg.jpg')" }}
+                  />
+                )}
+
+                <div className="relative z-10">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-bold text-sm text-ink-950">{item.name}</h3>
+                      <h3 className="font-bold text-sm text-ink-950 dark:text-ink-50">{item.name}</h3>
                       <span className="text-[11px] text-ink-500">
                         {item.category} • {frequencyLabel(item.frequency)}
                       </span>
@@ -262,8 +301,8 @@ export function ScheduledExpensesSection({
                           ? "bg-warning-soft text-warning border border-warning/30"
                           : item.status === "paid"
                           ? "bg-positive-soft text-positive border border-positive/30"
-                          : item.status === "cancelled"
-                          ? "bg-danger-soft text-danger border border-danger/30"
+                          : isCancelled
+                          ? "bg-danger-soft text-danger border border-danger/40"
                           : "bg-signal-soft text-signal border border-signal/30"
                       }`}
                     >

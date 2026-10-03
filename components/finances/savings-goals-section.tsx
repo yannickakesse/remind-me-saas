@@ -180,26 +180,40 @@ export function SavingsGoalsSection({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold tracking-tight text-ink-950">Objectifs & Poches d'Épargne</h2>
-          <p className="text-sm text-ink-500">
-            Constituez votre fonds d'urgence, préparez vos investissements ou financez vos projets futurs.
-          </p>
-        </div>
+      {/* En-tête avec bannière visuelle retravaillée */}
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-7 shadow-xs">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          style={{ backgroundImage: "url('/images/backgrounds/savings-bg.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
 
-        {!isAdding && !editingId ? (
-          <button
-            type="button"
-            onClick={() => {
-              resetForm();
-              setIsAdding(true);
-            }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-signal px-4 py-2 text-sm font-medium text-white hover:bg-signal/90 transition-colors"
-          >
-            + Créer un objectif
-          </button>
-        ) : null}
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2">
+              <span className="p-1.5 rounded-xl bg-signal text-white shadow-xs">
+                <Target className="w-4 h-4" />
+              </span>
+              Objectifs &amp; Poches d'Épargne
+            </h2>
+            <p className="text-xs text-ink-500 mt-1">
+              Constituez votre fonds d'urgence, préparez vos investissements ou financez vos projets futurs.
+            </p>
+          </div>
+
+          {!isAdding && !editingId ? (
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                setIsAdding(true);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-signal px-4 py-2 text-xs font-bold text-white hover:bg-signal/90 active:scale-95 transition-all shadow-xs"
+            >
+              <Plus className="w-4 h-4" /> Créer un objectif
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {/* Formulaire création/édition */}

@@ -201,33 +201,40 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
 
   return (
     <div className="space-y-5 w-full min-w-0 max-w-full">
-      {/* Header with Title and Global Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white truncate">
-              {t("nav.notifications")}
-            </h1>
-            {unreadCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-danger text-white text-[11px] font-bold animate-pulse shrink-0">
-                {unreadCount} {t("actions.filter_unread")}
-              </span>
-            )}
+      {/* Header with Title, Background Ambience and Global Actions */}
+      <div className="relative overflow-hidden rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 p-5 sm:p-6 shadow-xs">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-15 dark:opacity-25 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          style={{ backgroundImage: `url('/images/backgrounds/notifications-bg.jpg')` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/85 to-transparent dark:from-ink-900 dark:via-ink-900/85 pointer-events-none" />
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white truncate">
+                {t("nav.notifications")}
+              </h1>
+              {unreadCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-danger text-white text-[11px] font-bold animate-pulse shrink-0">
+                  {unreadCount} {t("actions.filter_unread")}
+                </span>
+              )}
+            </div>
+            <p className="text-xs sm:text-sm text-ink-500 mt-1">
+              {t("attention.subtitle")}
+            </p>
           </div>
-          <p className="text-xs text-ink-500 mt-0.5">
-            {t("attention.subtitle")}
-          </p>
-        </div>
 
-        {unreadCount > 0 && (
-          <button
-            type="button"
-            onClick={handleMarkAllRead}
-            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-xs font-semibold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs shrink-0 tap-active cursor-pointer"
-          >
-            <Check className="w-3.5 h-3.5" /> {t("actions.mark_all_read")}
-          </button>
-        )}
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={handleMarkAllRead}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-xs font-semibold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs shrink-0 tap-active cursor-pointer"
+            >
+              <Check className="w-3.5 h-3.5" /> {t("actions.mark_all_read")}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filter Tabs & Search Bar */}
@@ -312,14 +319,20 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
 
       {/* Notifications List */}
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-ink-200 dark:border-ink-800 p-12 text-center bg-canvas-raised/50 dark:bg-ink-900/50">
-          <CheckCircle2 className="w-10 h-10 text-positive mx-auto mb-2" />
-          <h3 className="text-sm font-bold text-ink-950 dark:text-white">
-            {t("actions.empty_title")}
-          </h3>
-          <p className="text-xs text-ink-500 max-w-sm mx-auto mt-1">
-            {t("actions.empty_desc")}
-          </p>
+        <div className="relative overflow-hidden rounded-2xl border border-dashed border-ink-200 dark:border-ink-800 p-12 text-center bg-canvas-raised/50 dark:bg-ink-900/50">
+          <div
+            className="absolute inset-0 bg-contain bg-no-repeat bg-center opacity-10 pointer-events-none filter blur-[0.5px]"
+            style={{ backgroundImage: `url('/images/backgrounds/notifications-bg.jpg')` }}
+          />
+          <div className="relative z-10">
+            <CheckCircle2 className="w-10 h-10 text-positive mx-auto mb-2" />
+            <h3 className="text-sm font-bold text-ink-950 dark:text-white">
+              {t("actions.empty_title")}
+            </h3>
+            <p className="text-xs text-ink-500 max-w-sm mx-auto mt-1">
+              {t("actions.empty_desc")}
+            </p>
+          </div>
         </div>
       ) : (
         <div className="space-y-3">

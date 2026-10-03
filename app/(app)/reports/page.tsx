@@ -63,6 +63,7 @@ export default async function ReportsPage({
   const {
     profitabilityList,
     categoryBreakdown,
+    incomeBreakdown,
     monthlyEvolution,
     totalHoursWorked,
     totalIncomeReceived,
@@ -81,43 +82,70 @@ export default async function ReportsPage({
       ? otherCurrencies.map((c) => `+ ${formatAmount(c.incomeReceived, c.currency)}`).join(", ")
       : null;
 
+  const isDeficit = realNetBalance < 0 || (totalExpensesPaid > totalIncomeReceived && totalIncomeReceived > 0);
+
   return (
     <div className="space-y-8" data-tour="reports-container">
-      {/* En-tête de page */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-ink-950 flex items-center gap-2">
-            <span className="bg-gradient-to-r from-gold to-gold-dark text-white p-1.5 rounded-xl shadow-gold-subtle inline-flex">
-              <BarChart3 className="w-5 h-5" />
-            </span>
-            Rapports & Rentabilité
-          </h1>
-          <p className="text-sm text-ink-500 mt-1">
-            Analysez la profitabilité réelle de vos activités, vos heures investies et vos flux de trésorerie.
-          </p>
-        </div>
+      {/* En-tête de page avec bannière visuelle retravaillée */}
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-8 shadow-xs">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          style={{ backgroundImage: "url('/images/backgrounds/reports-bg.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
 
-        <div className="flex items-center gap-2.5">
-          <Link
-            href={`/reports/print?from=${rangeStart}&to=${rangeEnd}`}
-            target="_blank"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-signal text-white text-xs font-bold shadow-xs hover:bg-signal-dark active:scale-95 transition-all"
-            data-tour="reports-pdf-btn"
-          >
-            <Printer className="w-3.5 h-3.5" /> Imprimer en PDF
-          </Link>
-          <a
-            href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
-            className={buttonClasses("secondary", "sm")}
-            data-tour="reports-export-btn"
-          >
-            <Download className="w-3.5 h-3.5 mr-1" /> CSV
-          </a>
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2.5">
+              <span className="bg-gradient-to-r from-gold to-gold-dark text-white p-2 rounded-xl shadow-gold-subtle inline-flex">
+                <BarChart3 className="w-5 h-5" />
+              </span>
+              Rapports &amp; Rentabilité
+            </h1>
+            <p className="text-sm text-ink-500 mt-1">
+              Analysez la profitabilité réelle de vos activités, vos heures investies et vos flux de trésorerie.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <Link
+              href={`/reports/print?from=${rangeStart}&to=${rangeEnd}`}
+              target="_blank"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-signal text-white text-xs font-bold shadow-xs hover:bg-signal-dark active:scale-95 transition-all"
+              data-tour="reports-pdf-btn"
+            >
+              <Printer className="w-3.5 h-3.5" /> Imprimer en PDF
+            </Link>
+            <a
+              href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
+              className={buttonClasses("secondary", "sm")}
+              data-tour="reports-export-btn"
+            >
+              <Download className="w-3.5 h-3.5 mr-1" /> CSV
+            </a>
+          </div>
         </div>
       </div>
 
       {/* Sélecteur de période */}
       <PeriodFilter from={rangeStart} to={rangeEnd} />
+
+      {/* Bannière d'alerte en cas de déficit (Dépenses > Revenus) */}
+      {isDeficit && (
+        <div className="rounded-2xl border border-danger/40 bg-gradient-to-r from-danger-soft/50 via-danger-soft/20 to-canvas-raised p-4 sm:p-5 shadow-xs flex items-start gap-3.5 animate-in fade-in duration-300">
+          <div className="p-2.5 rounded-xl bg-danger text-white shrink-0 mt-0.5 shadow-sm">
+            <TrendingDown className="w-5 h-5" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-extrabold text-danger text-sm sm:text-base flex items-center gap-2">
+              Attention : Situation de Déficit Détectée
+            </h3>
+            <p className="text-xs sm:text-sm text-ink-700 dark:text-ink-300 leading-relaxed">
+              Vos dépenses payées (<strong>{formatAmount(totalExpensesPaid, defaultCurrency)}</strong>) dépassent vos revenus encaissés (<strong>{formatAmount(totalIncomeReceived, defaultCurrency)}</strong>) avec un solde négatif de <span className="font-extrabold text-danger">{formatAmount(realNetBalance, defaultCurrency)}</span> sur la période sélectionnée.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Cartes KPI Synthèse */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-tour="reports-kpi">
@@ -246,7 +274,7 @@ export default async function ReportsPage({
 
       {/* Deux colonnes : Répartition par catégorie & Évolution mensuelle */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CategoryBreakdown items={categoryBreakdown} />
+        <CategoryBreakdown expenseItems={categoryBreakdown} incomeItems={incomeBreakdown} />
         <MonthlyEvolution items={monthlyEvolution} />
       </div>
     </div>

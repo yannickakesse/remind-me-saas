@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Printer, ArrowLeft, ShieldCheck, CheckCircle2, DollarSign, Wallet, Calendar } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
+import { RemindMeLogo } from "@/components/landing/remindme-logo";
 
 interface PrintableStatementProps {
   user: {
@@ -94,9 +95,7 @@ export function PrintableStatement({
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b-2 border-slate-900 gap-3 print:pb-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-900 text-amber-500 flex items-center justify-center font-extrabold text-lg shadow-sm print:bg-slate-900">
-              RM
-            </div>
+            <RemindMeLogo size="md" showText={false} />
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-extrabold tracking-tight text-slate-900">REMIND ME</h1>

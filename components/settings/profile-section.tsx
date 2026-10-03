@@ -44,8 +44,13 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const rawName = (profile.full_name ?? "").trim();
+  const nameParts = rawName.split(/\s+/);
+  const initialLastName = nameParts[0] ?? "";
+  const initialFirstName = nameParts.slice(1).join(" ");
 
-  const [fullName, setFullName] = useState(profile.full_name ?? "");
+  const [lastName, setLastName] = useState(initialLastName);
+  const [firstName, setFirstName] = useState(initialFirstName);
   const [countryCode, setCountryCode] = useState(profile.country_code ?? countries[0]?.code ?? "CI");
   const [currencyCode, setCurrencyCode] = useState(profile.default_currency ?? currencies[0]?.code ?? "XOF");
   const [timezone, setTimezone] = useState(
@@ -102,11 +107,13 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
     }
   }
 
+  const computedFullName = [lastName.trim(), firstName.trim()].filter(Boolean).join(" ");
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const result = profileFormSchema.safeParse({
-      fullName,
+      fullName: computedFullName,
       countryCode,
       currencyCode,
       timezone,
@@ -116,7 +123,13 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
     });
     if (!result.success) {
       const errors: Record<string, string> = {};
-      for (const issue of result.error.issues) errors[issue.path[0] as string] = issue.message;
+      for (const issue of result.error.issues) {
+        if (issue.path[0] === "fullName") {
+          errors.lastName = "Le nom est obligatoire (au moins 2 caractères)";
+        } else {
+          errors[issue.path[0] as string] = issue.message;
+        }
+      }
       setFieldErrors(errors);
       return;
     }
@@ -153,7 +166,7 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
           />
         ) : (
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-signal-soft text-lg font-semibold text-signal ring-2 ring-ink-200">
-            {initials(fullName)}
+            {initials(computedFullName || profile.full_name)}
           </div>
         )}
         <div>
@@ -180,9 +193,26 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
       />
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-        <Field label="Nom complet" htmlFor="fullName" error={fieldErrors.fullName}>
-          <TextInput id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-        </Field>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="Nom *" htmlFor="lastName" error={fieldErrors.lastName}>
+            <TextInput
+              id="lastName"
+              value={lastName}
+              placeholder="Ex: Kouassi"
+              onChange={(e) => setLastName(e.target.value)}
+              required
+            />
+          </Field>
+
+          <Field label="Prénom (facultatif)" htmlFor="firstName" error={fieldErrors.firstName}>
+            <TextInput
+              id="firstName"
+              value={firstName}
+              placeholder="Ex: Yannick"
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </Field>
+        </div>
 
         <Field label="Pays" htmlFor="countryCode" error={fieldErrors.countryCode}>
           <Select id="countryCode" value={countryCode} onChange={(e) => setCountryCode(e.target.value)}>

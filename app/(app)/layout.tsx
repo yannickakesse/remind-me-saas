@@ -17,7 +17,6 @@ import type { Notification } from "@/types/database";
 import { SidebarNav } from "@/components/navigation/sidebar-nav";
 
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
-import { ensureNotifications } from "@/lib/notifications/sync";
 import { getUserTimezone } from "@/lib/time/timezones";
 
 export default async function AppLayout({
@@ -30,10 +29,6 @@ export default async function AppLayout({
   const profile = await getCurrentProfile();
 
   if (!profile?.onboarding_completed) redirect("/onboarding");
-
-  // Évaluation proactive et immédiate des notifications et rappels d'activités
-  await ensureNotifications(supabase, user.id, getUserTimezone(profile));
-
 
   const [{ count: unreadCount }, { data: latestNotifications }, { data: userSettings }] = await Promise.all([
     supabase
@@ -111,16 +106,25 @@ export default async function AppLayout({
           </div>
           <Link
             href="/settings"
-            className="flex items-center gap-3 rounded-lg p-2 hover:bg-ink-50 transition-colors"
+            className="group flex items-center gap-3 rounded-xl p-2.5 hover:bg-ink-100/70 dark:hover:bg-ink-800/60 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-signal-soft text-signal font-bold text-xs">
-              {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}
-            </div>
+            {profile.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={profile.avatar_url}
+                alt={profile.full_name || "Avatar"}
+                className="h-9 w-9 rounded-full object-cover ring-2 ring-signal/30 group-hover:ring-signal transition-all shadow-xs"
+              />
+            ) : (
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-signal to-signal-dark text-white font-bold text-xs shadow-xs group-hover:scale-105 transition-transform">
+                {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-ink-950 truncate">
+              <p className="text-xs font-semibold text-ink-950 dark:text-ink-50 group-hover:text-signal transition-colors truncate">
                 {profile.full_name || "Mon Compte"}
               </p>
-              <p className="text-[10px] text-ink-500 truncate">{user.email}</p>
+              <p className="text-[10px] text-ink-500 dark:text-ink-400 truncate">{user.email}</p>
             </div>
           </Link>
         </div>

@@ -265,21 +265,34 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
 
   return (
     <div className="space-y-8">
-      {/* En-tête responsive */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink-950">Activités & Métiers</h1>
-          <p className="text-sm text-ink-500">
-            {active.length} active{active.length > 1 ? "s" : ""}
-            {expired.length > 0 ? ` · ${expired.length} expirée${expired.length > 1 ? "s" : ""}` : ""}
-            {suspended.length > 0 ? ` · ${suspended.length} en pause` : ""}
-            {archived.length > 0 ? ` · ${archived.length} archivée${archived.length > 1 ? "s" : ""}` : ""}
-          </p>
+      {/* En-tête responsive avec bannière visuelle retravaillée */}
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-8 shadow-xs">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none mix-blend-luminosity filter blur-[0.5px]"
+          style={{ backgroundImage: "url('/images/backgrounds/activities-bg.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2.5">
+              <span className="p-2 rounded-xl bg-signal text-white shadow-xs">
+                <Briefcase className="h-5 w-5" />
+              </span>
+              Activités &amp; Missions
+            </h1>
+            <p className="text-sm text-ink-500 mt-1">
+              {active.length} active{active.length > 1 ? "s" : ""}
+              {expired.length > 0 ? ` · ${expired.length} expirée${expired.length > 1 ? "s" : ""}` : ""}
+              {suspended.length > 0 ? ` · ${suspended.length} en pause` : ""}
+              {archived.length > 0 ? ` · ${archived.length} archivée${archived.length > 1 ? "s" : ""}` : ""}
+            </p>
+          </div>
+          <Link href="/activities/new" data-tour="activity-create" className={buttonClasses("primary", "md")}>
+            <Plus className="h-4 w-4 mr-1.5" />
+            Ajouter une activité
+          </Link>
         </div>
-        <Link href="/activities/new" data-tour="activity-create" className={buttonClasses("primary", "md")}>
-          <Plus className="h-4 w-4 mr-1.5" />
-          Ajouter une activité
-        </Link>
       </div>
 
       {/* 1. ACTIVITÉS ACTIVES */}

@@ -218,6 +218,37 @@ export async function calculateProfitabilityReport(
   });
   categoryBreakdown.sort((a, b) => b.amount - a.amount);
 
+  // 5b. Ventilation des revenus par activité / source
+  const incTotals = new Map<string, { label: string; amount: number; currency: string }>();
+  let totalIncomeReceivedOverall = 0;
+
+  (incomeEntries ?? []).forEach((i) => {
+    const actId = i.activity_id ?? "unassigned";
+    const actName = activityMap.get(actId)?.name ?? "Revenu Général / Libre";
+    const curr = i.currency || defaultCurrency;
+    const key = `${actId}::${curr}`;
+    const cur = incTotals.get(key) ?? { label: actName, amount: 0, currency: curr };
+    const amount = Number(i.amount);
+    cur.amount += amount;
+    incTotals.set(key, cur);
+    if (i.received) {
+      totalIncomeReceivedOverall += amount;
+    }
+  });
+
+  const incomeBreakdown: CategoryBreakdownItem[] = [];
+  incTotals.forEach((val) => {
+    const percentage =
+      totalIncomeReceivedOverall > 0 ? Math.round((val.amount / totalIncomeReceivedOverall) * 100) : 0;
+    incomeBreakdown.push({
+      category: val.label,
+      amount: val.amount,
+      currency: val.currency,
+      percentage,
+    });
+  });
+  incomeBreakdown.sort((a, b) => b.amount - a.amount);
+
   // 6. Évolution mensuelle (sur les 6 derniers mois)
   const monthlySummaries: MonthlySummaryItem[] = [];
   const endDT = DateTime.fromISO(endDate, { zone: timezone });
@@ -331,6 +362,7 @@ export async function calculateProfitabilityReport(
   return {
     profitabilityList,
     categoryBreakdown,
+    incomeBreakdown,
     monthlySummaries,
     monthlyEvolution: monthlySummaries,
     totalHoursWorked: Math.round(totalHoursWorked * 10) / 10,
