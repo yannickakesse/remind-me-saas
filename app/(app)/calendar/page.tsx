@@ -86,17 +86,15 @@ export default async function CalendarPage({
   const conflictIds = detectConflicts(regularEvents);
 
   return (
-    <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
-      <div className="relative overflow-hidden rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 p-5 sm:p-6 shadow-xs">
-        <div
-          className="absolute right-0 top-0 bottom-0 w-1/3 sm:w-1/2 bg-contain bg-right bg-no-repeat opacity-85 dark:opacity-80 pointer-events-none hidden sm:block"
-          style={{ backgroundImage: `url('/images/backgrounds/calendar-bg.jpg')` }}
-        />
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-35 pointer-events-none sm:hidden"
-          style={{ backgroundImage: `url('/images/backgrounds/calendar-bg.jpg')` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/85 to-transparent dark:from-ink-900 dark:via-ink-900/85 pointer-events-none" />
+    <div className="relative isolate min-h-full w-full space-y-5 max-w-7xl mx-auto min-w-0">
+      {/* Fond d'écran global de la page Calendrier */}
+      <div 
+        className="fixed inset-0 top-0 left-0 right-0 bottom-0 bg-cover bg-center opacity-25 dark:opacity-30 pointer-events-none -z-10"
+        style={{ backgroundImage: "url('/images/backgrounds/calendar-bg.jpg')" }}
+      />
+      <div className="fixed inset-0 bg-canvas/60 dark:bg-canvas-dark/70 pointer-events-none -z-10" />
+
+      <div className="relative overflow-hidden rounded-2xl bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 p-5 sm:p-6 shadow-xs">
         <div className="relative z-10">
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white truncate">
             Calendrier & Planning

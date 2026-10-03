@@ -77,16 +77,16 @@ export function PeriodFilter({ from, to }: { from: string; to: string }) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-ink-200 bg-canvas-raised p-4 shadow-sm">
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-        {/* Boutons presets */}
-        <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-          <span className="text-ink-500 mr-1 font-semibold">Période :</span>
+        {/* Boutons presets ultra-responsifs */}
+        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+          <span className="text-ink-500 mr-1 font-bold">Période :</span>
           <button
             type="button"
             onClick={() => applyPreset("month")}
-            className={`rounded-lg px-3 py-1.5 transition-colors ${
+            className={`rounded-xl px-3.5 py-2 transition-all duration-150 active:scale-95 cursor-pointer tap-active min-h-[36px] ${
               isCurrentMonth
-                ? "bg-signal text-white font-bold shadow-sm"
-                : "bg-ink-100 text-ink-700 hover:bg-ink-200"
+                ? "bg-signal text-white font-bold shadow-md scale-[1.02] ring-2 ring-signal/30"
+                : "bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 hover:bg-ink-200 dark:hover:bg-ink-700 hover:text-ink-950 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-xs"
             }`}
           >
             Ce mois-ci
@@ -94,10 +94,10 @@ export function PeriodFilter({ from, to }: { from: string; to: string }) {
           <button
             type="button"
             onClick={() => applyPreset("lastMonth")}
-            className={`rounded-lg px-3 py-1.5 transition-colors ${
+            className={`rounded-xl px-3.5 py-2 transition-all duration-150 active:scale-95 cursor-pointer tap-active min-h-[36px] ${
               isLastMonth
-                ? "bg-signal text-white font-bold shadow-sm"
-                : "bg-ink-100 text-ink-700 hover:bg-ink-200"
+                ? "bg-signal text-white font-bold shadow-md scale-[1.02] ring-2 ring-signal/30"
+                : "bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 hover:bg-ink-200 dark:hover:bg-ink-700 hover:text-ink-950 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-xs"
             }`}
           >
             Mois dernier
@@ -105,10 +105,10 @@ export function PeriodFilter({ from, to }: { from: string; to: string }) {
           <button
             type="button"
             onClick={() => applyPreset("quarter")}
-            className={`rounded-lg px-3 py-1.5 transition-colors ${
+            className={`rounded-xl px-3.5 py-2 transition-all duration-150 active:scale-95 cursor-pointer tap-active min-h-[36px] ${
               isCurrentQuarter
-                ? "bg-signal text-white font-bold shadow-sm"
-                : "bg-ink-100 text-ink-700 hover:bg-ink-200"
+                ? "bg-signal text-white font-bold shadow-md scale-[1.02] ring-2 ring-signal/30"
+                : "bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 hover:bg-ink-200 dark:hover:bg-ink-700 hover:text-ink-950 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-xs"
             }`}
           >
             Ce trimestre
@@ -116,10 +116,10 @@ export function PeriodFilter({ from, to }: { from: string; to: string }) {
           <button
             type="button"
             onClick={() => applyPreset("year")}
-            className={`rounded-lg px-3 py-1.5 transition-colors ${
+            className={`rounded-xl px-3.5 py-2 transition-all duration-150 active:scale-95 cursor-pointer tap-active min-h-[36px] ${
               isCurrentYear
-                ? "bg-signal text-white font-bold shadow-sm"
-                : "bg-ink-100 text-ink-700 hover:bg-ink-200"
+                ? "bg-signal text-white font-bold shadow-md scale-[1.02] ring-2 ring-signal/30"
+                : "bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 hover:bg-ink-200 dark:hover:bg-ink-700 hover:text-ink-950 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-xs"
             }`}
           >
             Année en cours (YTD)
@@ -127,10 +127,10 @@ export function PeriodFilter({ from, to }: { from: string; to: string }) {
           <button
             type="button"
             onClick={() => applyPreset("last12")}
-            className={`rounded-lg px-3 py-1.5 transition-colors ${
+            className={`rounded-xl px-3.5 py-2 transition-all duration-150 active:scale-95 cursor-pointer tap-active min-h-[36px] ${
               isLast12
-                ? "bg-signal text-white font-bold shadow-sm"
-                : "bg-ink-100 text-ink-700 hover:bg-ink-200"
+                ? "bg-signal text-white font-bold shadow-md scale-[1.02] ring-2 ring-signal/30"
+                : "bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 hover:bg-ink-200 dark:hover:bg-ink-700 hover:text-ink-950 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-xs"
             }`}
           >
             12 derniers mois

@@ -57,13 +57,13 @@ export function FinanceTabs({ currentTab, onTabChange }: FinanceTabsProps) {
               key={tab.id}
               type="button"
               onClick={() => handleTabChange(tab.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all min-h-[40px] tap-active ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 min-h-[42px] tap-active cursor-pointer ${
                 isActive
-                  ? "bg-gradient-to-r from-gold to-gold-dark text-white shadow-gold-subtle"
-                  : "bg-canvas-raised border border-ink-200 text-ink-700 hover:border-gold/30 hover:bg-gold-soft/10 hover:text-ink-950"
+                  ? "bg-gradient-to-r from-gold to-gold-dark text-white shadow-gold-subtle scale-[1.02] ring-2 ring-gold/30"
+                  : "bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-ink-700 dark:text-ink-300 hover:border-gold/50 hover:bg-gold-soft/20 hover:text-ink-950 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-sm"
               }`}
             >
-              <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-ink-500"}`} strokeWidth={1.8} />
+              <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-white scale-110" : "text-ink-500"}`} strokeWidth={2} />
               <span>{tab.label}</span>
             </button>
           );

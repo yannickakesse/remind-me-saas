@@ -141,20 +141,26 @@ export function FinancesView({
     (budgetsWithSpent ?? []).length === 0 &&
     (savingsGoals ?? []).length === 0;
 
-  return (
-    <div className="space-y-5 max-w-7xl mx-auto w-full min-w-0">
-      {/* Header avec bannière visuelle retravaillée et visible */}
-      <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-5 sm:p-7 shadow-xs" data-tour="finance-header">
-        <div 
-          className="absolute right-0 top-0 bottom-0 w-1/3 sm:w-1/2 bg-contain bg-right bg-no-repeat opacity-85 dark:opacity-80 pointer-events-none hidden sm:block"
-          style={{ backgroundImage: "url('/images/backgrounds/finances-overview-bg.jpg')" }}
-        />
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-35 pointer-events-none sm:hidden"
-          style={{ backgroundImage: "url('/images/backgrounds/finances-overview-bg.jpg')" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/85 to-transparent pointer-events-none" />
+  const currentBgImage =
+    activeTab === "expenses"
+      ? "/images/backgrounds/expenses-bg.jpg"
+      : activeTab === "scheduled"
+      ? "/images/backgrounds/scheduled-expenses-bg.jpg"
+      : activeTab === "savings"
+      ? "/images/backgrounds/savings-bg.jpg"
+      : "/images/backgrounds/finances-overview-bg.jpg";
 
+  return (
+    <div className="relative isolate min-h-full w-full space-y-5 max-w-7xl mx-auto min-w-0">
+      {/* Fond d'écran global dynamique de la section Finance */}
+      <div 
+        className="fixed inset-0 top-0 left-0 right-0 bottom-0 bg-cover bg-center opacity-25 dark:opacity-30 pointer-events-none -z-10 transition-all duration-700"
+        style={{ backgroundImage: `url('${currentBgImage}')` }}
+      />
+      <div className="fixed inset-0 bg-canvas/60 dark:bg-canvas-dark/70 pointer-events-none -z-10" />
+
+      {/* Header avec bannière visuelle retravaillée */}
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-5 sm:p-7 shadow-xs" data-tour="finance-header">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 truncate flex items-center gap-2.5">

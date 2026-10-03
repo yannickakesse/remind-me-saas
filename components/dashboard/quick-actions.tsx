@@ -6,27 +6,29 @@ import { buttonClasses } from "@/components/ui/button";
 import { useLanguage } from "@/components/i18n/language-provider";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-const ACTIONS: { href: string; labelKey: TranslationKey; icon: any }[] = [
-  { href: "/activities/new", labelKey: "dashboard.btn_activity", icon: Briefcase },
-  { href: "/tasks/new", labelKey: "dashboard.btn_task", icon: CheckSquare },
-  { href: "/finances?tab=scheduled&action=new", labelKey: "dashboard.btn_expense", icon: TrendingDown },
+const ACTIONS: { href: string; label: string; icon: any; tone: "primary" | "secondary" }[] = [
+  { href: "/activities", label: "Activités & Missions", icon: Briefcase, tone: "primary" },
+  { href: "/tasks", label: "Tâches & To-Do", icon: CheckSquare, tone: "secondary" },
+  { href: "/finances", label: "Finances & Dépenses", icon: TrendingDown, tone: "secondary" },
 ];
 
 export function QuickActions() {
-  const { t } = useLanguage();
-
   return (
-    <div className="flex flex-wrap gap-2">
-      {ACTIONS.map((action, index) => {
+    <div className="flex flex-wrap items-center gap-2">
+      {ACTIONS.map((action) => {
         const Icon = action.icon;
         return (
           <Link
             key={action.href}
             href={action.href}
-            className={buttonClasses(index === 0 ? "primary" : "secondary", "sm")}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-xs tap-active cursor-pointer ${
+              action.tone === "primary"
+                ? "bg-signal text-white hover:bg-signal-dark hover:shadow-md hover:-translate-y-0.5"
+                : "bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-ink-800 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 hover:border-signal/40 hover:-translate-y-0.5 hover:shadow-sm"
+            }`}
           >
-            <Plus className="w-3.5 h-3.5 mr-1 shrink-0" strokeWidth={2.5} />
-            <span>{t(action.labelKey)}</span>
+            <Icon className="w-3.5 h-3.5 shrink-0 text-gold-dark dark:text-gold" strokeWidth={2.2} />
+            <span>{action.label}</span>
           </Link>
         );
       })}
