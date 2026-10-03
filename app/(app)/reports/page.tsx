@@ -88,10 +88,9 @@ export default async function ReportsPage({
     <div className="relative isolate min-h-full w-full space-y-8" data-tour="reports-container">
       {/* Fond d'écran global de la page Rapports & Rentabilité */}
       <div 
-        className="fixed inset-0 top-0 left-0 right-0 bottom-0 bg-cover bg-center opacity-25 dark:opacity-30 pointer-events-none -z-10"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10"
         style={{ backgroundImage: "url('/images/backgrounds/reports-bg.jpg')" }}
       />
-      <div className="fixed inset-0 bg-canvas/60 dark:bg-canvas-dark/70 pointer-events-none -z-10" />
 
       {/* En-tête de page */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-6 sm:p-8 shadow-xs">

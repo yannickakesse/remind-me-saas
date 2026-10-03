@@ -154,10 +154,9 @@ export function FinancesView({
     <div className="relative isolate min-h-full w-full space-y-5 max-w-7xl mx-auto min-w-0">
       {/* Fond d'écran global dynamique de la section Finance */}
       <div 
-        className="fixed inset-0 top-0 left-0 right-0 bottom-0 bg-cover bg-center opacity-25 dark:opacity-30 pointer-events-none -z-10 transition-all duration-700"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10 transition-all duration-700"
         style={{ backgroundImage: `url('${currentBgImage}')` }}
       />
-      <div className="fixed inset-0 bg-canvas/60 dark:bg-canvas-dark/70 pointer-events-none -z-10" />
 
       {/* Header avec bannière visuelle retravaillée */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-5 sm:p-7 shadow-xs" data-tour="finance-header">
