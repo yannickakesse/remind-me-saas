@@ -7,6 +7,23 @@ const RECOVERY_ROUTE = "/reset-password";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // 0. Laisser passer tous les fichiers statiques (vidéos, images, sons, documents)
+  if (
+    pathname.endsWith(".mp4") ||
+    pathname.endsWith(".webm") ||
+    pathname.endsWith(".ogg") ||
+    pathname.endsWith(".mp3") ||
+    pathname.endsWith(".png") ||
+    pathname.endsWith(".jpg") ||
+    pathname.endsWith(".jpeg") ||
+    pathname.endsWith(".svg") ||
+    pathname.endsWith(".webp") ||
+    pathname.endsWith(".ico") ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
+  }
+
   // 1. Accès direct 0ms pour la page d'accueil publique (aucun appel auth bloquant)
   if (pathname === "/") {
     return NextResponse.next();
@@ -47,10 +64,9 @@ export const config = {
     /*
      * Applique le middleware uniquement aux pages applicatives, en excluant strictement :
      * - Fichiers statiques et builds Next.js (_next/static, _next/image)
+     * - Fichiers multimédias (.mp4, .webm, .png, etc.)
      * - Favicons, icônes PWA, manifest, Service Worker
-     * - Assets statiques (icons/, brand/)
-     * - Fichiers robots et sitemaps
      */
-    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|icons/|brand/|robots.txt|sitemap.xml).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mp4|webm|ogg|mp3|wav|json|js|css|webmanifest|txt|xml)$).*)",
   ],
 };

@@ -279,13 +279,16 @@ export function LandingVideoShowcase() {
           <div className="relative aspect-video w-full flex items-center justify-center bg-black cursor-pointer select-none" onClick={togglePlay}>
             <video
               ref={videoRef}
-              src="/remindme-intro.mp4"
               playsInline
               muted={isMuted}
               loop
+              autoPlay
               preload="auto"
               className="w-full h-full object-contain bg-black"
-            />
+            >
+              <source src="/remindme-intro.mp4" type="video/mp4" />
+              Votre navigateur ne prend pas en charge la lecture de vidéos HTML5.
+            </video>
 
             {/* Bouton Play central si la vidéo est en pause */}
             {!isPlaying && (
