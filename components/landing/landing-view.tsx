@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { LandingNavbar } from "./landing-navbar";
 import { LandingHero } from "./landing-hero";
 import { LandingProductPreview } from "./landing-product-preview";
+import { LandingMotionShowcase } from "./landing-motion-showcase";
 import { LandingComparison } from "./landing-comparison";
 import { LandingFeatures } from "./landing-features";
 import { LandingWorkflow } from "./landing-workflow";
@@ -38,7 +39,10 @@ export function LandingView({ user }: LandingViewProps) {
         {/* 2. Interactive Live Product Preview ("The Product As The Hero") */}
         <LandingProductPreview />
 
-        {/* 3. Problem vs Solution Comparison */}
+        {/* 3. Motion Design Interactive Showcase */}
+        <LandingMotionShowcase />
+
+        {/* 4. Problem vs Solution Comparison */}
         <LandingComparison />
 
         {/* 4. Core Feature Pillars */}
