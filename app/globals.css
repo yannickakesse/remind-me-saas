@@ -435,3 +435,44 @@ button, a, input, select, textarea {
     text-shadow: none !important;
   }
 }
+
+/* ============================================================================
+   7. MOBILE HORIZONTAL SWIPE TRANSITIONS
+   ============================================================================ */
+@keyframes slideFromRight {
+  from {
+    opacity: 0.88;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideFromLeft {
+  from {
+    opacity: 0.88;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-from-right {
+  animation: slideFromRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-from-left {
+  animation: slideFromLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-from-right,
+  .animate-slide-from-left {
+    animation: none !important;
+    transform: none !important;
+  }
+}
