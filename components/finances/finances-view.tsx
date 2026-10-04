@@ -13,6 +13,7 @@ import {
   Printer,
   Calendar,
   Check,
+  Loader2,
 } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -468,7 +469,12 @@ export function FinancesView({
                               className="px-2.5 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
                               title="Confirmer l'encaissement et ajouter au Solde Net"
                             >
-                              <Check className="w-3.5 h-3.5" /> Encaisser
+                              {isLoading ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Check className="w-3.5 h-3.5" />
+                              )}
+                              <span>{isLoading ? "Traitement..." : "Encaisser"}</span>
                             </button>
                             <button
                               type="button"
@@ -477,7 +483,12 @@ export function FinancesView({
                               className="px-2 py-1.5 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-300 bg-canvas dark:bg-ink-950 text-xs font-medium hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
                               title="Reporter l'échéance de 7 jours"
                             >
-                              <Clock className="w-3 h-3 text-amber-600" /> Reporter (+7j)
+                              {isLoading ? (
+                                <Loader2 className="w-3 h-3 animate-spin text-amber-600" />
+                              ) : (
+                                <Clock className="w-3 h-3 text-amber-600" />
+                              )}
+                              <span>{isLoading ? "Report..." : "Reporter (+7j)"}</span>
                             </button>
                           </>
                         ) : (
@@ -485,10 +496,11 @@ export function FinancesView({
                             type="button"
                             disabled={isLoading}
                             onClick={() => handleToggleIncomeReceived(inc.id, true)}
-                            className="px-2 py-1 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 text-[11px] font-medium transition-colors cursor-pointer"
+                            className="px-2 py-1 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1"
                             title="Remettre ce revenu en attente"
                           >
-                            Annuler l'encaissement
+                            {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                            <span>{isLoading ? "Annulation..." : "Annuler l'encaissement"}</span>
                           </button>
                         )}
                       </div>

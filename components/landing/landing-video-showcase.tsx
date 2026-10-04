@@ -8,12 +8,10 @@ import {
   VolumeX,
   Maximize2,
   RotateCcw,
-  Sparkles,
   Layers,
   Calendar,
   Wallet,
   TrendingUp,
-  Clock,
 } from "lucide-react";
 import { useLanguage } from "@/components/i18n/language-provider";
 
@@ -57,46 +55,80 @@ export function LandingVideoShowcase() {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(45);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(3);
   const [showControls, setShowControls] = useState(true);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Compte à rebours de 3 secondes avant démarrage automatique de la vidéo
+  // Lancement automatique immédiat avec tentative audio + repli muet + reprise sur premier geste
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Assurer le mode silencieux pour contourner la restriction de lecture automatique des navigateurs
-    video.muted = true;
-    setIsMuted(true);
+    let hasRecoveredAudio = false;
 
-    let remaining = 3;
-    const interval = setInterval(() => {
-      remaining -= 1;
-      if (remaining > 0) {
-        setCountdown(remaining);
-      } else {
-        setCountdown(null);
-        clearInterval(interval);
-        // Lancer la lecture automatique après exactement 3 secondes
-        const playPromise = video.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true);
-            })
-            .catch((err) => {
-              console.log("Lecture automatique en attente d'interaction:", err);
-            });
-        }
+    const tryUnlockAudioOnInteraction = () => {
+      if (hasRecoveredAudio) return;
+      const currentVideo = videoRef.current;
+      if (currentVideo && currentVideo.muted) {
+        currentVideo.muted = false;
+        setIsMuted(false);
+        hasRecoveredAudio = true;
       }
-    }, 1000);
+      cleanupInteractionListeners();
+    };
 
-    return () => clearInterval(interval);
+    const cleanupInteractionListeners = () => {
+      window.removeEventListener("pointerdown", tryUnlockAudioOnInteraction);
+      window.removeEventListener("touchstart", tryUnlockAudioOnInteraction);
+      window.removeEventListener("click", tryUnlockAudioOnInteraction);
+      window.removeEventListener("keydown", tryUnlockAudioOnInteraction);
+      window.removeEventListener("scroll", tryUnlockAudioOnInteraction);
+    };
+
+    const setupInteractionListeners = () => {
+      const options: AddEventListenerOptions = { capture: true, once: true, passive: true };
+      window.addEventListener("pointerdown", tryUnlockAudioOnInteraction, options);
+      window.addEventListener("touchstart", tryUnlockAudioOnInteraction, options);
+      window.addEventListener("click", tryUnlockAudioOnInteraction, options);
+      window.addEventListener("keydown", tryUnlockAudioOnInteraction, options);
+      window.addEventListener("scroll", tryUnlockAudioOnInteraction, options);
+    };
+
+    // 1. Tenter d'abord la lecture avec le son activé
+    video.muted = false;
+    setIsMuted(false);
+
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlaying(true);
+          setIsMuted(false);
+        })
+        .catch((_err) => {
+          // 2. Si la politique de sécurité du navigateur bloque l'autoplay audio (NotAllowedError) :
+          // Basculer immédiatement en muet pour que le motion design joue SANS DÉLAI
+          if (videoRef.current) {
+            videoRef.current.muted = true;
+            setIsMuted(true);
+            const mutedPromise = videoRef.current.play();
+            if (mutedPromise !== undefined) {
+              mutedPromise
+                .then(() => setIsPlaying(true))
+                .catch(() => setIsPlaying(false));
+            }
+          }
+          // 3. Écouter la 1ère interaction naturelle de l'utilisateur pour débloquer le son automatiquement
+          setupInteractionListeners();
+        });
+    }
+
+    return () => {
+      cleanupInteractionListeners();
+    };
   }, []);
 
   // Synchronisation des événements vidéo
@@ -120,7 +152,6 @@ export function LandingVideoShowcase() {
 
     const handlePlay = () => {
       setIsPlaying(true);
-      setCountdown(null);
     };
 
     const handlePause = () => {
@@ -156,7 +187,6 @@ export function LandingVideoShowcase() {
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
-    setCountdown(null);
 
     if (video.paused) {
       video.play().catch((err) => console.error(err));
@@ -183,7 +213,6 @@ export function LandingVideoShowcase() {
   const jumpToChapter = (time: number) => {
     const video = videoRef.current;
     if (!video) return;
-    setCountdown(null);
     video.currentTime = time;
     setCurrentTime(time);
     if (video.paused) {
@@ -194,7 +223,6 @@ export function LandingVideoShowcase() {
   const restartVideo = () => {
     const video = videoRef.current;
     if (!video) return;
-    setCountdown(null);
     video.currentTime = 0;
     setCurrentTime(0);
     video.play().catch((err) => console.error(err));
@@ -257,17 +285,14 @@ export function LandingVideoShowcase() {
             </div>
 
             <div className="flex items-center gap-2">
-              {countdown !== null ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-signal-soft text-signal border border-signal/20 animate-pulse">
-                  <Clock className="w-3 h-3" />
-                  <span>Démarrage auto dans {countdown}s...</span>
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-positive-soft text-positive border border-positive/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />
-                  <span>{isPlaying ? "En lecture" : "En pause"}</span>
-                </span>
-              )}
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border transition-colors ${
+                isPlaying
+                  ? "bg-positive-soft text-positive border-positive/20"
+                  : "bg-ink-800 text-ink-300 border-white/10"
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? "bg-positive animate-pulse" : "bg-ink-400"}`} />
+                <span>{isPlaying ? (isMuted ? "En lecture (Muet)" : "En lecture (Son activé)") : "En pause"}</span>
+              </span>
 
               <span className="hidden md:inline-flex px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-white/10 text-white">
                 45 SECONDES • 16:9
@@ -304,11 +329,6 @@ export function LandingVideoShowcase() {
                 >
                   <Play className="w-9 h-9 sm:w-11 sm:h-11 ml-1 fill-white" />
                 </button>
-                {countdown !== null && (
-                  <p className="mt-3 text-xs sm:text-sm font-semibold text-white/90 drop-shadow">
-                    Lancement automatique dans {countdown}s
-                  </p>
-                )}
               </div>
             )}
 

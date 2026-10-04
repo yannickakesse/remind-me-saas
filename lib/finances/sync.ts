@@ -14,18 +14,11 @@ export async function ensureIncomeEntries(
   rangeStartISO: string,
   rangeEndISO: string
 ): Promise<void> {
-  const adminSupabase = createAdminClient();
-
-  // 1. Récupérer toutes les activités de l'utilisateur (actives ou non pour préserver les jointures)
+  // 1. Récupération optimisée en parallèle des rémunérations et des entrées déjà enregistrées
   const [
-    { data: allUserActivities },
     { data: compensations },
     { data: existingIncomeInPeriod },
   ] = await Promise.all([
-    supabase
-      .from("activities")
-      .select("id, name, status, start_date, end_date")
-      .eq("user_id", userId),
     supabase
       .from("activity_compensation")
       .select(
@@ -40,19 +33,21 @@ export async function ensureIncomeEntries(
       .lte("due_date", rangeEndISO),
   ]);
 
-  const activityMap = new Map((allUserActivities ?? []).map((a) => [a.id, a]));
+  if (!compensations || compensations.length === 0) {
+    return;
+  }
 
-  // 2. Génération des échéances prévisionnelles pour les rémunérations éligibles
+  // 2. Génération des échéances prévisionnelles en mémoire pour les rémunérations éligibles
   type CandidateRow = Database["public"]["Tables"]["income"]["Insert"];
   const candidates: CandidateRow[] = [];
 
-  for (const c of compensations ?? []) {
+  for (const c of compensations) {
     if (!isGenerableFrequency(c.frequency)) continue;
 
     const activity = Array.isArray(c.activities) ? c.activities[0] : c.activities;
     if (!activity) continue;
 
-    // Si l'activité est explicitement suspendue ou archivée pour TOUTE la période, on ne génère pas de nouvelles échéances
+    // Si l'activité est suspendue ou archivée, pas de nouvelles échéances
     if (activity.status === "suspended" || activity.status === "archived") {
       continue;
     }
@@ -87,7 +82,9 @@ export async function ensureIncomeEntries(
     }
   }
 
-  // 3. Identification des entrées existantes sur la période
+  if (candidates.length === 0) return;
+
+  // 3. Indexation des entrées existantes sur la période
   const existingMap = new Map<string, { id: string; amount: number; received: boolean }>();
   (existingIncomeInPeriod ?? []).forEach((e) => {
     if (e.compensation_id && e.due_date) {
@@ -100,7 +97,9 @@ export async function ensureIncomeEntries(
   });
 
   const toInsert: CandidateRow[] = [];
+  const updatePromises: Promise<any>[] = [];
 
+  // 4. Exécution groupée et idempotente des écritures (uniquement si nécessaire)
   for (const candidate of candidates) {
     const key = `${candidate.compensation_id}|${candidate.due_date}`;
     const existingEntry = existingMap.get(key);
@@ -109,38 +108,37 @@ export async function ensureIncomeEntries(
       toInsert.push(candidate);
     } else if (!existingEntry.received && existingEntry.amount !== Number(candidate.amount)) {
       // Le montant a été ajusté sur l'activité et le revenu n'est pas encore encaissé -> mise à jour
-      await Promise.allSettled([
-        supabase
-          .from("income")
-          .update({
-            amount: candidate.amount,
-            currency: candidate.currency,
-            label: candidate.label,
-          })
-          .eq("id", existingEntry.id)
-          .eq("user_id", userId),
-        adminSupabase
-          .from("income")
-          .update({
-            amount: candidate.amount,
-            currency: candidate.currency,
-            label: candidate.label,
-          })
-          .eq("id", existingEntry.id)
-          .eq("user_id", userId),
-      ]);
+      updatePromises.push(
+        Promise.resolve(
+          supabase
+            .from("income")
+            .update({
+              amount: candidate.amount,
+              currency: candidate.currency,
+              label: candidate.label,
+            })
+            .eq("id", existingEntry.id)
+            .eq("user_id", userId)
+        )
+      );
     }
   }
 
-  // 4. Insertion sécurisée et idempotente
+  const tasks: Promise<any>[] = [];
+  if (updatePromises.length > 0) {
+    tasks.push(Promise.allSettled(updatePromises));
+  }
   if (toInsert.length > 0) {
-    await Promise.allSettled([
-      supabase
-        .from("income")
-        .upsert(toInsert, { onConflict: "compensation_id,due_date", ignoreDuplicates: true }),
-      adminSupabase
-        .from("income")
-        .upsert(toInsert, { onConflict: "compensation_id,due_date", ignoreDuplicates: true }),
-    ]);
+    tasks.push(
+      Promise.resolve(
+        supabase
+          .from("income")
+          .upsert(toInsert, { onConflict: "compensation_id,due_date", ignoreDuplicates: true })
+      )
+    );
+  }
+
+  if (tasks.length > 0) {
+    await Promise.allSettled(tasks);
   }
 }

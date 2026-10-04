@@ -77,6 +77,7 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
   const archived = activities.filter((a) => a.status === "archived");
 
   async function handleDelete(activityId: string) {
+    if (deletingId || suspendingId || resumingId || archivingId || restoringId) return;
     setDeletingId(activityId);
     setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
 
@@ -106,6 +107,7 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
   }
 
   async function handleSuspend(activityId: string) {
+    if (deletingId || suspendingId || resumingId || archivingId || restoringId) return;
     setSuspendingId(activityId);
     setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
 
@@ -134,6 +136,7 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
   }
 
   async function handleResume(activityId: string) {
+    if (deletingId || suspendingId || resumingId || archivingId || restoringId) return;
     setResumingId(activityId);
     setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
 
@@ -162,6 +165,7 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
   }
 
   async function handleArchive(activityId: string) {
+    if (deletingId || suspendingId || resumingId || archivingId || restoringId) return;
     setArchivingId(activityId);
     setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
 
@@ -190,6 +194,7 @@ export function ActivitiesClientView({ initialActivities }: ActivitiesClientView
   }
 
   async function handleRestore(activityId: string) {
+    if (deletingId || suspendingId || resumingId || archivingId || restoringId) return;
     setRestoringId(activityId);
     setErrorMap((prev) => ({ ...prev, [activityId]: "" }));
 

@@ -1,12 +1,13 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import Link from "next/link";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { taskPriorityLabel, type TASK_PRIORITIES } from "@/lib/validation/tasks";
 import type { TaskStatus, TaskPriority } from "@/types/database";
 import { toggleTaskStatus, cycleTaskStatus, deleteTask, setTaskStatus, postponeTask } from "@/app/(app)/tasks/actions";
+import { useToast } from "@/components/ui/toast";
 
 export interface TaskItemData {
   id: string;
@@ -45,11 +46,18 @@ const STATUS_CONFIG: Record<TaskStatus, { label: string; badgeTone: BadgeTone }>
 };
 
 export function TaskCard({ task }: TaskCardProps) {
+  const toast = useToast();
   const [isPending, startTransition] = useTransition();
+  const [currentStatus, setCurrentStatus] = useState<TaskStatus>(task.status);
+  const isMutatingRef = useRef(false);
 
-  const isDone = task.status === "done";
-  const isCancelled = task.status === "cancelled";
-  const isInProgress = task.status === "in_progress";
+  useEffect(() => {
+    setCurrentStatus(task.status);
+  }, [task.status]);
+
+  const isDone = currentStatus === "done";
+  const isCancelled = currentStatus === "cancelled";
+  const isInProgress = currentStatus === "in_progress";
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const isOverdue =
@@ -57,21 +65,65 @@ export function TaskCard({ task }: TaskCardProps) {
   const isToday = Boolean(task.due_date && task.due_date === todayStr);
 
   function handleToggleCheck() {
+    if (isMutatingRef.current) return;
+    isMutatingRef.current = true;
+
+    const previousStatus = currentStatus;
+    const nextStatus: TaskStatus = currentStatus === "done" ? "todo" : "done";
+
+    // 1. Réaction visuelle immédiate (0ms)
+    setCurrentStatus(nextStatus);
+
     startTransition(async () => {
-      await toggleTaskStatus(task.id, task.status);
+      try {
+        await toggleTaskStatus(task.id, previousStatus);
+      } catch (err) {
+        // Rollback en cas d'erreur
+        setCurrentStatus(previousStatus);
+        toast.push("Erreur lors de la mise à jour de la tâche.", "error");
+      } finally {
+        isMutatingRef.current = false;
+      }
     });
   }
 
   function handleCycleStatus() {
+    if (isMutatingRef.current) return;
+    isMutatingRef.current = true;
+
+    let nextStatus: TaskStatus = "todo";
+    if (currentStatus === "todo") nextStatus = "in_progress";
+    else if (currentStatus === "in_progress") nextStatus = "done";
+    else if (currentStatus === "done") nextStatus = "todo";
+
+    const previousStatus = currentStatus;
+    setCurrentStatus(nextStatus);
+
     startTransition(async () => {
-      await cycleTaskStatus(task.id, task.status);
+      try {
+        await cycleTaskStatus(task.id, previousStatus);
+      } catch (err) {
+        setCurrentStatus(previousStatus);
+        toast.push("Erreur de mise à jour du statut.", "error");
+      } finally {
+        isMutatingRef.current = false;
+      }
     });
   }
 
   function handleDelete() {
+    if (isMutatingRef.current) return;
     if (confirm("Supprimer définitivement cette tâche ?")) {
+      isMutatingRef.current = true;
       startTransition(async () => {
-        await deleteTask(task.id);
+        try {
+          await deleteTask(task.id);
+          toast.push("Tâche supprimée.", "info");
+        } catch (err) {
+          toast.push("Erreur lors de la suppression.", "error");
+        } finally {
+          isMutatingRef.current = false;
+        }
       });
     }
   }
@@ -105,17 +157,40 @@ export function TaskCard({ task }: TaskCardProps) {
   }
 
   function handleSetStatus(newStatus: TaskStatus) {
+    if (isMutatingRef.current) return;
+    isMutatingRef.current = true;
+
+    const previousStatus = currentStatus;
+    setCurrentStatus(newStatus);
+
     startTransition(async () => {
-      await setTaskStatus(task.id, newStatus);
+      try {
+        await setTaskStatus(task.id, newStatus);
+      } catch (err) {
+        setCurrentStatus(previousStatus);
+        toast.push("Erreur lors du changement de statut.", "error");
+      } finally {
+        isMutatingRef.current = false;
+      }
     });
   }
 
   function handlePostpone(days: number) {
+    if (isMutatingRef.current) return;
+    isMutatingRef.current = true;
+
     startTransition(async () => {
-      const d = new Date(task.due_date || new Date());
-      d.setDate(d.getDate() + days);
-      const newDateStr = d.toISOString().slice(0, 10);
-      await postponeTask(task.id, newDateStr);
+      try {
+        const d = new Date(task.due_date || new Date());
+        d.setDate(d.getDate() + days);
+        const newDateStr = d.toISOString().slice(0, 10);
+        await postponeTask(task.id, newDateStr);
+        toast.push(`Tâche reportée de ${days} jour(s).`, "info");
+      } catch (err) {
+        toast.push("Erreur lors du report.", "error");
+      } finally {
+        isMutatingRef.current = false;
+      }
     });
   }
 

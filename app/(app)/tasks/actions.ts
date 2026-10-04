@@ -156,7 +156,6 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
 
   revalidatePath("/tasks");
   revalidatePath("/dashboard");
-  revalidatePath("/notifications");
 }
 
 export async function toggleTaskStatus(taskId: string, currentStatus: TaskStatus) {
@@ -186,5 +185,4 @@ export async function deleteTask(taskId: string) {
 
   revalidatePath("/tasks");
   revalidatePath("/dashboard");
-  revalidatePath("/notifications");
 }

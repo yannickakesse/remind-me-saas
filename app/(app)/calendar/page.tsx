@@ -31,20 +31,9 @@ export default async function CalendarPage({
 
   const { start, end } = resolveViewRange(view, anchorDate, timezone);
 
-  // Synchronisation des activités du calendrier
-  await ensureCalendarEvents(supabase, user.id, start.toISODate()!, end.toISODate()!, timezone);
-
-  // Requêtes parallélisées pour événements et dépenses programmées
-  const [{ data: rawEvents }, { data: rawScheduled }] = await Promise.all([
-    supabase
-      .from("calendar_events")
-      .select(
-        "id, activity_id, schedule_id, title, starts_at, ends_at, status, is_exception, original_starts_at, notes, activities(color, name)"
-      )
-      .eq("user_id", user.id)
-      .gte("starts_at", start.toUTC().toISO()!)
-      .lte("starts_at", end.toUTC().toISO()!)
-      .order("starts_at", { ascending: true }),
+  // Exécution optimisée : génération des occurrences et récupération des dépenses programmées en parallèle
+  const [, { data: rawScheduled }] = await Promise.all([
+    ensureCalendarEvents(supabase, user.id, start.toISODate()!, end.toISODate()!, timezone),
     supabase
       .from("scheduled_expenses")
       .select("*")
@@ -53,6 +42,16 @@ export default async function CalendarPage({
       .lte("next_due_date", end.toISODate()!)
       .neq("status", "cancelled"),
   ]);
+
+  const { data: rawEvents } = await supabase
+    .from("calendar_events")
+    .select(
+      "id, activity_id, schedule_id, title, starts_at, ends_at, status, is_exception, original_starts_at, notes, activities(color, name)"
+    )
+    .eq("user_id", user.id)
+    .gte("starts_at", start.toUTC().toISO()!)
+    .lte("starts_at", end.toUTC().toISO()!)
+    .order("starts_at", { ascending: true });
 
   const regularEvents: CalendarEventView[] = (rawEvents ?? []).map((e) => ({
     ...e,

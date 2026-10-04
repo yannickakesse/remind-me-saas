@@ -132,24 +132,33 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
   };
 
   const handleMarkRead = (id: string) => {
+    if (processingId) return;
     setProcessingId(id);
+    const previous = [...notifications];
     setNotifications((prev) =>
       prev.map((n) =>
         n.id === id ? { ...n, read_at: new Date().toISOString(), status: "read" } : n
       )
     );
     startTransition(async () => {
-      await markNotificationRead(id);
-      setProcessingId(null);
-      router.refresh();
+      try {
+        await markNotificationRead(id);
+        router.refresh();
+      } catch {
+        setNotifications(previous);
+      } finally {
+        setProcessingId(null);
+      }
     });
   };
 
   const handleResolve = (id: string, entityType?: string, entityId?: string) => {
+    if (processingId) return;
     setProcessingId(id);
+    const previous = [...notifications];
     const nowIso = new Date().toISOString();
 
-    // Optimistic local resolution
+    // Optimistic local resolution (0ms)
     setNotifications((prev) =>
       prev.map((n) => {
         if (n.id === id || (entityId && n.entity_id === entityId)) {
@@ -160,14 +169,21 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
     );
 
     startTransition(async () => {
-      await resolveNotification(id, entityType, entityId);
-      setProcessingId(null);
-      router.refresh();
+      try {
+        await resolveNotification(id, entityType, entityId);
+        router.refresh();
+      } catch {
+        setNotifications(previous);
+      } finally {
+        setProcessingId(null);
+      }
     });
   };
 
   const handleSnooze = (id: string, hours: number = 24) => {
+    if (processingId) return;
     setProcessingId(id);
+    const previous = [...notifications];
     const snoozedUntil = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
 
     setNotifications((prev) =>
@@ -175,20 +191,32 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
     );
 
     startTransition(async () => {
-      await snoozeNotification(id, hours);
-      setProcessingId(null);
-      router.refresh();
+      try {
+        await snoozeNotification(id, hours);
+        router.refresh();
+      } catch {
+        setNotifications(previous);
+      } finally {
+        setProcessingId(null);
+      }
     });
   };
 
   const handleDelete = (id: string) => {
+    if (processingId) return;
     setProcessingId(id);
+    const previous = [...notifications];
     setNotifications((prev) => prev.filter((n) => n.id !== id));
 
     startTransition(async () => {
-      await deleteNotification(id);
-      setProcessingId(null);
-      router.refresh();
+      try {
+        await deleteNotification(id);
+        router.refresh();
+      } catch {
+        setNotifications(previous);
+      } finally {
+        setProcessingId(null);
+      }
     });
   };
 

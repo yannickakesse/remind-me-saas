@@ -35,11 +35,9 @@ export default async function FinancesPage({
 
   const supabase = createClient();
 
-  // 1. Synchronisation rapide des revenus
-  await ensureIncomeEntries(supabase, user.id, rangeStart, rangeEnd);
-
-  // 2. Requêtes parallélisées optimisées
+  // Requêtes parallélisées optimisées
   const [
+    ,
     { data: incomeRows },
     { data: expenseRows },
     { data: budgets },
@@ -47,6 +45,7 @@ export default async function FinancesPage({
     { data: scheduledExpenses },
     { data: activities },
   ] = await Promise.all([
+    ensureIncomeEntries(supabase, user.id, rangeStart, rangeEnd),
     supabase
       .from("income")
       .select("*, activity:activities(id, name, color)")

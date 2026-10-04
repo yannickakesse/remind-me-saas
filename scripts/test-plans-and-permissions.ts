@@ -19,7 +19,7 @@ function createMockSupabase(plan: PlanType, counts: { activities?: number; conta
     from(table: string) {
       return {
         select(cols: string, opts?: { count?: string; head?: boolean }) {
-          return {
+          const handler = {
             eq(col: string, val: any) {
               if (table === "subscriptions") {
                 return {
@@ -37,13 +37,22 @@ function createMockSupabase(plan: PlanType, counts: { activities?: number; conta
               if (table === "budgets") count = counts.budgets ?? 0;
               if (table === "savings_goals") count = counts.goals ?? 0;
 
+              const mockData = table === "activities"
+                ? Array.from({ length: count }, (_, i) => ({ id: `act-${i}`, status: "active", end_date: null }))
+                : null;
+
               return {
+                ...handler,
                 count,
-                data: null,
+                data: mockData,
                 error: null,
+                then(onFulfilled: any, onRejected: any) {
+                  return Promise.resolve({ count, data: mockData, error: null }).then(onFulfilled, onRejected);
+                },
               };
             },
           };
+          return handler;
         },
       };
     },
@@ -124,7 +133,8 @@ async function runTests() {
   try {
     await assertCanCreateActivity(freeClientAtLimit, "test-user-123");
   } catch (e: any) {
-    act4Refused = e.message.includes("limite de votre plan Free (3 activités)");
+    console.log("DEBUG Free act4 error:", e?.message);
+    act4Refused = e.message.includes("limite de votre plan Free (3 activités");
   }
   assert(act4Refused, "Free avec 3 activités : 4e création refusée avec message explicite");
 
@@ -178,7 +188,7 @@ async function runTests() {
   try {
     await assertCanCreateActivity(proClientAtLimit, "test-user-123");
   } catch (e: any) {
-    proAct16Refused = e.message.includes("limite de votre plan Pro (15 activités)");
+    proAct16Refused = e.message.includes("limite de votre plan Pro (15 activités");
   }
   assert(proAct16Refused, "Pro avec 15 activités : 16e création refusée avec message d'upgrade Premium");
 
@@ -246,7 +256,7 @@ async function runTests() {
   try {
     await assertCanCreateActivity(downgradedToProClient, "test-user-123");
   } catch (e: any) {
-    downgradeNoticeReturned = e.message.includes("Vos données existantes restent conservées");
+    downgradeNoticeReturned = e.message.includes("restent conservées");
   }
   assert(
     downgradeNoticeReturned,

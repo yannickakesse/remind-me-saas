@@ -128,8 +128,6 @@ export async function setIncomeReceived(id: string, received: boolean) {
 
   revalidatePath("/finances");
   revalidatePath("/dashboard");
-  revalidatePath("/reports");
-  revalidatePath("/notifications");
 }
 
 export async function postponeIncomeAction(id: string, days: number = 7) {
@@ -281,7 +279,6 @@ export async function setExpensePaid(id: string, paid: boolean) {
 
   revalidatePath("/finances");
   revalidatePath("/dashboard");
-  revalidatePath("/notifications");
 }
 
 export async function deleteExpense(id: string) {
@@ -294,7 +291,6 @@ export async function deleteExpense(id: string) {
 
   revalidatePath("/finances");
   revalidatePath("/dashboard");
-  revalidatePath("/notifications");
 }
 
 // ----------------------------------------------------------------------------

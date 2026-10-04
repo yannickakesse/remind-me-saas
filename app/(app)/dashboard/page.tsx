@@ -43,13 +43,10 @@ export default async function DashboardPage() {
   const endOfMonth = now.endOf("month").toISODate()!;
   const todayIso = now.toISODate()!;
 
-  // Synchronisation dynamique des revenus attendus et des rappels intelligents
-  await Promise.allSettled([
-    ensureIncomeEntries(supabase, user.id, startOfMonth, endOfMonth),
-    ensureNotifications(supabase, user.id, timezone),
-  ]);
-
+  // Exécution 100% parallélisée des synchronisations et des requêtes Dashboard
   const [
+    ,
+    ,
     { data: activities },
     { data: todayEventsRaw },
     { data: urgentTasks },
@@ -59,6 +56,8 @@ export default async function DashboardPage() {
     { data: scheduledExpenses },
     { data: attentionNotifications },
   ] = await Promise.all([
+    ensureIncomeEntries(supabase, user.id, startOfMonth, endOfMonth),
+    ensureNotifications(supabase, user.id, timezone),
     supabase
       .from("activities")
       .select("id, name, type, color, activity_compensation(amount, currency)")

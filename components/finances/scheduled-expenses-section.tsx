@@ -347,18 +347,28 @@ export function ScheduledExpensesSection({
                           type="button"
                           disabled={isLoading}
                           onClick={() => handleMarkPaid(item.id)}
-                          className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
                         >
-                          <Check className="w-3.5 h-3.5" /> Marquer payée
+                          {isLoading ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Check className="w-3.5 h-3.5" />
+                          )}
+                          <span>{isLoading ? "Traitement..." : "Marquer payée"}</span>
                         </button>
                         <button
                           type="button"
                           disabled={isLoading}
                           onClick={() => handlePostpone(item.id)}
-                          className="px-2.5 py-1.5 rounded-lg border border-ink-200 text-ink-700 bg-canvas text-xs font-medium hover:bg-ink-100 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1"
+                          className="px-2.5 py-1.5 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-300 bg-canvas dark:bg-ink-950 text-xs font-medium hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
                           title="Reporter l'échéance de 7 jours"
                         >
-                          <Clock className="w-3 h-3 text-amber-600" /> Reporter (+7j)
+                          {isLoading ? (
+                            <Loader2 className="w-3 h-3 animate-spin text-amber-600" />
+                          ) : (
+                            <Clock className="w-3 h-3 text-amber-600" />
+                          )}
+                          <span>{isLoading ? "Report..." : "Reporter (+7j)"}</span>
                         </button>
                       </>
                     )}

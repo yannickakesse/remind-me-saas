@@ -38,8 +38,9 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
   }
 
   async function handleQuickAction(action: string, id: string, entityId?: string) {
+    if (resolvingId) return;
     setResolvingId(id);
-    // Optimistic instant UI dismissal
+    // Optimistic instant UI dismissal (0ms)
     setDismissedIds((prev) => new Set([...prev, id]));
 
     try {
@@ -50,9 +51,21 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
       });
       if (res.ok) {
         router.refresh();
+      } else {
+        // Rollback en cas de rejet serveur
+        setDismissedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
       }
     } catch (e) {
       console.error("[AttentionRequired] quick-action error:", e);
+      setDismissedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     } finally {
       setResolvingId(null);
     }
