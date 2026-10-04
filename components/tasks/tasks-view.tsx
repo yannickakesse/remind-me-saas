@@ -120,9 +120,20 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
   ];
 
   const bgImage = useMemo(() => {
-    if (activeTab === "upcoming") return "/images/backgrounds/tasks-upcoming-bg.jpg";
-    if (activeTab === "today") return "/images/backgrounds/tasks-today-bg.jpg";
-    return "/images/backgrounds/tasks-bg.jpg";
+    switch (activeTab) {
+      case "overdue":
+        return "/images/backgrounds/tasks-overdue-bg.jpg";
+      case "today":
+        return "/images/backgrounds/tasks-today-bg.jpg";
+      case "upcoming":
+        return "/images/backgrounds/tasks-upcoming-bg.jpg";
+      case "no_date":
+        return "/images/backgrounds/tasks-nodate-bg.jpg";
+      case "completed":
+        return "/images/backgrounds/tasks-completed-bg.jpg";
+      default:
+        return "/images/backgrounds/tasks-bg.jpg";
+    }
   }, [activeTab]);
 
   return (
