@@ -5,7 +5,13 @@ import { t, formatCurrencyLocale, formatDateLocale } from "@/lib/i18n/format";
 import { sendNotificationEmail } from "@/lib/email/service";
 import { sendNotificationPush } from "@/lib/push/service";
 import { ensureCalendarEvents } from "@/lib/calendar/sync";
-import { generateVoiceMessage } from "@/lib/voice/generator";
+import {
+  generateVoiceMessage,
+  generateMorningBriefingVoiceText,
+  generateMiddayCheckinVoiceText,
+  generateEveningSummaryVoiceText,
+  type DailyActivityItem,
+} from "@/lib/voice";
 
 export interface ReminderCandidate {
   user_id: string;
@@ -998,36 +1004,40 @@ export async function evaluateSmartReminders(
   }
 
   // ==========================================================================
-  // 8.5 ROUTINE QUOTIDIENNE : BRIEFING DU MATIN (5h-6h+) & DÉBRIEFING DU SOIR (20h-21h+)
+  // 8.5 ROUTINE QUOTIDIENNE : BRIEFING DU MATIN (5h-11h), CHECK-IN MIDI (12h-16h) & BILAN DU SOIR (19h-23h59)
   // ==========================================================================
-  // 1. Briefing du Matin (5h00 - 11h00) : Récapitulatif proactif du programme du jour + Rappel d'hier
-  if (userNow.hour >= 5 && userNow.hour < 11) {
+
+  // 1. Briefing du Matin (05h00 - 11h00) : Récapitulatif proactif du programme du jour
+  if (userNow.hour >= 5 && userNow.hour < 11 && prefsData?.daily_summary_enabled !== false) {
     const yesterdayISO = userNow.minus({ days: 1 }).toISODate()!;
-    const [{ data: todayTasks }, { data: todayEvents }, { data: todayExpenses }, { data: todayIncomes }, { data: yesterdayEvents }] = await Promise.all([
+    const [
+      { data: todayTasks },
+      { data: todayEvents },
+      { data: todayExpenses },
+      { data: todayIncomes },
+      { data: yesterdayEvents },
+    ] = await Promise.all([
       supabase
         .from("tasks")
-        .select("id, title, priority, due_time")
+        .select("id, title, priority, due_time, status")
         .eq("user_id", userId)
-        .in("status", ["todo", "in_progress"])
         .eq("due_date", todayISO),
       supabase
         .from("calendar_events")
-        .select("id, title, starts_at")
+        .select("id, title, starts_at, status")
         .eq("user_id", userId)
         .neq("status", "cancelled")
         .gte("starts_at", userNow.startOf("day").toISO()!)
         .lte("starts_at", userNow.endOf("day").toISO()!),
       supabase
         .from("scheduled_expenses")
-        .select("id, name, amount, currency")
+        .select("id, name, amount, currency, status")
         .eq("user_id", userId)
-        .in("status", ["planned", "due"])
         .eq("next_due_date", todayISO),
       supabase
         .from("income")
-        .select("id, label, amount, currency")
+        .select("id, label, amount, currency, received")
         .eq("user_id", userId)
-        .eq("received", false)
         .eq("due_date", todayISO),
       supabase
         .from("calendar_events")
@@ -1038,110 +1048,369 @@ export async function evaluateSmartReminders(
         .lte("starts_at", userNow.minus({ days: 1 }).endOf("day").toISO()!),
     ]);
 
-    const taskCount = todayTasks?.length || 0;
-    const eventCount = todayEvents?.length || 0;
-    const expenseCount = todayExpenses?.length || 0;
-    const incomeCount = todayIncomes?.length || 0;
-    const yesterdayUnconfirmed = yesterdayEvents?.length || 0;
-    const totalCount = taskCount + eventCount + expenseCount + incomeCount;
+    const dailyItems: DailyActivityItem[] = [];
 
-    if (totalCount > 0 || yesterdayUnconfirmed > 0) {
-      const parts: string[] = [];
-      if (taskCount > 0) parts.push(`${taskCount} tâche(s)`);
-      if (eventCount > 0) parts.push(`${eventCount} séance(s)`);
-      if (expenseCount > 0) parts.push(`${expenseCount} dépense(s)`);
-      if (incomeCount > 0) parts.push(`${incomeCount} paiement(s)`);
-
-      const overdueNote = yesterdayUnconfirmed > 0
-        ? ` et ⚠️ ${yesterdayUnconfirmed} séance(s) d'hier à confirmer`
-        : "";
-
-      candidates.push({
-        user_id: userId,
-        category: "summary",
-        kind: "morning_briefing",
-        priority: yesterdayUnconfirmed > 0 ? "critical" : "high",
-        status: "unread",
-        entity_type: "summary",
-        entity_id: `briefing_${todayISO}`,
-        title: `🌅 Programme du matin : ${totalCount} activité(s) aujourd'hui`,
-        body: `Bonjour ! Vous avez ${parts.join(", ")}${overdueNote}. Excellente journée !`,
-        metadata: {
-          date: todayISO,
-          taskCount,
-          eventCount,
-          expenseCount,
-          incomeCount,
-          yesterdayUnconfirmed,
-          is_yesterday_overdue: yesterdayUnconfirmed > 0,
-        },
-        link: "/dashboard",
-        scheduled_at: userNow.toISO()!,
-        idempotency_key: `routine:morning_briefing:${todayISO}`,
-        email_template: "daily_briefing",
+    // Calendar events
+    for (const ev of todayEvents ?? []) {
+      const startDT = DateTime.fromISO(ev.starts_at, { zone: userTimezone });
+      dailyItems.push({
+        id: ev.id,
+        title: ev.title,
+        timeStr: startDT.toFormat("HH:mm"),
+        status: ev.status === "completed" ? "completed" : "pending",
+        category: "activity",
       });
     }
+
+    // Tasks
+    for (const tsk of todayTasks ?? []) {
+      dailyItems.push({
+        id: tsk.id,
+        title: `Tâche « ${tsk.title} »`,
+        timeStr: tsk.due_time ? tsk.due_time.slice(0, 5) : null,
+        status: tsk.status === "done" ? "completed" : "pending",
+        category: "task",
+      });
+    }
+
+    // Scheduled Expenses
+    for (const exp of todayExpenses ?? []) {
+      dailyItems.push({
+        id: exp.id,
+        title: `Dépense « ${exp.name} »`,
+        status: exp.status === "paid" ? "completed" : "pending",
+        category: "expense",
+      });
+    }
+
+    // Income
+    for (const inc of todayIncomes ?? []) {
+      dailyItems.push({
+        id: inc.id,
+        title: `Paiement « ${inc.label} »`,
+        status: inc.received ? "completed" : "pending",
+        category: "payment",
+      });
+    }
+
+    // Tri chronologique
+    dailyItems.sort((a, b) => {
+      if (a.timeStr && b.timeStr) return a.timeStr.localeCompare(b.timeStr);
+      if (a.timeStr) return -1;
+      if (b.timeStr) return 1;
+      return a.title.localeCompare(b.title);
+    });
+
+    const pendingCount = dailyItems.filter((i) => i.status !== "completed").length;
+    const completedCount = dailyItems.filter((i) => i.status === "completed").length;
+    const yesterdayUnconfirmed = yesterdayEvents?.length || 0;
+
+    const voiceLanguage = (locale === "fr" || locale === "en" || locale === "es") ? locale : "fr";
+    const morningVoiceScript = generateMorningBriefingVoiceText({
+      userName: profileData?.full_name,
+      activities: dailyItems,
+      language: voiceLanguage,
+    });
+
+    const totalCount = dailyItems.length;
+    const titleText = totalCount > 0
+      ? `🌅 Programme du matin : ${totalCount} activité(s) aujourd'hui`
+      : `🌅 Bonjour ${profileData?.full_name?.split(" ")[0] || ""} ! Aucune activité prévue aujourd'hui`;
+
+    const bodyText = totalCount > 0
+      ? `Bonjour ! Vous avez ${pendingCount} activité(s) à réaliser${completedCount > 0 ? ` (${completedCount} déjà complétée(s))` : ""}${yesterdayUnconfirmed > 0 ? ` et ⚠️ ${yesterdayUnconfirmed} séance(s) d'hier à confirmer` : ""}. Excellente journée !`
+      : `Bonjour ! Vous n'avez aucune activité prévue aujourd'hui. Profitez-en pour organiser votre journée ou vous reposer.`;
+
+    candidates.push({
+      user_id: userId,
+      category: "summary",
+      kind: "morning_briefing",
+      priority: yesterdayUnconfirmed > 0 ? "critical" : "high",
+      status: "unread",
+      entity_type: "summary",
+      entity_id: `briefing_${todayISO}`,
+      title: titleText,
+      body: bodyText,
+      metadata: {
+        date: todayISO,
+        totalCount,
+        pendingCount,
+        completedCount,
+        yesterdayUnconfirmed,
+        is_yesterday_overdue: yesterdayUnconfirmed > 0,
+        voice_text: morningVoiceScript,
+        voice_reminder_enabled: true,
+      },
+      link: "/dashboard",
+      scheduled_at: userNow.toISO()!,
+      idempotency_key: `routine:morning_briefing:${todayISO}`,
+      email_template: "daily_briefing",
+    });
   }
 
-  // 2. Débriefing du Soir (20h00 - 23h59) : Contrôle de fin de journée pour clore et confirmer les séances
-  if (userNow.hour >= 20) {
-    const [{ data: uncompletedTasks }, { data: uncompletedExpenses }, { data: uncompletedIncomes }, { data: unconfirmedTodayEvents }] = await Promise.all([
+  // 2. Point d'étape & Check-in de Midi (12h00 - 16h00) : Suivi des réalisations et réajustement
+  if (userNow.hour >= 12 && userNow.hour < 16 && prefsData?.daily_summary_enabled !== false) {
+    const [
+      { data: todayTasks },
+      { data: todayEvents },
+      { data: todayExpenses },
+      { data: todayIncomes },
+    ] = await Promise.all([
       supabase
         .from("tasks")
-        .select("id, title")
+        .select("id, title, priority, due_time, status")
         .eq("user_id", userId)
-        .in("status", ["todo", "in_progress"])
-        .lte("due_date", todayISO),
-      supabase
-        .from("scheduled_expenses")
-        .select("id, name")
-        .eq("user_id", userId)
-        .in("status", ["planned", "due"])
-        .lte("next_due_date", todayISO),
-      supabase
-        .from("income")
-        .select("id, label")
-        .eq("user_id", userId)
-        .eq("received", false)
-        .lte("due_date", todayISO),
+        .eq("due_date", todayISO),
       supabase
         .from("calendar_events")
-        .select("id, title")
+        .select("id, title, starts_at, status")
         .eq("user_id", userId)
-        .eq("status", "planned")
+        .neq("status", "cancelled")
+        .gte("starts_at", userNow.startOf("day").toISO()!)
         .lte("starts_at", userNow.endOf("day").toISO()!),
+      supabase
+        .from("scheduled_expenses")
+        .select("id, name, amount, currency, status")
+        .eq("user_id", userId)
+        .eq("next_due_date", todayISO),
+      supabase
+        .from("income")
+        .select("id, label, amount, currency, received")
+        .eq("user_id", userId)
+        .eq("due_date", todayISO),
     ]);
 
-    const remainingTasks = uncompletedTasks?.length || 0;
-    const remainingExpenses = uncompletedExpenses?.length || 0;
-    const remainingIncomes = uncompletedIncomes?.length || 0;
-    const remainingEvents = unconfirmedTodayEvents?.length || 0;
-    const totalRemaining = remainingTasks + remainingExpenses + remainingIncomes + remainingEvents;
+    const completedItems: DailyActivityItem[] = [];
+    const upcomingItems: DailyActivityItem[] = [];
+    const overdueItems: DailyActivityItem[] = [];
+    const currentHourStr = userNow.toFormat("HH:mm");
 
-    if (totalRemaining > 0) {
-      candidates.push({
-        user_id: userId,
-        category: "summary",
-        kind: "evening_checkin",
-        priority: "high",
-        status: "unread",
-        entity_type: "summary",
-        entity_id: `checkin_${todayISO}`,
-        title: `🌙 Bilan du soir : Clôture de vos activités du jour`,
-        body: `Il vous reste ${totalRemaining} élément(s) en attente (séances à confirmer, tâches ou règlements). Marquez-les comme faits pour clore sereinement votre journée !`,
-        metadata: {
-          date: todayISO,
-          remainingTasks,
-          remainingExpenses,
-          remainingIncomes,
-          remainingEvents,
-        },
-        link: "/dashboard",
-        scheduled_at: userNow.toISO()!,
-        idempotency_key: `routine:evening_checkin:${todayISO}`,
-        email_template: "evening_checkin",
-      });
+    // Events
+    for (const ev of todayEvents ?? []) {
+      const startDT = DateTime.fromISO(ev.starts_at, { zone: userTimezone });
+      const timeStr = startDT.toFormat("HH:mm");
+      const item: DailyActivityItem = {
+        id: ev.id,
+        title: ev.title,
+        timeStr,
+        category: "activity",
+      };
+      if (ev.status === "completed") {
+        completedItems.push({ ...item, status: "completed" });
+      } else if (timeStr < currentHourStr) {
+        overdueItems.push({ ...item, status: "overdue" });
+      } else {
+        upcomingItems.push({ ...item, status: "pending" });
+      }
     }
+
+    // Tasks
+    for (const tsk of todayTasks ?? []) {
+      const timeStr = tsk.due_time ? tsk.due_time.slice(0, 5) : null;
+      const item: DailyActivityItem = {
+        id: tsk.id,
+        title: `Tâche « ${tsk.title} »`,
+        timeStr,
+        category: "task",
+      };
+      if (tsk.status === "done") {
+        completedItems.push({ ...item, status: "completed" });
+      } else if (timeStr && timeStr < currentHourStr) {
+        overdueItems.push({ ...item, status: "overdue" });
+      } else {
+        upcomingItems.push({ ...item, status: "pending" });
+      }
+    }
+
+    // Expenses
+    for (const exp of todayExpenses ?? []) {
+      const item: DailyActivityItem = {
+        id: exp.id,
+        title: `Dépense « ${exp.name} »`,
+        category: "expense",
+      };
+      if (exp.status === "paid") {
+        completedItems.push({ ...item, status: "completed" });
+      } else {
+        upcomingItems.push({ ...item, status: "pending" });
+      }
+    }
+
+    // Income
+    for (const inc of todayIncomes ?? []) {
+      const item: DailyActivityItem = {
+        id: inc.id,
+        title: `Paiement « ${inc.label} »`,
+        category: "payment",
+      };
+      if (inc.received) {
+        completedItems.push({ ...item, status: "completed" });
+      } else {
+        upcomingItems.push({ ...item, status: "pending" });
+      }
+    }
+
+    const totalCount = completedItems.length + upcomingItems.length + overdueItems.length;
+    const voiceLanguage = (locale === "fr" || locale === "en" || locale === "es") ? locale : "fr";
+    const middayVoiceScript = generateMiddayCheckinVoiceText({
+      userName: profileData?.full_name,
+      completedActivities: completedItems,
+      upcomingActivities: upcomingItems,
+      overdueActivities: overdueItems,
+      language: voiceLanguage,
+    });
+
+    const titleText = totalCount > 0
+      ? `☀️ Point de mi-journée : ${completedItems.length}/${totalCount} activité(s) complétée(s)`
+      : `☀️ Point de mi-journée : Bonne continuation !`;
+
+    const bodyText = totalCount > 0
+      ? `Bravo pour votre progression ! ${completedItems.length} terminée(s), ${upcomingItems.length} à venir.${overdueItems.length > 0 ? ` ⚠️ ${overdueItems.length} en attente de vérification.` : ""}`
+      : `Tout est calme à mi-journée. Passez un excellent après-midi !`;
+
+    candidates.push({
+      user_id: userId,
+      category: "summary",
+      kind: "midday_checkin",
+      priority: overdueItems.length > 0 ? "high" : "normal",
+      status: "unread",
+      entity_type: "summary",
+      entity_id: `midday_${todayISO}`,
+      title: titleText,
+      body: bodyText,
+      metadata: {
+        date: todayISO,
+        totalCount,
+        completedCount: completedItems.length,
+        upcomingCount: upcomingItems.length,
+        overdueCount: overdueItems.length,
+        voice_text: middayVoiceScript,
+        voice_reminder_enabled: true,
+      },
+      link: "/dashboard",
+      scheduled_at: userNow.toISO()!,
+      idempotency_key: `routine:midday_checkin:${todayISO}`,
+      email_template: "midday_checkin",
+    });
+  }
+
+  // 3. Bilan & Débriefing du Soir (19h00 - 23h59) : Clôture de journée et félicitations
+  if (userNow.hour >= 19 && prefsData?.daily_summary_enabled !== false) {
+    const [
+      { data: todayTasks },
+      { data: todayEvents },
+      { data: todayExpenses },
+      { data: todayIncomes },
+    ] = await Promise.all([
+      supabase
+        .from("tasks")
+        .select("id, title, status")
+        .eq("user_id", userId)
+        .eq("due_date", todayISO),
+      supabase
+        .from("calendar_events")
+        .select("id, title, starts_at, status")
+        .eq("user_id", userId)
+        .neq("status", "cancelled")
+        .gte("starts_at", userNow.startOf("day").toISO()!)
+        .lte("starts_at", userNow.endOf("day").toISO()!),
+      supabase
+        .from("scheduled_expenses")
+        .select("id, name, status")
+        .eq("user_id", userId)
+        .eq("next_due_date", todayISO),
+      supabase
+        .from("income")
+        .select("id, label, received")
+        .eq("user_id", userId)
+        .eq("due_date", todayISO),
+    ]);
+
+    const completedItems: DailyActivityItem[] = [];
+    const uncompletedItems: DailyActivityItem[] = [];
+
+    // Events
+    for (const ev of todayEvents ?? []) {
+      const item: DailyActivityItem = { id: ev.id, title: ev.title, category: "activity" };
+      if (ev.status === "completed") {
+        completedItems.push({ ...item, status: "completed" });
+      } else {
+        uncompletedItems.push({ ...item, status: "pending" });
+      }
+    }
+
+    // Tasks
+    for (const tsk of todayTasks ?? []) {
+      const item: DailyActivityItem = { id: tsk.id, title: `Tâche « ${tsk.title} »`, category: "task" };
+      if (tsk.status === "done") {
+        completedItems.push({ ...item, status: "completed" });
+      } else {
+        uncompletedItems.push({ ...item, status: "pending" });
+      }
+    }
+
+    // Expenses
+    for (const exp of todayExpenses ?? []) {
+      const item: DailyActivityItem = { id: exp.id, title: `Dépense « ${exp.name} »`, category: "expense" };
+      if (exp.status === "paid") {
+        completedItems.push({ ...item, status: "completed" });
+      } else {
+        uncompletedItems.push({ ...item, status: "pending" });
+      }
+    }
+
+    // Income
+    for (const inc of todayIncomes ?? []) {
+      const item: DailyActivityItem = { id: inc.id, title: `Paiement « ${inc.label} »`, category: "payment" };
+      if (inc.received) {
+        completedItems.push({ ...item, status: "completed" });
+      } else {
+        uncompletedItems.push({ ...item, status: "pending" });
+      }
+    }
+
+    const totalCount = completedItems.length + uncompletedItems.length;
+    const voiceLanguage = (locale === "fr" || locale === "en" || locale === "es") ? locale : "fr";
+    const eveningVoiceScript = generateEveningSummaryVoiceText({
+      userName: profileData?.full_name,
+      completedActivities: completedItems,
+      uncompletedActivities: uncompletedItems,
+      language: voiceLanguage,
+    });
+
+    const titleText = totalCount > 0
+      ? `🌙 Bilan du soir : ${completedItems.length} accomplie(s), ${uncompletedItems.length} en attente`
+      : `🌙 Bilan du soir : Excellente soirée !`;
+
+    const bodyText = uncompletedItems.length === 0 && completedItems.length > 0
+      ? `Félicitations ! Toutes vos activités prévues aujourd'hui sont terminées avec succès. Reposez-vous bien !`
+      : uncompletedItems.length > 0
+      ? `Il vous reste ${uncompletedItems.length} élément(s) en attente. Marquez-les comme faits si réalisés pour clore sereinement votre journée.`
+      : `Aucune activité particulière aujourd'hui. Passez une excellente soirée !`;
+
+    candidates.push({
+      user_id: userId,
+      category: "summary",
+      kind: "evening_checkin",
+      priority: uncompletedItems.length > 0 ? "high" : "normal",
+      status: "unread",
+      entity_type: "summary",
+      entity_id: `checkin_${todayISO}`,
+      title: titleText,
+      body: bodyText,
+      metadata: {
+        date: todayISO,
+        totalCount,
+        completedCount: completedItems.length,
+        uncompletedCount: uncompletedItems.length,
+        voice_text: eveningVoiceScript,
+        voice_reminder_enabled: true,
+      },
+      link: "/dashboard",
+      scheduled_at: userNow.toISO()!,
+      idempotency_key: `routine:evening_checkin:${todayISO}`,
+      email_template: "evening_checkin",
+    });
   }
 
   // ==========================================================================

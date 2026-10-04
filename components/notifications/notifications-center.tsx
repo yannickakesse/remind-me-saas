@@ -23,8 +23,9 @@ import {
   Loader2,
   X,
   Volume2,
+  VolumeX,
 } from "lucide-react";
-import { playVoiceReminder, getLocalVoiceSettings } from "@/lib/voice";
+import { playVoiceReminder, stopVoiceReminder, getLocalVoiceSettings } from "@/lib/voice";
 import type { Notification, NotificationPriority } from "@/types/database";
 import {
   markNotificationRead,
@@ -50,6 +51,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
   const [activeTab, setActiveTab] = useState<TabKey>("active");
   const [searchQuery, setSearchQuery] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [playingId, setPlayingId] = useState<string | null>(null);
 
   // Sync state if initialNotifications changes
   const activeCount = notifications.filter(
@@ -205,6 +207,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
 
   const getCategoryIcon = (category: string, kind: string) => {
     if (kind === "morning_briefing") return <Sun className="w-5 h-5 text-amber-500 animate-pulse" />;
+    if (kind === "midday_checkin") return <Sun className="w-5 h-5 text-amber-600" />;
     if (kind === "evening_checkin") return <Moon className="w-5 h-5 text-indigo-500" />;
     if (kind.includes("overdue")) return <AlertCircle className="w-5 h-5 text-danger" />;
     if (category === "payment") return <Wallet className="w-5 h-5 text-gold-dark" />;
@@ -553,20 +556,32 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                       {/* Bouton de lecture vocale instantanée */}
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
+                          if (playingId === item.id) {
+                            stopVoiceReminder();
+                            setPlayingId(null);
+                            return;
+                          }
+                          setPlayingId(item.id);
                           const prefs = getLocalVoiceSettings();
                           const textToSpeak = (item as any).metadata?.voice_text || `${item.title}. ${item.body}`;
-                          playVoiceReminder({
+                          await playVoiceReminder({
                             text: textToSpeak,
                             language: prefs.voice_language,
                             voiceType: prefs.voice_type,
                             repeat: 0,
+                            onEnd: () => setPlayingId(null),
+                            onError: () => setPlayingId(null),
                           });
                         }}
-                        className="p-1.5 rounded-lg text-ink-600 dark:text-ink-400 hover:text-signal dark:hover:text-signal hover:bg-signal-soft/30 active:scale-95 transition-all cursor-pointer"
-                        title="Écouter ce rappel à voix haute"
+                        className={`p-1.5 rounded-lg active:scale-95 transition-all cursor-pointer ${
+                          playingId === item.id
+                            ? "bg-signal text-white animate-pulse"
+                            : "text-ink-600 dark:text-ink-400 hover:text-signal dark:hover:text-signal hover:bg-signal-soft/30"
+                        }`}
+                        title={playingId === item.id ? "Arrêter la lecture" : "Écouter ce rappel à voix haute"}
                       >
-                        <Volume2 className="w-3.5 h-3.5" />
+                        {playingId === item.id ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                       </button>
 
                       <button

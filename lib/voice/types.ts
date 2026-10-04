@@ -13,12 +13,63 @@ export interface VoiceSettings {
   repeat_voice: RepeatVoice;
 }
 
-export interface VoiceMessageParams {
+export interface DailyActivityItem {
+  id?: string;
+  title: string;
+  timeStr?: string | null; // e.g. "07:00", "14:30"
+  status?: "completed" | "pending" | "overdue";
+  category?: "activity" | "task" | "payment" | "expense" | "calendar" | string;
+}
+
+export interface MorningBriefingVoiceParams {
+  userName?: string | null;
+  activities?: DailyActivityItem[];
+  language?: VoiceLanguage;
+}
+
+export interface MiddayCheckinVoiceParams {
+  userName?: string | null;
+  completedActivities?: DailyActivityItem[];
+  upcomingActivities?: DailyActivityItem[];
+  overdueActivities?: DailyActivityItem[];
+  language?: VoiceLanguage;
+}
+
+export interface EveningSummaryVoiceParams {
+  userName?: string | null;
+  completedActivities?: DailyActivityItem[];
+  uncompletedActivities?: DailyActivityItem[];
+  language?: VoiceLanguage;
+}
+
+export interface IndividualReminderVoiceParams {
   userName?: string | null;
   activityTitle: string;
+  timeStr?: string | null;
+  category?: string | null;
+  isOverdue?: boolean;
+  language?: VoiceLanguage;
+}
+
+export interface ActivityCompletedVoiceParams {
+  userName?: string | null;
+  activityTitle: string;
+  language?: VoiceLanguage;
+}
+
+export interface VoiceMessageParams {
+  userName?: string | null;
+  activityTitle?: string;
   timeStr?: string | null; // e.g. "15:00", "09:30"
   dateStr?: string | null; // e.g. "2026-10-01"
   category?: string | null; // "activity" | "task" | "payment" | "expense" | etc.
+  kind?: "morning_briefing" | "midday_checkin" | "evening_summary" | "evening_checkin" | "individual_reminder" | "overdue_reminder" | "congratulations" | string;
+  activities?: DailyActivityItem[];
+  completedActivities?: DailyActivityItem[];
+  uncompletedActivities?: DailyActivityItem[];
+  upcomingActivities?: DailyActivityItem[];
+  overdueActivities?: DailyActivityItem[];
+  isOverdue?: boolean;
   language?: VoiceLanguage;
   now?: Date;
 }
