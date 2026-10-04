@@ -119,12 +119,18 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
     { id: "completed", label: "Terminées", count: counts.completed },
   ];
 
+  const bgImage = useMemo(() => {
+    if (activeTab === "upcoming") return "/images/backgrounds/tasks-upcoming-bg.jpg";
+    if (activeTab === "today") return "/images/backgrounds/tasks-today-bg.jpg";
+    return "/images/backgrounds/tasks-bg.jpg";
+  }, [activeTab]);
+
   return (
     <div className="relative isolate min-h-full w-full space-y-5 min-w-0 max-w-full">
-      {/* Fond d'écran global de la page Tâches */}
+      {/* Fond d'écran dynamique de la section Tâches (Aujourd'hui, À venir, etc.) */}
       <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10"
-        style={{ backgroundImage: "url('/images/backgrounds/tasks-bg.jpg')" }}
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10 transition-all duration-300"
+        style={{ backgroundImage: `url('${bgImage}')` }}
       />
 
       {/* En-tête principal */}

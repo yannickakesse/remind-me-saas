@@ -1,5 +1,5 @@
 // Service Worker — Remind Me PWA, Push Notifications & Offline Mode
-const CACHE_NAME = "remindme-v1.1.0";
+const CACHE_NAME = "remindme-v1.3.0";
 const OFFLINE_URL = "/offline.html";
 
 const PRECACHE_ASSETS = [
@@ -16,6 +16,8 @@ const PRECACHE_ASSETS = [
   "/images/backgrounds/drawer-bg.jpg",
   "/images/backgrounds/activities-bg.jpg",
   "/images/backgrounds/tasks-bg.jpg",
+  "/images/backgrounds/tasks-upcoming-bg.jpg",
+  "/images/backgrounds/tasks-today-bg.jpg",
   "/images/backgrounds/finances-overview-bg.jpg",
   "/images/backgrounds/expenses-bg.jpg",
   "/images/backgrounds/scheduled-expenses-bg.jpg",

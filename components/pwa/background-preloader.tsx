@@ -7,6 +7,8 @@ const BACKGROUND_IMAGES = [
   "/images/backgrounds/drawer-bg.jpg",
   "/images/backgrounds/activities-bg.jpg",
   "/images/backgrounds/tasks-bg.jpg",
+  "/images/backgrounds/tasks-upcoming-bg.jpg",
+  "/images/backgrounds/tasks-today-bg.jpg",
   "/images/backgrounds/finances-overview-bg.jpg",
   "/images/backgrounds/expenses-bg.jpg",
   "/images/backgrounds/scheduled-expenses-bg.jpg",
