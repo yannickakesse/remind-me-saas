@@ -66,40 +66,31 @@ type Line = {
  * Construit le CSV export "Finances" (revenus + dépenses fusionnés,
  * triés par échéance) avec la certification et les indicatifs de marque Remind Me.
  */
+/**
+ * Construit le CSV export "Finances" (revenus + dépenses fusionnés,
+ * triés par échéance) compatible avec Excel, Numbers et Google Sheets.
+ */
 export function buildFinancesCsv(
   income: IncomeRow[],
   expenses: ExpenseRow[],
   timezone: string,
   options?: FinancesCsvOptions
 ): string {
-  const nowStr = DateTime.now().setZone(timezone).toFormat("dd/MM/yyyy 'à' HH:mm");
+  const nowStr = DateTime.now().setZone(timezone).toFormat("dd/MM/yyyy HH:mm");
   const periodStr = options?.rangeStart && options?.rangeEnd
-    ? `Du ${DateTime.fromISO(options.rangeStart).toFormat("dd/MM/yyyy")} au ${DateTime.fromISO(options.rangeEnd).toFormat("dd/MM/yyyy")}`
-    : "Période globale";
+    ? `${DateTime.fromISO(options.rangeStart).toFormat("dd/MM/yyyy")} - ${DateTime.fromISO(options.rangeEnd).toFormat("dd/MM/yyyy")}`
+    : "Toutes les dates";
 
   const userStr = [options?.userName, options?.userEmail ? `(${options.userEmail})` : ""]
     .filter(Boolean)
     .join(" ") || "Compte Remind Me";
 
-  // Calculs de synthèse pour le pied de page
+  // Calculs de synthèse
   const totalReceived = income.filter((i) => i.received).reduce((s, i) => s + Number(i.amount), 0);
   const totalExpected = income.filter((i) => !i.received).reduce((s, i) => s + Number(i.amount), 0);
   const totalPaid = expenses.filter((e) => e.paid).reduce((s, e) => s + Number(e.amount), 0);
   const totalPlanned = expenses.filter((e) => !e.paid).reduce((s, e) => s + Number(e.amount), 0);
   const netReal = totalReceived - totalPaid;
-
-  const metadataHeader = [
-    `# ==============================================================================`,
-    `# REMIND ME — RAPPORT FINANCIER & SUIVI MULTI-ACTIVITÉS`,
-    `# Produit et certifié par la plateforme Remind Me (https://remind-me-saas.vercel.app)`,
-    `# Solution de pilotage multi-activités, gestion de planning et rentabilité`,
-    `#`,
-    `# Titulaire du compte : ${userStr}`,
-    `# Date de génération : ${nowStr} (${timezone})`,
-    `# Période couverte    : ${periodStr}`,
-    `# ==============================================================================`,
-    ``,
-  ].join("\r\n");
 
   const lines: Line[] = [];
 
@@ -109,7 +100,7 @@ export function buildFinancesCsv(
       cells: [
         "Revenu",
         i.label,
-        i.activity?.name ?? "",
+        i.activity?.name ?? "Général",
         "",
         formatAmount(i.amount),
         i.currency,
@@ -127,8 +118,8 @@ export function buildFinancesCsv(
       cells: [
         "Dépense",
         e.label,
-        e.activity?.name ?? "",
-        e.category ?? "",
+        e.activity?.name ?? "Général",
+        e.category ?? "Général",
         formatAmount(e.amount),
         e.currency,
         formatDate(e.due_date, timezone),
@@ -141,24 +132,29 @@ export function buildFinancesCsv(
 
   lines.sort((a, b) => a.dueDateISO.localeCompare(b.dueDateISO));
 
-  const rows = [HEADER, ...lines.map((l) => l.cells)];
-  const tableBody = rows.map((cells) => cells.map(csvField).join(DELIMITER)).join("\r\n");
+  const allRows = [
+    // Ligne 1 : Titre du rapport
+    ["REMIND ME", "RAPPORT FINANCIER & SUIVI DE TRÉSORERIE", "", "", "", "", "", "", "", ""],
+    ["Titulaire", userStr, "Période", periodStr, "Date d'export", nowStr, "", "", "", ""],
+    ["", "", "", "", "", "", "", "", "", ""],
+    // Ligne d'en-tête standard des colonnes
+    HEADER,
+    // Lignes de données
+    ...lines.map((l) => l.cells),
+    // Lignes de synthèse parfaitement alignées
+    ["", "", "", "", "", "", "", "", "", ""],
+    ["SYNTHÈSE", "Total Revenus Encaissés (Reçus)", "", "", formatAmount(totalReceived), "Reçus réels", "", "", "", ""],
+    ["SYNTHÈSE", "Total Revenus Attendus (En attente)", "", "", formatAmount(totalExpected), "En attente", "", "", "", ""],
+    ["SYNTHÈSE", "Total Dépenses Payées", "", "", formatAmount(totalPaid), "Payé réel", "", "", "", ""],
+    ["SYNTHÈSE", "Total Dépenses Prévues", "", "", formatAmount(totalPlanned), "Prévu", "", "", "", ""],
+    ["SYNTHÈSE", "SOLDE RÉEL NET (Reçus - Payés)", "", "", formatAmount(netReal), "Solde Réel", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", "", ""],
+    ["CERTIFICATION", "Document certifié conforme généré par la plateforme Remind Me", "", "", "", "", "", "", "", ""],
+  ];
 
-  const metadataFooter = [
-    ``,
-    `# ------------------------------------------------------------------------------`,
-    `# SYNTHÈSE REMIND ME — REVENUS & DÉPENSES`,
-    `# Total Revenus Reçus (Encaissés) : ${formatAmount(totalReceived)}`,
-    `# Total Revenus Attendus (En attente) : ${formatAmount(totalExpected)}`,
-    `# Total Dépenses Payées : ${formatAmount(totalPaid)}`,
-    `# Total Dépenses Prévues : ${formatAmount(totalPlanned)}`,
-    `# Solde Réel Net (Reçus - Payés) : ${formatAmount(netReal)}`,
-    `#`,
-    `# Export certifié généré avec succès par Remind Me.`,
-    `# ------------------------------------------------------------------------------`,
-  ].join("\r\n");
+  const tableBody = allRows.map((cells) => cells.map(csvField).join(DELIMITER)).join("\r\n");
 
-  // BOM UTF-8 en tête (﻿) pour compatibilité Excel
-  const BOM = "﻿";
-  return `${BOM}${metadataHeader}${tableBody}\r\n${metadataFooter}\r\n`;
+  // BOM UTF-8 en tête (\uFEFF) pour reconnaissance native par Excel et Numbers
+  const BOM = "\uFEFF";
+  return `${BOM}${tableBody}\r\n`;
 }

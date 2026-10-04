@@ -70,7 +70,7 @@ export function PrintableStatement({
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-6 px-4 sm:px-6 print:p-0 print:bg-white text-slate-900">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-6 px-4 sm:px-6 print:p-0 print:m-0 print:min-h-0 print:bg-white text-slate-900">
       {/* Action Bar */}
       <div className="max-w-4xl mx-auto mb-6 flex items-center justify-between print:hidden">
         <Link
@@ -90,7 +90,7 @@ export function PrintableStatement({
       </div>
 
       {/* Main Document (A4 format) */}
-      <div className="max-w-4xl mx-auto bg-white p-6 sm:p-10 rounded-2xl shadow-xl border border-slate-200 print:shadow-none print:border-none print:p-0 print:max-w-none print:w-full space-y-5 print:space-y-3">
+      <div className="max-w-4xl mx-auto bg-white p-6 sm:p-10 rounded-2xl shadow-xl border border-slate-200 print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none print:w-full space-y-5 print:space-y-3">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b-2 border-slate-900 gap-3 print:pb-3">

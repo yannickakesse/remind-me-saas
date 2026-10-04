@@ -173,11 +173,11 @@ export function FinancesView({
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center justify-center sm:justify-end gap-2.5 flex-wrap shrink-0 mt-2 sm:mt-0">
             <Link
               href={`/finances/print?month=${rangeStart.slice(0, 7)}`}
               target="_blank"
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-canvas border border-ink-300 dark:border-ink-700 text-xs font-semibold text-ink-900 dark:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-canvas border border-ink-300 dark:border-ink-700 text-xs font-semibold text-ink-900 dark:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shadow-xs"
               title="Imprimer ou enregistrer le relevé en PDF"
             >
               <Printer className="w-3.5 h-3.5 text-signal" /> Relevé PDF
@@ -197,13 +197,6 @@ export function FinancesView({
             >
               <Plus className="w-3.5 h-3.5 mr-1" /> Revenu
             </Link>
-            <button
-              type="button"
-              onClick={() => handleTabChange("scheduled")}
-              className={buttonClasses("secondary", "sm")}
-            >
-              <Plus className="w-3.5 h-3.5 mr-1" /> Programmer une dépense
-            </button>
           </div>
         </div>
       </div>

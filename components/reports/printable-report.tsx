@@ -52,7 +52,7 @@ export function PrintableReport({
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-6 px-4 sm:px-6 print:p-0 print:bg-white text-slate-900">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-6 px-4 sm:px-6 print:p-0 print:m-0 print:min-h-0 print:bg-white text-slate-900">
       {/* Floating Action Bar (Hidden in Print) */}
       <div className="max-w-4xl mx-auto mb-6 flex items-center justify-between print:hidden">
         <Link
@@ -72,7 +72,7 @@ export function PrintableReport({
       </div>
 
       {/* Structured Document Container (A4 Pro Layout) */}
-      <div className="max-w-4xl mx-auto bg-white p-8 sm:p-12 rounded-2xl shadow-xl border border-slate-200 print:shadow-none print:border-none print:p-0 print:max-w-none print:w-full">
+      <div className="max-w-4xl mx-auto bg-white p-8 sm:p-12 rounded-2xl shadow-xl border border-slate-200 print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none print:w-full">
         
         {/* Document Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b-2 border-slate-900 gap-4">

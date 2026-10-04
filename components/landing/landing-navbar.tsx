@@ -80,18 +80,18 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
             {/* Direct Sign in / Action Pill */}
             {user ? (
               <Link
                 href="/dashboard"
                 prefetch={true}
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active shrink-0"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active shrink-0"
               >
                 <span className="hidden sm:inline">{t("nav.dashboard")}</span>
-                <span className="sm:hidden">Tableau de bord</span>
+                <span className="sm:hidden text-[11px] font-bold">Cockpit</span>
                 <svg
-                  className="w-3.5 h-3.5 shrink-0"
+                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -131,10 +131,10 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             )}
 
             {/* Interactive Language Selector (Pill on Desktop/Tablet, Compact on Mobile) */}
-            <div className="hidden sm:inline-flex">
+            <div className="hidden sm:inline-flex shrink-0">
               <LanguageSelector variant="pill" />
             </div>
-            <div className="sm:hidden inline-flex">
+            <div className="sm:hidden inline-flex shrink-0">
               <LanguageSelector variant="compact" />
             </div>
 
@@ -160,7 +160,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             {/* Mobile Menu Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-1.5 sm:p-2 rounded-full text-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
+              className="md:hidden p-1.5 sm:p-2 rounded-full text-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0"
               aria-label="Ouvrir le menu"
             >
               {mobileMenuOpen ? (
