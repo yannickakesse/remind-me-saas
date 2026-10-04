@@ -43,25 +43,16 @@ export function PeriodFilter({ from, to }: { from: string; to: string }) {
     ? `Année en cours (${now.year} — 12 mois)`
     : `Période du ${startDT.toFormat("dd/MM/yyyy")} au ${endDT.toFormat("dd/MM/yyyy")} (~${diffMonths} mois)`;
 
-  function applyPreset(preset: "month" | "lastMonth" | "quarter" | "year" | "last12") {
+  function applyPreset(preset: "month" | "year") {
     let start = "";
     let end = "";
 
     if (preset === "month") {
       start = monthStart;
       end = monthEnd;
-    } else if (preset === "lastMonth") {
-      start = lastMonthStart;
-      end = lastMonthEnd;
-    } else if (preset === "quarter") {
-      start = quarterStart;
-      end = quarterEnd;
     } else if (preset === "year") {
       start = yearStart;
       end = yearEnd;
-    } else if (preset === "last12") {
-      start = last12Start;
-      end = last12End;
     }
 
     setCustomFrom(start);
@@ -75,95 +66,64 @@ export function PeriodFilter({ from, to }: { from: string; to: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-ink-200 bg-canvas-raised p-4 shadow-sm">
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-        {/* Boutons presets ultra-responsifs */}
-        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
-          <span className="text-ink-500 mr-1 font-bold">Période :</span>
+    <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-4 sm:p-5 shadow-sm">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
+        {/* Presets essentiels & nets */}
+        <div className="flex items-center gap-2 text-xs font-bold">
+          <span className="text-zinc-600 dark:text-zinc-400 font-extrabold mr-1">Période :</span>
           <button
             type="button"
             onClick={() => applyPreset("month")}
-            className={`rounded-xl px-3.5 py-2 transition-all duration-150 active:scale-95 cursor-pointer tap-active min-h-[36px] ${
+            className={`rounded-xl px-4 py-2 transition-all active:scale-95 cursor-pointer min-h-[38px] font-black ${
               isCurrentMonth
-                ? "bg-signal text-white font-bold shadow-md scale-[1.02] ring-2 ring-signal/30"
-                : "bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 hover:bg-ink-200 dark:hover:bg-ink-700 hover:text-ink-950 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-xs"
+                ? "bg-signal text-white shadow-sm ring-2 ring-signal/30"
+                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700"
             }`}
           >
             Ce mois-ci
           </button>
           <button
             type="button"
-            onClick={() => applyPreset("lastMonth")}
-            className={`rounded-xl px-3.5 py-2 transition-all duration-150 active:scale-95 cursor-pointer tap-active min-h-[36px] ${
-              isLastMonth
-                ? "bg-signal text-white font-bold shadow-md scale-[1.02] ring-2 ring-signal/30"
-                : "bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 hover:bg-ink-200 dark:hover:bg-ink-700 hover:text-ink-950 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-xs"
-            }`}
-          >
-            Mois dernier
-          </button>
-          <button
-            type="button"
-            onClick={() => applyPreset("quarter")}
-            className={`rounded-xl px-3.5 py-2 transition-all duration-150 active:scale-95 cursor-pointer tap-active min-h-[36px] ${
-              isCurrentQuarter
-                ? "bg-signal text-white font-bold shadow-md scale-[1.02] ring-2 ring-signal/30"
-                : "bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 hover:bg-ink-200 dark:hover:bg-ink-700 hover:text-ink-950 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-xs"
-            }`}
-          >
-            Ce trimestre
-          </button>
-          <button
-            type="button"
             onClick={() => applyPreset("year")}
-            className={`rounded-xl px-3.5 py-2 transition-all duration-150 active:scale-95 cursor-pointer tap-active min-h-[36px] ${
+            className={`rounded-xl px-4 py-2 transition-all active:scale-95 cursor-pointer min-h-[38px] font-black ${
               isCurrentYear
-                ? "bg-signal text-white font-bold shadow-md scale-[1.02] ring-2 ring-signal/30"
-                : "bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 hover:bg-ink-200 dark:hover:bg-ink-700 hover:text-ink-950 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-xs"
+                ? "bg-signal text-white shadow-sm ring-2 ring-signal/30"
+                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700"
             }`}
           >
-            Année en cours (YTD)
-          </button>
-          <button
-            type="button"
-            onClick={() => applyPreset("last12")}
-            className={`rounded-xl px-3.5 py-2 transition-all duration-150 active:scale-95 cursor-pointer tap-active min-h-[36px] ${
-              isLast12
-                ? "bg-signal text-white font-bold shadow-md scale-[1.02] ring-2 ring-signal/30"
-                : "bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 hover:bg-ink-200 dark:hover:bg-ink-700 hover:text-ink-950 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-xs"
-            }`}
-          >
-            12 derniers mois
+            Année {now.year}
           </button>
         </div>
 
-        {/* Formulaire dates personnalisées */}
-        <form onSubmit={handleCustomSubmit} className="flex flex-wrap items-center gap-2.5">
-          <input
-            type="date"
-            value={customFrom}
-            onChange={(e) => setCustomFrom(e.target.value)}
-            className="rounded-lg border border-ink-300 bg-canvas px-2.5 py-1.5 text-xs text-ink-950 focus:border-signal focus:outline-none"
-          />
-          <span className="text-xs text-ink-400 font-medium">au</span>
-          <input
-            type="date"
-            value={customTo}
-            onChange={(e) => setCustomTo(e.target.value)}
-            className="rounded-lg border border-ink-300 bg-canvas px-2.5 py-1.5 text-xs text-ink-950 focus:border-signal focus:outline-none"
-          />
+        {/* Formulaire sélection dates sur-mesure */}
+        <form onSubmit={handleCustomSubmit} className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-950 p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800">
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="rounded-lg border-0 bg-transparent px-2 py-1 text-xs font-bold text-zinc-950 dark:text-white focus:outline-none"
+            />
+            <span className="text-xs text-zinc-400 font-bold">au</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="rounded-lg border-0 bg-transparent px-2 py-1 text-xs font-bold text-zinc-950 dark:text-white focus:outline-none"
+            />
+          </div>
           <button
             type="submit"
-            className="rounded-lg bg-ink-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-ink-800 transition-colors"
+            className="rounded-xl bg-signal hover:bg-signal-dark px-4 py-2.5 text-xs font-black text-white transition-all shadow-xs cursor-pointer active:scale-95"
           >
-            Appliquer
+            Filtrer
           </button>
         </form>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-ink-600 bg-canvas/70 px-3 py-1.5 rounded-lg border border-ink-100">
-        <Calendar className="w-3.5 h-3.5 text-signal shrink-0" />
-        <span>Rapport affiché : <strong className="text-ink-950 font-semibold">{periodLabel}</strong></span>
+      <div className="flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300 bg-zinc-100/80 dark:bg-zinc-800/80 px-3.5 py-2 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80">
+        <Calendar className="w-4 h-4 text-signal shrink-0" />
+        <span>Rapport affiché : <strong className="text-zinc-950 dark:text-white font-black">{periodLabel}</strong></span>
       </div>
     </div>
   );

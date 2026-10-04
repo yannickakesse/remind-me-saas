@@ -181,25 +181,86 @@ export default async function DashboardPage() {
         </div>
       ) : null}
 
-      {/* Grid: Urgences & Prochaines Dépenses */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Tâches urgentes */}
-        {urgentTasks && urgentTasks.length > 0 ? (
-          <div className="p-5 rounded-3xl border border-danger/30 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3" data-tour="dashboard-urgent-tasks">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-danger flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5" /> Tâches urgentes ({urgentTasks.length})
-              </h2>
-              <Link href="/tasks" className="text-xs text-signal hover:underline flex items-center gap-0.5">
-                Voir tout <ArrowRight className="w-3 h-3" />
+      {/* Ligne 1 : Vos Activités & Missions côte à côte avec Tâches & To-Do List */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* Vos Activités & Missions */}
+        <div className="p-5 sm:p-6 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3.5" data-tour="dashboard-activities">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
+              <Briefcase className="w-4 h-4 text-signal" /> Vos activités &amp; missions ({activities?.length ?? 0})
+            </h2>
+            <Link href="/activities" className="text-xs text-signal font-semibold hover:underline flex items-center gap-0.5">
+              Gérer <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          {(activities?.length ?? 0) === 0 ? (
+            <div className="p-6 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
+              <p>Aucune activité créée pour le moment.</p>
+              <Link href="/activities/new" className="mt-2 inline-block text-signal font-bold hover:underline">
+                + Créer votre première activité
               </Link>
             </div>
+          ) : (
             <ul className="space-y-2">
-              {urgentTasks.map((task) => (
+              {activities!.slice(0, 5).map((activity) => {
+                const comp = Array.isArray(activity.activity_compensation)
+                  ? activity.activity_compensation[0]
+                  : activity.activity_compensation;
+                return (
+                  <li key={activity.id}>
+                    <Link
+                      href={`/activities/${activity.id}/edit`}
+                      className="flex items-center justify-between p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs hover:border-ink-300 transition-colors shadow-2xs"
+                    >
+                      <div className="flex items-center gap-2.5 truncate">
+                        <span
+                          className="h-3 w-3 shrink-0 rounded-full"
+                          style={{ backgroundColor: activity.color ?? "#1E3A5F" }}
+                        />
+                        <div className="truncate">
+                          <div className="font-semibold text-ink-950 dark:text-white truncate">{activity.name}</div>
+                          <div className="text-[10px] text-ink-500">{typeLabel(activity.type)}</div>
+                        </div>
+                      </div>
+                      {comp ? (
+                        <div className="font-bold text-ink-900 dark:text-ink-100 shrink-0 ml-2">
+                          {formatAmount(comp.amount, comp.currency)}
+                        </div>
+                      ) : null}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {/* Tâches & To-Do List */}
+        <div className="p-5 sm:p-6 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3.5" data-tour="dashboard-urgent-tasks">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
+              <AlertTriangle className="w-4 h-4 text-warning" /> Tâches prioritaires ({urgentTasks?.length ?? 0})
+            </h2>
+            <Link href="/tasks" className="text-xs text-signal font-semibold hover:underline flex items-center gap-0.5">
+              Voir tout <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          {(urgentTasks?.length ?? 0) === 0 ? (
+            <div className="p-6 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
+              <p>Toutes vos tâches sont à jour. Continuez comme ça !</p>
+              <Link href="/tasks/new" className="mt-2 inline-block text-signal font-bold hover:underline">
+                + Nouvelle tâche
+              </Link>
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {urgentTasks!.map((task) => (
                 <li key={task.id}>
                   <Link
                     href={`/tasks/${task.id}/edit`}
-                    className="flex items-center justify-between p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs hover:border-ink-300 transition-colors"
+                    className="flex items-center justify-between p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs hover:border-ink-300 transition-colors shadow-2xs"
                   >
                     <span className="font-semibold text-ink-950 dark:text-white truncate mr-2">{task.title}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${TASK_PRIORITY_STYLES[task.priority]}`}>
@@ -209,79 +270,29 @@ export default async function DashboardPage() {
                 </li>
               ))}
             </ul>
-          </div>
-        ) : null}
-
-        {/* Prochaines Dépenses Programmées */}
-        {scheduledExpenses && scheduledExpenses.length > 0 ? (
-          <div className="p-5 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3" data-tour="dashboard-scheduled-expenses">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-amber-600" /> Prochaines dépenses programmées
-              </h2>
-              <Link href="/finances?tab=scheduled" className="text-xs text-signal hover:underline flex items-center gap-0.5">
-                Gérer ({scheduledExpenses.length}) <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-            <ul className="space-y-2">
-              {scheduledExpenses.slice(0, 4).map((exp) => {
-                const daysDiff = Math.ceil(
-                  DateTime.fromISO(exp.next_due_date, { zone: timezone })
-                    .diff(now.startOf("day"), "days")
-                    .days
-                );
-                const daysLabel =
-                  daysDiff < 0
-                    ? `En retard de ${Math.abs(daysDiff)} j`
-                    : daysDiff === 0
-                    ? "Aujourd'hui"
-                    : `Dans ${daysDiff} j`;
-
-                return (
-                  <li key={exp.id}>
-                    <Link
-                      href="/finances?tab=scheduled"
-                      className="flex items-center justify-between p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs hover:border-ink-300 transition-colors"
-                    >
-                      <div>
-                        <div className="font-semibold text-ink-950 dark:text-white">{exp.name}</div>
-                        <div className="text-[10px] text-ink-500">
-                          {exp.category} • Échéance : {exp.next_due_date}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-ink-950 dark:text-white">
-                          {formatAmount(exp.amount, exp.currency)}
-                        </div>
-                        <div className={`text-[10px] font-bold ${daysDiff <= 3 ? "text-danger" : "text-ink-500"}`}>
-                          {daysLabel}
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ) : null}
+          )}
+        </div>
       </div>
 
-      {/* Today Schedule & Activities */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Aujourd'hui */}
-        <div className="p-5 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3" data-tour="dashboard-today">
+      {/* Ligne 2 : Aujourd'hui (Agenda) & Finances et Dépenses programmées */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* Aujourd'hui (Planning & Agenda) */}
+        <div className="p-5 sm:p-6 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3.5" data-tour="dashboard-today">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-signal" /> Aujourd'hui
+              <Calendar className="w-4 h-4 text-signal" /> Aujourd&apos;hui ({todayEvents.length})
             </h2>
-            <Link href="/calendar" className="text-xs text-signal hover:underline flex items-center gap-0.5">
+            <Link href="/calendar" className="text-xs text-signal font-semibold hover:underline flex items-center gap-0.5">
               Calendrier <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
           {todayEvents.length === 0 ? (
-            <div className="p-6 text-center text-xs text-ink-400">
-              Rien de prévu aujourd'hui.
+            <div className="p-6 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
+              <p>Rien de prévu aujourd&apos;hui.</p>
+              <Link href="/calendar" className="mt-2 inline-block text-signal font-bold hover:underline">
+                Ouvrir le calendrier
+              </Link>
             </div>
           ) : (
             <ul className="space-y-2">
@@ -322,45 +333,60 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Vos Activités */}
-        <div className="p-5 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3" data-tour="dashboard-activities">
+        {/* Finances & Dépenses programmées */}
+        <div className="p-5 sm:p-6 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm space-y-3.5" data-tour="dashboard-scheduled-expenses">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
-              <Briefcase className="w-3.5 h-3.5 text-signal" /> Vos activités ({activities?.length ?? 0})
+              <Clock className="w-4 h-4 text-amber-600" /> Finances &amp; Dépenses programmées ({scheduledExpenses?.length ?? 0})
             </h2>
-            <Link href="/activities" className="text-xs text-signal hover:underline flex items-center gap-0.5">
+            <Link href="/finances?tab=scheduled" className="text-xs text-signal font-semibold hover:underline flex items-center gap-0.5">
               Gérer <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
-          {(activities?.length ?? 0) === 0 ? (
-            <div className="p-6 text-center text-xs text-ink-400">
-              Aucune activité créée pour le moment.
+          {(scheduledExpenses?.length ?? 0) === 0 ? (
+            <div className="p-6 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
+              <p>Aucune dépense programmée à venir.</p>
+              <Link href="/finances?tab=scheduled" className="mt-2 inline-block text-signal font-bold hover:underline">
+                + Programmer une dépense
+              </Link>
             </div>
           ) : (
             <ul className="space-y-2">
-              {activities!.map((activity) => {
-                const comp = Array.isArray(activity.activity_compensation)
-                  ? activity.activity_compensation[0]
-                  : activity.activity_compensation;
+              {scheduledExpenses!.slice(0, 4).map((exp) => {
+                const daysDiff = Math.ceil(
+                  DateTime.fromISO(exp.next_due_date, { zone: timezone })
+                    .diff(now.startOf("day"), "days")
+                    .days
+                );
+                const daysLabel =
+                  daysDiff < 0
+                    ? `En retard de ${Math.abs(daysDiff)} j`
+                    : daysDiff === 0
+                    ? "Aujourd'hui"
+                    : `Dans ${daysDiff} j`;
+
                 return (
-                  <li
-                    key={activity.id}
-                    className="flex items-center gap-3 p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs"
-                  >
-                    <span
-                      className="h-3 w-3 shrink-0 rounded-full"
-                      style={{ backgroundColor: activity.color ?? "#1E3A5F" }}
-                    />
-                    <div className="flex-1 truncate">
-                      <div className="font-semibold text-ink-950 dark:text-white truncate">{activity.name}</div>
-                      <div className="text-[10px] text-ink-500">{typeLabel(activity.type)}</div>
-                    </div>
-                    {comp ? (
-                      <div className="font-bold text-ink-900 dark:text-ink-100">
-                        {formatAmount(comp.amount, comp.currency)}
+                  <li key={exp.id}>
+                    <Link
+                      href="/finances?tab=scheduled"
+                      className="flex items-center justify-between p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs hover:border-ink-300 transition-colors shadow-2xs"
+                    >
+                      <div>
+                        <div className="font-semibold text-ink-950 dark:text-white">{exp.name}</div>
+                        <div className="text-[10px] text-ink-500">
+                          {exp.category} • Échéance : {exp.next_due_date}
+                        </div>
                       </div>
-                    ) : null}
+                      <div className="text-right">
+                        <div className="font-bold text-ink-900 dark:text-white">
+                          {formatAmount(exp.amount, exp.currency)}
+                        </div>
+                        <div className={`text-[10px] font-bold ${daysDiff <= 3 ? "text-danger" : "text-ink-500"}`}>
+                          {daysLabel}
+                        </div>
+                      </div>
+                    </Link>
                   </li>
                 );
               })}

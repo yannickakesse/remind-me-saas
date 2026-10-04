@@ -7,6 +7,7 @@ import { NotificationBell } from "@/components/navigation/notification-bell";
 import { NotificationSyncTrigger } from "@/components/notifications/notification-sync-trigger";
 import { TaskSoundWatcher } from "@/components/notifications/task-sound-watcher";
 import { InteractiveProductTour } from "@/components/onboarding/interactive-product-tour";
+import { WelcomeVideoModal } from "@/components/motion/welcome-video-modal";
 import { HelpCenterButton } from "@/components/help/help-center-modal";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { PwaRegistrar } from "@/components/pwa/pwa-registrar";
@@ -63,6 +64,7 @@ export default async function AppLayout({
       {/* Service Worker PWA, push registration & instant background precaching */}
       <PwaRegistrar />
       <BackgroundPreloader />
+      <WelcomeVideoModal />
       <DailyWelcomeBanner userName={profile?.full_name} timezone={getUserTimezone(profile)} />
       <NotificationSyncTrigger />
       <TaskSoundWatcher userId={user.id} />

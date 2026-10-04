@@ -121,15 +121,12 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
             aria-hidden="true"
           />
 
-          {/* Drawer content — Image de fond portefeuille avec billets (drawer-bg.jpg) & contraste parfait */}
+          {/* Drawer content — Image de fond portefeuille avec billets (drawer-bg.jpg) 100% visible et sans voile */}
           <div 
             className="relative flex flex-col w-[85%] max-w-[320px] h-full shadow-2xl z-10 border-r border-zinc-300 dark:border-zinc-800 overflow-y-auto bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: "url('/images/backgrounds/drawer-bg.jpg')" }}
           >
-            {/* Voile protecteur translucide pour faire ressortir l'image tout en garantissant un contraste parfait */}
-            <div className="absolute inset-0 bg-white/85 dark:bg-zinc-950/85 backdrop-blur-[1px] pointer-events-none" />
-
-            {/* Contenu du Drawer (Header, Liens, Footer) au-dessus du voile */}
+            {/* Contenu du Drawer (Header, Liens, Footer) directement sur l'image avec cartes opaques ultra-lisibles */}
             <div className="relative z-10 flex flex-col h-full">
               {/* Drawer Header */}
               <div className="flex items-center justify-between p-4 border-b border-zinc-200/90 dark:border-zinc-800/90 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md safe-area-top shadow-2xs">
