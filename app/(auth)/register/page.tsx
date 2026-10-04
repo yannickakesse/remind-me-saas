@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Mail, RefreshCw, CheckCircle2, ArrowLeft, ExternalLink, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { registerSchema } from "@/lib/validation/auth";
-import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
+import { Field, TextInput, PasswordInput, PrimaryButton } from "@/components/ui/field";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { getAuthRedirectUrl } from "@/lib/auth/url";
 import { useLanguage } from "@/components/i18n/language-provider";
@@ -308,9 +308,8 @@ export default function RegisterPage() {
             </Field>
 
             <Field label={t("auth.password")} htmlFor="password" error={fieldErrors.password}>
-              <TextInput
+              <PasswordInput
                 id="password"
-                type="password"
                 autoComplete="new-password"
                 value={password}
                 placeholder={t("auth.password_placeholder")}
@@ -323,9 +322,8 @@ export default function RegisterPage() {
               htmlFor="confirmPassword"
               error={fieldErrors.confirmPassword}
             >
-              <TextInput
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 autoComplete="new-password"
                 value={confirmPassword}
                 placeholder={t("auth.confirm_password_placeholder")}

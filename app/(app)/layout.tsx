@@ -13,6 +13,7 @@ import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { PwaRegistrar } from "@/components/pwa/pwa-registrar";
 import { BackgroundPreloader } from "@/components/pwa/background-preloader";
 import { DailyWelcomeBanner } from "@/components/notifications/daily-welcome-banner";
+import { VoicePushPrompt } from "@/components/notifications/voice-push-prompt";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import type { Notification } from "@/types/database";
 
@@ -66,6 +67,7 @@ export default async function AppLayout({
       <BackgroundPreloader />
       <WelcomeVideoModal />
       <DailyWelcomeBanner userName={profile?.full_name} timezone={getUserTimezone(profile)} />
+      <VoicePushPrompt />
       <NotificationSyncTrigger />
       <TaskSoundWatcher userId={user.id} />
       <InteractiveProductTour initialCompleted={tourCompleted} />

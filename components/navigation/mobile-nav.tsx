@@ -44,6 +44,11 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [financesOpen, setFinancesOpen] = useState(true);
 
+  // Sur les pages d'impression (/print), ne pas afficher la navigation mobile
+  if (pathname?.includes("/print")) {
+    return null;
+  }
+
   // Close drawer on route change
   useEffect(() => {
     setIsOpen(false);

@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 
 interface FieldProps {
@@ -33,6 +37,36 @@ export function TextInput(
         props.className ?? ""
       }`}
     />
+  );
+}
+
+export function PasswordInput(
+  props: React.InputHTMLAttributes<HTMLInputElement>
+) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative flex items-center w-full">
+      <input
+        {...props}
+        type={show ? "text" : "password"}
+        className={`w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 pl-3.5 pr-10 py-2.5 text-zinc-950 dark:text-white font-medium placeholder:text-zinc-500 focus:border-signal focus:ring-1 focus:ring-signal outline-none transition-colors shadow-2xs ${
+          props.className ?? ""
+        }`}
+      />
+      <button
+        type="button"
+        onClick={() => setShow(!show)}
+        tabIndex={-1}
+        className="absolute right-3 p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+        aria-label={show ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+      >
+        {show ? (
+          <EyeOff className="w-4 h-4" />
+        ) : (
+          <Eye className="w-4 h-4" />
+        )}
+      </button>
+    </div>
   );
 }
 

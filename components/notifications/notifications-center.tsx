@@ -7,6 +7,7 @@ import { DateTime } from "luxon";
 import {
   Bell,
   Check,
+  CheckCheck,
   CheckCircle2,
   Clock,
   Trash2,
@@ -97,6 +98,22 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
 
     return true;
   });
+
+  const handleCompleteAll = () => {
+    const nowIso = new Date().toISOString();
+    setNotifications((prev) =>
+      prev.map((n) => ({
+        ...n,
+        read_at: n.read_at || nowIso,
+        status: "resolved",
+        resolved_at: nowIso,
+      }))
+    );
+    startTransition(async () => {
+      await markAllNotificationsRead();
+      router.refresh();
+    });
+  };
 
   const handleMarkAllRead = () => {
     setNotifications((prev) =>
@@ -226,15 +243,28 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
             </p>
           </div>
 
-          {unreadCount > 0 && (
-            <button
-              type="button"
-              onClick={handleMarkAllRead}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-xs font-semibold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs shrink-0 tap-active cursor-pointer"
-            >
-              <Check className="w-3.5 h-3.5" /> {t("actions.mark_all_read")}
-            </button>
-          )}
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {activeCount > 0 && (
+              <button
+                type="button"
+                onClick={handleCompleteAll}
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-signal text-white text-xs font-bold hover:bg-signal-dark active:scale-95 transition-all shadow-xs shrink-0 tap-active cursor-pointer"
+                title="Valider et marquer toutes les notifications comme complétées"
+              >
+                <CheckCheck className="w-3.5 h-3.5" /> Tout compléter (All Completed)
+              </button>
+            )}
+
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                onClick={handleMarkAllRead}
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-xs font-semibold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs shrink-0 tap-active cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" /> {t("actions.mark_all_read")}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

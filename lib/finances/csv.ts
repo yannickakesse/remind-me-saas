@@ -133,15 +133,11 @@ export function buildFinancesCsv(
   lines.sort((a, b) => a.dueDateISO.localeCompare(b.dueDateISO));
 
   const allRows = [
-    // Ligne 1 : Titre du rapport
-    ["REMIND ME", "RAPPORT FINANCIER & SUIVI DE TRÉSORERIE", "", "", "", "", "", "", "", ""],
-    ["Titulaire", userStr, "Période", periodStr, "Date d'export", nowStr, "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", ""],
-    // Ligne d'en-tête standard des colonnes
+    // Ligne 1 : En-tête officiel des colonnes (reconnaissance automatique immédiate par Excel)
     HEADER,
-    // Lignes de données
+    // Données des transactions
     ...lines.map((l) => l.cells),
-    // Lignes de synthèse parfaitement alignées
+    // Lignes de séparation et synthèse comptable
     ["", "", "", "", "", "", "", "", "", ""],
     ["SYNTHÈSE", "Total Revenus Encaissés (Reçus)", "", "", formatAmount(totalReceived), "Reçus réels", "", "", "", ""],
     ["SYNTHÈSE", "Total Revenus Attendus (En attente)", "", "", formatAmount(totalExpected), "En attente", "", "", "", ""],
@@ -149,7 +145,7 @@ export function buildFinancesCsv(
     ["SYNTHÈSE", "Total Dépenses Prévues", "", "", formatAmount(totalPlanned), "Prévu", "", "", "", ""],
     ["SYNTHÈSE", "SOLDE RÉEL NET (Reçus - Payés)", "", "", formatAmount(netReal), "Solde Réel", "", "", "", ""],
     ["", "", "", "", "", "", "", "", "", ""],
-    ["CERTIFICATION", "Document certifié conforme généré par la plateforme Remind Me", "", "", "", "", "", "", "", ""],
+    ["CERTIFICATION", `Document certifié conforme Remind Me — Période : ${periodStr} — Titulaire : ${userStr}`, "", "", "", "", "", "", "", ""],
   ];
 
   const tableBody = allRows.map((cells) => cells.map(csvField).join(DELIMITER)).join("\r\n");

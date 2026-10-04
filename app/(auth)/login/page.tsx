@@ -6,7 +6,7 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { loginSchema } from "@/lib/validation/auth";
-import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
+import { Field, TextInput, PasswordInput, PrimaryButton } from "@/components/ui/field";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { LanguageSelector } from "@/components/ui/language-selector";
@@ -111,9 +111,8 @@ function LoginForm() {
           </Field>
 
           <Field label={t("auth.password")} htmlFor="password" error={fieldErrors.password}>
-            <TextInput
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="current-password"
               value={password}
               placeholder={t("auth.password_placeholder")}
