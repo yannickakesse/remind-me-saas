@@ -6,6 +6,7 @@ import {
   initVoiceEngine,
   unlockVoiceAudio,
   speakVoiceReminder,
+  playVoiceReminder,
   generateVoiceMessage,
   getLocalVoiceSettings,
   saveLocalVoiceSettings,
@@ -63,7 +64,7 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
         const localSettings = getLocalVoiceSettings();
 
         if (textToSpeak && voiceAllowed && localSettings.voice_reminders) {
-          speakVoiceReminder({
+          playVoiceReminder({
             text: textToSpeak,
             language: localSettings.voice_language,
             voiceType: localSettings.voice_type,
@@ -107,7 +108,7 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
 
             if (voiceSettings.voice_reminders && firstUnread.metadata?.voice_reminder_enabled !== false) {
               setTimeout(() => {
-                speakVoiceReminder({
+                playVoiceReminder({
                   text: textToSpeak,
                   language: voiceSettings.voice_language,
                   voiceType: voiceSettings.voice_type,
@@ -173,7 +174,7 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
                 });
 
               isSpeakingRef.current = true;
-              speakVoiceReminder({
+              playVoiceReminder({
                 text: voiceScript,
                 language: voicePrefs.voice_language,
                 voiceType: voicePrefs.voice_type,

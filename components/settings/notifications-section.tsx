@@ -41,6 +41,7 @@ import {
 import {
   initVoiceEngine,
   speakVoiceReminder,
+  playVoiceReminder,
   stopSpeaking,
   generateVoiceMessage,
   saveLocalVoiceSettings,
@@ -198,7 +199,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         repeat_voice: repeatVoice,
       });
 
-      await speakVoiceReminder({
+      await playVoiceReminder({
         text: sampleText,
         language: voiceLanguage,
         voiceType,

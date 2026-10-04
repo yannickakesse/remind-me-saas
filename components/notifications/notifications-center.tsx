@@ -24,7 +24,7 @@ import {
   X,
   Volume2,
 } from "lucide-react";
-import { speakVoiceReminder, getLocalVoiceSettings } from "@/lib/voice";
+import { playVoiceReminder, getLocalVoiceSettings } from "@/lib/voice";
 import type { Notification, NotificationPriority } from "@/types/database";
 import {
   markNotificationRead,
@@ -556,7 +556,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         onClick={() => {
                           const prefs = getLocalVoiceSettings();
                           const textToSpeak = (item as any).metadata?.voice_text || `${item.title}. ${item.body}`;
-                          speakVoiceReminder({
+                          playVoiceReminder({
                             text: textToSpeak,
                             language: prefs.voice_language,
                             voiceType: prefs.voice_type,
