@@ -52,7 +52,8 @@ export async function markAllNotificationsRead(): Promise<{ success: boolean; er
         status: "read",
       })
       .eq("user_id", user.id)
-      .is("read_at", null);
+      .neq("status", "resolved")
+      .neq("status", "dismissed");
 
     if (error) {
       console.warn("[markAllNotificationsRead] Update error:", error);
@@ -61,6 +62,36 @@ export async function markAllNotificationsRead(): Promise<{ success: boolean; er
 
     revalidatePath("/notifications");
     revalidatePath("/dashboard");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Erreur" };
+  }
+}
+
+export async function markAllNotificationsResolved(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase, user } = await requireUser();
+    const nowIso = new Date().toISOString();
+
+    const { error } = await supabase
+      .from("notifications")
+      .update({
+        status: "resolved",
+        resolved_at: nowIso,
+        read_at: nowIso,
+      })
+      .eq("user_id", user.id)
+      .neq("status", "resolved");
+
+    if (error) {
+      console.warn("[markAllNotificationsResolved] Update error:", error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath("/notifications");
+    revalidatePath("/dashboard");
+    revalidatePath("/finances");
+    revalidatePath("/calendar");
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err?.message || "Erreur" };

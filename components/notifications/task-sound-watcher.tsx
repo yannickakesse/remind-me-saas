@@ -17,11 +17,35 @@ interface TaskSoundWatcherProps {
   userId?: string;
 }
 
+function getStoredAlertedIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = sessionStorage.getItem("remindme_alerted_notif_ids");
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch {}
+  return new Set();
+}
+
+function saveStoredAlertedIds(set: Set<string>) {
+  if (typeof window === "undefined") return;
+  try {
+    const arr = Array.from(set).slice(-300);
+    sessionStorage.setItem("remindme_alerted_notif_ids", JSON.stringify(arr));
+  } catch {}
+}
+
 export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
   const { push } = useToast();
   const alertedIdsRef = useRef<Set<string>>(new Set());
   const initialLoadRef = useRef(true);
   const isSpeakingRef = useRef(false);
+
+  useEffect(() => {
+    alertedIdsRef.current = getStoredAlertedIds();
+  }, []);
 
   // 1. Déverrouillage automatique de l'Audio & de la Synthèse Vocale au premier geste utilisateur
   useEffect(() => {
@@ -150,6 +174,7 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
         if (initialLoadRef.current) {
           // Premier chargement : enregistrer les IDs existants pour éviter une rafale au démarrage
           unreadList.forEach((n) => alertedIdsRef.current.add(n.id));
+          saveStoredAlertedIds(alertedIdsRef.current);
           initialLoadRef.current = false;
           return;
         }
@@ -158,6 +183,7 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
         for (const item of unreadList) {
           if (!alertedIdsRef.current.has(item.id)) {
             alertedIdsRef.current.add(item.id);
+            saveStoredAlertedIds(alertedIdsRef.current);
 
             const isVoiceEnabled = voicePrefs.voice_reminders;
             const isActivityVoiceAllowed = item.metadata?.voice_reminder_enabled !== false;

@@ -1417,6 +1417,7 @@ export async function evaluateSmartReminders(
   // 9. ENREGISTREMENT IDEMPOTENT DANS LA TABLE NOTIFICATIONS
   // ==========================================================================
   let insertedCount = 0;
+  let newCandidates: ReminderCandidate[] = [];
 
   if (candidates.length > 0) {
     const candidateKeys = candidates.map((c) => c.idempotency_key);
@@ -1427,7 +1428,7 @@ export async function evaluateSmartReminders(
       .in("idempotency_key", candidateKeys);
 
     const existingKeySet = new Set((existingRows ?? []).map((r) => r.idempotency_key));
-    const newCandidates = candidates.filter((c) => !existingKeySet.has(c.idempotency_key));
+    newCandidates = candidates.filter((c) => !existingKeySet.has(c.idempotency_key));
 
     if (newCandidates.length > 0) {
       const { data: insertedRows, error } = await supabase
@@ -1467,7 +1468,7 @@ export async function evaluateSmartReminders(
   let emailCount = 0;
   let pushCount = 0;
 
-  if (candidates.length > 0) {
+  if (newCandidates.length > 0) {
     let userEmail: string | undefined;
     try {
       const { data: userData } = await supabase.auth.getUser();
@@ -1481,7 +1482,7 @@ export async function evaluateSmartReminders(
       } catch {}
     }
 
-    for (const cand of candidates) {
+    for (const cand of newCandidates) {
       const allowImmediateExternal = !quietHoursActive || cand.priority === "critical";
 
       // 1. Envoi E-mail (avec idempotence via notification_logs)

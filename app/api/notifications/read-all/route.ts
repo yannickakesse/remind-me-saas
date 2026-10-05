@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST() {
+export async function POST(req: Request) {
   const supabase = createClient();
   const {
     data: { user },
@@ -13,15 +13,22 @@ export async function POST() {
 
   try {
     const nowIso = new Date().toISOString();
+    let resolveAll = false;
+    try {
+      const body = await req.json();
+      if (body?.resolveAll) resolveAll = true;
+    } catch {}
+
+    const updateData = resolveAll
+      ? { status: "resolved" as const, resolved_at: nowIso, read_at: nowIso }
+      : { status: "read" as const, read_at: nowIso };
 
     const { error } = await supabase
       .from("notifications")
-      .update({
-        read_at: nowIso,
-        status: "read",
-      })
+      .update(updateData)
       .eq("user_id", user.id)
-      .is("read_at", null);
+      .neq("status", "resolved")
+      .neq("status", "dismissed");
 
     if (error) {
       throw error;

@@ -30,6 +30,7 @@ import type { Notification, NotificationPriority } from "@/types/database";
 import {
   markNotificationRead,
   markAllNotificationsRead,
+  markAllNotificationsResolved,
   resolveNotification,
   snoozeNotification,
   deleteNotification,
@@ -112,16 +113,17 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
       }))
     );
     startTransition(async () => {
-      await markAllNotificationsRead();
+      await markAllNotificationsResolved();
       router.refresh();
     });
   };
 
   const handleMarkAllRead = () => {
+    const nowIso = new Date().toISOString();
     setNotifications((prev) =>
       prev.map((n) => ({
         ...n,
-        read_at: n.read_at || new Date().toISOString(),
+        read_at: n.read_at || nowIso,
         status: n.status === "unread" ? "read" : n.status,
       }))
     );

@@ -31,10 +31,7 @@ export async function GET() {
 
     const timezone = getUserTimezone(profile);
 
-    // 1. Évaluer les rappels récents
-    await evaluateSmartReminders(supabase, user.id, timezone);
-
-    // 2. Récupérer les notifications non lues actives
+    // 1. Récupérer les notifications non lues actives
     const { data: unread } = await supabase
       .from("notifications")
       .select("id, title, body, category, kind, link, priority, metadata, created_at")
