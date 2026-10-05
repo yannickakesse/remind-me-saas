@@ -561,7 +561,7 @@ export async function evaluateSmartReminders(
     const next3daysIso = userNow.plus({ days: 3 }).endOf("day").toUTC().toISO()!;
     const { data: eventList } = await supabase
       .from("calendar_events")
-      .select("id, title, starts_at, ends_at, status, activity_id, activities(id, name, voice_reminder_enabled)")
+      .select("id, title, starts_at, ends_at, status, activity_id, activities(id, name)")
       .eq("user_id", userId)
       .neq("status", "cancelled")
       .gte("starts_at", past7daysIso)

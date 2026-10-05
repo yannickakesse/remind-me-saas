@@ -1,0 +1,16 @@
+name: Remind Me 24/7 Background Reminders Cron
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  trigger-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Remind Me Cron Endpoint
+        run: |
+          curl -s -X POST "https://remind-me-saas.vercel.app/api/cron/reminders" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET || 'remind_me_cron_secret_prod_9a8b7c6d5e4f3a2b1c' }}" \
+            -H "Content-Type: application/json"

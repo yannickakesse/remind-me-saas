@@ -173,25 +173,38 @@ export async function createActivity(formData: FormData) {
       contactEmail: parsed.organization.contactEmail,
     });
 
-    const { data: activity, error: activityError } = await supabase
+    const activityPayload: Record<string, any> = {
+      user_id: user.id,
+      name: parsed.info.name,
+      description: parsed.info.description || null,
+      category: parsed.info.category || null,
+      color: parsed.info.color,
+      type: parsed.info.type,
+      organization_id: organizationId,
+      contact_id: contactId,
+      work_mode: parsed.organization.workMode || null,
+      location: parsed.organization.location || null,
+      start_date: parsed.schedule.startDate || null,
+      end_date: parsed.schedule.endDate || null,
+      voice_reminder_enabled: parsed.info.voiceReminderEnabled,
+    };
+
+    let { data: activity, error: activityError } = await supabase
       .from("activities")
-      .insert({
-        user_id: user.id,
-        name: parsed.info.name,
-        description: parsed.info.description || null,
-        category: parsed.info.category || null,
-        color: parsed.info.color,
-        type: parsed.info.type,
-        organization_id: organizationId,
-        contact_id: contactId,
-        work_mode: parsed.organization.workMode || null,
-        location: parsed.organization.location || null,
-        start_date: parsed.schedule.startDate || null,
-        end_date: parsed.schedule.endDate || null,
-        voice_reminder_enabled: parsed.info.voiceReminderEnabled,
-      })
+      .insert(activityPayload as any)
       .select("id")
       .single();
+
+    if (activityError && activityError.message?.toLowerCase().includes("voice_reminder_enabled")) {
+      delete activityPayload.voice_reminder_enabled;
+      const retryResult = await supabase
+        .from("activities")
+        .insert(activityPayload as any)
+        .select("id")
+        .single();
+      activity = retryResult.data;
+      activityError = retryResult.error;
+    }
 
     if (activityError || !activity) {
       return { error: "Impossible de créer l'activité. " + (activityError?.message || "") };
@@ -290,24 +303,36 @@ export async function updateActivity(activityId: string, formData: FormData) {
       contactEmail: parsed.organization.contactEmail,
     });
 
-    const { error: activityError } = await supabase
+    const updatePayload: Record<string, any> = {
+      name: parsed.info.name,
+      description: parsed.info.description || null,
+      category: parsed.info.category || null,
+      color: parsed.info.color,
+      type: parsed.info.type,
+      organization_id: organizationId,
+      contact_id: contactId,
+      work_mode: parsed.organization.workMode || null,
+      location: parsed.organization.location || null,
+      start_date: parsed.schedule.startDate || null,
+      end_date: parsed.schedule.endDate || null,
+      voice_reminder_enabled: parsed.info.voiceReminderEnabled,
+    };
+
+    let { error: activityError } = await supabase
       .from("activities")
-      .update({
-        name: parsed.info.name,
-        description: parsed.info.description || null,
-        category: parsed.info.category || null,
-        color: parsed.info.color,
-        type: parsed.info.type,
-        organization_id: organizationId,
-        contact_id: contactId,
-        work_mode: parsed.organization.workMode || null,
-        location: parsed.organization.location || null,
-        start_date: parsed.schedule.startDate || null,
-        end_date: parsed.schedule.endDate || null,
-        voice_reminder_enabled: parsed.info.voiceReminderEnabled,
-      })
+      .update(updatePayload as any)
       .eq("id", activityId)
       .eq("user_id", user.id);
+
+    if (activityError && activityError.message?.toLowerCase().includes("voice_reminder_enabled")) {
+      delete updatePayload.voice_reminder_enabled;
+      const retryResult = await supabase
+        .from("activities")
+        .update(updatePayload as any)
+        .eq("id", activityId)
+        .eq("user_id", user.id);
+      activityError = retryResult.error;
+    }
 
     if (activityError) {
       return { error: "Impossible de modifier l'activité : " + activityError.message };
