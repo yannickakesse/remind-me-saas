@@ -53,7 +53,8 @@ export async function markAllNotificationsRead(): Promise<{ success: boolean; er
       })
       .eq("user_id", user.id)
       .neq("status", "resolved")
-      .neq("status", "dismissed");
+      .neq("status", "dismissed")
+      .neq("status", "actioned");
 
     if (error) {
       console.warn("[markAllNotificationsRead] Update error:", error);
@@ -73,19 +74,34 @@ export async function markAllNotificationsResolved(): Promise<{ success: boolean
     const { supabase, user } = await requireUser();
     const nowIso = new Date().toISOString();
 
+    // 1. Tenter la mise à jour complète (statut resolved + horodatages)
     const { error } = await supabase
       .from("notifications")
       .update({
         status: "resolved",
         resolved_at: nowIso,
+        actioned_at: nowIso,
         read_at: nowIso,
       })
       .eq("user_id", user.id)
-      .neq("status", "resolved");
+      .neq("status", "resolved")
+      .neq("status", "dismissed");
 
     if (error) {
-      console.warn("[markAllNotificationsResolved] Update error:", error);
-      return { success: false, error: error.message };
+      // Fallback si la contrainte ou colonne SQL n'a pas encore été migrée
+      console.warn("[markAllNotificationsResolved] Standard update error, trying fallback:", error);
+      const fallback = await supabase
+        .from("notifications")
+        .update({
+          status: "dismissed",
+          read_at: nowIso,
+        })
+        .eq("user_id", user.id)
+        .neq("status", "dismissed");
+
+      if (fallback.error) {
+        return { success: false, error: fallback.error.message };
+      }
     }
 
     revalidatePath("/notifications");
@@ -193,15 +209,27 @@ export async function resolveNotification(
 
     // Résoudre toutes les notifications liées à cette entité
     if (entityId) {
-      await supabase
+      const { error: entityUpdateError } = await supabase
         .from("notifications")
         .update({
           status: "resolved",
           resolved_at: nowIso,
+          actioned_at: nowIso,
           read_at: nowIso,
         })
         .eq("user_id", user.id)
         .eq("entity_id", entityId);
+
+      if (entityUpdateError) {
+        await supabase
+          .from("notifications")
+          .update({
+            status: "dismissed",
+            read_at: nowIso,
+          })
+          .eq("user_id", user.id)
+          .eq("entity_id", entityId);
+      }
     }
 
     // Résoudre la notification spécifique par son ID
@@ -210,13 +238,22 @@ export async function resolveNotification(
       .update({
         status: "resolved",
         resolved_at: nowIso,
+        actioned_at: nowIso,
         read_at: nowIso,
       })
       .eq("id", notificationId)
       .eq("user_id", user.id);
 
     if (error) {
-      console.warn("[resolveNotification] Update error:", error);
+      console.warn("[resolveNotification] Update error, trying fallback:", error);
+      await supabase
+        .from("notifications")
+        .update({
+          status: "dismissed",
+          read_at: nowIso,
+        })
+        .eq("id", notificationId)
+        .eq("user_id", user.id);
     }
 
     revalidatePath("/notifications");

@@ -19,6 +19,56 @@ const quickActionSchema = z.object({
   hours: z.number().positive().max(720).optional(),
 });
 
+async function resolveNotifHelper(
+  supabase: any,
+  userId: string,
+  nowIso: string,
+  entityId?: string,
+  notificationId?: string
+) {
+  if (entityId) {
+    const { error } = await supabase
+      .from("notifications")
+      .update({
+        status: "resolved",
+        resolved_at: nowIso,
+        actioned_at: nowIso,
+        read_at: nowIso,
+      })
+      .eq("user_id", userId)
+      .eq("entity_id", entityId);
+
+    if (error) {
+      await supabase
+        .from("notifications")
+        .update({ status: "dismissed", read_at: nowIso })
+        .eq("user_id", userId)
+        .eq("entity_id", entityId);
+    }
+  }
+
+  if (notificationId) {
+    const { error } = await supabase
+      .from("notifications")
+      .update({
+        status: "resolved",
+        resolved_at: nowIso,
+        actioned_at: nowIso,
+        read_at: nowIso,
+      })
+      .eq("id", notificationId)
+      .eq("user_id", userId);
+
+    if (error) {
+      await supabase
+        .from("notifications")
+        .update({ status: "dismissed", read_at: nowIso })
+        .eq("id", notificationId)
+        .eq("user_id", userId);
+    }
+  }
+}
+
 export async function POST(request: Request) {
   const supabase = createClient();
   const {
@@ -48,34 +98,12 @@ export async function POST(request: Request) {
         .eq("id", entityId)
         .eq("user_id", user.id);
 
-      await supabase
-        .from("notifications")
-        .update({
-          status: "resolved",
-          resolved_at: nowIso,
-          read_at: nowIso,
-        })
-        .eq("user_id", user.id)
-        .eq("entity_id", entityId);
-
-      if (notificationId) {
-        await supabase
-          .from("notifications")
-          .update({
-            status: "resolved",
-            resolved_at: nowIso,
-            read_at: nowIso,
-          })
-          .eq("id", notificationId)
-          .eq("user_id", user.id);
-      }
-
+      await resolveNotifHelper(supabase, user.id, nowIso, entityId, notificationId);
       return NextResponse.json({ success: true, action: "mark_received" });
     }
 
     // 2. MARQUER DÉPENSE OU DÉPENSE PROGRAMMÉE COMME PAYÉE
     if (action === "mark_paid" && entityId) {
-      // Vérifier s'il s'agit d'une dépense ponctuelle
       const { data: exp } = await supabase
         .from("expenses")
         .select("id")
@@ -90,7 +118,6 @@ export async function POST(request: Request) {
           .eq("id", entityId)
           .eq("user_id", user.id);
       } else {
-        // Dépense programmée récurrente ou ponctuelle
         const { data: sch } = await supabase
           .from("scheduled_expenses")
           .select("*")
@@ -100,7 +127,6 @@ export async function POST(request: Request) {
 
         if (sch) {
           const effectiveDueDate: string = sch.next_due_date || todayDate;
-          // Enregistrer la dépense payée dans la table expenses
           await supabase.from("expenses").insert({
             user_id: user.id,
             label: sch.name || "Dépense programmée",
@@ -120,7 +146,6 @@ export async function POST(request: Request) {
               .eq("id", entityId)
               .eq("user_id", user.id);
           } else {
-            // Avancer la date pour le prochain cycle
             const curDate = new Date(effectiveDueDate);
             const nextDate = new Date(curDate);
             if (sch.frequency === "daily") nextDate.setDate(nextDate.getDate() + 1);
@@ -144,28 +169,7 @@ export async function POST(request: Request) {
         }
       }
 
-      await supabase
-        .from("notifications")
-        .update({
-          status: "resolved",
-          resolved_at: nowIso,
-          read_at: nowIso,
-        })
-        .eq("user_id", user.id)
-        .eq("entity_id", entityId);
-
-      if (notificationId) {
-        await supabase
-          .from("notifications")
-          .update({
-            status: "resolved",
-            resolved_at: nowIso,
-            read_at: nowIso,
-          })
-          .eq("id", notificationId)
-          .eq("user_id", user.id);
-      }
-
+      await resolveNotifHelper(supabase, user.id, nowIso, entityId, notificationId);
       return NextResponse.json({ success: true, action: "mark_paid" });
     }
 
@@ -177,69 +181,25 @@ export async function POST(request: Request) {
         .eq("id", entityId)
         .eq("user_id", user.id);
 
-      await supabase
-        .from("notifications")
-        .update({
-          status: "resolved",
-          resolved_at: nowIso,
-          read_at: nowIso,
-        })
-        .eq("user_id", user.id)
-        .eq("entity_id", entityId);
-
-      if (notificationId) {
-        await supabase
-          .from("notifications")
-          .update({
-            status: "resolved",
-            resolved_at: nowIso,
-            read_at: nowIso,
-          })
-          .eq("id", notificationId)
-          .eq("user_id", user.id);
-      }
-
+      await resolveNotifHelper(supabase, user.id, nowIso, entityId, notificationId);
       return NextResponse.json({ success: true, action: "mark_task_done" });
     }
 
-    // 4. MARQUER UNE SÉANCE / ÉVÉNEMENT DE CALENDRIER OU ACTIVITÉ COMME TERMINÉ
+    // 4. MARQUER UNE SÉANCE DU CALENDRIER COMME TERMINÉE
     if ((action === "mark_event_done" || action === "mark_event_completed") && (entityId || notificationId)) {
       if (entityId) {
-        // 1. Mettre à jour dans calendar_events (par id direct ou par activity_id)
         await supabase
           .from("calendar_events")
           .update({ status: "completed" })
           .or(`id.eq.${entityId},activity_id.eq.${entityId}`)
           .eq("user_id", user.id);
-
-        // 2. Résoudre immédiatement toutes les notifications associées à cette entité
-        await supabase
-          .from("notifications")
-          .update({
-            status: "resolved",
-            resolved_at: nowIso,
-            read_at: nowIso,
-          })
-          .eq("user_id", user.id)
-          .eq("entity_id", entityId);
       }
 
-      if (notificationId) {
-        await supabase
-          .from("notifications")
-          .update({
-            status: "resolved",
-            resolved_at: nowIso,
-            read_at: nowIso,
-          })
-          .eq("id", notificationId)
-          .eq("user_id", user.id);
-      }
-
+      await resolveNotifHelper(supabase, user.id, nowIso, entityId, notificationId);
       return NextResponse.json({ success: true, action: "mark_event_completed" });
     }
 
-    // 5. ANNULER UN ÉVÉNEMENT DE CALENDRIER
+    // 5. ANNULER UN ÉVÉNEMENT DU CALENDRIER
     if (action === "mark_event_cancelled" && entityId) {
       await supabase
         .from("calendar_events")
@@ -247,28 +207,7 @@ export async function POST(request: Request) {
         .eq("id", entityId)
         .eq("user_id", user.id);
 
-      await supabase
-        .from("notifications")
-        .update({
-          status: "resolved",
-          resolved_at: nowIso,
-          read_at: nowIso,
-        })
-        .eq("user_id", user.id)
-        .eq("entity_id", entityId);
-
-      if (notificationId) {
-        await supabase
-          .from("notifications")
-          .update({
-            status: "resolved",
-            resolved_at: nowIso,
-            read_at: nowIso,
-          })
-          .eq("id", notificationId)
-          .eq("user_id", user.id);
-      }
-
+      await resolveNotifHelper(supabase, user.id, nowIso, entityId, notificationId);
       return NextResponse.json({ success: true, action: "mark_event_cancelled" });
     }
 
@@ -310,6 +249,7 @@ export async function POST(request: Request) {
         .update({
           status: "dismissed",
           resolved_at: nowIso,
+          actioned_at: nowIso,
           read_at: nowIso,
         })
         .eq("id", notificationId)
@@ -321,6 +261,7 @@ export async function POST(request: Request) {
           .update({
             status: "dismissed",
             resolved_at: nowIso,
+            actioned_at: nowIso,
             read_at: nowIso,
           })
           .eq("entity_id", entityId)

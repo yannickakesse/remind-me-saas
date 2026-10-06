@@ -39,8 +39,9 @@ export async function GET() {
       .is("read_at", null)
       .neq("status", "resolved")
       .neq("status", "dismissed")
+      .neq("status", "actioned")
       .order("created_at", { ascending: false })
-      .limit(10);
+      .limit(20);
 
     return NextResponse.json({
       success: true,

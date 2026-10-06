@@ -85,6 +85,7 @@ export async function resolveEntityNotifications(
     .update({
       status: "resolved",
       resolved_at: nowIso,
+      actioned_at: nowIso,
       read_at: nowIso,
     })
     .or(`entity_id.eq.${entityId},id.eq.${entityId}`)
@@ -94,10 +95,21 @@ export async function resolveEntityNotifications(
     query = query.eq("user_id", userId);
   }
 
-  const { data, error } = await query.select("id");
+  let { data, error } = await query.select("id");
   if (error) {
-    console.warn("[resolveEntityNotifications] Error resolving notifications:", error);
-    return 0;
+    console.warn("[resolveEntityNotifications] Standard update error, trying fallback:", error);
+    let fallbackQuery = supabase
+      .from("notifications")
+      .update({
+        status: "dismissed",
+        read_at: nowIso,
+      })
+      .or(`entity_id.eq.${entityId},id.eq.${entityId}`)
+      .neq("status", "dismissed");
+
+    if (userId) fallbackQuery = fallbackQuery.eq("user_id", userId);
+    const fbRes = await fallbackQuery.select("id");
+    return fbRes.data?.length ?? 0;
   }
   return data?.length ?? 0;
 }
@@ -117,6 +129,7 @@ export async function invalidateOutdatedEntityReminders(
     .update({
       status: "resolved",
       resolved_at: nowIso,
+      actioned_at: nowIso,
       read_at: nowIso,
     })
     .eq("entity_id", entityId)
@@ -126,10 +139,21 @@ export async function invalidateOutdatedEntityReminders(
     query = query.eq("user_id", userId);
   }
 
-  const { data, error } = await query.select("id");
+  let { data, error } = await query.select("id");
   if (error) {
-    console.warn("[invalidateOutdatedEntityReminders] Error invalidating reminders:", error);
-    return 0;
+    console.warn("[invalidateOutdatedEntityReminders] Standard update error, trying fallback:", error);
+    let fallbackQuery = supabase
+      .from("notifications")
+      .update({
+        status: "dismissed",
+        read_at: nowIso,
+      })
+      .eq("entity_id", entityId)
+      .in("status", ["unread", "read", "snoozed"]);
+
+    if (userId) fallbackQuery = fallbackQuery.eq("user_id", userId);
+    const fbRes = await fallbackQuery.select("id");
+    return fbRes.data?.length ?? 0;
   }
   return data?.length ?? 0;
 }
@@ -279,11 +303,12 @@ export async function evaluateSmartReminders(
   ];
 
   if (resolvedEntityIds.length > 0) {
-    const { data: cleaned } = await supabase
+    const { data: cleaned, error: cleanErr } = await supabase
       .from("notifications")
       .update({
         status: "resolved",
         resolved_at: userNow.toISO()!,
+        actioned_at: userNow.toISO()!,
         read_at: userNow.toISO()!,
       })
       .eq("user_id", userId)
@@ -291,7 +316,21 @@ export async function evaluateSmartReminders(
       .neq("status", "resolved")
       .select("id");
 
-    resolvedCleanups += cleaned?.length ?? 0;
+    if (cleanErr) {
+      const fbClean = await supabase
+        .from("notifications")
+        .update({
+          status: "dismissed",
+          read_at: userNow.toISO()!,
+        })
+        .eq("user_id", userId)
+        .in("entity_id", resolvedEntityIds)
+        .neq("status", "dismissed")
+        .select("id");
+      resolvedCleanups += fbClean.data?.length ?? 0;
+    } else {
+      resolvedCleanups += cleaned?.length ?? 0;
+    }
   }
 
   // ==========================================================================

@@ -36,6 +36,7 @@ import {
   deleteNotification,
 } from "@/app/(app)/notifications/actions";
 import { useLanguage } from "@/components/i18n/language-provider";
+import { useToast } from "@/components/ui/toast";
 
 interface NotificationsCenterProps {
   initialNotifications: Notification[];
@@ -44,31 +45,50 @@ interface NotificationsCenterProps {
 
 type TabKey = "active" | "unread" | "tasks" | "finances" | "history" | "all";
 
+function isDayTime(isoString?: string | null, tz: string = "UTC"): boolean {
+  if (!isoString) return true;
+  try {
+    const dt = DateTime.fromISO(isoString, { zone: tz });
+    if (!dt.isValid) return true;
+    return dt.hour >= 6 && dt.hour < 18;
+  } catch {
+    return true;
+  }
+}
+
 export function NotificationsCenter({ initialNotifications, timezone }: NotificationsCenterProps) {
   const router = useRouter();
   const { locale, t } = useLanguage();
+  const { push: showToast } = useToast();
   const [, startTransition] = useTransition();
+
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [activeTab, setActiveTab] = useState<TabKey>("active");
   const [searchQuery, setSearchQuery] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [isCompletingAll, setIsCompletingAll] = useState(false);
+  const [isReadingAll, setIsReadingAll] = useState(false);
 
-  // Sync state if initialNotifications changes
   const activeCount = notifications.filter(
-    (n) => n.status !== "resolved" && n.status !== "dismissed"
+    (n) => n.status !== "resolved" && n.status !== "dismissed" && n.status !== "actioned"
   ).length;
 
   const unreadCount = notifications.filter(
-    (n) => !n.read_at && n.status !== "read" && n.status !== "resolved" && n.status !== "dismissed"
+    (n) =>
+      !n.read_at &&
+      n.status !== "read" &&
+      n.status !== "resolved" &&
+      n.status !== "dismissed" &&
+      n.status !== "actioned"
   ).length;
 
   const resolvedCount = notifications.filter(
-    (n) => n.status === "resolved" || n.status === "dismissed"
+    (n) => n.status === "resolved" || n.status === "dismissed" || n.status === "actioned"
   ).length;
 
   const filtered = notifications.filter((n) => {
-    const isResolved = n.status === "resolved" || n.status === "dismissed";
+    const isResolved = n.status === "resolved" || n.status === "dismissed" || n.status === "actioned";
     const isUnread = !n.read_at && n.status !== "read" && !isResolved;
     const isTask = n.category === "task" || n.category === "activity" || n.entity_type === "task";
     const isFinance =
@@ -78,7 +98,6 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
       n.entity_type === "expense" ||
       n.entity_type === "scheduled_expense";
 
-    // Tab filter
     if (activeTab === "active") {
       if (isResolved) return false;
     } else if (activeTab === "unread") {
@@ -91,7 +110,6 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
       if (!isResolved) return false;
     }
 
-    // Search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchTitle = n.title.toLowerCase().includes(q);
@@ -102,65 +120,109 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
     return true;
   });
 
-  const handleCompleteAll = () => {
+  const handleCompleteAll = async () => {
+    if (isCompletingAll || activeCount === 0) return;
+    setIsCompletingAll(true);
+
     const nowIso = new Date().toISOString();
+    const previous = [...notifications];
+
+    // Mise à jour optimiste locale instantanée
     setNotifications((prev) =>
-      prev.map((n) => ({
-        ...n,
-        read_at: n.read_at || nowIso,
-        status: "resolved",
-        resolved_at: nowIso,
-      }))
+      prev.map((n) =>
+        n.status !== "resolved" && n.status !== "dismissed" && n.status !== "actioned"
+          ? { ...n, read_at: n.read_at || nowIso, status: "resolved", resolved_at: nowIso }
+          : n
+      )
     );
-    startTransition(async () => {
-      await markAllNotificationsResolved();
-      router.refresh();
-    });
+
+    try {
+      const res = await markAllNotificationsResolved();
+      if (res && !res.success) {
+        setNotifications(previous);
+        showToast("Impossible de compléter les alertes. Veuillez réessayer.", "error");
+      } else {
+        showToast("Toutes les notifications actives ont été complétées.", "success");
+        startTransition(() => {
+          router.refresh();
+        });
+      }
+    } catch {
+      setNotifications(previous);
+      showToast("Erreur de connexion. Modifications annulées.", "error");
+    } finally {
+      setIsCompletingAll(false);
+    }
   };
 
-  const handleMarkAllRead = () => {
+  const handleMarkAllRead = async () => {
+    if (isReadingAll || unreadCount === 0) return;
+    setIsReadingAll(true);
+
     const nowIso = new Date().toISOString();
+    const previous = [...notifications];
+
+    // Mise à jour optimiste locale instantanée
     setNotifications((prev) =>
-      prev.map((n) => ({
-        ...n,
-        read_at: n.read_at || nowIso,
-        status: n.status === "unread" ? "read" : n.status,
-      }))
+      prev.map((n) =>
+        !n.read_at && n.status === "unread"
+          ? { ...n, read_at: nowIso, status: "read" }
+          : n
+      )
     );
-    startTransition(async () => {
-      await markAllNotificationsRead();
-      router.refresh();
-    });
+
+    try {
+      const res = await markAllNotificationsRead();
+      if (res && !res.success) {
+        setNotifications(previous);
+        showToast("Impossible de marquer comme lu. Veuillez réessayer.", "error");
+      } else {
+        showToast("Toutes les notifications ont été marquées comme lues.", "success");
+        startTransition(() => {
+          router.refresh();
+        });
+      }
+    } catch {
+      setNotifications(previous);
+      showToast("Erreur de connexion. Modifications annulées.", "error");
+    } finally {
+      setIsReadingAll(false);
+    }
   };
 
-  const handleMarkRead = (id: string) => {
+  const handleMarkRead = async (id: string) => {
     if (processingId) return;
     setProcessingId(id);
     const previous = [...notifications];
+
     setNotifications((prev) =>
       prev.map((n) =>
         n.id === id ? { ...n, read_at: new Date().toISOString(), status: "read" } : n
       )
     );
-    startTransition(async () => {
-      try {
-        await markNotificationRead(id);
-        router.refresh();
-      } catch {
+
+    try {
+      const res = await markNotificationRead(id);
+      if (res && !res.success) {
         setNotifications(previous);
-      } finally {
-        setProcessingId(null);
+      } else {
+        startTransition(() => {
+          router.refresh();
+        });
       }
-    });
+    } catch {
+      setNotifications(previous);
+    } finally {
+      setProcessingId(null);
+    }
   };
 
-  const handleResolve = (id: string, entityType?: string, entityId?: string) => {
+  const handleResolve = async (id: string, entityType?: string, entityId?: string) => {
     if (processingId) return;
     setProcessingId(id);
     const previous = [...notifications];
     const nowIso = new Date().toISOString();
 
-    // Optimistic local resolution (0ms)
     setNotifications((prev) =>
       prev.map((n) => {
         if (n.id === id || (entityId && n.entity_id === entityId)) {
@@ -170,19 +232,26 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
       })
     );
 
-    startTransition(async () => {
-      try {
-        await resolveNotification(id, entityType, entityId);
-        router.refresh();
-      } catch {
+    try {
+      const res = await resolveNotification(id, entityType, entityId);
+      if (res && !res.success) {
         setNotifications(previous);
-      } finally {
-        setProcessingId(null);
+        showToast("Erreur lors de la validation.", "error");
+      } else {
+        showToast("Élément validé avec succès.", "success");
+        startTransition(() => {
+          router.refresh();
+        });
       }
-    });
+    } catch {
+      setNotifications(previous);
+      showToast("Erreur réseau.", "error");
+    } finally {
+      setProcessingId(null);
+    }
   };
 
-  const handleSnooze = (id: string, hours: number = 24) => {
+  const handleSnooze = async (id: string, hours: number = 24) => {
     if (processingId) return;
     setProcessingId(id);
     const previous = [...notifications];
@@ -192,46 +261,56 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
       prev.map((n) => (n.id === id ? { ...n, status: "snoozed", snoozed_until: snoozedUntil } : n))
     );
 
-    startTransition(async () => {
-      try {
-        await snoozeNotification(id, hours);
-        router.refresh();
-      } catch {
+    try {
+      const res = await snoozeNotification(id, hours);
+      if (res && !res.success) {
         setNotifications(previous);
-      } finally {
-        setProcessingId(null);
+      } else {
+        showToast(`Rappel reporté de ${hours}h.`, "info");
+        startTransition(() => {
+          router.refresh();
+        });
       }
-    });
+    } catch {
+      setNotifications(previous);
+    } finally {
+      setProcessingId(null);
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (processingId) return;
     setProcessingId(id);
     const previous = [...notifications];
     setNotifications((prev) => prev.filter((n) => n.id !== id));
 
-    startTransition(async () => {
-      try {
-        await deleteNotification(id);
-        router.refresh();
-      } catch {
+    try {
+      const res = await deleteNotification(id);
+      if (res && !res.success) {
         setNotifications(previous);
-      } finally {
-        setProcessingId(null);
+        showToast("Erreur lors de la suppression.", "error");
+      } else {
+        startTransition(() => {
+          router.refresh();
+        });
       }
-    });
+    } catch {
+      setNotifications(previous);
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   const getPriorityBadge = (priority: NotificationPriority) => {
     switch (priority) {
       case "critical":
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-danger text-white">{t("attention.critical")}</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-danger text-white shrink-0">{t("attention.critical")}</span>;
       case "high":
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-warning-soft text-warning">{t("attention.urgent")}</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-warning-soft text-warning shrink-0">{t("attention.urgent")}</span>;
       case "normal":
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-signal-soft text-signal">{t("attention.info")}</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-signal-soft text-signal shrink-0">{t("attention.info")}</span>;
       default:
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-ink-100 text-ink-600">Info</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-ink-100 text-ink-600 shrink-0">Info</span>;
     }
   };
 
@@ -249,6 +328,8 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
     return <Bell className="w-5 h-5 text-ink-500" />;
   };
 
+  const isAnyActionPending = isCompletingAll || isReadingAll;
+
   return (
     <div className="relative isolate min-h-full w-full space-y-5 min-w-0 max-w-full">
       {/* Fond d'écran global de la page Notifications */}
@@ -257,46 +338,73 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
         style={{ backgroundImage: "url('/images/backgrounds/notifications-bg.jpg')" }}
       />
 
-      {/* Header with Title and Global Actions */}
-      <div className="relative overflow-hidden rounded-2xl bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 p-5 sm:p-6 shadow-xs">
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white truncate">
-                {t("nav.notifications")}
-              </h1>
-              {unreadCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-danger text-white text-[11px] font-bold animate-pulse shrink-0">
-                  {unreadCount} {t("actions.filter_unread")}
-                </span>
-              )}
+      {/* Header with Title and Global Actions Côte à Côte */}
+      <div className="relative overflow-hidden rounded-2xl bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 p-4 sm:p-6 shadow-xs">
+        <div className="relative z-10 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white truncate">
+                  {t("nav.notifications")}
+                </h1>
+                {unreadCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-danger text-white text-[11px] font-bold animate-pulse shrink-0">
+                    {unreadCount} {t("actions.filter_unread")}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs sm:text-sm text-ink-500 mt-1">
+                {activeCount > 0
+                  ? `${activeCount} élément${activeCount > 1 ? "s" : ""} nécessite${activeCount > 1 ? "nt" : ""} votre validation ou une action rapide`
+                  : "Votre centre de rappels et de notifications est à jour."}
+              </p>
             </div>
-            <p className="text-xs sm:text-sm text-ink-500 mt-1">
-              {t("attention.subtitle")}
-            </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            {activeCount > 0 && (
-              <button
-                type="button"
-                onClick={handleCompleteAll}
-                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-signal text-white text-xs font-bold hover:bg-signal-dark active:scale-95 transition-all shadow-xs shrink-0 tap-active cursor-pointer"
-                title="Valider et marquer toutes les notifications comme complétées"
-              >
-                <CheckCheck className="w-3.5 h-3.5" /> Tout compléter (All Completed)
-              </button>
-            )}
+          {/* Boutons d'Action Globale CÔTE À CÔTE (sur Mobile et Desktop) */}
+          <div className="grid grid-cols-2 gap-2.5 w-full sm:max-w-md">
+            {/* Bouton Tout compléter */}
+            <button
+              type="button"
+              disabled={isAnyActionPending || activeCount === 0}
+              onClick={handleCompleteAll}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-signal text-white text-xs font-bold hover:bg-signal-dark active:scale-95 transition-all shadow-xs disabled:opacity-40 disabled:pointer-events-none tap-active cursor-pointer min-h-[42px]"
+              title="Marquer toutes les notifications actives comme traitées"
+            >
+              {isCompletingAll ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                  <span className="truncate">Traitement...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Tout compléter</span>
+                </>
+              )}
+            </button>
 
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={handleMarkAllRead}
-                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-xs font-semibold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs shrink-0 tap-active cursor-pointer"
-              >
-                <Check className="w-3.5 h-3.5" /> {t("actions.mark_all_read")}
-              </button>
-            )}
+            {/* Bouton Tout marquer comme lu */}
+            <button
+              type="button"
+              disabled={isAnyActionPending || unreadCount === 0}
+              onClick={handleMarkAllRead}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-xs font-semibold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs disabled:opacity-40 disabled:pointer-events-none tap-active cursor-pointer min-h-[42px]"
+              title="Marquer toutes les notifications comme lues"
+            >
+              {isReadingAll ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                  <span className="truncate">Traitement...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden sm:inline truncate">{t("actions.mark_all_read")}</span>
+                  <span className="sm:hidden truncate">Tout lire</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -315,7 +423,8 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                   (n) =>
                     (n.category === "task" || n.category === "activity" || n.entity_type === "task") &&
                     n.status !== "resolved" &&
-                    n.status !== "dismissed"
+                    n.status !== "dismissed" &&
+                    n.status !== "actioned"
                 ).length,
               },
               {
@@ -329,7 +438,8 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                       n.entity_type === "expense" ||
                       n.entity_type === "scheduled_expense") &&
                     n.status !== "resolved" &&
-                    n.status !== "dismissed"
+                    n.status !== "dismissed" &&
+                    n.status !== "actioned"
                 ).length,
               },
               { key: "history", label: t("actions.filter_history"), count: resolvedCount },
@@ -401,7 +511,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
       ) : (
         <div className="space-y-3">
           {filtered.map((item) => {
-            const isResolved = item.status === "resolved" || item.status === "dismissed";
+            const isResolved = item.status === "resolved" || item.status === "dismissed" || item.status === "actioned";
             const isUnread = !item.read_at && item.status !== "read" && !isResolved;
             const isSnoozed = item.status === "snoozed";
             const isThisBusy = processingId === item.id;
@@ -413,6 +523,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
               item.entity_type === "activity" ||
               item.kind.includes("activity");
             const isScheduledExpense = item.entity_type === "scheduled_expense";
+            const isDay = isDayTime(item.scheduled_at || item.created_at, timezone);
 
             return (
               <div
@@ -436,7 +547,16 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
 
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5">
+                        {/* Indicateur Jour / Nuit basé sur la timezone utilisateur */}
+                        <span 
+                          className="inline-flex items-center text-xs text-ink-400 shrink-0" 
+                          title={isDay ? "Jour (06:00 - 17:59)" : "Nuit (18:00 - 05:59)"}
+                        >
+                          {isDay ? "☀️" : "🌙"}
+                        </span>
+
                         {getPriorityBadge(item.priority)}
+
                         <h4
                           className={`text-xs sm:text-sm font-bold break-words ${
                             isResolved ? "line-through text-ink-500" : "text-ink-950 dark:text-white"
@@ -444,16 +564,17 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                         >
                           {item.title}
                         </h4>
+
                         {isUnread && (
                           <span className="w-2 h-2 rounded-full bg-signal shrink-0" />
                         )}
                         {isResolved && (
-                          <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-positive-soft text-positive inline-flex items-center gap-1">
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-positive-soft text-positive inline-flex items-center gap-1 shrink-0">
                             <Check className="w-3 h-3" /> {t("actions.mark_completed")}
                           </span>
                         )}
                         {isSnoozed && (
-                          <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-warning-soft text-warning inline-flex items-center gap-1">
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-warning-soft text-warning inline-flex items-center gap-1 shrink-0">
                             <Clock className="w-3 h-3" /> {t("actions.snooze")}
                           </span>
                         )}

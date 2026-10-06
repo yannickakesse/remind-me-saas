@@ -28,6 +28,8 @@ export interface WebPushPayload {
     url?: string;
     category?: string;
     entityId?: string;
+    voice_text?: string | null;
+    voice_reminder_enabled?: boolean;
   };
 }
 

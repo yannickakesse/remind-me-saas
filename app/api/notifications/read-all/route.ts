@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     } catch {}
 
     const updateData = resolveAll
-      ? { status: "resolved" as const, resolved_at: nowIso, read_at: nowIso }
+      ? { status: "resolved" as const, resolved_at: nowIso, actioned_at: nowIso, read_at: nowIso }
       : { status: "read" as const, read_at: nowIso };
 
     const { error } = await supabase
@@ -31,7 +31,15 @@ export async function POST(req: Request) {
       .neq("status", "dismissed");
 
     if (error) {
-      throw error;
+      if (resolveAll) {
+        await supabase
+          .from("notifications")
+          .update({ status: "dismissed", read_at: nowIso })
+          .eq("user_id", user.id)
+          .neq("status", "dismissed");
+      } else {
+        throw error;
+      }
     }
 
     return NextResponse.json({ success: true, timestamp: nowIso });

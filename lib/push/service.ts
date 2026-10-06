@@ -65,6 +65,8 @@ export async function sendNotificationPush(
       data: {
         url: link || "/notifications",
         category,
+        voice_text: (options.metadata?.voice_text as string) || null,
+        voice_reminder_enabled: options.metadata?.voice_reminder_enabled !== false,
       },
     });
 
