@@ -5,6 +5,7 @@ import { t, formatCurrencyLocale, formatDateLocale } from "@/lib/i18n/format";
 import { sendNotificationEmail } from "@/lib/email/service";
 import { sendNotificationPush } from "@/lib/push/service";
 import { ensureCalendarEvents } from "@/lib/calendar/sync";
+import { getUserTimezone } from "@/lib/time/timezones";
 import {
   generateVoiceMessage,
   generateMorningBriefingVoiceText,
@@ -220,12 +221,6 @@ export async function evaluateSmartReminders(
   userId: string,
   timezone = "UTC"
 ): Promise<ReminderEngineResult> {
-  const now = DateTime.now().setZone(timezone);
-  const todayISO = now.toISODate();
-  if (!todayISO) {
-    return { processed: 0, inserted: 0, emailCount: 0, pushCount: 0, resolvedCleanups: 0 };
-  }
-
   // 1. Récupération des préférences utilisateur & profil
   const [{ data: prefsData }, { data: profileData }] = await Promise.all([
     supabase
@@ -235,13 +230,17 @@ export async function evaluateSmartReminders(
       .maybeSingle(),
     supabase
       .from("profiles")
-      .select("full_name, default_currency, timezone, locale")
+      .select("full_name, default_currency, timezone, country_code, locale")
       .eq("id", userId)
       .maybeSingle(),
   ]);
 
-  const userTimezone = profileData?.timezone || timezone || "UTC";
+  const userTimezone = profileData?.timezone || (timezone !== "UTC" ? timezone : getUserTimezone(profileData));
   const userNow = DateTime.now().setZone(userTimezone);
+  const todayISO = userNow.toISODate();
+  if (!todayISO) {
+    return { processed: 0, inserted: 0, emailCount: 0, pushCount: 0, resolvedCleanups: 0 };
+  }
   const locale: SupportedLocale = prefsData?.preferred_locale ?? (profileData?.locale as SupportedLocale) ?? "fr";
   const voiceLang: "fr" | "en" | "es" = (locale === "fr" || locale === "en" || locale === "es") ? locale : "fr";
   const emailEnabled = prefsData?.email_enabled ?? true;
@@ -1256,12 +1255,12 @@ export async function evaluateSmartReminders(
 
     const totalCount = dailyItems.length;
     const titleText = totalCount > 0
-      ? `🌅 Programme du matin : ${totalCount} activité(s) aujourd'hui`
-      : `🌅 Bonjour ${profileData?.full_name?.split(" ")[0] || ""} ! Aucune activité prévue aujourd'hui`;
+      ? `🌅 Programme du jour : ${totalCount} activité(s)`
+      : `🌅 Programme du jour : Aucune activité`;
 
     const bodyText = totalCount > 0
-      ? `Bonjour ! Vous avez ${pendingCount} activité(s) à réaliser${completedCount > 0 ? ` (${completedCount} déjà complétée(s))` : ""}${yesterdayUnconfirmed > 0 ? ` et ⚠️ ${yesterdayUnconfirmed} séance(s) d'hier à confirmer` : ""}. Excellente journée !`
-      : `Bonjour ! Vous n'avez aucune activité prévue aujourd'hui. Profitez-en pour organiser votre journée ou vous reposer.`;
+      ? `Vous avez ${pendingCount} activité(s) au planning aujourd'hui${completedCount > 0 ? ` (${completedCount} déjà complétée(s))` : ""}${yesterdayUnconfirmed > 0 ? ` et ⚠️ ${yesterdayUnconfirmed} séance(s) d'hier à confirmer` : ""}. Excellente journée !`
+      : `Votre journée est libre. Profitez-en pour vous reposer ou planifier vos prochaines sessions.`;
 
     candidates.push({
       user_id: userId,
@@ -1286,7 +1285,8 @@ export async function evaluateSmartReminders(
       link: "/dashboard",
       scheduled_at: userNow.toISO()!,
       idempotency_key: `routine:morning_briefing:${todayISO}`,
-      email_template: "daily_briefing",
+      // N'envoyer d'email le matin que s'il y a un réel programme à communiquer
+      email_template: totalCount > 0 ? "daily_briefing" : undefined,
     });
   }
 
@@ -1393,47 +1393,45 @@ export async function evaluateSmartReminders(
     }
 
     const totalCount = completedItems.length + upcomingItems.length + overdueItems.length;
-    const voiceLanguage = (locale === "fr" || locale === "en" || locale === "es") ? locale : "fr";
-    const middayVoiceScript = generateMiddayCheckinVoiceText({
-      userName: profileData?.full_name,
-      completedActivities: completedItems,
-      upcomingActivities: upcomingItems,
-      overdueActivities: overdueItems,
-      language: voiceLanguage,
-    });
+    // Si aucune activité dans la journée, ne pas créer de point d'étape à midi
+    if (totalCount > 0) {
+      const voiceLanguage = (locale === "fr" || locale === "en" || locale === "es") ? locale : "fr";
+      const middayVoiceScript = generateMiddayCheckinVoiceText({
+        userName: profileData?.full_name,
+        completedActivities: completedItems,
+        upcomingActivities: upcomingItems,
+        overdueActivities: overdueItems,
+        language: voiceLanguage,
+      });
 
-    const titleText = totalCount > 0
-      ? `☀️ Point de mi-journée : ${completedItems.length}/${totalCount} activité(s) complétée(s)`
-      : `☀️ Point de mi-journée : Bonne continuation !`;
+      const titleText = `☀️ Point de mi-journée : ${completedItems.length}/${totalCount} terminée(s)`;
+      const bodyText = `${completedItems.length} activité(s) terminée(s), ${upcomingItems.length} à venir cet après-midi.${overdueItems.length > 0 ? ` ⚠️ ${overdueItems.length} en attente de vérification.` : ""}`;
 
-    const bodyText = totalCount > 0
-      ? `Bravo pour votre progression ! ${completedItems.length} terminée(s), ${upcomingItems.length} à venir.${overdueItems.length > 0 ? ` ⚠️ ${overdueItems.length} en attente de vérification.` : ""}`
-      : `Tout est calme à mi-journée. Passez un excellent après-midi !`;
-
-    candidates.push({
-      user_id: userId,
-      category: "summary",
-      kind: "midday_checkin",
-      priority: overdueItems.length > 0 ? "high" : "normal",
-      status: "unread",
-      entity_type: "summary",
-      entity_id: `midday_${todayISO}`,
-      title: titleText,
-      body: bodyText,
-      metadata: {
-        date: todayISO,
-        totalCount,
-        completedCount: completedItems.length,
-        upcomingCount: upcomingItems.length,
-        overdueCount: overdueItems.length,
-        voice_text: middayVoiceScript,
-        voice_reminder_enabled: true,
-      },
-      link: "/dashboard",
-      scheduled_at: userNow.toISO()!,
-      idempotency_key: `routine:midday_checkin:${todayISO}`,
-      email_template: "midday_checkin",
-    });
+      candidates.push({
+        user_id: userId,
+        category: "summary",
+        kind: "midday_checkin",
+        priority: overdueItems.length > 0 ? "high" : "normal",
+        status: "unread",
+        entity_type: "summary",
+        entity_id: `midday_${todayISO}`,
+        title: titleText,
+        body: bodyText,
+        metadata: {
+          date: todayISO,
+          totalCount,
+          completedCount: completedItems.length,
+          upcomingCount: upcomingItems.length,
+          overdueCount: overdueItems.length,
+          voice_text: middayVoiceScript,
+          voice_reminder_enabled: true,
+        },
+        link: "/dashboard",
+        scheduled_at: userNow.toISO()!,
+        idempotency_key: `routine:midday_checkin:${todayISO}`,
+        email_template: overdueItems.length > 0 ? "midday_checkin" : undefined,
+      });
+    }
   }
 
   // 3. Bilan & Débriefing du Soir (Heure configurable, par défaut 20h00 - 23h59) : Clôture de journée et félicitations
@@ -1525,14 +1523,14 @@ export async function evaluateSmartReminders(
     });
 
     const titleText = totalCount > 0
-      ? `🌙 Bilan du soir : ${completedItems.length} accomplie(s), ${uncompletedItems.length} en attente`
-      : `🌙 Bilan du soir : Excellente soirée !`;
+      ? `🌙 Bilan du soir : ${completedItems.length}/${totalCount} accomplie(s)`
+      : `🌙 Bilan du soir : Clôture de votre journée`;
 
-    const bodyText = uncompletedItems.length === 0 && completedItems.length > 0
-      ? `Félicitations ! Toutes vos activités prévues aujourd'hui sont terminées avec succès. Reposez-vous bien !`
-      : uncompletedItems.length > 0
-      ? `Il vous reste ${uncompletedItems.length} élément(s) en attente. Marquez-les comme faits si réalisés pour clore sereinement votre journée.`
-      : `Aucune activité particulière aujourd'hui. Passez une excellente soirée !`;
+    const bodyText = totalCount === 0
+      ? `Aucune activité n'était programmée aujourd'hui. Reposez-vous bien et préparez sereinement votre journée de demain.`
+      : uncompletedItems.length === 0
+      ? `Toutes vos activités prévues aujourd'hui sont accomplies avec succès. Vous pouvez clore sereinement votre journée.`
+      : `Il vous reste ${uncompletedItems.length} élément(s) en attente. Prenez un instant pour valider votre bilan de journée.`;
 
     candidates.push({
       user_id: userId,
@@ -1556,7 +1554,8 @@ export async function evaluateSmartReminders(
       link: "/dashboard",
       scheduled_at: userNow.toISO()!,
       idempotency_key: `routine:evening_checkin:${todayISO}`,
-      email_template: "evening_checkin",
+      // N'envoyer d'e-mail le soir que s'il y avait des activités à récapituler
+      email_template: totalCount > 0 ? "evening_checkin" : undefined,
     });
   }
 
@@ -1673,6 +1672,7 @@ export async function evaluateSmartReminders(
             body: cand.body,
             link: cand.link,
             locale,
+            timezone: userTimezone,
             idempotencyKey: `email:${cand.idempotency_key}`,
             metadata: cand.metadata,
           },

@@ -13,6 +13,7 @@ export interface SendEmailOptions {
   link: string;
   locale?: SupportedLocale;
   idempotencyKey?: string;
+  timezone?: string;
   metadata?: Record<string, any>;
 }
 
@@ -44,7 +45,9 @@ export async function sendNotificationEmail(
     body,
     link,
     locale = "fr",
+    timezone,
     idempotencyKey,
+    metadata,
   } = options;
 
   // 1. Vérification du rate limiting (max 30 e-mails par heure par utilisateur)
@@ -78,8 +81,8 @@ export async function sendNotificationEmail(
     }
   }
 
-  const html = generateEmailHtml({ recipientName, title, body, link, locale });
-  const text = generateEmailText({ recipientName, title, body, link, locale });
+  const html = generateEmailHtml({ recipientName, title, body, link, locale, template, timezone, metadata });
+  const text = generateEmailText({ recipientName, title, body, link, locale, template, metadata });
 
   const resendApiKey = process.env.RESEND_API_KEY;
 
