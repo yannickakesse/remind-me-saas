@@ -14,8 +14,9 @@ import { PwaRegistrar } from "@/components/pwa/pwa-registrar";
 import { BackgroundPreloader } from "@/components/pwa/background-preloader";
 import { DailyWelcomeBanner } from "@/components/notifications/daily-welcome-banner";
 import { VoicePushPrompt } from "@/components/notifications/voice-push-prompt";
-import { LanguageSelector } from "@/components/ui/language-selector";
 import { MobileSwipeNavigator } from "@/components/navigation/mobile-swipe-navigator";
+import { OfflineSyncIndicator } from "@/components/offline/offline-sync-indicator";
+import { LanguageSelector } from "@/components/ui/language-selector";
 import type { Notification } from "@/types/database";
 
 import { SidebarNav } from "@/components/navigation/sidebar-nav";
@@ -65,6 +66,7 @@ export default async function AppLayout({
     <div className="flex min-h-screen md:h-screen w-full overflow-hidden bg-canvas text-ink-950 dark:text-white flex-col md:flex-row">
       {/* Service Worker PWA, push registration & instant background precaching */}
       <PwaRegistrar />
+      <OfflineSyncIndicator />
       <BackgroundPreloader />
       <WelcomeVideoModal />
       <DailyWelcomeBanner userName={profile?.full_name} timezone={getUserTimezone(profile)} />

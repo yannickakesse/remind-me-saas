@@ -319,3 +319,56 @@ export async function deleteNotification(notificationId: string): Promise<{ succ
     return { success: false, error: err?.message || "Erreur" };
   }
 }
+
+/**
+ * Valide le bilan de la journée de manière globale et enregistre la validation dans
+ * daily_summary_validations SANS modifier ni marquer arbitrairement les activités
+ * individuelles sous-jacentes comme terminées.
+ */
+export async function validateDailySummaryAction(
+  summaryDate: string,
+  notificationId?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase, user } = await requireUser();
+    const nowIso = new Date().toISOString();
+
+    // 1. Enregistrement distinct dans la table daily_summary_validations
+    const { error: valError } = await supabase
+      .from("daily_summary_validations")
+      .upsert(
+        {
+          user_id: user.id,
+          summary_date: summaryDate,
+          validated_at: nowIso,
+        },
+        { onConflict: "user_id, summary_date" }
+      );
+
+    if (valError) {
+      console.warn("[validateDailySummaryAction] Validation upsert error:", valError);
+    }
+
+    // 2. Clôture de la notification du bilan quotidien
+    if (notificationId) {
+      await supabase
+        .from("notifications")
+        .update({
+          status: "resolved",
+          resolved_at: nowIso,
+          actioned_at: nowIso,
+          read_at: nowIso,
+        })
+        .eq("id", notificationId)
+        .eq("user_id", user.id);
+    }
+
+    revalidatePath("/notifications");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (err: any) {
+    console.error("[validateDailySummaryAction] Unexpected error:", err);
+    return { success: false, error: err?.message || "Erreur lors de la validation du bilan." };
+  }
+}
+

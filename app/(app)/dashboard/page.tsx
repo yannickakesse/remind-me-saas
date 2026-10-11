@@ -25,7 +25,8 @@ import { ensureNotifications } from "@/lib/notifications/sync";
 import { getUserTimezone } from "@/lib/time/timezones";
 import { typeLabel } from "@/lib/validation/activities";
 import { eventStatusLabel, getContrastTextColor } from "@/lib/validation/calendar";
-import { taskPriorityLabel, TASK_PRIORITY_STYLES } from "@/lib/validation/tasks";
+import { TASK_PRIORITY_STYLES, taskPriorityLabel } from "@/lib/validation/tasks";
+import { FloatingMessagesButton } from "@/components/dashboard/floating-messages-button";
 import type { Notification } from "@/types/database";
 
 export default async function DashboardPage() {
@@ -55,6 +56,7 @@ export default async function DashboardPage() {
     { data: lateIncome },
     { data: scheduledExpenses },
     { data: attentionNotifications },
+    { count: unreadMessagesCount },
   ] = await Promise.all([
     ensureIncomeEntries(supabase, user.id, startOfMonth, endOfMonth),
     ensureNotifications(supabase, user.id, timezone),
@@ -116,6 +118,11 @@ export default async function DashboardPage() {
       .neq("status", "dismissed")
       .order("created_at", { ascending: false })
       .limit(6),
+    (supabase as any)
+      .from("internal_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("is_read", false),
   ]);
 
   const todayEvents = (todayEventsRaw ?? []).map((e) => ({
@@ -393,6 +400,13 @@ export default async function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Bouton de messagerie interne flottant en bas à droite */}
+      <FloatingMessagesButton
+        initialUnreadCount={unreadMessagesCount ?? 0}
+        timezone={timezone}
+        locale={profile?.locale || "fr"}
+      />
     </div>
   );
 }

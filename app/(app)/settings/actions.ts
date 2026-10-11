@@ -91,6 +91,9 @@ export async function updateNotificationPrefs(formData: FormData) {
     voice_type: (formData.get("voice_type") as string) || "system",
     voice_language: (formData.get("voice_language") as string) || "fr",
     repeat_voice: formData.get("repeat_voice") ? Number(formData.get("repeat_voice")) : 0,
+    first_reminder_minutes: formData.get("first_reminder_minutes") ? Number(formData.get("first_reminder_minutes")) : 60,
+    second_reminder_minutes: formData.get("second_reminder_minutes") ? Number(formData.get("second_reminder_minutes")) : 10,
+    daily_summary_time: (formData.get("daily_summary_time") as string) || "20:00",
   });
 
   if (!parsed.success) throw new Error("Formulaire invalide.");
@@ -115,6 +118,9 @@ export async function updateNotificationPrefs(formData: FormData) {
       voice_type: parsed.data.voice_type,
       voice_language: parsed.data.voice_language,
       repeat_voice: parsed.data.repeat_voice,
+      first_reminder_minutes: parsed.data.first_reminder_minutes,
+      second_reminder_minutes: parsed.data.second_reminder_minutes,
+      daily_summary_time: parsed.data.daily_summary_time,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 

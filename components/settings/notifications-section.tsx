@@ -133,6 +133,17 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
     ((notificationPreferences?.repeat_voice ?? Number(notifPrefs?.repeat_voice) ?? 0) as RepeatVoice)
   );
 
+  // Délais personnalisables des rappels vocaux d'activités & heure du résumé quotidien
+  const [firstReminderMinutes, setFirstReminderMinutes] = useState<number>(
+    notificationPreferences?.first_reminder_minutes ?? ((notifPrefs as any)?.first_reminder_minutes as number ?? 60)
+  );
+  const [secondReminderMinutes, setSecondReminderMinutes] = useState<number>(
+    notificationPreferences?.second_reminder_minutes ?? ((notifPrefs as any)?.second_reminder_minutes as number ?? 10)
+  );
+  const [dailySummaryTime, setDailySummaryTime] = useState<string>(
+    notificationPreferences?.daily_summary_time ?? ((notifPrefs as any)?.daily_summary_time as string ?? "20:00")
+  );
+
   const [saving, setSaving] = useState(false);
   const [soundEnabled, setLocalSoundEnabled] = useState(true);
   const [testingVoice, setTestingVoice] = useState(false);
@@ -467,6 +478,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       formData.set("voice_type", voiceType);
       formData.set("voice_language", voiceLanguage);
       formData.set("repeat_voice", String(repeatVoice));
+      formData.set("first_reminder_minutes", String(firstReminderMinutes));
+      formData.set("second_reminder_minutes", String(secondReminderMinutes));
+      formData.set("daily_summary_time", dailySummaryTime);
 
       // Synchronisation locale immédiate
       saveLocalVoiceSettings({
@@ -901,6 +915,66 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     <option value={1}>Répéter 1 fois (2 lectures)</option>
                     <option value={2}>Répéter 2 fois (3 lectures)</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Personnalisation des Délais de Rappels Vocaux d'Activités & Bilan Quotidien */}
+              <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-signal" />
+                  <span className="text-xs font-black text-zinc-950 dark:text-white">
+                    Délais des rappels d&apos;activités &amp; Heure du bilan
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  {/* 1er Rappel */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-ink-900 mb-1">
+                      1er rappel vocal (standard)
+                    </label>
+                    <select
+                      value={firstReminderMinutes}
+                      onChange={(e) => setFirstReminderMinutes(Number(e.target.value))}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal font-semibold"
+                    >
+                      <option value={30}>30 minutes avant</option>
+                      <option value={45}>45 minutes avant</option>
+                      <option value={60}>60 minutes avant (Recommandé)</option>
+                      <option value={90}>90 minutes avant</option>
+                      <option value={120}>2 heures avant</option>
+                    </select>
+                  </div>
+
+                  {/* 2nd Rappel */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-ink-900 mb-1">
+                      2nd rappel vocal (imminent)
+                    </label>
+                    <select
+                      value={secondReminderMinutes}
+                      onChange={(e) => setSecondReminderMinutes(Number(e.target.value))}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal font-semibold"
+                    >
+                      <option value={5}>5 minutes avant</option>
+                      <option value={10}>10 minutes avant (Recommandé)</option>
+                      <option value={15}>15 minutes avant</option>
+                      <option value={20}>20 minutes avant</option>
+                    </select>
+                  </div>
+
+                  {/* Heure du bilan quotidien */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-ink-900 mb-1">
+                      Heure du résumé vocal quotidien
+                    </label>
+                    <input
+                      type="time"
+                      value={dailySummaryTime}
+                      onChange={(e) => setDailySummaryTime(e.target.value)}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal font-semibold"
+                    />
+                  </div>
                 </div>
               </div>
 

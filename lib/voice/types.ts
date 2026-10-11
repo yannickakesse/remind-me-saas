@@ -46,7 +46,11 @@ export interface IndividualReminderVoiceParams {
   userName?: string | null;
   activityTitle: string;
   timeStr?: string | null;
+  leadMinutes?: number;
   category?: string | null;
+  amount?: number | string;
+  currency?: string;
+  daysDiff?: number;
   isOverdue?: boolean;
   language?: VoiceLanguage;
 }
@@ -62,7 +66,11 @@ export interface VoiceMessageParams {
   activityTitle?: string;
   timeStr?: string | null; // e.g. "15:00", "09:30"
   dateStr?: string | null; // e.g. "2026-10-01"
+  leadMinutes?: number; // 60, 10, etc.
   category?: string | null; // "activity" | "task" | "payment" | "expense" | etc.
+  amount?: number | string;
+  currency?: string;
+  daysDiff?: number;
   kind?: "morning_briefing" | "midday_checkin" | "evening_summary" | "evening_checkin" | "individual_reminder" | "overdue_reminder" | "congratulations" | string;
   activities?: DailyActivityItem[];
   completedActivities?: DailyActivityItem[];

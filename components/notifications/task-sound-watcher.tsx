@@ -141,27 +141,44 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("speak_voice") === "1") {
+      const voiceMsgFromUrl = urlParams.get("voice_msg");
       const newUrl = window.location.pathname + window.location.hash;
       window.history.replaceState(null, "", newUrl);
 
-      fetch("/api/notifications/poll", { cache: "no-store" })
-        .then((res) => res.json())
-        .then((data) => {
-          const firstUnread = data.unread?.[0];
-          if (firstUnread) {
-            const voiceSettings = data.voicePrefs || getLocalVoiceSettings();
-            const textToSpeak =
-              firstUnread.metadata?.voice_text ||
-              generateVoiceMessage({
-                userName: data.userName,
-                activityTitle: firstUnread.title,
-                category: firstUnread.category,
-                language: voiceSettings.voice_language,
-              });
+      const localSettings = getLocalVoiceSettings();
 
-            if (voiceSettings.voice_reminders && firstUnread.metadata?.voice_reminder_enabled !== false && !isSpeakingRef.current) {
-              isSpeakingRef.current = true;
-              setTimeout(() => {
+      if (voiceMsgFromUrl && localSettings.voice_reminders && !isSpeakingRef.current) {
+        // Exécution vocale synchrone immédiate (Conserve le geste utilisateur mobile sans délai)
+        isSpeakingRef.current = true;
+        playVoiceReminder({
+          text: decodeURIComponent(voiceMsgFromUrl),
+          language: localSettings.voice_language,
+          voiceType: localSettings.voice_type,
+          repeat: localSettings.repeat_voice,
+          onEnd: () => { isSpeakingRef.current = false; },
+          onError: () => { isSpeakingRef.current = false; },
+        }).catch(() => {
+          isSpeakingRef.current = false;
+        });
+      } else {
+        // Fallback si voice_msg n'était pas dans l'URL
+        fetch("/api/notifications/poll", { cache: "no-store" })
+          .then((res) => res.json())
+          .then((data) => {
+            const firstUnread = data.unread?.[0];
+            if (firstUnread) {
+              const voiceSettings = data.voicePrefs || localSettings;
+              const textToSpeak =
+                firstUnread.metadata?.voice_text ||
+                generateVoiceMessage({
+                  userName: data.userName,
+                  activityTitle: firstUnread.title,
+                  category: firstUnread.category,
+                  language: voiceSettings.voice_language,
+                });
+
+              if (voiceSettings.voice_reminders && firstUnread.metadata?.voice_reminder_enabled !== false && !isSpeakingRef.current) {
+                isSpeakingRef.current = true;
                 playVoiceReminder({
                   text: textToSpeak,
                   language: voiceSettings.voice_language,
@@ -172,11 +189,11 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
                 }).catch(() => {
                   isSpeakingRef.current = false;
                 });
-              }, 600);
+              }
             }
-          }
-        })
-        .catch(() => {});
+          })
+          .catch(() => {});
+      }
     }
   }, []);
 
@@ -206,12 +223,18 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
           saveLocalVoiceSettings(data.voicePrefs);
         }
 
-        // Premier chargement : enregistrer TOUS les IDs existants pour éviter une rafale au démarrage
+        // Premier chargement : marquer les notifications anciennes (> 3 min) comme déjà alertées pour éviter une rafale,
+        // mais conserver les notifications fraîches (< 3 min) pour les déclencher immédiatement !
         if (initialLoadRef.current) {
-          unreadList.forEach((n) => alertedIdsRef.current.add(n.id));
-          saveStoredAlertedIds(alertedIdsRef.current);
           initialLoadRef.current = false;
-          return;
+          const currentTimestamp = Date.now();
+          unreadList.forEach((n) => {
+            const itemCreatedAt = n.created_at ? new Date(n.created_at).getTime() : 0;
+            if (currentTimestamp - itemCreatedAt > 3 * 60 * 1000) {
+              alertedIdsRef.current.add(n.id);
+            }
+          });
+          saveStoredAlertedIds(alertedIdsRef.current);
         }
 
         const now = Date.now();

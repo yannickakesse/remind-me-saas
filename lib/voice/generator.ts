@@ -327,79 +327,45 @@ export function generateEveningSummaryVoiceText(params: EveningSummaryVoiceParam
   const { userName, completedActivities = [], uncompletedActivities = [], language = "fr" } = params;
   const salutationName = formatSalutationName(userName, language);
 
+  const total = completedActivities.length + uncompletedActivities.length;
   if (language === "fr") {
-    const greeting = salutationName ? `Bonsoir ${salutationName} !` : `Bonsoir !`;
+    const greeting = salutationName ? `Bonsoir ${salutationName}.` : `Bonsoir.`;
 
-    const total = completedActivities.length + uncompletedActivities.length;
     if (total === 0) {
       return `${greeting} Bilan de fin de journée : aucune activité n'était programmée aujourd'hui. Reposez-vous bien et passez une excellente soirée.`;
     }
 
-    // Tout est complété
-    if (uncompletedActivities.length === 0 && completedActivities.length > 0) {
-      const completedList = completedActivities.map((a) => a.title).slice(0, 4).join(", ");
-      return `${greeting} Bravo ! Vous avez terminé avec succès toutes vos activités aujourd’hui (${completedList}). Félicitations pour votre journée ! Passez une excellente soirée et à demain !`;
-    }
+    const allItems = [...completedActivities, ...uncompletedActivities];
+    const activitiesLines = allItems.map((act) => {
+      const timeSpoken = act.timeStr ? formatSpokenTime(act.timeStr, "fr") : "";
+      return timeSpoken ? `${timeSpoken} : ${act.title}` : act.title;
+    });
 
-    const sentences: string[] = [greeting];
-
-    // Éléments complétés
-    if (completedActivities.length > 0) {
-      const completedList = completedActivities.map((a) => a.title).slice(0, 3).join(", ");
-      sentences.push(`Bravo ! Vous avez terminé avec succès les activités suivantes aujourd’hui : ${completedList}. Félicitations pour votre journée !`);
-    }
-
-    // Éléments non complétés
-    if (uncompletedActivities.length > 0) {
-      const uncompletedList = uncompletedActivities.map((a) => a.title).slice(0, 3).join(", ");
-      if (uncompletedActivities.length === 1) {
-        sentences.push(`Il reste toutefois une activité que vous n’avez pas encore marquée comme terminée : ${uncompletedList}. Pensez à la vérifier et à la marquer comme effectuée si vous l’avez réalisée.`);
-      } else {
-        sentences.push(`Il reste toutefois ${uncompletedActivities.length} activités non encore marquées comme terminées : ${uncompletedList}. Pensez à les vérifier et à les marquer comme effectuées si vous les avez réalisées.`);
-      }
-    }
-
-    sentences.push(`Passez une très bonne soirée et à demain !`);
-    return sentences.join(" ");
+    const listPart = activitiesLines.join(", ");
+    return `${greeting} Voici le bilan de vos activités prévues aujourd'hui : ${listPart}. Votre journée est-elle terminée ? Vous pouvez marquer l'ensemble de votre journée comme effectué. Bonne soirée et bonne continuation !`;
   }
 
-  // Version Anglaise
   if (language === "en") {
-    const greeting = salutationName ? `Good evening ${salutationName}!` : `Good evening!`;
-    if (uncompletedActivities.length === 0 && completedActivities.length > 0) {
-      return `${greeting} Congratulations! You have successfully completed all your scheduled activities today. Have a restful evening and see you tomorrow!`;
+    const greeting = salutationName ? `Good evening ${salutationName}.` : `Good evening.`;
+    if (total === 0) {
+      return `${greeting} End of day summary: no activities were scheduled today. Have a restful evening!`;
     }
-
-    const sentences: string[] = [greeting];
-    if (completedActivities.length > 0) {
-      sentences.push(`Well done! You successfully completed: ${completedActivities.map((a) => a.title).join(", ")}.`);
-    }
-    if (uncompletedActivities.length > 0) {
-      sentences.push(`There are still ${uncompletedActivities.length} activities not marked as completed: ${uncompletedActivities.map((a) => a.title).join(", ")}. Remember to mark them as done if finished.`);
-    }
-    sentences.push(`Have a wonderful evening and see you tomorrow!`);
-    return sentences.join(" ");
+    const allItems = [...completedActivities, ...uncompletedActivities];
+    const listPart = allItems.map((a) => (a.timeStr ? `${a.timeStr}: ${a.title}` : a.title)).join(", ");
+    return `${greeting} Here is the summary of your scheduled activities today: ${listPart}. Is your day finished? You can mark your entire day as completed. Have a wonderful evening!`;
   }
 
-  // Version Espagnole
   if (language === "es") {
-    const greeting = salutationName ? `¡Buenas noches ${salutationName}!` : `¡Buenas noches!`;
-    if (uncompletedActivities.length === 0 && completedActivities.length > 0) {
-      return `${greeting} ¡Felicitaciones! Has completado todas tus actividades programadas para hoy. ¡Que pases una excelente noche y hasta mañana!`;
+    const greeting = salutationName ? `Buenas noches ${salutationName}.` : `Buenas noches.`;
+    if (total === 0) {
+      return `${greeting} Resumen del día: no había actividades programadas hoy. ¡Que pases una excelente noche!`;
     }
-
-    const sentences: string[] = [greeting];
-    if (completedActivities.length > 0) {
-      sentences.push(`¡Bravo! Has completado con éxito: ${completedActivities.map((a) => a.title).join(", ")}.`);
-    }
-    if (uncompletedActivities.length > 0) {
-      sentences.push(`Sin embargo, quedan ${uncompletedActivities.length} actividades sin marcar como completadas: ${uncompletedActivities.map((a) => a.title).join(", ")}. Recuerda marcarlas si ya las realizaste.`);
-    }
-    sentences.push(`¡Que descanses y hasta mañana!`);
-    return sentences.join(" ");
+    const allItems = [...completedActivities, ...uncompletedActivities];
+    const listPart = allItems.map((a) => (a.timeStr ? `${a.timeStr}: ${a.title}` : a.title)).join(", ");
+    return `${greeting} Este es el resumen de tus actividades programadas para hoy: ${listPart}. ¿Ha terminado tu jornada? Puedes marcar el día completo como realizado. ¡Buenas noches y mucho éxito!`;
   }
 
-  return `Bonsoir. Voici votre bilan de fin de journée.`;
+  return `Bonsoir. Voici votre bilan du jour.`;
 }
 
 /**
@@ -412,59 +378,119 @@ export function generateIndividualReminderVoiceText(
     userName,
     activityTitle,
     timeStr,
+    leadMinutes,
     category = "activity",
+    amount,
+    currency,
+    daysDiff,
     isOverdue = false,
     language = "fr",
   } = params;
 
   const salutationName = formatSalutationName(userName, language);
   const spokenTime = timeStr ? formatSpokenTime(timeStr, language) : "";
+  const formattedAmount = amount ? `${amount} ${currency || "FCFA"}` : "";
 
+  // 1. Version Française
   if (language === "fr") {
-    const greeting = salutationName ? `Bonjour ${salutationName},` : `Bonjour,`;
+    const greeting = salutationName ? `Bonjour ${salutationName}.` : `Bonjour.`;
 
-    if (isOverdue) {
-      const timePart = spokenTime ? ` prévue à ${spokenTime}` : "";
-      return `${greeting} attention : votre activité ${activityTitle}${timePart} n’est pas encore marquée comme terminée. Pensez à la vérifier.`;
+    // A. RAPPEL FINANCIER (Paiement attendu)
+    if (category === "payment") {
+      if (daysDiff === 3) {
+        return `Bonjour, vous devez recevoir ${formattedAmount} de votre activité ${activityTitle} dans trois jours.`;
+      }
+      if (daysDiff === 0) {
+        return `Bonjour, aujourd'hui est la date prévue pour recevoir ${formattedAmount} de votre activité ${activityTitle}.`;
+      }
+      if (daysDiff && daysDiff < 0) {
+        return `Bonjour, attention : le paiement de ${formattedAmount} pour ${activityTitle} est en attente depuis ${Math.abs(daysDiff)} jours.`;
+      }
+      return `Bonjour, rappel pour votre paiement attendu : ${formattedAmount} pour ${activityTitle}.`;
+    }
+
+    if (category === "expense" || category === "scheduled_expense") {
+      return `${greeting} rappel pour votre dépense : ${activityTitle}${spokenTime ? ` prévue à ${spokenTime}` : ""}. Bonne journée !`;
     }
 
     if (category === "task") {
-      const timePart = spokenTime ? ` à ${spokenTime}` : "";
-      return `${greeting} petit rappel : votre tâche "${activityTitle}" arrive à échéance${timePart}. Bon courage !`;
+      return `${greeting} petit rappel : votre tâche "${activityTitle}" arrive à échéance${spokenTime ? ` à ${spokenTime}` : ""}. Bon courage !`;
     }
 
-    if (category === "payment" || category === "expense" || category === "scheduled_expense") {
-      const timePart = spokenTime ? ` prévue à ${spokenTime}` : "";
-      return `${greeting} rappel pour votre échéance financière : ${activityTitle}${timePart}. Bonne journée !`;
+    // B. RAPPEL D'ACTIVITÉ (T - 60 min ou T - 10 min)
+    if (isOverdue) {
+      return `${greeting} attention : votre séance "${activityTitle}"${spokenTime ? ` prévue à ${spokenTime}` : ""} n'est pas encore confirmée.`;
     }
 
+    // Premier rappel : ~60 minutes avant (ou configuré >= 35 min)
+    if (leadMinutes && leadMinutes >= 35) {
+      const timePart = spokenTime ? `, à ${spokenTime}` : "";
+      return `${greeting} Vous avez une séance avec "${activityTitle}" dans une heure${timePart}. Préparez-vous tranquillement. Bon travail !`;
+    }
+
+    // Deuxième rappel : ~10 minutes avant (ou configuré < 35 min)
+    if (leadMinutes !== undefined && leadMinutes < 35) {
+      return `${greeting} Votre séance avec "${activityTitle}" commence dans dix minutes. Merci de vous préparer. Bon courage et excellente séance !`;
+    }
+
+    // Rappel standard si leadMinutes non précisé
     if (spokenTime) {
-      return `${greeting} petit rappel : votre activité "${activityTitle}" est prévue aujourd’hui à ${spokenTime}. Bon déroulement !`;
+      return `${greeting} Vous avez votre séance "${activityTitle}" prévue aujourd'hui à ${spokenTime}. Préparez-vous tranquillement. Bon travail !`;
     }
 
-    return `${greeting} petit rappel : votre activité "${activityTitle}" est prévue aujourd’hui. Bon déroulement !`;
+    return `${greeting} Votre séance "${activityTitle}" approche. Bon courage et excellente séance !`;
   }
 
+  // 2. Version Anglaise
   if (language === "en") {
-    const greeting = salutationName ? `Hello ${salutationName},` : `Hello,`;
-    if (isOverdue) {
-      return `${greeting} reminder: your activity "${activityTitle}" is not marked as completed yet. Please review it.`;
+    const greeting = salutationName ? `Hello ${salutationName}.` : `Hello.`;
+
+    if (category === "payment") {
+      if (daysDiff === 3) {
+        return `Hello, you are scheduled to receive ${formattedAmount} from your activity ${activityTitle} in three days.`;
+      }
+      if (daysDiff === 0) {
+        return `Hello, today is the expected date to receive ${formattedAmount} from your activity ${activityTitle}.`;
+      }
+      return `Hello, reminder for your expected payment: ${formattedAmount} for ${activityTitle}.`;
     }
-    if (spokenTime) {
-      return `${greeting} quick reminder: your activity "${activityTitle}" is scheduled today at ${spokenTime}. Have a great session!`;
+
+    if (leadMinutes && leadMinutes >= 35) {
+      const timePart = spokenTime ? `, at ${spokenTime}` : "";
+      return `${greeting} You have a session for "${activityTitle}" in one hour${timePart}. Get ready smoothly. Have a great session!`;
     }
-    return `${greeting} quick reminder: your activity "${activityTitle}" is scheduled today. Have a great session!`;
+
+    if (leadMinutes !== undefined && leadMinutes < 35) {
+      return `${greeting} Your session for "${activityTitle}" starts in ten minutes. Please get ready. Good luck and have an excellent session!`;
+    }
+
+    return `${greeting} quick reminder: your session for "${activityTitle}" is scheduled today${spokenTime ? ` at ${spokenTime}` : ""}. Have a great session!`;
   }
 
+  // 3. Version Espagnole
   if (language === "es") {
-    const greeting = salutationName ? `Hola ${salutationName},` : `Hola,`;
-    if (isOverdue) {
-      return `${greeting} atención: tu actividad "${activityTitle}" aún no está marcada como completada. Por favor revísala.`;
+    const greeting = salutationName ? `Hola ${salutationName}.` : `Hola.`;
+
+    if (category === "payment") {
+      if (daysDiff === 3) {
+        return `Hola, debes recibir ${formattedAmount} de tu actividad ${activityTitle} en tres días.`;
+      }
+      if (daysDiff === 0) {
+        return `Hola, hoy es la fecha programada para recibir ${formattedAmount} de tu actividad ${activityTitle}.`;
+      }
+      return `Hola, recordatorio para tu pago esperado: ${formattedAmount} de ${activityTitle}.`;
     }
-    if (spokenTime) {
-      return `${greeting} recordatorio: tu actividad "${activityTitle}" está programada para hoy a ${spokenTime}. ¡Mucho éxito!`;
+
+    if (leadMinutes && leadMinutes >= 35) {
+      const timePart = spokenTime ? `, a las ${spokenTime}` : "";
+      return `${greeting} Tienes una sesión de "${activityTitle}" en una hora${timePart}. Prepárate con calma. ¡Buen trabajo!`;
     }
-    return `${greeting} recordatorio: tu actividad "${activityTitle}" está programada para hoy. ¡Mucho éxito!`;
+
+    if (leadMinutes !== undefined && leadMinutes < 35) {
+      return `${greeting} Tu sesión de "${activityTitle}" comienza en diez minutos. Por favor prepárate. ¡Mucho éxito y excelente sesión!`;
+    }
+
+    return `${greeting} recordatorio: tu sesión de "${activityTitle}" está programada para hoy${spokenTime ? ` a las ${spokenTime}` : ""}. ¡Mucho éxito!`;
   }
 
   return `Rappel pour ${activityTitle}.`;
@@ -543,7 +569,11 @@ export function generateVoiceMessage(params: VoiceMessageParams): string {
     userName: params.userName,
     activityTitle: params.activityTitle || "Activité",
     timeStr: params.timeStr,
+    leadMinutes: params.leadMinutes,
     category: params.category,
+    amount: params.amount,
+    currency: params.currency,
+    daysDiff: params.daysDiff,
     isOverdue: params.isOverdue,
     language: params.language || "fr",
   });

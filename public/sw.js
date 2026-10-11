@@ -197,27 +197,27 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const baseUrl = (event.notification.data && event.notification.data.url) || "/notifications";
-  const hasVoice = Boolean(event.notification.data && event.notification.data.voice_text);
+  const voiceText = event.notification.data && event.notification.data.voice_text;
   const isActionListen = event.action === "listen";
 
-  const targetUrl = hasVoice || isActionListen
-    ? (baseUrl.includes("?") ? `${baseUrl}&speak_voice=1` : `${baseUrl}?speak_voice=1`)
-    : baseUrl;
+  let targetUrl = baseUrl;
+  if (voiceText || isActionListen) {
+    const sep = targetUrl.includes("?") ? "&" : "?";
+    targetUrl = `${targetUrl}${sep}speak_voice=1${voiceText ? `&voice_msg=${encodeURIComponent(voiceText)}` : ""}`;
+  }
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
         if ("focus" in client) {
           client.focus();
-          if (hasVoice) {
+          if (voiceText) {
             client.postMessage({
               type: "REMINDME_TRIGGER_VOICE_SPEAK",
-              voice_text: event.notification.data.voice_text,
+              voice_text: voiceText,
             });
           }
-          if ("navigate" in client) {
-            return client.navigate(targetUrl);
-          }
+          // Si l'onglet est déjà ouvert, on ne recharge pas la page pour ne pas couper le flux audio
           return;
         }
       }

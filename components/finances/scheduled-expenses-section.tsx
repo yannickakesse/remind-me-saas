@@ -48,6 +48,8 @@ export function ScheduledExpensesSection({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [expenseType, setExpenseType] = useState<"once" | "recurring">("once");
+  const [recurringFrequency, setRecurringFrequency] = useState<string>("monthly");
 
   // Synchronisation avec les props serveur et ouverture automatique si action=new
   useEffect(() => {
@@ -417,13 +419,55 @@ export function ScheduledExpensesSection({
             </div>
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
+              {/* Choix Explicite : Dépense Occasionnelle vs Récurrente */}
+              <div>
+                <label className="block text-xs font-bold text-ink-700 mb-2">Type d&apos;engagement financier *</label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setExpenseType("once")}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      expenseType === "once"
+                        ? "border-signal bg-signal-soft/30 ring-1 ring-signal text-ink-950 font-bold"
+                        : "border-ink-200 bg-canvas text-ink-600 hover:bg-ink-100"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold">
+                      <Calendar className="w-3.5 h-3.5 text-signal" />
+                      <span>Dépense occasionnelle</span>
+                    </div>
+                    <p className="text-[10px] text-ink-500 mt-1 font-normal leading-tight">
+                      Une seule fois à la date choisie, sans répétition automatique.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setExpenseType("recurring")}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      expenseType === "recurring"
+                        ? "border-signal bg-signal-soft/30 ring-1 ring-signal text-ink-950 font-bold"
+                        : "border-ink-200 bg-canvas text-ink-600 hover:bg-ink-100"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold">
+                      <Clock className="w-3.5 h-3.5 text-signal" />
+                      <span>Dépense récurrente</span>
+                    </div>
+                    <p className="text-[10px] text-ink-500 mt-1 font-normal leading-tight">
+                      Répétition périodique selon la fréquence choisie (loyer, facture...).
+                    </p>
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-ink-700 mb-1">Nom / Description *</label>
                 <input
                   name="name"
                   type="text"
                   required
-                  placeholder="Ex: Électricité, Loyer, Abonnement Claude"
+                  placeholder={expenseType === "once" ? "Ex: Réparation équipement, Achat ponctuel" : "Ex: Électricité, Loyer, Abonnement Internet"}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
                 />
               </div>
@@ -438,7 +482,7 @@ export function ScheduledExpensesSection({
                     min="0.01"
                     required
                     placeholder="25000"
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal font-semibold"
                   />
                 </div>
 
@@ -459,7 +503,7 @@ export function ScheduledExpensesSection({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className={`grid ${expenseType === "recurring" ? "grid-cols-2" : "grid-cols-1"} gap-3`}>
                 <div>
                   <label className="block text-xs font-bold text-ink-700 mb-1">Catégorie *</label>
                   <select
@@ -479,26 +523,32 @@ export function ScheduledExpensesSection({
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-ink-700 mb-1">Fréquence *</label>
-                  <select
-                    name="frequency"
-                    required
-                    defaultValue="monthly"
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
-                  >
-                    <option value="monthly">Mensuel</option>
-                    <option value="once">Une seule fois</option>
-                    <option value="weekly">Hebdomadaire</option>
-                    <option value="quarterly">Trimestriel</option>
-                    <option value="yearly">Annuel</option>
-                  </select>
-                </div>
+                {expenseType === "recurring" ? (
+                  <div>
+                    <label className="block text-xs font-bold text-ink-700 mb-1">Fréquence de répétition *</label>
+                    <select
+                      name="frequency"
+                      required
+                      value={recurringFrequency}
+                      onChange={(e) => setRecurringFrequency(e.target.value)}
+                      className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal font-semibold"
+                    >
+                      <option value="monthly">Mensuel</option>
+                      <option value="weekly">Hebdomadaire</option>
+                      <option value="quarterly">Trimestriel</option>
+                      <option value="yearly">Annuel</option>
+                    </select>
+                  </div>
+                ) : (
+                  <input type="hidden" name="frequency" value="once" />
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-ink-700 mb-1">1ère Échéance *</label>
+                  <label className="block text-xs font-bold text-ink-700 mb-1">
+                    {expenseType === "once" ? "Date de paiement *" : "1ère Échéance *"}
+                  </label>
                   <input
                     name="nextDueDate"
                     type="date"

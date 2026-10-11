@@ -641,6 +641,9 @@ export interface Database {
           quiet_hours_start: string;
           quiet_hours_end: string;
           preferred_locale: SupportedLocale;
+          daily_summary_time?: string;
+          first_reminder_minutes?: number;
+          second_reminder_minutes?: number;
           voice_reminders?: boolean;
           voice_type?: "system" | "female" | "male";
           voice_language?: "fr" | "en" | "es";
@@ -659,6 +662,9 @@ export interface Database {
           conflict_alerts?: boolean;
           weekly_summary_enabled?: boolean;
           daily_summary_enabled?: boolean;
+          daily_summary_time?: string;
+          first_reminder_minutes?: number;
+          second_reminder_minutes?: number;
           activity_lead_times?: number[];
           payment_lead_days?: number[];
           expense_lead_days?: number[];
@@ -674,6 +680,56 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["notification_preferences"]["Insert"]>;
+        Relationships: [];
+      };
+      internal_messages: {
+        Row: {
+          id: string;
+          user_id: string;
+          sender: string;
+          subject: string;
+          body: string;
+          category: "activity" | "financial" | "summary" | "system" | "general";
+          is_read: boolean;
+          read_at: string | null;
+          metadata: Record<string, any>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          sender?: string;
+          subject: string;
+          body: string;
+          category?: "activity" | "financial" | "summary" | "system" | "general";
+          is_read?: boolean;
+          read_at?: string | null;
+          metadata?: Record<string, any>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["internal_messages"]["Insert"]>;
+        Relationships: [];
+      };
+      daily_summary_validations: {
+        Row: {
+          id: string;
+          user_id: string;
+          summary_date: string;
+          validated_at: string;
+          metadata: Record<string, any>;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          summary_date: string;
+          validated_at?: string;
+          metadata?: Record<string, any>;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["daily_summary_validations"]["Insert"]>;
         Relationships: [];
       };
       notification_logs: {

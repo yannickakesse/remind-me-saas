@@ -34,6 +34,7 @@ import {
   resolveNotification,
   snoozeNotification,
   deleteNotification,
+  validateDailySummaryAction,
 } from "@/app/(app)/notifications/actions";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { useToast } from "@/components/ui/toast";
@@ -523,6 +524,14 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
               item.entity_type === "activity" ||
               item.kind.includes("activity");
             const isScheduledExpense = item.entity_type === "scheduled_expense";
+            const isDailySummary =
+              item.entity_type === "daily_summary" ||
+              item.kind === "evening_checkin" ||
+              Boolean((item as any).metadata?.is_daily_summary);
+            const isInformative =
+              Boolean((item as any).metadata?.is_informative) ||
+              item.kind.includes("reminder") ||
+              item.kind.includes("activity_upcoming");
             const isDay = isDayTime(item.scheduled_at || item.created_at, timezone);
 
             return (
@@ -608,6 +617,45 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                   {/* Right: Actions */}
                   <div className="flex items-center justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-ink-100 dark:border-ink-800 flex-wrap">
                     {/* Primary Entity Resolution Buttons */}
+                    {!isResolved && isDailySummary && (
+                      <button
+                        type="button"
+                        disabled={isThisBusy}
+                        onClick={async () => {
+                          if (processingId) return;
+                          setProcessingId(item.id);
+                          const previous = [...notifications];
+                          const nowIso = new Date().toISOString();
+                          setNotifications((prev) =>
+                            prev.map((n) => (n.id === item.id ? { ...n, status: "resolved", resolved_at: nowIso } : n))
+                          );
+                          try {
+                            const summaryDate = (item as any).metadata?.date || nowIso.split("T")[0];
+                            const res = await validateDailySummaryAction(summaryDate, item.id);
+                            if (res && !res.success) {
+                              setNotifications(previous);
+                              showToast("Erreur lors de la validation du bilan.", "error");
+                            } else {
+                              showToast("Bilan de la journée validé avec succès !", "success");
+                              startTransition(() => {
+                                router.refresh();
+                              });
+                            }
+                          } catch {
+                            setNotifications(previous);
+                            showToast("Erreur réseau.", "error");
+                          } finally {
+                            setProcessingId(null);
+                          }
+                        }}
+                        className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1.5 cursor-pointer"
+                        title="Valider et clôturer le bilan de la journée"
+                      >
+                        {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                        <span>Clôturer la journée</span>
+                      </button>
+                    )}
+
                     {!isResolved && isTask && item.entity_id && (
                       <button
                         type="button"
@@ -653,7 +701,7 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                       </button>
                     )}
 
-                    {!isResolved && isActivityOrEvent && item.entity_id && (
+                    {!isResolved && isActivityOrEvent && !isInformative && item.entity_id && (
                       <button
                         type="button"
                         disabled={isThisBusy}
@@ -666,21 +714,9 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                       </button>
                     )}
 
-                    {!isResolved && !isTask && !isIncome && !isExpense && !isScheduledExpense && !isActivityOrEvent && (
-                      <button
-                        type="button"
-                        disabled={isThisBusy}
-                        onClick={() => handleResolve(item.id, item.entity_type ?? undefined, item.entity_id ?? undefined)}
-                        className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-semibold hover:bg-signal/90 active:scale-95 transition-all disabled:opacity-50 shadow-xs tap-active flex items-center gap-1 cursor-pointer"
-                      >
-                        {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                        <span>{t("actions.mark_completed")}</span>
-                      </button>
-                    )}
-
                     {/* Secondary Actions */}
                     <div className="flex items-center gap-1">
-                      {isUnread && (
+                      {isUnread && !isInformative && !isDailySummary && (
                         <button
                           type="button"
                           disabled={isThisBusy}

@@ -49,7 +49,9 @@ export function generateEmailHtml(payload: EmailPayload): string {
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 24px 12px; }
     .container { max-width: 580px; margin: 0 auto; background: #1E293B; border-radius: 20px; border: 1px solid rgba(229, 169, 30, 0.25); overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
-    .header { padding: 28px 32px 20px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+    .header { padding: 24px 28px 18px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+    .brand-wrap { display: flex; align-items: center; gap: 12px; }
+    .brand-img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; display: block; border: 1px solid rgba(229, 169, 30, 0.3); }
     .logo { font-size: 20px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; }
     .logo span { color: #E5A91E; }
     .badge { display: inline-block; padding: 4px 10px; background: rgba(229, 169, 30, 0.15); border: 1px solid rgba(229, 169, 30, 0.4); border-radius: 9999px; font-size: 11px; font-weight: 700; color: #FBBF24; }
@@ -65,7 +67,10 @@ export function generateEmailHtml(payload: EmailPayload): string {
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">Remind<span>Me</span></div>
+      <div class="brand-wrap">
+        <img src="${baseUrl}/brand/logo.jpg" alt="Remind Me" class="brand-img" />
+        <div class="logo">Remind<span>Me</span></div>
+      </div>
       <div class="badge">Rappel Automatique</div>
     </div>
     <div class="content">

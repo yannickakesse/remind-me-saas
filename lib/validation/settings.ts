@@ -74,6 +74,9 @@ export const notifPrefsSchema = z.object({
   voice_type: z.enum(["system", "female", "male"]).default("system"),
   voice_language: z.enum(["fr", "en", "es"]).default("fr"),
   repeat_voice: z.coerce.number().int().min(0).max(2).default(0),
+  first_reminder_minutes: z.coerce.number().int().min(5).max(1440).default(60),
+  second_reminder_minutes: z.coerce.number().int().min(1).max(60).default(10),
+  daily_summary_time: z.string().default("20:00"),
 });
 export type NotifPrefsInput = z.infer<typeof notifPrefsSchema>;
 

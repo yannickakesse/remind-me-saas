@@ -12,6 +12,7 @@ import {
   generateEveningSummaryVoiceText,
   type DailyActivityItem,
 } from "@/lib/voice";
+import { createInternalMessage } from "@/lib/messages/service";
 
 export interface ReminderCandidate {
   user_id: string;
@@ -242,6 +243,7 @@ export async function evaluateSmartReminders(
   const userTimezone = profileData?.timezone || timezone || "UTC";
   const userNow = DateTime.now().setZone(userTimezone);
   const locale: SupportedLocale = prefsData?.preferred_locale ?? (profileData?.locale as SupportedLocale) ?? "fr";
+  const voiceLang: "fr" | "en" | "es" = (locale === "fr" || locale === "en" || locale === "es") ? locale : "fr";
   const emailEnabled = prefsData?.email_enabled ?? true;
   const pushEnabled = prefsData?.push_enabled ?? true;
   const quietHoursActive = isInQuietHours(
@@ -340,7 +342,7 @@ export async function evaluateSmartReminders(
   if (prefsData?.payment_reminders !== false) {
     const { data: pendingIncome } = await supabase
       .from("income")
-      .select("id, label, amount, currency, due_date, received, activity_id")
+      .select("id, label, amount, currency, due_date, received, activity_id, activities(id, name)")
       .eq("user_id", userId)
       .eq("received", false)
       .not("due_date", "is", null);
@@ -353,8 +355,23 @@ export async function evaluateSmartReminders(
 
       const formattedAmount = formatCurrencyLocale(Number(inc.amount), inc.currency, locale);
       const formattedDate = formatDateLocale(inc.due_date, locale, userTimezone);
+      const activityName = (inc as any).activities?.name || inc.label;
 
       if (daysDiff === 7 || daysDiff === 3 || daysDiff === 2) {
+        const voiceScript = generateVoiceMessage({
+          userName: profileData?.full_name,
+          activityTitle: activityName,
+          category: "payment",
+          amount: Number(inc.amount),
+          currency: inc.currency,
+          daysDiff,
+          language: voiceLang,
+        });
+
+        const bodyText = daysDiff === 3
+          ? `Bonjour, vous devez recevoir ${formattedAmount} de votre activité « ${activityName} » dans trois jours.`
+          : `Un paiement de ${formattedAmount} pour « ${inc.label} » est attendu le ${formattedDate}.`;
+
         candidates.push({
           user_id: userId,
           category: "payment",
@@ -364,10 +381,20 @@ export async function evaluateSmartReminders(
           entity_type: "income",
           entity_id: inc.id,
           title: `Paiement prévu dans ${daysDiff} jours : ${inc.label}`,
-          body: `Un paiement de ${formattedAmount} pour « ${inc.label} » est attendu le ${formattedDate}.`,
+          body: bodyText,
           title_key: "notif.payment_upcoming.title",
           body_key: "notif.payment_upcoming.body",
-          metadata: { amount: inc.amount, currency: inc.currency, label: inc.label, days: daysDiff },
+          metadata: {
+            amount: inc.amount,
+            currency: inc.currency,
+            label: inc.label,
+            activityName,
+            days: daysDiff,
+            is_financial: true,
+            is_informative: true,
+            voice_reminder_enabled: true,
+            voice_text: voiceScript,
+          },
           link: `/finances`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `payment:${inc.id}:minus_${daysDiff}_days`,
@@ -386,13 +413,31 @@ export async function evaluateSmartReminders(
           body: `Un paiement de ${formattedAmount} pour « ${inc.label} » est attendu pour demain (${formattedDate}).`,
           title_key: "notif.payment_upcoming.title",
           body_key: "notif.payment_upcoming.body",
-          metadata: { amount: inc.amount, currency: inc.currency, label: inc.label, days: 1 },
+          metadata: {
+            amount: inc.amount,
+            currency: inc.currency,
+            label: inc.label,
+            activityName,
+            days: 1,
+            is_financial: true,
+            is_informative: true,
+          },
           link: `/finances`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `payment:${inc.id}:minus_1_day`,
           email_template: "payment_upcoming",
         });
       } else if (daysDiff === 0) {
+        const voiceScript = generateVoiceMessage({
+          userName: profileData?.full_name,
+          activityTitle: activityName,
+          category: "payment",
+          amount: Number(inc.amount),
+          currency: inc.currency,
+          daysDiff: 0,
+          language: voiceLang,
+        });
+
         candidates.push({
           user_id: userId,
           category: "payment",
@@ -402,10 +447,20 @@ export async function evaluateSmartReminders(
           entity_type: "income",
           entity_id: inc.id,
           title: `Paiement attendu aujourd'hui : ${inc.label}`,
-          body: `Le paiement de ${formattedAmount} pour « ${inc.label} » arrive à échéance aujourd'hui. Marquez-le comme reçu dès encaissement.`,
+          body: `Bonjour, aujourd'hui est la date prévue pour recevoir ${formattedAmount} de votre activité « ${activityName} ».`,
           title_key: "notif.payment_due_today.title",
           body_key: "notif.payment_due_today.body",
-          metadata: { amount: inc.amount, currency: inc.currency, label: inc.label },
+          metadata: {
+            amount: inc.amount,
+            currency: inc.currency,
+            label: inc.label,
+            activityName,
+            days: 0,
+            is_financial: true,
+            is_informative: true,
+            voice_reminder_enabled: true,
+            voice_text: voiceScript,
+          },
           link: `/finances`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `payment:${inc.id}:due_today_${todayISO}`,
@@ -616,6 +671,9 @@ export async function evaluateSmartReminders(
       const isPast = eventEnd < userNow || eventStart < userNow.minus({ hours: 1 });
       const daysDiff = Math.floor(eventStart.startOf("day").diff(userNow.startOf("day"), "days").days);
 
+      const firstLead = (prefsData as any)?.first_reminder_minutes ?? 60;
+      const secondLead = (prefsData as any)?.second_reminder_minutes ?? 10;
+
       const voiceReminderEnabled = (evt as any).activities?.voice_reminder_enabled !== false;
       const voiceText = generateVoiceMessage({
         userName: profileData?.full_name,
@@ -653,41 +711,73 @@ export async function evaluateSmartReminders(
           idempotency_key: `activity:${evt.id}:passed_${eventStart.toISODate()}`,
         });
       } else if (eventStart.hasSame(userNow, "day") && !isPast) {
-        if (minutesUntil <= 35 && minutesUntil >= 20) {
-          // Rappel 30 minutes avant
+        if (minutesUntil <= firstLead + 5 && minutesUntil >= Math.max(secondLead + 5, firstLead - 15)) {
+          // 1er rappel vocal (par défaut 60 min avant)
+          const voiceText1 = generateVoiceMessage({
+            userName: profileData?.full_name,
+            activityTitle: evt.title,
+            timeStr: eventStart.toFormat("HH:mm"),
+            category: "activity",
+            leadMinutes: firstLead,
+            language: (locale as any) || "fr",
+          });
           candidates.push({
             user_id: userId,
             category: "activity",
-            kind: "activity_reminder_30m",
+            kind: `activity_reminder_${firstLead}m`,
             priority: "high",
             status: "unread",
             entity_type: "activity",
             entity_id: evt.id,
-            title: `⏰ Dans 30 min : ${evt.title}`,
-            body: `Votre activité « ${evt.title} » commence à ${eventStart.toFormat("HH:mm")}. Préparez-vous !`,
-            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
+            title: `⏰ Dans ${firstLead} min : ${evt.title}`,
+            body: `Votre activité « ${evt.title} » commence à ${eventStart.toFormat("HH:mm")}. Préparez-vous tranquillement, votre session approche.`,
+            metadata: {
+              title: evt.title,
+              starts_at: evt.starts_at,
+              minutes: minutesUntil,
+              leadMinutes: firstLead,
+              voice_reminder_enabled: voiceReminderEnabled,
+              voice_text: voiceText1,
+              is_informative: true,
+            },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
-            idempotency_key: `activity:${evt.id}:m30_${eventStart.toISODate()}`,
+            idempotency_key: `activity:${evt.id}:m${firstLead}_${eventStart.toISODate()}`,
           });
-        } else if (minutesUntil < 20 && minutesUntil >= 5) {
-          // Rappel 15 minutes avant
+        } else if (minutesUntil < Math.max(secondLead + 5, firstLead - 15) && minutesUntil >= Math.max(2, secondLead - 5)) {
+          // 2nd rappel vocal (par défaut 10 min avant)
+          const voiceText2 = generateVoiceMessage({
+            userName: profileData?.full_name,
+            activityTitle: evt.title,
+            timeStr: eventStart.toFormat("HH:mm"),
+            category: "activity",
+            leadMinutes: secondLead,
+            language: (locale as any) || "fr",
+          });
           candidates.push({
             user_id: userId,
             category: "activity",
-            kind: "activity_reminder_15m",
+            kind: `activity_reminder_${secondLead}m`,
             priority: "critical",
             status: "unread",
             entity_type: "activity",
             entity_id: evt.id,
-            title: `⚡ Dans 15 min : ${evt.title}`,
-            body: `Votre activité « ${evt.title} » débute dans 15 minutes (à ${eventStart.toFormat("HH:mm")}).`,
-            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
+            title: `⚡ Dans ${secondLead} min : ${evt.title}`,
+            body: `Votre séance « ${evt.title} » débute dans ${secondLead} minutes (à ${eventStart.toFormat("HH:mm")}).`,
+            metadata: {
+              title: evt.title,
+              starts_at: evt.starts_at,
+              minutes: minutesUntil,
+              leadMinutes: secondLead,
+              voice_reminder_enabled: voiceReminderEnabled,
+              voice_text: voiceText2,
+              is_informative: true,
+            },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
-            idempotency_key: `activity:${evt.id}:m15_${eventStart.toISODate()}`,
+            idempotency_key: `activity:${evt.id}:m${secondLead}_${eventStart.toISODate()}`,
           });
-        } else if (minutesUntil < 5 && minutesUntil >= -15) {
+        } else if (minutesUntil < Math.max(2, secondLead - 5) && minutesUntil >= -15) {
           // Rappel à l'heure exacte
           candidates.push({
             user_id: userId,
@@ -699,12 +789,19 @@ export async function evaluateSmartReminders(
             entity_id: evt.id,
             title: `🎯 C'est l'heure : ${evt.title}`,
             body: `Votre activité « ${evt.title} » commence maintenant (de ${eventStart.toFormat("HH:mm")} à ${eventEnd.toFormat("HH:mm")}).`,
-            metadata: { title: evt.title, starts_at: evt.starts_at, minutes: minutesUntil, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
+            metadata: {
+              title: evt.title,
+              starts_at: evt.starts_at,
+              minutes: minutesUntil,
+              voice_reminder_enabled: voiceReminderEnabled,
+              voice_text: voiceText,
+              is_informative: true,
+            },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
             idempotency_key: `activity:${evt.id}:now_${eventStart.toISODate()}`,
           });
-        } else if (minutesUntil > 35) {
+        } else if (minutesUntil > firstLead + 5) {
           candidates.push({
             user_id: userId,
             category: "activity",
@@ -715,7 +812,13 @@ export async function evaluateSmartReminders(
             entity_id: evt.id,
             title: `Séance aujourd'hui : ${evt.title}`,
             body: `Vous avez « ${evt.title} » prévue aujourd'hui de ${eventStart.toFormat("HH:mm")} à ${eventEnd.toFormat("HH:mm")}.`,
-            metadata: { title: evt.title, starts_at: evt.starts_at, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
+            metadata: {
+              title: evt.title,
+              starts_at: evt.starts_at,
+              voice_reminder_enabled: voiceReminderEnabled,
+              voice_text: voiceText,
+              is_informative: true,
+            },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
             idempotency_key: `activity:${evt.id}:today_${eventStart.toISODate()}`,
@@ -1333,8 +1436,12 @@ export async function evaluateSmartReminders(
     });
   }
 
-  // 3. Bilan & Débriefing du Soir (19h00 - 23h59) : Clôture de journée et félicitations
-  if (userNow.hour >= 19 && prefsData?.daily_summary_enabled !== false) {
+  // 3. Bilan & Débriefing du Soir (Heure configurable, par défaut 20h00 - 23h59) : Clôture de journée et félicitations
+  const [sumHStr, sumMStr] = ((prefsData as any)?.daily_summary_time || "20:00").split(":");
+  const sumTargetMinutes = (Number(sumHStr) || 20) * 60 + (Number(sumMStr) || 0);
+  const currentDayMinutes = userNow.hour * 60 + userNow.minute;
+
+  if (currentDayMinutes >= sumTargetMinutes && prefsData?.daily_summary_enabled !== false) {
     const [
       { data: todayTasks },
       { data: todayEvents },
@@ -1433,8 +1540,8 @@ export async function evaluateSmartReminders(
       kind: "evening_checkin",
       priority: uncompletedItems.length > 0 ? "high" : "normal",
       status: "unread",
-      entity_type: "summary",
-      entity_id: `checkin_${todayISO}`,
+      entity_type: "daily_summary",
+      entity_id: `summary_${todayISO}`,
       title: titleText,
       body: bodyText,
       metadata: {
@@ -1444,6 +1551,7 @@ export async function evaluateSmartReminders(
         uncompletedCount: uncompletedItems.length,
         voice_text: eveningVoiceScript,
         voice_reminder_enabled: true,
+        is_daily_summary: true,
       },
       link: "/dashboard",
       scheduled_at: userNow.toISO()!,
@@ -1497,6 +1605,35 @@ export async function evaluateSmartReminders(
         console.error("[evaluateSmartReminders] Notification insertion error:", error);
       } else {
         insertedCount = insertedRows?.length ?? 0;
+
+        // Archiver les résumés et notifications financières importantes dans la messagerie interne
+        for (const cand of newCandidates) {
+          if (cand.kind === "evening_checkin" || cand.category === "summary") {
+            try {
+              await createInternalMessage(supabase, {
+                userId: cand.user_id,
+                subject: cand.title,
+                body: cand.body,
+                category: "summary",
+                idempotencyKey: `msg:${cand.idempotency_key}`,
+              });
+            } catch (mErr) {
+              console.warn("[engine] Internal message archive summary error:", mErr);
+            }
+          } else if (cand.kind === "payment_upcoming" || cand.kind === "payment_due_today") {
+            try {
+              await createInternalMessage(supabase, {
+                userId: cand.user_id,
+                subject: cand.title,
+                body: cand.body,
+                category: "financial",
+                idempotencyKey: `msg:${cand.idempotency_key}`,
+              });
+            } catch (mErr) {
+              console.warn("[engine] Internal message archive finance error:", mErr);
+            }
+          }
+        }
       }
     }
   }
