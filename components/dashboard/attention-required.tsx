@@ -9,8 +9,6 @@ import {
   Wallet,
   Clock,
   Check,
-  CheckSquare,
-  Calendar,
   ArrowRight,
   X,
   Loader2,
@@ -28,10 +26,25 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
-  // Uniquement les alertes NON RÉSOLUES, NON ÉCARTÉES, NON LUES et NON DISMISSED LOCALEMENT
-  const urgentItems = notifications.filter(
-    (n) => n.status === "unread" && !n.read_at && !dismissedIds.has(n.id)
-  );
+  // STRICTEMENT les alertes financières / paiements requis NON RÉSOLUES, NON ÉCARTÉES, NON LUES et NON DISMISSED
+  const urgentItems = notifications.filter((n) => {
+    if (n.status !== "unread" || n.read_at || dismissedIds.has(n.id)) {
+      return false;
+    }
+    const isPayment = n.category === "payment" || n.entity_type === "income";
+    const isExpense =
+      n.category === "expense" ||
+      n.entity_type === "expense" ||
+      n.category === "scheduled_expense" ||
+      n.entity_type === "scheduled_expense";
+    const isFinance =
+      n.category === "finance" ||
+      n.category === "financial" ||
+      n.kind?.startsWith("payment_") ||
+      n.kind?.startsWith("expense_");
+
+    return isPayment || isExpense || isFinance;
+  });
 
   if (urgentItems.length === 0) {
     return null;
@@ -82,6 +95,9 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
           <h2 className="text-base font-bold text-ink-950 dark:text-white">
             {t("attention.title")} ({urgentItems.length})
           </h2>
+          <span className="text-xs text-ink-500 hidden sm:inline">
+            — Règlements &amp; paiements prioritaires
+          </span>
         </div>
         <Link
           href="/notifications"
@@ -101,11 +117,6 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
             item.entity_type === "expense" ||
             item.category === "scheduled_expense" ||
             item.entity_type === "scheduled_expense";
-          const isTask = item.category === "task" || item.entity_type === "task";
-          const isActivityOrEvent =
-            item.category === "activity" ||
-            item.entity_type === "activity" ||
-            item.kind.includes("activity");
           const isBusy = resolvingId === item.id;
 
           return (
@@ -127,10 +138,6 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     <Wallet className="w-4 h-4 text-gold-dark" />
                   ) : isExpense ? (
                     <Clock className="w-4 h-4 text-warning" />
-                  ) : isTask ? (
-                    <CheckSquare className="w-4 h-4 text-signal" />
-                  ) : isActivityOrEvent ? (
-                    <Calendar className="w-4 h-4 text-signal" />
                   ) : (
                     <AlertTriangle className="w-4 h-4 text-warning" />
                   )}
@@ -169,7 +176,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                 </div>
               </div>
 
-              {/* Inline Instant Actions */}
+              {/* Actions Paiement & Règlements */}
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-ink-100/60 dark:border-ink-800 flex-wrap">
                 {/* Action Paiement Reçu */}
                 {isPayment && item.entity_id && (
@@ -197,35 +204,9 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                   </button>
                 )}
 
-                {/* Action Tâche Terminée */}
-                {isTask && item.entity_id && (
-                  <button
-                    type="button"
-                    disabled={isBusy}
-                    onClick={() => handleQuickAction("mark_task_done", item.id, item.entity_id)}
-                    className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1 cursor-pointer"
-                  >
-                    {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                    <span>{t("actions.mark_done")}</span>
-                  </button>
-                )}
-
-                {/* Action Séances passées / Activités : Confirmer la réalisation */}
-                {isActivityOrEvent && (
-                  <button
-                    type="button"
-                    disabled={isBusy}
-                    onClick={() => handleQuickAction("mark_event_done", item.id, item.entity_id)}
-                    className="px-3 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 transition-all disabled:opacity-50 tap-active shadow-xs flex items-center gap-1 cursor-pointer"
-                  >
-                    {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                    <span>{t("attention.confirm_session")}</span>
-                  </button>
-                )}
-
                 {/* Bouton Détails */}
                 <Link
-                  href={item.link || "/notifications"}
+                  href={item.link || "/finances"}
                   className="px-2.5 py-1.5 rounded-lg border border-ink-200 dark:border-ink-700 text-xs font-medium text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
                 >
                   {t("actions.view_item")}
