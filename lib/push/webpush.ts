@@ -25,11 +25,13 @@ export interface WebPushPayload {
   icon?: string;
   badge?: string;
   data?: {
+    id?: string;
     url?: string;
     category?: string;
     entityId?: string;
     voice_text?: string | null;
     voice_reminder_enabled?: boolean;
+    [key: string]: any;
   };
 }
 
