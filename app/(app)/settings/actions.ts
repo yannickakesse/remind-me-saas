@@ -168,7 +168,17 @@ export async function signOutEverywhere() {
 }
 
 export async function deleteAccount() {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
+
+  // Nettoyage préalable des fichiers de stockage (avatar) pour éviter le blocage de contrainte de clé étrangère
+  try {
+    const { data: files } = await supabase.storage.from("avatars").list(user.id);
+    if (files && files.length > 0) {
+      await supabase.storage.from("avatars").remove(files.map((f) => `${user.id}/${f.name}`));
+    }
+  } catch (e) {
+    console.error("[deleteAccount] storage cleanup error:", e);
+  }
 
   const { error } = await supabase.rpc("delete_own_account");
   if (error) throw new Error("Impossible de supprimer le compte. Réessayez ou contactez le support.");

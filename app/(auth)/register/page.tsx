@@ -64,7 +64,7 @@ export default function RegisterPage() {
     setLoading(true);
     window.dispatchEvent(new CustomEvent("remindme:loading-start"));
 
-    const { error } = await supabase.auth.signUp({
+    const { data: authData, error } = await supabase.auth.signUp({
       email: result.data.email,
       password: result.data.password,
       options: {
@@ -82,6 +82,12 @@ export default function RegisterPage() {
           ? "Un compte existe déjà avec cette adresse e-mail."
           : "Une erreur est survenue lors de la création du compte. Réessayez dans un instant."
       );
+      return;
+    }
+
+    // Détection Supabase : Si l'utilisateur existe déjà, identities est vide []
+    if (authData?.user && authData.user.identities && authData.user.identities.length === 0) {
+      setFormError("Un compte existe déjà avec cette adresse e-mail. Veuillez vous connecter directement.");
       return;
     }
 
