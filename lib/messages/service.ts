@@ -131,6 +131,8 @@ export async function createInternalMessage(
 
 /**
  * Récupère les messages internes reçus pour un utilisateur.
+ * Tri chronologique strict : du plus récent au plus ancien (created_at desc),
+ * avec critère secondaire stable (id desc) pour éviter tout changement arbitraire.
  */
 export async function getInternalMessages(
   supabase: SupabaseClient<Database>,
@@ -143,6 +145,7 @@ export async function getInternalMessages(
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(limit);
 
     if (error) {
@@ -153,6 +156,73 @@ export async function getInternalMessages(
     return (data || []) as InternalMessageRow[];
   } catch (err) {
     return [];
+  }
+}
+
+/**
+ * Marque automatiquement TOUS les messages non lus de l'utilisateur comme lus.
+ * Enregistrement direct et persistant en base de données.
+ * Sécurité garantie : filtré strictement par user_id = auth.uid().
+ * Ne modifie aucun statut financier ou d'activité.
+ */
+export async function markAllInternalMessagesAsRead(
+  supabase: SupabaseClient<Database>,
+  userId: string
+): Promise<number> {
+  try {
+    const nowIso = new Date().toISOString();
+    const { data, error } = await (supabase as any)
+      .from("internal_messages")
+      .update({
+        is_read: true,
+        read_at: nowIso,
+        updated_at: nowIso,
+      })
+      .eq("user_id", userId)
+      .eq("is_read", false)
+      .select("id");
+
+    if (error) {
+      console.warn("[InternalMessages] markAllInternalMessagesAsRead error:", error.message);
+      return 0;
+    }
+
+    return data?.length ?? 0;
+  } catch (err: any) {
+    console.warn("[InternalMessages] markAllInternalMessagesAsRead exception:", err.message);
+    return 0;
+  }
+}
+
+/**
+ * Marque un message individuel comme lu.
+ * Sécurité garantie : filtré strictement par user_id et id.
+ */
+export async function markInternalMessageAsRead(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  messageId: string
+): Promise<boolean> {
+  try {
+    const nowIso = new Date().toISOString();
+    const { error } = await (supabase as any)
+      .from("internal_messages")
+      .update({
+        is_read: true,
+        read_at: nowIso,
+        updated_at: nowIso,
+      })
+      .eq("id", messageId)
+      .eq("user_id", userId);
+
+    if (error) {
+      console.warn("[InternalMessages] markInternalMessageAsRead error:", error.message);
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
   }
 }
 

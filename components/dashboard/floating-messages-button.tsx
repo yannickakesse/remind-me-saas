@@ -34,7 +34,14 @@ export function FloatingMessagesButton({
 
     checkCount();
     const interval = setInterval(checkCount, 60000);
-    return () => clearInterval(interval);
+
+    const handleMessagesRead = () => setUnreadCount(0);
+    window.addEventListener("remindme:messages-read", handleMessagesRead);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("remindme:messages-read", handleMessagesRead);
+    };
   }, []);
 
   return (

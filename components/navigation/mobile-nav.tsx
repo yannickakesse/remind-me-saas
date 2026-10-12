@@ -23,6 +23,7 @@ import {
   Users,
   BarChart3,
   Bell,
+  Mail,
   Settings,
   Menu,
   X,
@@ -82,7 +83,8 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
     { href: "/finances?tab=budgets", labelKey: "nav.budgets", icon: Target },
   ];
 
-  const secondaryLinks: { href: string; labelKey: TranslationKey; icon: any; badge?: number | null; tourKey: string }[] = [
+  const secondaryLinks: { href: string; labelKey?: TranslationKey; label?: string; icon: any; badge?: number | null; tourKey: string }[] = [
+    { href: "/messages", label: "Messagerie", icon: Mail, tourKey: "nav-messages-mobile" },
     { href: "/clients", labelKey: "nav.clients", icon: Users, tourKey: "nav-clients-mobile" },
     { href: "/reports", labelKey: "nav.reports", icon: BarChart3, tourKey: "nav-reports-mobile" },
     { href: "/notifications", labelKey: "nav.notifications", icon: Bell, badge: unreadCount, tourKey: "nav-notifications-mobile" },
@@ -240,7 +242,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                         <div className="flex items-center gap-3">
                           <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-signal"}`} strokeWidth={2.2} />
                           <span className={isActive ? "text-white font-bold" : "text-zinc-900 dark:text-zinc-100 font-semibold"}>
-                            {t(item.labelKey)}
+                            {item.label ? item.label : item.labelKey ? t(item.labelKey) : ""}
                           </span>
                         </div>
                         {item.badge ? (

@@ -6,13 +6,8 @@ import {
   MailOpen,
   ArrowLeft,
   X,
-  CheckCheck,
   Clock,
-  Sparkles,
   Inbox,
-  Calendar,
-  Wallet,
-  Bell,
   Search,
 } from "lucide-react";
 import type { InternalMessageRow } from "@/lib/messages/service";
@@ -39,65 +34,49 @@ export function InternalMessenger({
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [search, setSearch] = useState("");
 
+  // À l'ouverture : chargement des messages ET marquage automatique persistant comme lu dans la DB
   useEffect(() => {
     if (isOpen) {
-      fetchMessages();
+      fetchMessagesAndMarkRead();
     }
   }, [isOpen]);
 
-  async function fetchMessages() {
+  async function fetchMessagesAndMarkRead() {
     setLoading(true);
+    // Optimistic reset : les messages passent immédiatement au statut lu et le badge passe à 0
+    if (onUnreadChange) {
+      onUnreadChange(0);
+    }
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("remindme:messages-read"));
+    }
+
     try {
-      const res = await fetch("/api/messages", { cache: "no-store" });
+      // Appel avec autoMarkRead=true pour persister le statut 'Lu' dans Supabase
+      const res = await fetch("/api/messages?autoMarkRead=true", { cache: "no-store" });
       const data = await res.json();
       if (data.success && Array.isArray(data.messages)) {
-        setMessages(data.messages);
+        // Tri déterministe stable : created_at desc, puis id desc
+        const sorted = [...data.messages].sort((a, b) => {
+          const tA = new Date(a.created_at).getTime();
+          const tB = new Date(b.created_at).getTime();
+          if (tB !== tA) return tB - tA;
+          return String(b.id).localeCompare(String(a.id));
+        });
+        setMessages(sorted);
         if (onUnreadChange) {
-          onUnreadChange(data.unreadCount ?? 0);
+          onUnreadChange(0);
         }
       }
     } catch (err) {
-      console.warn("[InternalMessenger] Error fetching:", err);
+      console.warn("[InternalMessenger] Error fetching messages:", err);
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleOpenMessage(msg: InternalMessageRow) {
+  function handleOpenMessage(msg: InternalMessageRow) {
     setSelectedMessage(msg);
-    if (!msg.is_read) {
-      // Optimistic update
-      setMessages((prev) =>
-        prev.map((m) => (m.id === msg.id ? { ...m, is_read: true, read_at: new Date().toISOString() } : m))
-      );
-      if (onUnreadChange) {
-        const remaining = messages.filter((m) => !m.is_read && m.id !== msg.id).length;
-        onUnreadChange(remaining);
-      }
-
-      try {
-        await fetch("/api/messages", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "mark_read", messageId: msg.id }),
-        });
-      } catch {}
-    }
-  }
-
-  async function handleMarkAllRead() {
-    setMessages((prev) =>
-      prev.map((m) => ({ ...m, is_read: true, read_at: new Date().toISOString() }))
-    );
-    if (onUnreadChange) onUnreadChange(0);
-
-    try {
-      await fetch("/api/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "mark_all_read" }),
-      });
-    } catch {}
   }
 
   if (!isOpen) return null;
@@ -115,12 +94,12 @@ export function InternalMessenger({
 
   function getCategoryBadge(cat: string) {
     switch (cat) {
-      case "activity":
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">Séance</span>;
       case "financial":
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Finance</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Finance</span>;
       case "summary":
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">Bilan</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">Bilan</span>;
+      case "activity":
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Séance</span>;
       default:
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">Système</span>;
     }
@@ -155,25 +134,13 @@ export function InternalMessenger({
                       </span>
                     )}
                   </h3>
-                  <p className="text-[11px] text-slate-400">Vos communications et bilans officiels conservés</p>
+                  <p className="text-[11px] text-slate-400">Vos alertes financières, bilans et communications officielles</p>
                 </div>
               </div>
             )}
           </div>
 
           <div className="flex items-center gap-2">
-            {!selectedMessage && unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={handleMarkAllRead}
-                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer"
-                title="Tout marquer comme lu"
-              >
-                <CheckCheck className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Tout marquer lu</span>
-              </button>
-            )}
-
             <button
               type="button"
               onClick={onClose}

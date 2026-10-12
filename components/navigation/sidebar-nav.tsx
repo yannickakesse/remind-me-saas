@@ -10,6 +10,7 @@ import {
   Calendar,
   CheckSquare,
   Wallet,
+  Mail,
   Users,
   BarChart3,
   Settings,
@@ -17,7 +18,8 @@ import {
 
 interface NavItemDef {
   href: string;
-  labelKey: TranslationKey;
+  labelKey?: TranslationKey;
+  label?: string;
   icon: any;
   tourKey: string;
 }
@@ -28,6 +30,7 @@ const NAV_ITEMS: NavItemDef[] = [
   { href: "/calendar", labelKey: "nav.calendar", icon: Calendar, tourKey: "nav-calendar" },
   { href: "/tasks", labelKey: "nav.tasks", icon: CheckSquare, tourKey: "nav-tasks" },
   { href: "/finances", labelKey: "nav.finances", icon: Wallet, tourKey: "nav-finances" },
+  { href: "/messages", label: "Messagerie", icon: Mail, tourKey: "nav-messages" },
   { href: "/clients", labelKey: "nav.clients", icon: Users, tourKey: "nav-clients" },
   { href: "/reports", labelKey: "nav.reports", icon: BarChart3, tourKey: "nav-reports" },
   { href: "/settings", labelKey: "nav.settings", icon: Settings, tourKey: "nav-settings" },
@@ -71,7 +74,9 @@ export function SidebarNav() {
               }`}
               strokeWidth={isActive ? 2.2 : 1.8}
             />
-            <span className="truncate">{t(item.labelKey)}</span>
+            <span className="truncate">
+              {item.label ? item.label : item.labelKey ? t(item.labelKey) : ""}
+            </span>
           </Link>
         );
       })}

@@ -15,6 +15,7 @@
 
 # Supabase CLI
 .supabase/
+supabase/.temp/
 
 # Système / éditeurs
 .DS_Store
