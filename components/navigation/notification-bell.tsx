@@ -159,7 +159,24 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
                   <Link
                     key={n.id}
                     href={n.link || "/notifications"}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      setOpen(false);
+                      if (isUnread) {
+                        setCount((prev) => Math.max(0, prev - 1));
+                        setItems((prev) =>
+                          prev.map((item) =>
+                            item.id === n.id
+                              ? { ...item, read_at: new Date().toISOString(), status: "read" }
+                              : item
+                          )
+                        );
+                        fetch("/api/notifications/quick-action", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ action: "mark_read", notificationId: n.id }),
+                        }).catch(() => {});
+                      }
+                    }}
                     className={`block p-3 hover:bg-ink-100/60 transition-colors ${
                       isUnread ? "bg-signal-soft/15" : ""
                     }`}

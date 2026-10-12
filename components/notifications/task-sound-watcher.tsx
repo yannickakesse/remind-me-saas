@@ -280,13 +280,26 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
                 playNotificationChime(0.4);
               }
 
-              // 2. Notification Toast visuelle
-              push(
-                `🔔 ${item.title} : ${item.body}`,
-                item.kind?.includes("overdue") ? "error" : "info"
-              );
+              // 2. Notification visuelle dans la barre d'alerte (ne disparaît pas automatiquement)
+              push(item.body || item.title, {
+                title: item.title,
+                variant: item.kind?.includes("overdue") ? "error" : "info",
+                durationMs: 0, // Ne disparaît pas tout seul : reste affiché jusqu'à action ou fermeture
+                action: {
+                  label: "Lu",
+                  onClick: async () => {
+                    try {
+                      await fetch("/api/notifications/quick-action", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "mark_read", notificationId: item.id }),
+                      });
+                    } catch {}
+                  },
+                },
+              });
 
-              // 3. Notification native du système si autorisée
+              // 3. Notification native du système si autorisée (ne disparaît pas de la barre)
               if (
                 typeof window !== "undefined" &&
                 "Notification" in window &&
@@ -296,6 +309,7 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
                   new Notification(item.title, {
                     body: item.body,
                     icon: "/icons/icon-192x192.png",
+                    requireInteraction: true, // Reste affiché dans la barre de notifications système
                   });
                 } catch {}
               }

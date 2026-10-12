@@ -160,7 +160,9 @@ self.addEventListener("push", (event) => {
     vibrate: [200, 100, 200, 100, 200],
     tag: (data.data && data.data.category) || "remindme-alert",
     renotify: true,
+    requireInteraction: true, // Reste visible dans la barre de notifications système jusqu'à ce que l'utilisateur l'écarte
     actions: [
+      { action: "mark_read", title: "✓ Lu" },
       { action: "listen", title: "🔊 Écouter" },
       { action: "open", title: "Ouvrir" },
     ],
@@ -195,6 +197,21 @@ self.addEventListener("push", (event) => {
 // 5. Notification Click Handler (Déverrouillage téléphone & lecture vocale immédiate)
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+
+  // Si l'utilisateur clique sur l'action "Lu" dans la barre de notifications système
+  if (event.action === "mark_read") {
+    const notifId = event.notification.data?.id;
+    if (notifId) {
+      event.waitUntil(
+        fetch("/api/notifications/quick-action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "mark_read", notificationId: notifId }),
+        }).catch(() => {})
+      );
+    }
+    return;
+  }
 
   const baseUrl = (event.notification.data && event.notification.data.url) || "/notifications";
   const voiceText = event.notification.data && event.notification.data.voice_text;

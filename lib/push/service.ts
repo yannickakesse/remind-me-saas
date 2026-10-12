@@ -63,6 +63,7 @@ export async function sendNotificationPush(
       icon: "/icons/icon-192x192.png",
       badge: "/icons/badge-72x72.png",
       data: {
+        id: (options.metadata?.notificationId as string) || (options.metadata?.id as string) || undefined,
         url: link || "/notifications",
         category,
         voice_text: (options.metadata?.voice_text as string) || null,

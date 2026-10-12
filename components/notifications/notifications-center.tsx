@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DateTime } from "luxon";
@@ -64,6 +64,11 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
   const [, startTransition] = useTransition();
 
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+
+  useEffect(() => {
+    setNotifications(initialNotifications);
+  }, [initialNotifications]);
+
   const [activeTab, setActiveTab] = useState<TabKey>("active");
   const [searchQuery, setSearchQuery] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -163,10 +168,10 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
     const nowIso = new Date().toISOString();
     const previous = [...notifications];
 
-    // Mise à jour optimiste locale instantanée
+    // Mise à jour optimiste locale instantanée sur toutes les notifications non lues
     setNotifications((prev) =>
       prev.map((n) =>
-        !n.read_at && n.status === "unread"
+        !n.read_at && n.status !== "read" && n.status !== "resolved" && n.status !== "dismissed"
           ? { ...n, read_at: nowIso, status: "read" }
           : n
       )
@@ -174,18 +179,24 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
 
     try {
       const res = await markAllNotificationsRead();
-      if (res && !res.success) {
-        setNotifications(previous);
-        showToast("Impossible de marquer comme lu. Veuillez réessayer.", "error");
-      } else {
+      if (!res?.success) {
+        await fetch("/api/notifications/read-all", { method: "POST" });
+      }
+      showToast("Toutes les notifications ont été marquées comme lues.", "success");
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch {
+      try {
+        await fetch("/api/notifications/read-all", { method: "POST" });
         showToast("Toutes les notifications ont été marquées comme lues.", "success");
         startTransition(() => {
           router.refresh();
         });
+      } catch {
+        setNotifications(previous);
+        showToast("Erreur de connexion. Veuillez réessayer.", "error");
       }
-    } catch {
-      setNotifications(previous);
-      showToast("Erreur de connexion. Modifications annulées.", "error");
     } finally {
       setIsReadingAll(false);
     }
@@ -194,25 +205,41 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
   const handleMarkRead = async (id: string) => {
     if (processingId) return;
     setProcessingId(id);
-    const previous = [...notifications];
+    const nowIso = new Date().toISOString();
 
+    // 1. Mise à jour optimiste immédiate : le bouton Lu disparaît immédiatement (0ms)
     setNotifications((prev) =>
       prev.map((n) =>
-        n.id === id ? { ...n, read_at: new Date().toISOString(), status: "read" } : n
+        n.id === id ? { ...n, read_at: nowIso, status: "read" } : n
       )
     );
 
     try {
       const res = await markNotificationRead(id);
-      if (res && !res.success) {
-        setNotifications(previous);
-      } else {
+      if (!res?.success) {
+        // Fallback API direct si le Server Action a échoué
+        await fetch("/api/notifications/quick-action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "mark_read", notificationId: id }),
+        });
+      }
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch {
+      try {
+        await fetch("/api/notifications/quick-action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "mark_read", notificationId: id }),
+        });
         startTransition(() => {
           router.refresh();
         });
+      } catch {
+        // Conserver l'état lu local pour ne pas réafficher le bouton Lu de manière intempestive
       }
-    } catch {
-      setNotifications(previous);
     } finally {
       setProcessingId(null);
     }
@@ -604,6 +631,11 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                             <span>•</span>
                             <Link
                               href={item.link}
+                              onClick={() => {
+                                if (isUnread) {
+                                  handleMarkRead(item.id);
+                                }
+                              }}
                               className="font-medium text-signal hover:underline inline-flex items-center gap-1"
                             >
                               {t("actions.view_item")} <ArrowRight className="w-3 h-3" />
@@ -714,19 +746,19 @@ export function NotificationsCenter({ initialNotifications, timezone }: Notifica
                       </button>
                     )}
 
-                    {/* Secondary Actions */}
-                    <div className="flex items-center gap-1">
-                      {isUnread && !isInformative && !isDailySummary && (
-                        <button
-                          type="button"
-                          disabled={isThisBusy}
-                          onClick={() => handleMarkRead(item.id)}
-                          className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active cursor-pointer"
-                          title="Marquer comme lu"
-                        >
-                          {locale === "fr" ? "Lu" : "Read"}
-                        </button>
-                      )}
+                      {/* Secondary Actions */}
+                      <div className="flex items-center gap-1">
+                        {isUnread && !isDailySummary && (
+                          <button
+                            type="button"
+                            disabled={isThisBusy}
+                            onClick={() => handleMarkRead(item.id)}
+                            className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active cursor-pointer"
+                            title="Marquer comme lu"
+                          >
+                            {locale === "fr" ? "Lu" : "Read"}
+                          </button>
+                        )}
 
                       {!isResolved && !isSnoozed && (
                         <button
