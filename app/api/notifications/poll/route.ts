@@ -5,6 +5,9 @@ import { getUserTimezone } from "@/lib/time/timezones";
 
 export const dynamic = "force-dynamic";
 
+const lastPollEvalByUser = new Map<string, number>();
+const POLL_EVAL_COOLDOWN_MS = 25 * 1000; // 25 secondes de cooldown par utilisateur
+
 export async function GET() {
   try {
     const supabase = createClient();
@@ -16,7 +19,7 @@ export async function GET() {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    const [{ data: profile }, { data: prefs }] = await Promise.all([
+    const [{ data: profile }, { data: prefs }, { data: userSettings }] = await Promise.all([
       supabase
         .from("profiles")
         .select("timezone, country_code, full_name, locale")
@@ -24,12 +27,34 @@ export async function GET() {
         .maybeSingle(),
       supabase
         .from("notification_preferences")
-        .select("voice_reminders, voice_type, voice_language, repeat_voice")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("user_settings")
+        .select("notif_prefs")
         .eq("user_id", user.id)
         .maybeSingle(),
     ]);
 
+    const mergedPrefs = {
+      ...((userSettings?.notif_prefs as Record<string, any>) || {}),
+      ...(prefs || {}),
+    };
+
     const timezone = getUserTimezone(profile);
+
+    // Évaluation dynamique proactive des rappels à chaque cycle de polling (cooldown de 25s par utilisateur)
+    const nowTimestamp = Date.now();
+    const lastEval = lastPollEvalByUser.get(user.id) || 0;
+    if (nowTimestamp - lastEval > POLL_EVAL_COOLDOWN_MS) {
+      lastPollEvalByUser.set(user.id, nowTimestamp);
+      try {
+        await evaluateSmartReminders(supabase, user.id, timezone);
+      } catch (evalErr) {
+        console.warn("[Notifications:Poll] evaluateSmartReminders silent fallback:", evalErr);
+      }
+    }
 
     // 1. Récupérer les notifications non lues actives
     const { data: unread } = await supabase
@@ -49,10 +74,18 @@ export async function GET() {
       count: unread?.length || 0,
       userName: profile?.full_name || null,
       voicePrefs: {
-        voice_reminders: prefs?.voice_reminders ?? true,
-        voice_type: prefs?.voice_type ?? "system",
-        voice_language: prefs?.voice_language ?? "fr",
-        repeat_voice: prefs?.repeat_voice ?? 0,
+        voice_reminders: mergedPrefs.voice_reminders ?? true,
+        voice_type: mergedPrefs.voice_type ?? "system",
+        voice_language: mergedPrefs.voice_language ?? "fr",
+        repeat_voice: mergedPrefs.repeat_voice ?? 0,
+        voice_category_activities: mergedPrefs.voice_category_activities ?? true,
+        voice_category_tasks: mergedPrefs.voice_category_tasks ?? true,
+        voice_category_finances: mergedPrefs.voice_category_finances ?? true,
+        voice_category_briefings: mergedPrefs.voice_category_briefings ?? true,
+        voice_hide_financial_amounts: mergedPrefs.voice_hide_financial_amounts ?? false,
+        voice_include_user_name: mergedPrefs.voice_include_user_name ?? true,
+        custom_voice_reminder_text: mergedPrefs.custom_voice_reminder_text ?? "",
+        voice_playback_rate: mergedPrefs.voice_playback_rate ?? 1.0,
       },
     });
   } catch (error: any) {

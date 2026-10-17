@@ -14,6 +14,7 @@ import {
   type DailyActivityItem,
 } from "@/lib/voice";
 import { createInternalMessage } from "@/lib/messages/service";
+import { evaluateActivityEvolutionSuggestions } from "@/lib/activities/evolution";
 
 export interface ReminderCandidate {
   user_id: string;
@@ -279,7 +280,7 @@ export async function evaluateSmartReminders(
     supabase.from("income").select("id").eq("user_id", userId).eq("received", true),
     supabase.from("expenses").select("id").eq("user_id", userId).eq("paid", true),
     supabase.from("tasks").select("id").eq("user_id", userId).in("status", ["done", "cancelled"]),
-    supabase.from("scheduled_expenses").select("id").eq("user_id", userId).in("status", ["paid", "cancelled"]),
+    supabase.from("scheduled_expenses").select("id, status, end_date, next_due_date").eq("user_id", userId),
     supabase.from("calendar_events").select("id, activity_id").eq("user_id", userId).in("status", ["completed", "cancelled", "missed", "postponed"]),
     supabase.from("activities").select("id").eq("user_id", userId).in("status", ["archived", "suspended", "expired"]),
     supabase.from("notifications").select("id, entity_id, snoozed_until").eq("user_id", userId).eq("status", "snoozed"),
@@ -293,14 +294,32 @@ export async function evaluateSmartReminders(
     }
   }
 
+  // Événements d'activités archivées, suspendues ou expirées : à auto-résoudre immédiatement
+  const inactiveActivityIds = (archivedActivities ?? []).map((a) => a.id);
+  let inactiveEventIds: string[] = [];
+  if (inactiveActivityIds.length > 0) {
+    const { data: inactEvents } = await supabase
+      .from("calendar_events")
+      .select("id")
+      .eq("user_id", userId)
+      .in("activity_id", inactiveActivityIds);
+    inactiveEventIds = (inactEvents ?? []).map((ev) => ev.id);
+  }
+
+  // Dépenses programmées closes ou dont le contrat est expiré
+  const resolvedScheduledIds = (resolvedScheduled ?? [])
+    .filter((s: any) => s.status === "paid" || s.status === "cancelled" || (s.end_date && s.next_due_date > s.end_date))
+    .map((s: any) => s.id);
+
   // Nettoyage immédiat (Auto-Stop) : marquer comme résolues toutes les notifications d'entités closes
   const resolvedEntityIds = [
     ...(receivedIncomes ?? []).map((i) => i.id),
     ...(paidExpenses ?? []).map((e) => e.id),
     ...(completedTasks ?? []).map((t) => t.id),
-    ...(resolvedScheduled ?? []).map((s) => s.id),
+    ...resolvedScheduledIds,
     ...(resolvedEvents ?? []).map((ev) => ev.id),
-    ...(archivedActivities ?? []).map((a) => a.id),
+    ...inactiveEventIds,
+    ...inactiveActivityIds,
   ];
 
   if (resolvedEntityIds.length > 0) {
@@ -365,6 +384,8 @@ export async function evaluateSmartReminders(
           currency: inc.currency,
           daysDiff,
           language: voiceLang,
+          hideAmount: (prefsData as any)?.voice_hide_financial_amounts ?? false,
+          includeUserName: (prefsData as any)?.voice_include_user_name ?? true,
         });
 
         const bodyText = daysDiff === 3
@@ -435,6 +456,8 @@ export async function evaluateSmartReminders(
           currency: inc.currency,
           daysDiff: 0,
           language: voiceLang,
+          hideAmount: (prefsData as any)?.voice_hide_financial_amounts ?? false,
+          includeUserName: (prefsData as any)?.voice_include_user_name ?? true,
         });
 
         candidates.push({
@@ -578,13 +601,18 @@ export async function evaluateSmartReminders(
     // 4.2 Dépenses programmées récurrentes (scheduled_expenses)
     const { data: scheduledList } = await supabase
       .from("scheduled_expenses")
-      .select("id, name, amount, currency, next_due_date, status, frequency")
+      .select("id, name, amount, currency, next_due_date, end_date, status, frequency")
       .eq("user_id", userId)
       .in("status", ["planned", "due"])
       .not("next_due_date", "is", null);
 
     for (const sch of scheduledList ?? []) {
       if (!sch.next_due_date || activeSnoozeEntityIds.has(sch.id)) continue;
+
+      // Respect strict des dates de contrat et d'expiration des dépenses récurrentes
+      if (sch.end_date && sch.next_due_date > sch.end_date) {
+        continue;
+      }
 
       const dueDT = DateTime.fromISO(sch.next_due_date, { zone: userTimezone }).startOf("day");
       const daysDiff = Math.floor(dueDT.diff(userNow.startOf("day"), "days").days);
@@ -654,7 +682,7 @@ export async function evaluateSmartReminders(
     const next3daysIso = userNow.plus({ days: 3 }).endOf("day").toUTC().toISO()!;
     const { data: eventList } = await supabase
       .from("calendar_events")
-      .select("id, title, starts_at, ends_at, status, activity_id, activities(id, name)")
+      .select("id, title, starts_at, ends_at, status, activity_id, activities(id, name, voice_reminder_enabled, reminder_preference, engagement_nature, validity_type, start_date, end_date, status)")
       .eq("user_id", userId)
       .neq("status", "cancelled")
       .gte("starts_at", past7daysIso)
@@ -662,13 +690,63 @@ export async function evaluateSmartReminders(
       .order("starts_at", { ascending: true });
 
     for (const evt of eventList ?? []) {
-      if (evt.status === "cancelled" || evt.status === "completed" || activeSnoozeEntityIds.has(evt.id)) continue;
+      if (
+        evt.status === "cancelled" ||
+        evt.status === "completed" ||
+        evt.status === "missed" ||
+        evt.status === "postponed" ||
+        activeSnoozeEntityIds.has(evt.id)
+      ) continue;
+
+      const actData = evt.activities as {
+        id?: string;
+        name?: string;
+        voice_reminder_enabled?: boolean;
+        reminder_preference?: string;
+        engagement_nature?: string;
+        validity_type?: string;
+        start_date?: string | null;
+        end_date?: string | null;
+        status?: string;
+      } | null;
+
+      // 1. Activité parente inactive, expirée ou archivée -> stopper les rappels de séance
+      if (actData?.status && actData.status !== "active") {
+        continue;
+      }
+
+      // 2. Activité temporaire : aucun rappel au-delà de sa période de validité
+      if (actData?.validity_type === "temporary" && actData?.end_date) {
+        const actEndDT = DateTime.fromISO(actData.end_date, { zone: userTimezone }).endOf("day");
+        const evtStartDT = DateTime.fromISO(evt.starts_at, { zone: userTimezone });
+        if (evtStartDT > actEndDT) {
+          continue;
+        }
+      }
+
+      // 2b. Respect strict de la date de début de l'activité (aucun rappel avant début officiel)
+      if (actData?.start_date) {
+        const actStartDT = DateTime.fromISO(actData.start_date, { zone: userTimezone }).startOf("day");
+        const evtStartDT = DateTime.fromISO(evt.starts_at, { zone: userTimezone });
+        if (evtStartDT < actStartDT) {
+          continue;
+        }
+      }
+
+      // 3. Préférence de rappel 'disabled' : blocage strict des séances
+      if (actData?.reminder_preference === "disabled") {
+        continue;
+      }
 
       const eventStart = DateTime.fromISO(evt.starts_at, { zone: userTimezone });
       const eventEnd = DateTime.fromISO(evt.ends_at, { zone: userTimezone });
       const minutesUntil = Math.floor(eventStart.diff(userNow, "minutes").minutes);
       const isPast = eventEnd < userNow || eventStart < userNow.minus({ hours: 1 });
       const daysDiff = Math.floor(eventStart.startOf("day").diff(userNow.startOf("day"), "days").days);
+
+      const isImportant = actData?.engagement_nature === "important";
+      const isRoutine = actData?.engagement_nature === "routine";
+      const isRecommended = actData?.reminder_preference === "recommended";
 
       const firstLead = (prefsData as any)?.first_reminder_minutes ?? 60;
       const secondLead = (prefsData as any)?.second_reminder_minutes ?? 10;
@@ -680,6 +758,7 @@ export async function evaluateSmartReminders(
         timeStr: eventStart.toFormat("HH:mm"),
         category: "activity",
         language: (locale as any) || "fr",
+        includeUserName: (prefsData as any)?.voice_include_user_name ?? true,
       });
 
       if (isPast && evt.status === "planned") {
@@ -688,7 +767,7 @@ export async function evaluateSmartReminders(
           user_id: userId,
           category: "activity",
           kind: "activity_overdue",
-          priority: daysAgo >= 1 ? "critical" : "high",
+          priority: daysAgo >= 1 || isImportant ? "critical" : "high",
           status: "unread",
           entity_type: "activity",
           entity_id: evt.id,
@@ -710,7 +789,7 @@ export async function evaluateSmartReminders(
           idempotency_key: `activity:${evt.id}:passed_${eventStart.toISODate()}`,
         });
       } else if (eventStart.hasSame(userNow, "day") && !isPast) {
-        if (minutesUntil <= firstLead + 5 && minutesUntil >= Math.max(secondLead + 5, firstLead - 15)) {
+        if (minutesUntil <= firstLead + 5 && minutesUntil >= Math.max(secondLead + 10, firstLead - 10)) {
           // 1er rappel vocal (par défaut 60 min avant)
           const voiceText1 = generateVoiceMessage({
             userName: profileData?.full_name,
@@ -719,12 +798,13 @@ export async function evaluateSmartReminders(
             category: "activity",
             leadMinutes: firstLead,
             language: (locale as any) || "fr",
+            includeUserName: (prefsData as any)?.voice_include_user_name ?? true,
           });
           candidates.push({
             user_id: userId,
             category: "activity",
             kind: `activity_reminder_${firstLead}m`,
-            priority: "high",
+            priority: isImportant ? "critical" : "high",
             status: "unread",
             entity_type: "activity",
             entity_id: evt.id,
@@ -743,7 +823,7 @@ export async function evaluateSmartReminders(
             scheduled_at: userNow.toISO()!,
             idempotency_key: `activity:${evt.id}:m${firstLead}_${eventStart.toISODate()}`,
           });
-        } else if (minutesUntil < Math.max(secondLead + 5, firstLead - 15) && minutesUntil >= Math.max(2, secondLead - 5)) {
+        } else if (minutesUntil <= secondLead + 5 && minutesUntil >= 3) {
           // 2nd rappel vocal (par défaut 10 min avant)
           const voiceText2 = generateVoiceMessage({
             userName: profileData?.full_name,
@@ -752,6 +832,7 @@ export async function evaluateSmartReminders(
             category: "activity",
             leadMinutes: secondLead,
             language: (locale as any) || "fr",
+            includeUserName: (prefsData as any)?.voice_include_user_name ?? true,
           });
           candidates.push({
             user_id: userId,
@@ -776,8 +857,17 @@ export async function evaluateSmartReminders(
             scheduled_at: userNow.toISO()!,
             idempotency_key: `activity:${evt.id}:m${secondLead}_${eventStart.toISODate()}`,
           });
-        } else if (minutesUntil < Math.max(2, secondLead - 5) && minutesUntil >= -15) {
-          // Rappel à l'heure exacte
+        } else if (minutesUntil < 3 && minutesUntil >= -15) {
+          // Rappel à l'heure exacte (T - 0 min)
+          const voiceTextNow = generateVoiceMessage({
+            userName: profileData?.full_name,
+            activityTitle: evt.title,
+            timeStr: eventStart.toFormat("HH:mm"),
+            category: "activity",
+            leadMinutes: 0,
+            language: (locale as any) || "fr",
+            includeUserName: (prefsData as any)?.voice_include_user_name ?? true,
+          });
           candidates.push({
             user_id: userId,
             category: "activity",
@@ -792,8 +882,9 @@ export async function evaluateSmartReminders(
               title: evt.title,
               starts_at: evt.starts_at,
               minutes: minutesUntil,
+              leadMinutes: 0,
               voice_reminder_enabled: voiceReminderEnabled,
-              voice_text: voiceText,
+              voice_text: voiceTextNow,
               is_informative: true,
             },
             link: `/calendar/${evt.id}`,
@@ -805,7 +896,7 @@ export async function evaluateSmartReminders(
             user_id: userId,
             category: "activity",
             kind: "activity_today",
-            priority: "normal",
+            priority: isImportant ? "high" : "normal",
             status: "unread",
             entity_type: "activity",
             entity_id: evt.id,
@@ -828,7 +919,7 @@ export async function evaluateSmartReminders(
           user_id: userId,
           category: "activity",
           kind: "activity_upcoming",
-          priority: "normal",
+          priority: isImportant ? "high" : "normal",
           status: "unread",
           entity_type: "activity",
           entity_id: evt.id,
@@ -840,12 +931,16 @@ export async function evaluateSmartReminders(
           idempotency_key: `activity:${evt.id}:tomorrow_${eventStart.toISODate()}`,
         });
       } else if (daysDiff === 2 || daysDiff === 3) {
-        // Rappel standard 3 jours / 2 jours avant l'activité
+        // En mode 'recommended', les routines ne reçoivent pas d'alerte J-3 / J-2 pour éviter la surcharge d'alertes
+        if (isRecommended && isRoutine) {
+          continue;
+        }
+
         candidates.push({
           user_id: userId,
           category: "activity",
           kind: "activity_upcoming",
-          priority: "normal",
+          priority: isImportant ? "high" : "normal",
           status: "unread",
           entity_type: "activity",
           entity_id: evt.id,
@@ -866,35 +961,75 @@ export async function evaluateSmartReminders(
   if (prefsData?.activity_reminders !== false) {
     const { data: userActivities } = await supabase
       .from("activities")
-      .select("id, name, end_date, status, activity_compensation(amount, currency)")
+      .select("id, name, start_date, end_date, status, reminder_preference, engagement_nature, validity_type, activity_compensation(amount, currency)")
       .eq("user_id", userId)
       .eq("status", "active")
       .not("end_date", "is", null);
 
     for (const act of userActivities ?? []) {
       if (!act.end_date || activeSnoozeEntityIds.has(act.id)) continue;
+      // Les activités permanentes n'expirent pas
+      if (act.validity_type === "permanent") continue;
+      // Blocage strict si reminder_preference = 'disabled'
+      if (act.reminder_preference === "disabled") continue;
+
+      // Si l'activité n'a pas encore débuté (start_date dans le futur), aucun rappel d'expiration prématuré
+      if (act.start_date) {
+        const startDT = DateTime.fromISO(act.start_date, { zone: userTimezone }).startOf("day");
+        if (userNow.startOf("day") < startDT) continue;
+      }
 
       const endDT = DateTime.fromISO(act.end_date, { zone: userTimezone }).startOf("day");
       const daysDiff = Math.floor(endDT.diff(userNow.startOf("day"), "days").days);
 
-      if (daysDiff === 7 || daysDiff === 3 || daysDiff === 2 || daysDiff === 1) {
+      const isRoutine = act.engagement_nature === "routine";
+      const isImportant = act.engagement_nature === "important";
+      const isTempEngagement = act.engagement_nature === "temporary_engagement";
+      const isRecommended = act.reminder_preference === "recommended";
+
+      // enabled : tous les rappels d'échéance autorisés (J-7, J-3, J-2, J-1)
+      // recommended + routine : allégé (J-3, J-1) pour éviter la surcharge d'alertes
+      // recommended + temporary_engagement / important / autre : cycle complet (J-7, J-3, J-2, J-1)
+      const isCandidateDay = (isRecommended && isRoutine)
+        ? (daysDiff === 3 || daysDiff === 1)
+        : (daysDiff === 7 || daysDiff === 3 || daysDiff === 2 || daysDiff === 1);
+
+      if (isCandidateDay) {
+        const title = isTempEngagement
+          ? `Engagement arrivant à terme : ${act.name}`
+          : isImportant
+          ? `⚠️ Échéance importante proche : ${act.name}`
+          : `Activité arrivant à terme : ${act.name}`;
+
+        const body = isTempEngagement
+          ? `Votre engagement temporaire « ${act.name} » arrive à échéance dans ${daysDiff} jour(s) (le ${formatDateLocale(act.end_date, locale, userTimezone)}). Vous pouvez le prolonger ou le renouveler.`
+          : `L'activité « ${act.name} » arrive à échéance dans ${daysDiff} jour(s) (le ${formatDateLocale(act.end_date, locale, userTimezone)}).`;
+
         candidates.push({
           user_id: userId,
           category: "activity",
           kind: "activity_expiring_soon",
-          priority: daysDiff === 1 ? "high" : "normal",
+          priority: isImportant || daysDiff === 1 ? "high" : "normal",
           status: "unread",
           entity_type: "activity",
           entity_id: act.id,
-          title: `Activité arrivant à terme : ${act.name}`,
-          body: `L'activité « ${act.name} » arrive à échéance dans ${daysDiff} jour(s) (le ${formatDateLocale(act.end_date, locale, userTimezone)}).`,
-          metadata: { activityId: act.id, name: act.name, endDate: act.end_date, days: daysDiff },
+          title,
+          body,
+          metadata: {
+            activityId: act.id,
+            name: act.name,
+            endDate: act.end_date,
+            days: daysDiff,
+            engagementNature: act.engagement_nature,
+            can_renew: true,
+          },
           link: `/activities`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `activity:${act.id}:expiring_in_${daysDiff}_days`,
           email_template: "activity_expiring",
         });
       } else if (daysDiff <= 0 && daysDiff >= -14) {
+        // Activité temporaire arrivée à terme : Proposition de prolongation sans prolongation automatique
         candidates.push({
           user_id: userId,
           category: "activity",
@@ -903,15 +1038,31 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "activity",
           entity_id: act.id,
-          title: `Activité expirée : ${act.name}`,
-          body: `L'activité « ${act.name} » est arrivée à expiration le ${formatDateLocale(act.end_date, locale, userTimezone)}.`,
-          metadata: { activityId: act.id, name: act.name, endDate: act.end_date },
+          title: `Activité arrivée à expiration : ${act.name}`,
+          body: `L'activité « ${act.name} » est arrivée à expiration le ${formatDateLocale(act.end_date, locale, userTimezone)}. Vous pouvez la prolonger ou l'archiver.`,
+          metadata: {
+            activityId: act.id,
+            name: act.name,
+            endDate: act.end_date,
+            can_renew: true,
+          },
           link: `/activities`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `activity:${act.id}:expired_${act.end_date}`,
           email_template: "activity_expired",
         });
       }
+    }
+  }
+
+  // ==========================================================================
+  // 5.6 CLASSIFICATION & SUGGESTIONS D'ÉVOLUTION VERS UNE ROUTINE
+  // ==========================================================================
+  if (prefsData?.activity_reminders !== false) {
+    try {
+      await evaluateActivityEvolutionSuggestions(supabase, userId, userNow, userTimezone);
+    } catch (evoErr) {
+      console.warn("[evaluateSmartReminders] evaluateActivityEvolutionSuggestions fallback:", evoErr);
     }
   }
 

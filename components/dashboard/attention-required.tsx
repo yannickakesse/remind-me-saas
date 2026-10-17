@@ -96,7 +96,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
             {t("attention.title")} ({urgentItems.length})
           </h2>
           <span className="text-xs text-ink-500 hidden sm:inline">
-            — Règlements &amp; paiements prioritaires
+            — {t("attention.subtitle")}
           </span>
         </div>
         <Link
@@ -150,7 +150,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
                     <div className="flex items-center gap-1 shrink-0">
                       {isYesterdayOverdue && (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-600 text-white">
-                          En retard
+                          {t("actions.filter_overdue")}
                         </span>
                       )}
                       <span

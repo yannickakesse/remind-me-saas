@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { activityFormSchema } from "@/lib/validation/activities";
+import {
+  activityFormSchema,
+  parseActivityFormData,
+  buildActivityPayload,
+} from "@/lib/validation/activities";
 import { assertNoScheduleConflicts } from "@/lib/activities/schedules";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { assertCanCreateActivity } from "@/lib/subscriptions/server";
@@ -19,22 +23,35 @@ import { DateTime } from "luxon";
 async function findOrCreateOrganization(
   supabase: ReturnType<typeof createClient>,
   userId: string,
-  name: string | undefined
+  name: string | undefined,
+  address?: string
 ) {
   if (!name || !name.trim()) return null;
 
   const { data: existing } = await supabase
     .from("organizations")
-    .select("id")
+    .select("id, address")
     .eq("user_id", userId)
     .ilike("name", name.trim())
     .maybeSingle();
 
-  if (existing) return existing.id;
+  if (existing) {
+    if (address && address.trim() && existing.address !== address.trim()) {
+      await supabase
+        .from("organizations")
+        .update({ address: address.trim() })
+        .eq("id", existing.id);
+    }
+    return existing.id;
+  }
 
   const { data: created, error } = await supabase
     .from("organizations")
-    .insert({ user_id: userId, name: name.trim() })
+    .insert({
+      user_id: userId,
+      name: name.trim(),
+      address: address && address.trim() ? address.trim() : null,
+    })
     .select("id")
     .single();
 
@@ -89,47 +106,6 @@ async function findOrCreateContact(
   return created.id;
 }
 
-function parseFormData(formData: FormData) {
-  const rawSchedules = formData.get("schedulesJson");
-  const schedules = rawSchedules ? JSON.parse(rawSchedules as string) : [];
-
-  return activityFormSchema.parse({
-    info: {
-      name: formData.get("name"),
-      description: formData.get("description") || undefined,
-      category: formData.get("category") || undefined,
-      color: formData.get("color"),
-      type: formData.get("type"),
-      voiceReminderEnabled:
-        formData.get("voiceReminderEnabled") === "on" ||
-        formData.get("voiceReminderEnabled") === "true" ||
-        formData.get("voiceReminderEnabled") === null,
-    },
-    organization: {
-      organizationName: formData.get("organizationName") || undefined,
-      contactName: formData.get("contactName") || undefined,
-      contactPhone: formData.get("contactPhone") || undefined,
-      contactEmail: formData.get("contactEmail") || undefined,
-      address: formData.get("address") || undefined,
-      workMode: formData.get("workMode") || undefined,
-      location: formData.get("location") || undefined,
-    },
-    schedule: {
-      variableHours: formData.get("variableHours") === "on",
-      startDate: formData.get("startDate") || undefined,
-      endDate: formData.get("endDate") || undefined,
-      schedules,
-    },
-    compensation: {
-      amount: formData.get("amount"),
-      currency: formData.get("currency"),
-      frequency: formData.get("frequency"),
-      paymentDay: formData.get("paymentDay") || undefined,
-      paymentTerms: formData.get("paymentTerms") || undefined,
-    },
-  });
-}
-
 export async function createActivity(formData: FormData) {
   try {
     const supabase = createClient();
@@ -140,7 +116,7 @@ export async function createActivity(formData: FormData) {
       return { error: "Non authentifié. Veuillez vous reconnecter." };
     }
 
-    const parsed = parseFormData(formData);
+    const parsed = parseActivityFormData(formData);
 
     // Vérifier les quotas du forfait d'abonnement
     try {
@@ -165,7 +141,8 @@ export async function createActivity(formData: FormData) {
     const organizationId = await findOrCreateOrganization(
       supabase,
       user.id,
-      parsed.organization.organizationName
+      parsed.organization.organizationName,
+      parsed.organization.address
     );
     const contactId = await findOrCreateContact(supabase, user.id, organizationId, {
       contactName: parsed.organization.contactName,
@@ -173,21 +150,11 @@ export async function createActivity(formData: FormData) {
       contactEmail: parsed.organization.contactEmail,
     });
 
-    const activityPayload: Record<string, any> = {
-      user_id: user.id,
-      name: parsed.info.name,
-      description: parsed.info.description || null,
-      category: parsed.info.category || null,
-      color: parsed.info.color,
-      type: parsed.info.type,
-      organization_id: organizationId,
-      contact_id: contactId,
-      work_mode: parsed.organization.workMode || null,
-      location: parsed.organization.location || null,
-      start_date: parsed.schedule.startDate || null,
-      end_date: parsed.schedule.endDate || null,
-      voice_reminder_enabled: parsed.info.voiceReminderEnabled,
-    };
+    const activityPayload = buildActivityPayload(parsed, {
+      userId: user.id,
+      organizationId,
+      contactId,
+    });
 
     let { data: activity, error: activityError } = await supabase
       .from("activities")
@@ -258,6 +225,7 @@ export async function createActivity(formData: FormData) {
     revalidatePath("/calendar");
     revalidatePath("/finances");
     revalidatePath("/notifications");
+    revalidatePath("/messages");
     return { success: true };
   } catch (err: any) {
     console.error("createActivity error:", err);
@@ -276,7 +244,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
       return { error: "Non authentifié. Veuillez vous reconnecter." };
     }
 
-    const parsed = parseFormData(formData);
+    const parsed = parseActivityFormData(formData);
 
     // Vérifier l'absence de chevauchement d'horaires AVANT d'insérer ou mettre à jour en base
     if (!parsed.schedule.variableHours && parsed.schedule.schedules.length > 0) {
@@ -295,7 +263,8 @@ export async function updateActivity(activityId: string, formData: FormData) {
     const organizationId = await findOrCreateOrganization(
       supabase,
       user.id,
-      parsed.organization.organizationName
+      parsed.organization.organizationName,
+      parsed.organization.address
     );
     const contactId = await findOrCreateContact(supabase, user.id, organizationId, {
       contactName: parsed.organization.contactName,
@@ -303,20 +272,10 @@ export async function updateActivity(activityId: string, formData: FormData) {
       contactEmail: parsed.organization.contactEmail,
     });
 
-    const updatePayload: Record<string, any> = {
-      name: parsed.info.name,
-      description: parsed.info.description || null,
-      category: parsed.info.category || null,
-      color: parsed.info.color,
-      type: parsed.info.type,
-      organization_id: organizationId,
-      contact_id: contactId,
-      work_mode: parsed.organization.workMode || null,
-      location: parsed.organization.location || null,
-      start_date: parsed.schedule.startDate || null,
-      end_date: parsed.schedule.endDate || null,
-      voice_reminder_enabled: parsed.info.voiceReminderEnabled,
-    };
+    const updatePayload = buildActivityPayload(parsed, {
+      organizationId,
+      contactId,
+    });
 
     let { error: activityError } = await supabase
       .from("activities")
@@ -438,6 +397,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
     revalidatePath("/calendar");
     revalidatePath("/finances");
     revalidatePath("/notifications");
+    revalidatePath("/messages");
     return { success: true };
   } catch (err: any) {
     console.error("updateActivity error:", err);
@@ -475,6 +435,7 @@ export async function suspendActivity(activityId: string) {
     revalidatePath("/reports");
     revalidatePath("/calendar");
     revalidatePath("/notifications");
+    revalidatePath("/messages");
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Erreur lors de la suspension de l'activité." };
@@ -511,6 +472,7 @@ export async function resumeActivity(activityId: string) {
     revalidatePath("/reports");
     revalidatePath("/calendar");
     revalidatePath("/notifications");
+    revalidatePath("/messages");
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Erreur lors de la réactivation de l'activité." };
@@ -569,20 +531,48 @@ export async function renewActivity(
     } = await supabase.auth.getUser();
     if (!user) return { error: "Non authentifié." };
 
-    // Vérifier les quotas du forfait pour les activités actives
-    try {
-      await assertCanCreateActivity(supabase, user.id);
-    } catch (quotaErr: any) {
-      return { error: quotaErr.message || "Limite d'activités actives de votre forfait atteinte." };
+    // 1. Récupérer l'activité existante pour vérifier sa cohérence
+    const { data: act, error: fetchErr } = await supabase
+      .from("activities")
+      .select("id, name, validity_type, engagement_nature, start_date, end_date, status")
+      .eq("id", activityId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (fetchErr || !act) {
+      return { error: "Activité introuvable." };
     }
 
+    // 2. Validation stricte de la date de fin
+    if (!options?.endDate) {
+      return { error: "Une nouvelle date de fin est obligatoire pour renouveler une activité temporaire." };
+    }
+
+    const effectiveStartDate = options.startDate || act.start_date;
+    if (effectiveStartDate && options.endDate < effectiveStartDate) {
+      return {
+        error: `La nouvelle date de fin (${options.endDate}) ne peut pas précéder la date de début (${effectiveStartDate}).`,
+      };
+    }
+
+    // 3. Vérifier les quotas du forfait si l'activité était inactive
+    if (act.status !== "active") {
+      try {
+        await assertCanCreateActivity(supabase, user.id);
+      } catch (quotaErr: any) {
+        return { error: quotaErr.message || "Limite d'activités actives de votre forfait atteinte." };
+      }
+    }
+
+    // 4. Mettre à jour l'activité en préservant validity_type = 'temporary' et engagement_nature
     const updatePayload: Record<string, any> = {
       status: "active",
+      validity_type: "temporary", // Préservation stricte de la nature temporaire
+      end_date: options.endDate,
       updated_at: new Date().toISOString(),
     };
 
     if (options?.startDate) updatePayload.start_date = options.startDate;
-    if (options?.endDate) updatePayload.end_date = options.endDate;
 
     await Promise.allSettled([
       adminSupabase.from("activities").update(updatePayload).eq("id", activityId).eq("user_id", user.id),
@@ -602,7 +592,10 @@ export async function renewActivity(
       ]);
     }
 
-    // Synchronisation financière immédiate pour la nouvelle période
+    // 5. Résoudre les notifications d'expiration en cours pour cette activité
+    await resolveEntityNotifications(supabase, activityId, user.id);
+
+    // 6. Synchronisation financière immédiate pour la nouvelle période
     try {
       const now = DateTime.now();
       const startOfMonth = now.startOf("month").toISODate()!;
@@ -612,6 +605,7 @@ export async function renewActivity(
       console.error("[renewActivity] sync error:", syncErr);
     }
 
+    // 7. Réactiver les rappels proactifs futurs
     await triggerProactiveReminders(supabase, user.id);
 
     revalidatePath("/activities");
@@ -620,9 +614,63 @@ export async function renewActivity(
     revalidatePath("/finances");
     revalidatePath("/reports");
     revalidatePath("/notifications");
+    revalidatePath("/messages");
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Erreur lors du renouvellement de l'activité." };
+  }
+}
+
+/**
+ * Conserve une activité temporaire expirée sans la renouveler.
+ * Respecte le choix de l'utilisateur et clôture les alertes d'expiration associées.
+ */
+export async function keepActivityExpired(activityId: string, notificationId?: string) {
+  try {
+    const supabase = createClient();
+    const adminSupabase = createAdminClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Non authentifié." };
+
+    const nowIso = new Date().toISOString();
+
+    // S'assurer que le statut est bien marqué comme 'expired'
+    await Promise.allSettled([
+      adminSupabase
+        .from("activities")
+        .update({ status: "expired", updated_at: nowIso })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("activities")
+        .update({ status: "expired", updated_at: nowIso })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+    ]);
+
+    // Clôturer la notification d'expiration
+    if (notificationId) {
+      await supabase
+        .from("notifications")
+        .update({
+          status: "dismissed",
+          resolved_at: nowIso,
+          actioned_at: nowIso,
+        })
+        .eq("id", notificationId)
+        .eq("user_id", user.id);
+    } else {
+      await resolveEntityNotifications(supabase, activityId, user.id);
+    }
+
+    revalidatePath("/activities");
+    revalidatePath("/dashboard");
+    revalidatePath("/notifications");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err?.message || "Erreur lors de la confirmation du statut expiré." };
   }
 }
 
@@ -736,15 +784,15 @@ export async function deleteActivity(activityId: string) {
         .eq("paid", true)
         .eq("user_id", user.id),
 
-      // Dépenses programmées
+      // Dépenses programmées : préserver intégralement en détachant le lien d'activité
       adminSupabase
         .from("scheduled_expenses")
-        .delete()
+        .update({ activity_id: null })
         .eq("activity_id", activityId)
         .eq("user_id", user.id),
       supabase
         .from("scheduled_expenses")
-        .delete()
+        .update({ activity_id: null })
         .eq("activity_id", activityId)
         .eq("user_id", user.id),
 
@@ -840,9 +888,151 @@ export async function deleteActivity(activityId: string) {
     revalidatePath("/reports");
     revalidatePath("/tasks");
     revalidatePath("/notifications");
+    revalidatePath("/messages");
     return { success: true };
   } catch (err: any) {
     console.error("deleteActivity error:", err);
     return { error: err?.message || "Une erreur inattendue est survenue lors de la suppression." };
   }
 }
+
+/**
+ * Accepte la suggestion d'évolution vers une 'routine'.
+ * 
+ * Règles strictes :
+ * - Choix explicite de l'utilisateur.
+ * - Met à jour UNIQUEMENT engagement_nature = 'routine'.
+ * - Préserve STRICTEMENT validity_type, type, status, dates, contacts et rémunérations.
+ * - Marque la notification comme 'actioned'.
+ */
+export async function acceptEvolutionToRoutine(activityId: string, notificationId?: string) {
+  try {
+    const supabase = createClient();
+    const adminSupabase = createAdminClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Non authentifié." };
+
+    const nowIso = new Date().toISOString();
+
+    // 1. Mettre à jour l'engagement_nature vers 'routine' de manière sécurisée
+    await Promise.allSettled([
+      adminSupabase
+        .from("activities")
+        .update({
+          engagement_nature: "routine",
+          updated_at: nowIso,
+        })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+      supabase
+        .from("activities")
+        .update({
+          engagement_nature: "routine",
+          updated_at: nowIso,
+        })
+        .eq("id", activityId)
+        .eq("user_id", user.id),
+    ]);
+
+    // 2. Marquer la notification de suggestion comme 'actioned' et 'resolved'
+    if (notificationId) {
+      await supabase
+        .from("notifications")
+        .update({
+          status: "actioned",
+          actioned_at: nowIso,
+          resolved_at: nowIso,
+          read_at: nowIso,
+        })
+        .eq("id", notificationId)
+        .eq("user_id", user.id);
+    } else {
+      // Clôturer toute suggestion active liée à cette activité
+      await supabase
+        .from("notifications")
+        .update({
+          status: "actioned",
+          actioned_at: nowIso,
+          resolved_at: nowIso,
+          read_at: nowIso,
+        })
+        .eq("entity_id", activityId)
+        .eq("kind", "activity_routine_suggestion")
+        .eq("user_id", user.id);
+    }
+
+    // 3. Recalibrer les rappels avec les nouvelles règles adaptées à la routine
+    await triggerProactiveReminders(supabase, user.id);
+
+    revalidatePath("/activities");
+    revalidatePath(`/activities/${activityId}/edit`);
+    revalidatePath("/dashboard");
+    revalidatePath("/notifications");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err?.message || "Erreur lors de l'acceptation de l'évolution vers routine." };
+  }
+}
+
+/**
+ * Refuse ou reporte la suggestion d'évolution vers une 'routine'.
+ * 
+ * Règles strictes :
+ * - Respect strict du refus de l'utilisateur : AUCUNE modification de l'activité.
+ * - La notification est marquée 'dismissed' avec une période de répit (snoozeDays = 30 par défaut).
+ * - La suggestion ne sera pas répétée à chaque chargement de page.
+ */
+export async function declineEvolutionSuggestion(
+  activityId: string,
+  notificationId?: string,
+  snoozeDays: number = 30
+) {
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Non authentifié." };
+
+    const now = DateTime.now();
+    const nowIso = now.toISO()!;
+    const snoozedUntil = now.plus({ days: snoozeDays }).toISO()!;
+
+    if (notificationId) {
+      await supabase
+        .from("notifications")
+        .update({
+          status: "dismissed",
+          snoozed_until: snoozedUntil,
+          actioned_at: nowIso,
+          resolved_at: nowIso,
+          read_at: nowIso,
+        })
+        .eq("id", notificationId)
+        .eq("user_id", user.id);
+    } else {
+      await supabase
+        .from("notifications")
+        .update({
+          status: "dismissed",
+          snoozed_until: snoozedUntil,
+          actioned_at: nowIso,
+          resolved_at: nowIso,
+          read_at: nowIso,
+        })
+        .eq("entity_id", activityId)
+        .eq("kind", "activity_routine_suggestion")
+        .eq("user_id", user.id);
+    }
+
+    revalidatePath("/activities");
+    revalidatePath("/dashboard");
+    revalidatePath("/notifications");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err?.message || "Erreur lors du refus de la suggestion." };
+  }
+}
+

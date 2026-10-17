@@ -13,6 +13,41 @@ const ACTIONS: { href: string; label: string; icon: any; tone: "primary" | "seco
 ];
 
 export function QuickActions() {
+  const { locale } = useLanguage();
+
+  const activitiesLabel =
+    locale === "fr"
+      ? "Activités & Missions"
+      : locale === "es"
+      ? "Actividades y Misiones"
+      : locale === "de"
+      ? "Aktivitäten & Aufgaben"
+      : locale === "pt"
+      ? "Atividades e Missões"
+      : "Activities & Missions";
+
+  const tasksLabel =
+    locale === "fr"
+      ? "Tâches & To-Do"
+      : locale === "es"
+      ? "Tareas y To-Do"
+      : locale === "de"
+      ? "Aufgaben & To-Do"
+      : locale === "pt"
+      ? "Tarefas e To-Do"
+      : "Tasks & To-Do";
+
+  const financesLabel =
+    locale === "fr"
+      ? "Finances & Dépenses"
+      : locale === "es"
+      ? "Finanzas y Gastos"
+      : locale === "de"
+      ? "Finanzen & Ausgaben"
+      : locale === "pt"
+      ? "Finanças e Despesas"
+      : "Finances & Expenses";
+
   return (
     <div className="flex flex-col gap-2 w-full sm:w-auto mt-2 sm:mt-0">
       {/* Ligne 1 : Activités & Missions face-à-face avec Tâches & To-Do */}
@@ -22,14 +57,14 @@ export function QuickActions() {
           className="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-xs tap-active cursor-pointer bg-signal text-white hover:bg-signal-dark hover:shadow-md"
         >
           <Briefcase className="w-3.5 h-3.5 shrink-0 text-white" strokeWidth={2.2} />
-          <span className="truncate">Activités &amp; Missions</span>
+          <span className="truncate">{activitiesLabel}</span>
         </Link>
         <Link
           href="/tasks"
           className="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-xs tap-active cursor-pointer bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-ink-950 dark:text-white hover:bg-ink-100 dark:hover:bg-ink-800"
         >
           <CheckSquare className="w-3.5 h-3.5 shrink-0 text-signal" strokeWidth={2.2} />
-          <span className="truncate">Tâches &amp; To-Do</span>
+          <span className="truncate">{tasksLabel}</span>
         </Link>
       </div>
 
@@ -40,7 +75,7 @@ export function QuickActions() {
           className="flex items-center justify-center gap-1.5 px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-xs tap-active cursor-pointer bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-ink-950 dark:text-white hover:bg-ink-100 dark:hover:bg-ink-800 w-full sm:w-auto max-w-[260px]"
         >
           <TrendingDown className="w-3.5 h-3.5 shrink-0 text-amber-500" strokeWidth={2.2} />
-          <span className="truncate">Finances &amp; Dépenses</span>
+          <span className="truncate">{financesLabel}</span>
         </Link>
       </div>
     </div>

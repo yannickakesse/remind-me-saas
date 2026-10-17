@@ -3,16 +3,37 @@ import { TRANSLATIONS } from "./translations";
 import type { SupportedLocale, TranslationKey } from "./types";
 
 /**
- * Traduit une clé selon la locale demandée avec fallback automatique sur l'anglais.
- * Remplace les variables {param} par leur valeur.
+ * Traduit une clé selon la locale demandée avec gestion native des pluriels (Intl.PluralRules),
+ * remplacement des variables {param} et fallback intelligent sur fr/en.
  */
 export function t(
-  key: TranslationKey,
-  locale: SupportedLocale = "en",
+  key: TranslationKey | (string & {}),
+  locale: SupportedLocale = "fr",
   params: Record<string, string | number> = {}
 ): string {
-  const dictionary = TRANSLATIONS[locale] || TRANSLATIONS.en;
-  let text = dictionary[key] || TRANSLATIONS.en[key] || key;
+  const dictionary = TRANSLATIONS[locale] || TRANSLATIONS.fr || TRANSLATIONS.en;
+
+  let lookupKey = key;
+  if (params.count !== undefined) {
+    try {
+      const pr = new Intl.PluralRules(locale);
+      const form = pr.select(Number(params.count)); // 'one', 'other', 'few', 'many', etc.
+      const candidate = `${key}_${form}` as TranslationKey;
+      if (dictionary[candidate] || TRANSLATIONS.fr[candidate] || TRANSLATIONS.en[candidate]) {
+        lookupKey = candidate;
+      } else {
+        const otherCandidate = `${key}_other` as TranslationKey;
+        if (dictionary[otherCandidate] || TRANSLATIONS.fr[otherCandidate] || TRANSLATIONS.en[otherCandidate]) {
+          lookupKey = otherCandidate;
+        }
+      }
+    } catch {
+      // no-op
+    }
+  }
+
+  const k = lookupKey as TranslationKey;
+  let text = dictionary[k] || TRANSLATIONS.fr[k] || TRANSLATIONS.en[k] || lookupKey;
 
   for (const [paramKey, paramValue] of Object.entries(params)) {
     text = text.replace(new RegExp(`\\{${paramKey}\\}`, "g"), String(paramValue));

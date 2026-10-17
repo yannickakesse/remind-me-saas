@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, CheckCircle2, AlertCircle, Wallet, Clock, Pin, ArrowRight, Volume2, VolumeX } from "lucide-react";
 import { isSoundEnabled, setSoundEnabled, testChimeSound } from "@/lib/notifications/sound";
+import { useLanguage } from "@/components/i18n/language-provider";
 import type { Notification } from "@/types/database";
 
 interface NotificationBellProps {
@@ -13,6 +14,7 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ notifications: initialNotifications, unreadCount: initialCount }: NotificationBellProps) {
+  const { t, locale } = useLanguage();
   const [open, setOpen] = useState(false);
   const [soundActive, setSoundActive] = useState(true);
   const [items, setItems] = useState<Notification[]>(initialNotifications);
@@ -89,13 +91,20 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
     }
   }
 
+  const soundTooltip = soundActive
+    ? (locale === "fr" ? "Sonnerie activée (cliquer pour couper)" : locale === "es" ? "Sonido activado (clic para silenciar)" : locale === "de" ? "Ton aktiv (klicken zum Stummschalten)" : locale === "pt" ? "Som ativado (clique para silenciar)" : "Sound on (click to mute)")
+    : (locale === "fr" ? "Sonnerie coupée (cliquer pour activer)" : locale === "es" ? "Silenciado (clic para activar sonido)" : locale === "de" ? "Stummgeschaltet (klicken zum Aktivieren)" : locale === "pt" ? "Som desativado (clique para ativar)" : "Sound off (click to unmute)");
+  const soundLabel = soundActive
+    ? (locale === "fr" ? "Sonnerie" : locale === "es" ? "Sonido" : locale === "de" ? "Ton" : locale === "pt" ? "Som" : "Sound")
+    : (locale === "fr" ? "Muet" : locale === "es" ? "Silencio" : locale === "de" ? "Stumm" : locale === "pt" ? "Mudo" : "Mute");
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
         className="relative p-2 rounded-xl text-ink-700 hover:text-ink-950 hover:bg-ink-100 transition-colors focus:outline-none focus:ring-2 focus:ring-signal"
-        aria-label="Notifications"
+        aria-label={t("nav.notifications")}
         aria-expanded={open}
       >
         <Bell className="w-5 h-5" strokeWidth={1.8} />
@@ -112,10 +121,10 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
         <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-canvas-raised border border-ink-200 shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
           <div className="p-3.5 border-b border-ink-100 flex items-center justify-between bg-canvas">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-ink-950">Notifications</span>
+              <span className="text-xs font-bold text-ink-950">{t("nav.notifications")}</span>
               {count > 0 && (
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-danger-soft text-danger">
-                  {count} non lue{count > 1 ? "s" : ""}
+                  {count} {locale === "fr" ? (count > 1 ? "non lues" : "non lue") : t("actions.filter_unread").toLowerCase()}
                 </span>
               )}
             </div>
@@ -124,7 +133,7 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
               <button
                 type="button"
                 onClick={toggleSound}
-                title={soundActive ? "Sonnerie activée (cliquer pour couper)" : "Sonnerie coupée (cliquer pour activer)"}
+                title={soundTooltip}
                 className={`p-1.5 rounded-lg text-xs transition-colors flex items-center gap-1 ${
                   soundActive
                     ? "bg-signal-soft/60 text-signal hover:bg-signal-soft"
@@ -132,7 +141,7 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
                 }`}
               >
                 {soundActive ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-                <span className="text-[10px] font-medium hidden sm:inline">{soundActive ? "Sonnerie" : "Muet"}</span>
+                <span className="text-[10px] font-medium hidden sm:inline">{soundLabel}</span>
               </button>
 
               <Link
@@ -140,7 +149,7 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
                 onClick={() => setOpen(false)}
                 className="text-[11px] text-signal font-semibold hover:underline flex items-center gap-1"
               >
-                Centre complet <ArrowRight className="w-3 h-3" />
+                {t("attention.manage_all")} <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
           </div>
@@ -149,7 +158,7 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
             {items.length === 0 ? (
               <div className="p-6 text-center text-xs text-ink-500">
                 <CheckCircle2 className="w-6 h-6 text-positive mx-auto mb-1.5" />
-                Tout est à jour ! Aucune alerte en attente.
+                {t("attention.all_clear")}
               </div>
             ) : (
               items.slice(0, 5).map((n) => {
@@ -219,7 +228,15 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
               onClick={() => setOpen(false)}
               className="block w-full py-1.5 rounded-lg text-xs font-medium text-ink-700 hover:bg-ink-100 hover:text-ink-950 transition-colors"
             >
-              Voir toutes les notifications
+              {locale === "fr"
+                ? "Voir toutes les notifications"
+                : locale === "es"
+                ? "Ver todas las notificaciones"
+                : locale === "de"
+                ? "Alle Benachrichtigungen anzeigen"
+                : locale === "pt"
+                ? "Ver todas as notificações"
+                : "View all notifications"}
             </Link>
           </div>
         </div>

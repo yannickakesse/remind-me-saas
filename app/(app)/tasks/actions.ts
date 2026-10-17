@@ -156,6 +156,8 @@ export async function setTaskStatus(taskId: string, status: TaskStatus) {
 
   revalidatePath("/tasks");
   revalidatePath("/dashboard");
+  revalidatePath("/notifications");
+  revalidatePath("/messages");
 }
 
 export async function toggleTaskStatus(taskId: string, currentStatus: TaskStatus) {

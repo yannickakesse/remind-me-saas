@@ -91,6 +91,14 @@ export async function updateNotificationPrefs(formData: FormData) {
     voice_type: (formData.get("voice_type") as string) || "system",
     voice_language: (formData.get("voice_language") as string) || "fr",
     repeat_voice: formData.get("repeat_voice") ? Number(formData.get("repeat_voice")) : 0,
+    voice_category_activities: formData.get("voice_category_activities") !== "off",
+    voice_category_tasks: formData.get("voice_category_tasks") !== "off",
+    voice_category_finances: formData.get("voice_category_finances") !== "off",
+    voice_category_briefings: formData.get("voice_category_briefings") !== "off",
+    voice_hide_financial_amounts: formData.get("voice_hide_financial_amounts") === "on",
+    voice_include_user_name: formData.get("voice_include_user_name") !== "off",
+    custom_voice_reminder_text: (formData.get("custom_voice_reminder_text") as string) || "",
+    voice_playback_rate: formData.get("voice_playback_rate") ? Number(formData.get("voice_playback_rate")) : 1.0,
     first_reminder_minutes: formData.get("first_reminder_minutes") ? Number(formData.get("first_reminder_minutes")) : 60,
     second_reminder_minutes: formData.get("second_reminder_minutes") ? Number(formData.get("second_reminder_minutes")) : 10,
     daily_summary_time: (formData.get("daily_summary_time") as string) || "20:00",
@@ -99,7 +107,7 @@ export async function updateNotificationPrefs(formData: FormData) {
   if (!parsed.success) throw new Error("Formulaire invalide.");
 
   // 1. Sauvegarder dans notification_preferences
-  await supabase
+  const { error: upsertError } = await supabase
     .from("notification_preferences")
     .upsert({
       user_id: user.id,
@@ -118,13 +126,49 @@ export async function updateNotificationPrefs(formData: FormData) {
       voice_type: parsed.data.voice_type,
       voice_language: parsed.data.voice_language,
       repeat_voice: parsed.data.repeat_voice,
+      voice_category_activities: parsed.data.voice_category_activities,
+      voice_category_tasks: parsed.data.voice_category_tasks,
+      voice_category_finances: parsed.data.voice_category_finances,
+      voice_category_briefings: parsed.data.voice_category_briefings,
+      voice_hide_financial_amounts: parsed.data.voice_hide_financial_amounts,
+      voice_include_user_name: parsed.data.voice_include_user_name,
+      custom_voice_reminder_text: parsed.data.custom_voice_reminder_text,
+      voice_playback_rate: parsed.data.voice_playback_rate,
       first_reminder_minutes: parsed.data.first_reminder_minutes,
       second_reminder_minutes: parsed.data.second_reminder_minutes,
       daily_summary_time: parsed.data.daily_summary_time,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 
-  // 2. Maintien de compatibilité avec user_settings
+  if (upsertError) {
+    // Fallback gracieux sans colonnes étendues si la table n'a pas encore été migrée
+    await supabase
+      .from("notification_preferences")
+      .upsert({
+        user_id: user.id,
+        email_enabled: parsed.data.email_enabled,
+        in_app_enabled: parsed.data.in_app_enabled,
+        activity_reminders: parsed.data.activity_reminders,
+        payment_reminders: parsed.data.payment_reminders,
+        expense_reminders: parsed.data.expense_reminders,
+        task_reminders: parsed.data.task_reminders,
+        conflict_alerts: parsed.data.conflict_alerts,
+        quiet_hours_enabled: parsed.data.quiet_hours_enabled,
+        quiet_hours_start: parsed.data.quiet_hours_start,
+        quiet_hours_end: parsed.data.quiet_hours_end,
+        preferred_locale: parsed.data.preferred_locale,
+        voice_reminders: parsed.data.voice_reminders,
+        voice_type: parsed.data.voice_type,
+        voice_language: parsed.data.voice_language,
+        repeat_voice: parsed.data.repeat_voice,
+        first_reminder_minutes: parsed.data.first_reminder_minutes,
+        second_reminder_minutes: parsed.data.second_reminder_minutes,
+        daily_summary_time: parsed.data.daily_summary_time,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+  }
+
+  // 2. Maintien de compatibilité avec user_settings (JSONB - stocke l'intégralité sans contrainte de schéma)
   await supabase
     .from("user_settings")
     .update({ notif_prefs: parsed.data })

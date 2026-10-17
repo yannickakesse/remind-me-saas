@@ -33,7 +33,7 @@ export default async function NewActivityPage({
       ? Promise.all([
           supabase
             .from("activities")
-            .select("*, organizations(name), contacts(name, phone, email)")
+            .select("*, organizations(name, address), contacts(name, phone, email)")
             .eq("id", searchParams.duplicate_from)
             .eq("user_id", user!.id)
             .maybeSingle(),
@@ -91,7 +91,7 @@ export default async function NewActivityPage({
         contactName: contact?.name ?? "",
         contactPhone: contact?.phone ?? "",
         contactEmail: contact?.email ?? "",
-        address: "",
+        address: org?.address ?? "",
         workMode: sourceActivity.work_mode ?? "onsite",
         location: sourceActivity.location ?? "",
         startDate: sourceActivity.start_date ?? "",
@@ -109,6 +109,9 @@ export default async function NewActivityPage({
         frequency: sourceCompensation?.frequency ?? "monthly",
         paymentDay: sourceCompensation?.payment_day ? String(sourceCompensation.payment_day) : "",
         paymentTerms: sourceCompensation?.payment_terms ?? "",
+        validityType: (sourceActivity.validity_type as any) ?? "permanent",
+        engagementNature: (sourceActivity.engagement_nature as any) ?? "routine",
+        reminderPreference: (sourceActivity.reminder_preference as any) ?? "recommended",
         voiceReminderEnabled: sourceActivity.voice_reminder_enabled ?? true,
       }
     : undefined;

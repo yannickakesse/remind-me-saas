@@ -1,6 +1,8 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
+import { useLanguage } from "@/components/i18n/language-provider";
+import { TranslationKey } from "@/lib/i18n/types";
 import {
   Wallet,
   TrendingUp,
@@ -17,18 +19,19 @@ interface FinanceTabsProps {
   onTabChange?: (tab: FinanceTab) => void;
 }
 
-const TABS = [
-  { id: "overview" as FinanceTab, label: "Vue globale", icon: Wallet },
-  { id: "income" as FinanceTab, label: "Revenus", icon: TrendingUp },
-  { id: "expenses" as FinanceTab, label: "Dépenses payées", icon: TrendingDown },
-  { id: "scheduled" as FinanceTab, label: "Dépenses programmées", icon: Clock },
-  { id: "savings" as FinanceTab, label: "Épargne & Objectifs", icon: PiggyBank },
-  { id: "budgets" as FinanceTab, label: "Budgets mensuels", icon: Target },
+const TABS: { id: FinanceTab; key: TranslationKey; icon: any }[] = [
+  { id: "overview", key: "finances.tab_overview", icon: Wallet },
+  { id: "income", key: "finances.tab_income", icon: TrendingUp },
+  { id: "expenses", key: "finances.tab_expenses", icon: TrendingDown },
+  { id: "scheduled", key: "finances.tab_scheduled", icon: Clock },
+  { id: "savings", key: "finances.tab_savings", icon: PiggyBank },
+  { id: "budgets", key: "finances.tab_budgets", icon: Target },
 ];
 
 export function FinanceTabs({ currentTab, onTabChange }: FinanceTabsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
 
   function handleTabChange(tabId: FinanceTab) {
     if (onTabChange) {
@@ -64,7 +67,7 @@ export function FinanceTabs({ currentTab, onTabChange }: FinanceTabsProps) {
               }`}
             >
               <Icon className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-white scale-110" : "text-ink-500"}`} strokeWidth={2} />
-              <span>{tab.label}</span>
+              <span>{t(tab.key)}</span>
             </button>
           );
         })}

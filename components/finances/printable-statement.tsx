@@ -143,7 +143,7 @@ export function PrintableStatement({
             </div>
           </div>
           <div className="p-2 sm:p-2.5 rounded-xl border border-slate-200 bg-slate-50/50 print:bg-white print:p-1.5">
-            <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Total Dépenses</div>
+            <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Dépenses Payées</div>
             <div className="text-sm sm:text-base font-black text-slate-900 mt-0.5">
               {formatAmount(totals.totalExpensesPaid, defaultCurrency)}
             </div>

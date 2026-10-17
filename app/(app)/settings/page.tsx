@@ -8,6 +8,7 @@ import { NotificationsSection } from "@/components/settings/notifications-sectio
 import { SessionsSection } from "@/components/settings/sessions-section";
 import { SubscriptionSection } from "@/components/settings/subscription-section";
 import { DataSection } from "@/components/settings/data-section";
+import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
 import type { NotificationPreference } from "@/types/database";
 
 export default async function SettingsPage() {
@@ -46,10 +47,15 @@ export default async function SettingsPage() {
         style={{ backgroundImage: "url('/images/backgrounds/settings-bg.jpg')" }}
       />
 
-      <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-6 sm:p-8 shadow-xs">
-        <div className="relative z-10">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white">Paramètres</h1>
-          <p className="mt-1 text-xs sm:text-sm text-ink-500">Gérez votre profil, votre compte et vos préférences.</p>
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-6 sm:p-8 shadow-xs" data-tour="settings-header">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white">Paramètres</h1>
+            <p className="mt-1 text-xs sm:text-sm text-ink-500">Gérez votre profil, votre compte et vos préférences.</p>
+          </div>
+          <div className="shrink-0">
+            <SectionGuideTrigger section="settings" label="Guide paramètres" />
+          </div>
         </div>
       </div>
 

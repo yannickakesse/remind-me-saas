@@ -18,19 +18,43 @@ export default async function NotificationsPage() {
   // Run the smart reminders engine
   await ensureNotifications(supabase, user!.id, timezone);
 
-  const { data: notifications } = await supabase
-    .from("notifications")
-    .select("*")
-    .eq("user_id", user!.id)
-    .order("status", { ascending: true }) // unread/pending first
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const [
+    { data: activeNotifications },
+    { data: historyNotifications },
+    { data: activities },
+  ] = await Promise.all([
+    supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user!.id)
+      .in("status", ["unread", "read", "snoozed"])
+      .order("created_at", { ascending: false })
+      .limit(100),
+    supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user!.id)
+      .in("status", ["resolved", "dismissed", "actioned"])
+      .order("created_at", { ascending: false })
+      .limit(150),
+    supabase
+      .from("activities")
+      .select("id, name")
+      .eq("user_id", user!.id)
+      .order("name", { ascending: true }),
+  ]);
+
+  const notifications = [
+    ...((activeNotifications as Notification[]) ?? []),
+    ...((historyNotifications as Notification[]) ?? []),
+  ];
 
   return (
     <div className="max-w-5xl mx-auto py-2">
       <NotificationsCenter
-        initialNotifications={(notifications as Notification[]) ?? []}
+        initialNotifications={notifications}
         timezone={timezone}
+        activities={(activities as Array<{ id: string; name: string }>) ?? []}
       />
     </div>
   );

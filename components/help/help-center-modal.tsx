@@ -22,8 +22,11 @@ import {
   CheckCircle2,
   Users,
   Info,
+  Inbox,
+  Play,
 } from "lucide-react";
 import { triggerInteractiveTour, triggerContextualTour } from "@/components/onboarding/interactive-product-tour";
+import { useLanguage } from "@/components/i18n/language-provider";
 
 interface PageGuideInfo {
   title: string;
@@ -223,6 +226,31 @@ const PAGE_GUIDES: Record<string, PageGuideInfo> = {
       },
     ],
   },
+  "/messages": {
+    title: "Guide de l'Inbox",
+    subtitle: "Votre boîte de traitement financier",
+    icon: Inbox,
+    summary:
+      "L'Inbox est votre espace d'action prioritaire pour traiter les flux financiers : encaissement des paiements attendus, règlement des dépenses échues, suivi des récurrences et bilans certifiés.",
+    tips: [
+      {
+        title: "Rôle par rapport aux Notifications",
+        desc: "Le Centre de notifications vous alerte sur toute l'application. L'Inbox est réservée au traitement actif et aux encaissements/règlements financiers.",
+      },
+      {
+        title: "Les 3 Onglets : À traiter, En attente, Historique",
+        desc: "'À traiter' regroupe ce qui nécessite une décision immédiate. 'En attente' affiche les futures échéances. 'Historique' conserve la trace vérifiable.",
+      },
+      {
+        title: "Actions Directes en 1 Clic",
+        desc: "Cliquez sur 'Encaisser' ou 'Régler' pour mettre à jour la base réelle et résoudre automatiquement les notifications associées sans doublon.",
+      },
+      {
+        title: "Report Souple (+7j)",
+        desc: "Si un paiement prend du retard ou si vous différez une dépense, utilisez le bouton '+7j' pour ajuster l'échéance.",
+      },
+    ],
+  },
 };
 
 const ROUTE_TO_SECTION: Record<string, string> = {
@@ -231,6 +259,7 @@ const ROUTE_TO_SECTION: Record<string, string> = {
   "/calendar": "calendar",
   "/tasks": "tasks",
   "/finances": "finances",
+  "/messages": "messages",
   "/clients": "clients",
   "/reports": "reports",
   "/notifications": "notifications",
@@ -240,6 +269,7 @@ const ROUTE_TO_SECTION: Record<string, string> = {
 const DEFAULT_GUIDE: PageGuideInfo = PAGE_GUIDES["/dashboard"]!;
 
 export function HelpCenterButton() {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"page" | "concepts" | "faq">("page");
@@ -299,11 +329,14 @@ export function HelpCenterButton() {
 
   function handleStartContextualTour() {
     setIsOpen(false);
-    const sectionKey = ROUTE_TO_SECTION[baseRoute] || "finances";
-    if (sectionKey === "dashboard") {
-      triggerInteractiveTour();
-    } else {
-      triggerContextualTour(sectionKey);
+    const sectionKey = ROUTE_TO_SECTION[baseRoute] || "dashboard";
+    triggerContextualTour(sectionKey);
+  }
+
+  function handleOpenVideo() {
+    setIsOpen(false);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("remindme:open-intro-video"));
     }
   }
 
@@ -367,7 +400,7 @@ export function HelpCenterButton() {
                       id="help-title"
                       className="text-sm sm:text-base font-extrabold text-ink-950 tracking-tight flex items-center gap-2 truncate"
                     >
-                      <span>Centre d'Aide</span>
+                      <span>{t("help.modal_title")}</span>
                       <span className="hidden sm:inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full bg-gold/15 text-gold-dark dark:text-gold-light border border-gold/30">
                         {currentGuide.title}
                       </span>
@@ -382,7 +415,7 @@ export function HelpCenterButton() {
                   type="button"
                   onClick={() => setIsOpen(false)}
                   className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-100/10 hover:text-ink-950 transition-colors shrink-0"
-                  aria-label="Fermer le centre d'aide"
+                  aria-label="Fermer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -400,7 +433,7 @@ export function HelpCenterButton() {
                   }`}
                 >
                   <GuideIcon className="h-3.5 w-3.5 shrink-0" />
-                  <span>Guide de la page</span>
+                  <span>{t("help.tab_page_guide")}</span>
                 </button>
 
                 <button
@@ -413,7 +446,7 @@ export function HelpCenterButton() {
                   }`}
                 >
                   <BookOpen className="h-3.5 w-3.5 shrink-0" />
-                  <span>Concepts Clés</span>
+                  <span>{t("help.tab_concepts")}</span>
                 </button>
 
                 <button
@@ -426,7 +459,7 @@ export function HelpCenterButton() {
                   }`}
                 >
                   <QuestionIcon className="h-3.5 w-3.5 shrink-0" />
-                  <span>FAQ & Visite</span>
+                  <span>{t("help.tab_faq")}</span>
                 </button>
               </div>
 
@@ -447,7 +480,7 @@ export function HelpCenterButton() {
                           className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-3.5 py-2 text-xs font-bold text-white shadow-gold-subtle hover:brightness-110 active:scale-95 transition-all shrink-0 tap-active"
                         >
                           <Sparkles className="h-3.5 w-3.5" />
-                          <span>Visite guidée de cette page</span>
+                          <span>{t("help.btn_page_tour")}</span>
                         </button>
                       </div>
                       <p className="text-xs text-ink-700 dark:text-ink-300 leading-relaxed">
@@ -457,7 +490,7 @@ export function HelpCenterButton() {
 
                     <div className="space-y-2.5">
                       <h3 className="text-xs font-bold uppercase tracking-wider text-ink-500">
-                        Points clés à retenir :
+                        {t("help.key_points_to_remember")} :
                       </h3>
                       <div className="grid grid-cols-1 gap-2.5">
                         {currentGuide.tips.map((tip, idx) => (
@@ -552,10 +585,30 @@ export function HelpCenterButton() {
                       <button
                         type="button"
                         onClick={handleStartTour}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-3.5 py-2 text-xs font-bold text-white shadow-gold-subtle hover:brightness-110 active:scale-95 transition-all shrink-0 tap-active"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-3.5 py-2 text-xs font-bold text-white shadow-gold-subtle hover:brightness-110 active:scale-95 transition-all shrink-0 tap-active cursor-pointer"
                       >
                         <Sparkles className="h-3.5 w-3.5" />
                         <span>Lancer la visite</span>
+                      </button>
+                    </div>
+
+                    <div className="rounded-2xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                      <div>
+                        <h4 className="text-xs font-bold text-ink-950 dark:text-white flex items-center gap-1.5">
+                          <Play className="h-4 w-4 text-signal shrink-0 fill-signal" />
+                          <span>Vidéo Motion Design Officielle</span>
+                        </h4>
+                        <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">
+                          Présentation animée et sonore de Remind Me en 45 secondes.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleOpenVideo}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-signal hover:bg-signal-dark text-white px-3.5 py-2 text-xs font-bold shadow-xs active:scale-95 transition-all shrink-0 tap-active cursor-pointer"
+                      >
+                        <Play className="h-3.5 w-3.5 fill-white" />
+                        <span>Revoir la vidéo</span>
                       </button>
                     </div>
 

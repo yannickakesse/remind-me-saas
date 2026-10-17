@@ -9,14 +9,14 @@ import { TRANSLATIONS } from "@/lib/i18n/translations";
 interface LanguageContextType {
   locale: SupportedLocale;
   setLocale: (newLocale: SupportedLocale) => Promise<void>;
-  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
+  t: (key: TranslationKey | (string & {}), params?: Record<string, string | number>) => string;
   locales: typeof SUPPORTED_LOCALES;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
   locale: "fr",
   setLocale: async () => {},
-  t: (key: TranslationKey) => key,
+  t: (key: TranslationKey | (string & {})) => key,
   locales: SUPPORTED_LOCALES,
 });
 
@@ -77,9 +77,30 @@ export function LanguageProvider({
   };
 
   const t = useCallback(
-    (key: TranslationKey, params: Record<string, string | number> = {}): string => {
+    (key: TranslationKey | (string & {}), params: Record<string, string | number> = {}): string => {
       const dict = TRANSLATIONS[locale] || TRANSLATIONS.fr || TRANSLATIONS.en;
-      let text = dict[key] || TRANSLATIONS.fr[key] || TRANSLATIONS.en[key] || key;
+
+      let lookupKey = key;
+      if (params.count !== undefined) {
+        try {
+          const pr = new Intl.PluralRules(locale);
+          const form = pr.select(Number(params.count));
+          const candidate = `${key}_${form}` as TranslationKey;
+          if (dict[candidate] || TRANSLATIONS.fr[candidate] || TRANSLATIONS.en[candidate]) {
+            lookupKey = candidate;
+          } else {
+            const otherCandidate = `${key}_other` as TranslationKey;
+            if (dict[otherCandidate] || TRANSLATIONS.fr[otherCandidate] || TRANSLATIONS.en[otherCandidate]) {
+              lookupKey = otherCandidate;
+            }
+          }
+        } catch {
+          // fallback
+        }
+      }
+
+      const k = lookupKey as TranslationKey;
+      let text = dict[k] || TRANSLATIONS.fr[k] || TRANSLATIONS.en[k] || lookupKey;
 
       for (const [pKey, pVal] of Object.entries(params)) {
         text = text.replace(new RegExp(`\\{${pKey}\\}`, "g"), String(pVal));

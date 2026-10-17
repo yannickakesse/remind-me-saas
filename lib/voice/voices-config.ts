@@ -52,11 +52,25 @@ export function getElevenLabsVoiceId(
   // 3. Espagnol (ES)
   if (language === "es") {
     if (isMale) {
-      // Placeholder pour futur espagnol masculin
       return process.env.ELEVENLABS_VOICE_ES_MALE || null;
     }
-    // Martina — Espagnol féminin (défaut pour 'female' ou 'system')
     return process.env.ELEVENLABS_VOICE_ES_FEMALE || null;
+  }
+
+  // 4. Allemand (DE)
+  if (language === "de") {
+    if (isMale) {
+      return process.env.ELEVENLABS_VOICE_DE_MALE || null;
+    }
+    return process.env.ELEVENLABS_VOICE_DE_FEMALE || null;
+  }
+
+  // 5. Portugais (PT)
+  if (language === "pt") {
+    if (isMale) {
+      return process.env.ELEVENLABS_VOICE_PT_MALE || null;
+    }
+    return process.env.ELEVENLABS_VOICE_PT_FEMALE || null;
   }
 
   return null;
@@ -77,6 +91,12 @@ export function getVoiceDisplayName(
   }
   if (language === "es") {
     return voiceType === "male" ? "Español (Hombre)" : "Martina (Español)";
+  }
+  if (language === "de") {
+    return voiceType === "male" ? "Stefan (Deutsch)" : "Marlene (Deutsch)";
+  }
+  if (language === "pt") {
+    return voiceType === "male" ? "Duarte (Português)" : "Francisca (Português)";
   }
   return "Voix Remind Me";
 }

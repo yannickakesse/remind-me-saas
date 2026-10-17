@@ -60,6 +60,22 @@ export function formatMessageDate(
       return messageDT.setLocale("es").toFormat("dd MMM yyyy HH:mm");
     }
 
+    if (locale === "de") {
+      if (diffDays === 0) return `Heute um ${timeStr}`;
+      if (diffDays === 1) return `Gestern um ${timeStr}`;
+      if (diffDays === 2) return `Vorgestern um ${timeStr}`;
+      if (diffDays >= 3 && diffDays <= 7) return `Vor ${diffDays} Tagen`;
+      return messageDT.setLocale("de").toFormat("dd. MMM yyyy 'um' HH:mm");
+    }
+
+    if (locale === "pt") {
+      if (diffDays === 0) return `Hoje às ${timeStr}`;
+      if (diffDays === 1) return `Ontem às ${timeStr}`;
+      if (diffDays === 2) return `Anteontem às ${timeStr}`;
+      if (diffDays >= 3 && diffDays <= 7) return `Há ${diffDays} dias`;
+      return messageDT.setLocale("pt").toFormat("dd 'de' MMM 'de' yyyy 'às' HH:mm");
+    }
+
     // Default: English
     if (diffDays === 0) return `Today at ${timeStr}`;
     if (diffDays === 1) return `Yesterday at ${timeStr}`;

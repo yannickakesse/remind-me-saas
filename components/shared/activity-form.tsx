@@ -9,7 +9,11 @@ import {
   ACTIVITY_TYPES,
   COMPENSATION_FREQUENCIES,
   WEEKDAYS,
+  VALIDITY_TYPES,
+  ENGAGEMENT_NATURES,
+  REMINDER_PREFERENCES,
 } from "@/lib/validation/activities";
+import type { ValidityType, EngagementNature, ReminderPreference } from "@/types/database";
 
 interface ScheduleRow {
   weekday: number;
@@ -45,6 +49,9 @@ interface ActivityFormProps {
     location: string;
     startDate: string;
     endDate: string;
+    validityType?: ValidityType;
+    engagementNature?: EngagementNature;
+    reminderPreference?: ReminderPreference;
     variableHours: boolean;
     schedules: ScheduleRow[];
     amount: string;
@@ -75,6 +82,17 @@ export function ActivityForm({
   const router = useRouter();
 
   const [color, setColor] = useState(initial?.color ?? COLORS[0]!);
+  const [validityType, setValidityType] = useState<ValidityType>(
+    initial?.validityType ?? (initial?.endDate ? "temporary" : "permanent")
+  );
+  const [engagementNature, setEngagementNature] = useState<EngagementNature>(
+    initial?.engagementNature ?? "routine"
+  );
+  const [reminderPreference, setReminderPreference] = useState<ReminderPreference>(
+    initial?.reminderPreference ?? "recommended"
+  );
+  const [startDate, setStartDate] = useState(initial?.startDate ?? "");
+  const [endDate, setEndDate] = useState(initial?.endDate ?? "");
   const [variableHours, setVariableHours] = useState(
     initial?.variableHours ?? false
   );
@@ -89,8 +107,6 @@ export function ActivityForm({
       initial?.organizationName ||
       initial?.contactName ||
       initial?.description ||
-      initial?.startDate ||
-      initial?.endDate ||
       initial?.address ||
       initial?.location ||
       initial?.paymentTerms ||
@@ -177,6 +193,11 @@ export function ActivityForm({
 
     const formData = new FormData(e.currentTarget);
     formData.set("color", color);
+    formData.set("validityType", validityType);
+    formData.set("engagementNature", engagementNature);
+    formData.set("reminderPreference", reminderPreference);
+    formData.set("startDate", startDate);
+    formData.set("endDate", validityType === "permanent" ? "" : endDate);
     formData.set("schedulesJson", JSON.stringify(schedules));
     formData.set("voiceReminderEnabled", voiceReminderEnabled ? "on" : "off");
 
@@ -255,6 +276,139 @@ export function ActivityForm({
               ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ---- Validité & Nature de l'engagement ---- */}
+      <section className="rounded-xl border border-ink-200/80 bg-canvas p-4 sm:p-6 shadow-sm flex flex-col gap-5">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
+            Validité & Nature de l'engagement
+          </h2>
+          <p className="text-xs text-ink-500 mt-0.5">
+            Définissez la durée et le niveau de suivi pour adapter les rappels et les séances.
+          </p>
+        </div>
+
+        {/* 1. Type de validité : Permanent vs Temporaire */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-ink-800">
+            Durée de validité de l'activité *
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label
+              className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                validityType === "permanent"
+                  ? "border-signal bg-signal-soft/20 text-ink-950 shadow-xs"
+                  : "border-ink-200 bg-canvas-raised text-ink-700 hover:border-ink-300"
+              }`}
+            >
+              <input
+                type="radio"
+                name="validityType"
+                value="permanent"
+                checked={validityType === "permanent"}
+                onChange={() => setValidityType("permanent")}
+                className="mt-1 text-signal focus:ring-signal"
+              />
+              <div>
+                <span className="font-semibold text-sm block text-ink-950">Permanent</span>
+                <span className="text-xs text-ink-500 leading-relaxed block mt-0.5">
+                  Durée indéfinie (emploi, routine, activité stable). Pas de date de fin obligatoire.
+                </span>
+              </div>
+            </label>
+
+            <label
+              className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                validityType === "temporary"
+                  ? "border-signal bg-signal-soft/20 text-ink-950 shadow-xs"
+                  : "border-ink-200 bg-canvas-raised text-ink-700 hover:border-ink-300"
+              }`}
+            >
+              <input
+                type="radio"
+                name="validityType"
+                value="temporary"
+                checked={validityType === "temporary"}
+                onChange={() => setValidityType("temporary")}
+                className="mt-1 text-signal focus:ring-signal"
+              />
+              <div>
+                <span className="font-semibold text-sm block text-ink-950">Engagement temporaire</span>
+                <span className="text-xs text-ink-500 leading-relaxed block mt-0.5">
+                  Mission bornée dans le temps (date de fin obligatoire). Arrête les créneaux futurs à l'échéance.
+                </span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* Dates début et fin */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          <Field label="Date de début" htmlFor="startDate">
+            <TextInput
+              id="startDate"
+              name="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </Field>
+
+          {validityType === "temporary" ? (
+            <Field label="Date de fin * (obligatoire)" htmlFor="endDate">
+              <TextInput
+                id="endDate"
+                name="endDate"
+                type="date"
+                required
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </Field>
+          ) : (
+            <div className="flex flex-col justify-end pb-2">
+              <p className="text-xs text-ink-400 italic">
+                Activité permanente : les séances se poursuivent sans interruption.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* 2. Nature de l'engagement & 3. Préférences de rappel */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          <Field label="Nature de l'engagement *" htmlFor="engagementNature">
+            <select
+              id="engagementNature"
+              name="engagementNature"
+              value={engagementNature}
+              onChange={(e) => setEngagementNature(e.target.value as EngagementNature)}
+              className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950 focus:border-signal text-sm"
+            >
+              {ENGAGEMENT_NATURES.map((n) => (
+                <option key={n.value} value={n.value}>
+                  {n.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <Field label="Préférence de rappel *" htmlFor="reminderPreference">
+            <select
+              id="reminderPreference"
+              name="reminderPreference"
+              value={reminderPreference}
+              onChange={(e) => setReminderPreference(e.target.value as ReminderPreference)}
+              className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950 focus:border-signal text-sm"
+            >
+              {REMINDER_PREFERENCES.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </Field>
         </div>
       </section>
 
@@ -540,14 +694,7 @@ export function ActivityForm({
               <TextInput id="address" name="address" defaultValue={initial?.address} />
             </Field>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Date de début" htmlFor="startDate">
-                <TextInput id="startDate" name="startDate" type="date" defaultValue={initial?.startDate} />
-              </Field>
-              <Field label="Date de fin" htmlFor="endDate">
-                <TextInput id="endDate" name="endDate" type="date" defaultValue={initial?.endDate} />
-              </Field>
-            </div>
+
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Jour habituel de paiement (1-31)" htmlFor="paymentDay">

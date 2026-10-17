@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { DateTime } from "luxon";
 import { Plus, Clock, Check, Trash2, X, AlertCircle, Loader2, Calendar } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
 import { scheduledStatusLabel, frequencyLabel } from "@/lib/validation/scheduled-expenses";
@@ -90,9 +91,24 @@ export function ScheduledExpensesSection({
     if (actionLoadingId) return;
     setActionLoadingId(id);
 
-    // Mise à jour optimiste immédiate (0ms)
+    // Mise à jour optimiste immédiate (0ms) en respectant la récurrence et la date de contrat
     setItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, status: "paid" as const } : it))
+      prev.map((it) => {
+        if (it.id !== id) return it;
+        if (it.frequency === "once") return { ...it, status: "paid" as const };
+        const curDT = DateTime.fromISO(it.next_due_date);
+        let nextDT = curDT;
+        if (it.frequency === "daily") nextDT = curDT.plus({ days: 1 });
+        else if (it.frequency === "weekly") nextDT = curDT.plus({ weeks: 1 });
+        else if (it.frequency === "monthly") nextDT = curDT.plus({ months: 1 });
+        else if (it.frequency === "quarterly") nextDT = curDT.plus({ months: 3 });
+        else if (it.frequency === "yearly") nextDT = curDT.plus({ years: 1 });
+        const nextDueDateStr = nextDT.toISODate()!;
+        if (it.end_date && nextDueDateStr > it.end_date) {
+          return { ...it, status: "paid" as const };
+        }
+        return { ...it, next_due_date: nextDueDateStr, status: "planned" as const };
+      })
     );
 
     try {

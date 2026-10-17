@@ -42,7 +42,7 @@ import {
   initVoiceEngine,
   speakVoiceReminder,
   playVoiceReminder,
-  stopSpeaking,
+  stopVoiceReminder,
   generateVoiceMessage,
   saveLocalVoiceSettings,
   getLocalVoiceSettings,
@@ -132,6 +132,31 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   const [repeatVoice, setRepeatVoice] = useState<RepeatVoice>(
     ((notificationPreferences?.repeat_voice ?? Number(notifPrefs?.repeat_voice) ?? 0) as RepeatVoice)
   );
+  const [voiceCategoryActivities, setVoiceCategoryActivities] = useState<boolean>(
+    (notificationPreferences as any)?.voice_category_activities ?? ((notifPrefs as any)?.voice_category_activities as boolean ?? true)
+  );
+  const [voiceCategoryTasks, setVoiceCategoryTasks] = useState<boolean>(
+    (notificationPreferences as any)?.voice_category_tasks ?? ((notifPrefs as any)?.voice_category_tasks as boolean ?? true)
+  );
+  const [voiceCategoryFinances, setVoiceCategoryFinances] = useState<boolean>(
+    (notificationPreferences as any)?.voice_category_finances ?? ((notifPrefs as any)?.voice_category_finances as boolean ?? true)
+  );
+  const [voiceCategoryBriefings, setVoiceCategoryBriefings] = useState<boolean>(
+    (notificationPreferences as any)?.voice_category_briefings ?? ((notifPrefs as any)?.voice_category_briefings as boolean ?? true)
+  );
+  const [voiceHideFinancialAmounts, setVoiceHideFinancialAmounts] = useState<boolean>(
+    (notificationPreferences as any)?.voice_hide_financial_amounts ?? ((notifPrefs as any)?.voice_hide_financial_amounts as boolean ?? false)
+  );
+  const [voiceIncludeUserName, setVoiceIncludeUserName] = useState<boolean>(
+    (notificationPreferences as any)?.voice_include_user_name ?? ((notifPrefs as any)?.voice_include_user_name as boolean ?? true)
+  );
+  const [customVoiceReminderText, setCustomVoiceReminderText] = useState<string>(
+    (notificationPreferences as any)?.custom_voice_reminder_text ?? ((notifPrefs as any)?.custom_voice_reminder_text as string ?? "")
+  );
+  const [voicePlaybackRate, setVoicePlaybackRate] = useState<number>(
+    (notificationPreferences as any)?.voice_playback_rate ?? ((notifPrefs as any)?.voice_playback_rate as number ?? 1.0)
+  );
+  const [testingCustomVoice, setTestingCustomVoice] = useState(false);
 
   // Délais personnalisables des rappels vocaux d'activités & heure du résumé quotidien
   const [firstReminderMinutes, setFirstReminderMinutes] = useState<number>(
@@ -170,6 +195,14 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       setVoiceType(local.voice_type);
       setVoiceLanguage(local.voice_language);
       setRepeatVoice(local.repeat_voice);
+      setVoiceCategoryActivities(local.voice_category_activities ?? true);
+      setVoiceCategoryTasks(local.voice_category_tasks ?? true);
+      setVoiceCategoryFinances(local.voice_category_finances ?? true);
+      setVoiceCategoryBriefings(local.voice_category_briefings ?? true);
+      setVoiceHideFinancialAmounts(local.voice_hide_financial_amounts ?? false);
+      setVoiceIncludeUserName(local.voice_include_user_name ?? true);
+      setCustomVoiceReminderText(local.custom_voice_reminder_text ?? "");
+      setVoicePlaybackRate(local.voice_playback_rate ?? 1.0);
     }
   }, [notificationPreferences, notifPrefs]);
 
@@ -192,13 +225,16 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   }
 
   async function handleTestVoice() {
+    stopVoiceReminder();
     setTestingVoice(true);
     const sampleText = generateVoiceMessage({
-      userName: "Yannick",
-      activityTitle: "Réunion avec Monsieur Kouassi",
+      userName: voiceIncludeUserName ? "Yannick" : null,
+      activityTitle: voiceLanguage === "en" ? "Meeting with Mr. Kouassi" : voiceLanguage === "es" ? "Reunión con el Sr. Kouassi" : voiceLanguage === "de" ? "Treffen mit Herrn Kouassi" : voiceLanguage === "pt" ? "Reunião com o Sr. Kouassi" : "Réunion avec Monsieur Kouassi",
       timeStr: "15:00",
       category: "activity",
       language: voiceLanguage,
+      includeUserName: voiceIncludeUserName,
+      hideAmount: voiceHideFinancialAmounts,
     });
     setVoiceSampleText(sampleText);
 
@@ -208,19 +244,61 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         voice_type: voiceType,
         voice_language: voiceLanguage,
         repeat_voice: repeatVoice,
+        voice_category_activities: voiceCategoryActivities,
+        voice_category_tasks: voiceCategoryTasks,
+        voice_category_finances: voiceCategoryFinances,
+        voice_category_briefings: voiceCategoryBriefings,
+        voice_hide_financial_amounts: voiceHideFinancialAmounts,
+        voice_include_user_name: voiceIncludeUserName,
+        custom_voice_reminder_text: customVoiceReminderText,
+        voice_playback_rate: voicePlaybackRate,
       });
 
       await playVoiceReminder({
         text: sampleText,
         language: voiceLanguage,
         voiceType,
+        priority: "preview",
         repeat: repeatVoice,
+        rate: voicePlaybackRate,
       });
       push("🔊 Synthèse vocale exécutée avec succès !", "success");
     } catch {
       push("Impossible d'exécuter la synthèse vocale sur ce navigateur.", "error");
     } finally {
       setTestingVoice(false);
+    }
+  }
+
+  async function handleTestCustomVoice() {
+    if (!customVoiceReminderText || !customVoiceReminderText.trim()) {
+      push("Veuillez saisir un texte vocal personnalisé avant d'écouter.", "info");
+      return;
+    }
+    stopVoiceReminder();
+    setTestingCustomVoice(true);
+    const sampleText = generateVoiceMessage({
+      userName: voiceIncludeUserName ? "Yannick" : null,
+      kind: "custom_reminder",
+      customText: customVoiceReminderText.trim(),
+      language: voiceLanguage,
+      includeUserName: voiceIncludeUserName,
+    });
+
+    try {
+      await playVoiceReminder({
+        text: sampleText,
+        language: voiceLanguage,
+        voiceType,
+        priority: "preview",
+        repeat: 0,
+        rate: voicePlaybackRate,
+      });
+      push("🔊 Message personnalisé joué avec succès !", "success");
+    } catch {
+      push("Impossible de lire le message vocal.", "error");
+    } finally {
+      setTestingCustomVoice(false);
     }
   }
 
@@ -478,6 +556,14 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       formData.set("voice_type", voiceType);
       formData.set("voice_language", voiceLanguage);
       formData.set("repeat_voice", String(repeatVoice));
+      if (voiceCategoryActivities) formData.set("voice_category_activities", "on"); else formData.set("voice_category_activities", "off");
+      if (voiceCategoryTasks) formData.set("voice_category_tasks", "on"); else formData.set("voice_category_tasks", "off");
+      if (voiceCategoryFinances) formData.set("voice_category_finances", "on"); else formData.set("voice_category_finances", "off");
+      if (voiceCategoryBriefings) formData.set("voice_category_briefings", "on"); else formData.set("voice_category_briefings", "off");
+      if (voiceHideFinancialAmounts) formData.set("voice_hide_financial_amounts", "on");
+      if (voiceIncludeUserName) formData.set("voice_include_user_name", "on"); else formData.set("voice_include_user_name", "off");
+      formData.set("custom_voice_reminder_text", customVoiceReminderText);
+      formData.set("voice_playback_rate", String(voicePlaybackRate));
       formData.set("first_reminder_minutes", String(firstReminderMinutes));
       formData.set("second_reminder_minutes", String(secondReminderMinutes));
       formData.set("daily_summary_time", dailySummaryTime);
@@ -488,6 +574,14 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         voice_type: voiceType,
         voice_language: voiceLanguage,
         repeat_voice: repeatVoice,
+        voice_category_activities: voiceCategoryActivities,
+        voice_category_tasks: voiceCategoryTasks,
+        voice_category_finances: voiceCategoryFinances,
+        voice_category_briefings: voiceCategoryBriefings,
+        voice_hide_financial_amounts: voiceHideFinancialAmounts,
+        voice_include_user_name: voiceIncludeUserName,
+        custom_voice_reminder_text: customVoiceReminderText,
+        voice_playback_rate: voicePlaybackRate,
       });
 
       await updateNotificationPrefs(formData);
@@ -852,8 +946,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           </div>
 
           {voiceReminders && (
-            <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-4 animate-in fade-in">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-5 animate-in fade-in">
+              {/* 1. Paramètres audio principaux : Langue, Voix, Vitesse, Répétition */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 {/* 1. Langue de la voix */}
                 <div>
                   <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
@@ -865,6 +960,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     onChange={(e) => {
                       const val = e.target.value as VoiceLanguage;
                       setVoiceLanguage(val);
+                      setVoiceSampleText(null);
                       saveLocalVoiceSettings({ voice_language: val });
                     }}
                     className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal"
@@ -872,6 +968,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     <option value="fr">🇫🇷 Français (Par défaut)</option>
                     <option value="en">🇬🇧 English</option>
                     <option value="es">🇪🇸 Español</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="pt">🇵🇹 Português</option>
                   </select>
                 </div>
 
@@ -879,7 +977,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <div>
                   <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-signal" />
-                    👤 Type de voix
+                    👤 Voix &amp; Interprète
                   </label>
                   <select
                     value={voiceType}
@@ -891,14 +989,35 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal"
                   >
                     <option value="system">⚙️ Voix système par défaut</option>
-                    <option value="female">👩 Voix féminine</option>
-                    <option value="male">👨 Voix masculine</option>
+                    <option value="female">👩 Voix féminine (ElevenLabs / HD)</option>
+                    <option value="male">👨 Voix masculine (ElevenLabs / HD)</option>
                   </select>
                 </div>
 
-                {/* 3. Répétition */}
+                {/* 3. Vitesse de diction */}
                 <div>
-                  <label className="block text-xs font-bold text-ink-900 mb-1.5 flex items-center gap-1.5">
+                  <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-signal" />
+                    ⚡ Vitesse de diction
+                  </label>
+                  <select
+                    value={voicePlaybackRate}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setVoicePlaybackRate(val);
+                      saveLocalVoiceSettings({ voice_playback_rate: val });
+                    }}
+                    className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal"
+                  >
+                    <option value={0.85}>🐢 Posée &amp; Calme (0.85x)</option>
+                    <option value={1.0}>👌 Standard &amp; Naturelle (1.0x)</option>
+                    <option value={1.15}>⚡ Dynamique &amp; Rapide (1.15x)</option>
+                  </select>
+                </div>
+
+                {/* 4. Répétition */}
+                <div>
+                  <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
                     <RefreshCw className="w-3.5 h-3.5 text-signal" />
                     🔁 Répétition
                   </label>
@@ -909,12 +1028,218 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                       setRepeatVoice(val);
                       saveLocalVoiceSettings({ repeat_voice: val });
                     }}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal"
+                    className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal"
                   >
                     <option value={0}>1 seule fois (sans répétition)</option>
                     <option value={1}>Répéter 1 fois (2 lectures)</option>
                     <option value={2}>Répéter 2 fois (3 lectures)</option>
                   </select>
+                </div>
+              </div>
+
+              {/* 2. Catégories autorisées pour les alertes vocales */}
+              <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Volume2 className="w-4 h-4 text-signal" />
+                    <span className="text-xs font-black text-zinc-950 dark:text-white">
+                      Catégories d&apos;alertes prononcées à voix haute
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-ink-500 font-medium">
+                    Notifications écrites toujours préservées
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
+                  Activez ou coupez la voix selon vos préférences par domaine. Désactiver la voix d&apos;une catégorie n&apos;affecte en rien vos rappels et notifications écrits.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                  <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-canvas cursor-pointer hover:border-signal/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={voiceCategoryActivities}
+                      onChange={(e) => {
+                        setVoiceCategoryActivities(e.target.checked);
+                        saveLocalVoiceSettings({ voice_category_activities: e.target.checked });
+                      }}
+                      className="rounded text-signal focus:ring-signal"
+                    />
+                    <Briefcase className="w-3.5 h-3.5 text-signal shrink-0" />
+                    <div className="text-xs">
+                      <span className="font-bold text-zinc-950 dark:text-white block">Séances &amp; Activités</span>
+                      <span className="text-[10px] text-ink-500">Rappels avant séance et séances à confirmer</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-canvas cursor-pointer hover:border-signal/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={voiceCategoryTasks}
+                      onChange={(e) => {
+                        setVoiceCategoryTasks(e.target.checked);
+                        saveLocalVoiceSettings({ voice_category_tasks: e.target.checked });
+                      }}
+                      className="rounded text-signal focus:ring-signal"
+                    />
+                    <CheckSquare className="w-3.5 h-3.5 text-signal shrink-0" />
+                    <div className="text-xs">
+                      <span className="font-bold text-zinc-950 dark:text-white block">Tâches &amp; Échéances</span>
+                      <span className="text-[10px] text-ink-500">Tâches du jour et échéances imminentes</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-canvas cursor-pointer hover:border-signal/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={voiceCategoryFinances}
+                      onChange={(e) => {
+                        setVoiceCategoryFinances(e.target.checked);
+                        saveLocalVoiceSettings({ voice_category_finances: e.target.checked });
+                      }}
+                      className="rounded text-signal focus:ring-signal"
+                    />
+                    <Wallet className="w-3.5 h-3.5 text-gold-dark shrink-0" />
+                    <div className="text-xs">
+                      <span className="font-bold text-zinc-950 dark:text-white block">Événements financiers &amp; Paiements</span>
+                      <span className="text-[10px] text-ink-500">Paiements attendus et échéances de factures</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-canvas cursor-pointer hover:border-signal/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={voiceCategoryBriefings}
+                      onChange={(e) => {
+                        setVoiceCategoryBriefings(e.target.checked);
+                        saveLocalVoiceSettings({ voice_category_briefings: e.target.checked });
+                      }}
+                      className="rounded text-signal focus:ring-signal"
+                    />
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <div className="text-xs">
+                      <span className="font-bold text-zinc-950 dark:text-white block">Briefings &amp; Bilans quotidiens</span>
+                      <span className="text-[10px] text-ink-500">Matin, point de mi-journée et résumé du soir</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* 3. Confidentialité & Salutation personnalisée */}
+              <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-signal" />
+                  <span className="text-xs font-black text-zinc-950 dark:text-white">
+                    Confidentialité &amp; Personnalisation vocale
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-start gap-2.5 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-canvas cursor-pointer hover:border-signal/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={voiceHideFinancialAmounts}
+                      onChange={(e) => {
+                        setVoiceHideFinancialAmounts(e.target.checked);
+                        setVoiceSampleText(null);
+                        saveLocalVoiceSettings({ voice_hide_financial_amounts: e.target.checked });
+                      }}
+                      className="mt-0.5 rounded text-signal focus:ring-signal"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold text-zinc-950 dark:text-white block">
+                        🔒 Masquer les montants financiers sensibles (Recommandé en public / bureau)
+                      </span>
+                      <span className="text-[11px] text-ink-500 leading-relaxed block mt-0.5">
+                        Remind Me annonce la présence d&apos;un paiement attendu sans citer le montant exact à haute voix.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-canvas cursor-pointer hover:border-signal/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={voiceIncludeUserName}
+                      onChange={(e) => {
+                        setVoiceIncludeUserName(e.target.checked);
+                        setVoiceSampleText(null);
+                        saveLocalVoiceSettings({ voice_include_user_name: e.target.checked });
+                      }}
+                      className="mt-0.5 rounded text-signal focus:ring-signal"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold text-zinc-950 dark:text-white block">
+                        👤 Inclure mon prénom dans les salutations vocales
+                      </span>
+                      <span className="text-[11px] text-ink-500 leading-relaxed block mt-0.5">
+                        Exemple : « Bonjour Monsieur Yannick » selon votre profil, ou salutation naturelle « Bonjour » si désactivé ou absent.
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* 4. Messages vocaux personnalisés écrits par l'utilisateur */}
+              <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-signal" />
+                    <span className="text-xs font-black text-zinc-950 dark:text-white">
+                      Message vocal personnalisé par l&apos;utilisateur
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-signal-soft text-signal">
+                    Optionnel
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
+                  Définissez un texte personnalisé libre. Cette note vocale reste clairement distincte des messages automatiques générés à partir des données de Remind Me (séances et paiements réels).
+                </p>
+
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={customVoiceReminderText}
+                    onChange={(e) => {
+                      setCustomVoiceReminderText(e.target.value);
+                      saveLocalVoiceSettings({ custom_voice_reminder_text: e.target.value });
+                    }}
+                    placeholder="Ex: Pense à vérifier les dépenses de la semaine avant 18 heures."
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-canvas text-ink-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal font-medium"
+                    maxLength={250}
+                  />
+
+                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                    <span className="text-[10px] text-ink-400">
+                      {customVoiceReminderText.length}/250 caractères
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {testingCustomVoice && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => {
+                            stopVoiceReminder();
+                            setTestingCustomVoice(false);
+                          }}
+                          className="text-xs text-danger py-1"
+                        >
+                          Arrêter
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        loading={testingCustomVoice}
+                        onClick={handleTestCustomVoice}
+                        className="text-xs py-1"
+                      >
+                        <Play className="w-3 h-3 mr-1.5 fill-current text-signal" /> Écouter mon texte personnalisé
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -986,11 +1311,13 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                   </div>
                   <p className="text-xs text-ink-600 italic truncate mt-0.5 font-medium">
                     {voiceSampleText || generateVoiceMessage({
-                      userName: "Yannick",
-                      activityTitle: "Réunion avec Monsieur Kouassi",
+                      userName: voiceIncludeUserName ? "Yannick" : null,
+                      activityTitle: voiceLanguage === "en" ? "Meeting with Mr. Kouassi" : voiceLanguage === "es" ? "Reunión con el Sr. Kouassi" : voiceLanguage === "de" ? "Treffen mit Herrn Kouassi" : voiceLanguage === "pt" ? "Reunião com o Sr. Kouassi" : "Réunion avec Monsieur Kouassi",
                       timeStr: "15:00",
                       category: "activity",
                       language: voiceLanguage,
+                      includeUserName: voiceIncludeUserName,
+                      hideAmount: voiceHideFinancialAmounts,
                     })}
                   </p>
                 </div>
@@ -1002,7 +1329,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                       size="sm"
                       variant="secondary"
                       onClick={() => {
-                        stopSpeaking();
+                        stopVoiceReminder();
                         setTestingVoice(false);
                       }}
                       className="text-xs text-danger"

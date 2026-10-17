@@ -85,7 +85,7 @@ export async function getFinancesForRange(
   const expenses: ExpenseRow[] = (rawExpenses ?? []).map((e) => ({
     ...e,
     activity: Array.isArray(e.activities) ? e.activities[0] ?? null : e.activities,
-    status: deriveFinanceStatus(e.paid, e.due_date, todayISO),
+    status: deriveFinanceStatus(e.paid, e.due_date, todayISO, "expense"),
   }));
 
   return { income, expenses };

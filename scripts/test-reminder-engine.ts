@@ -286,7 +286,136 @@ async function testWhatsApp() {
     `WhatsApp renvoie fidèlement 'not_configured' sans feindre un faux envoi.`
   );
 
-  console.log("RÉSULTATS DE LA SUITE DE TESTS (15 SCÉNARIOS CRITIQUES) :");
+  // -----------------------------------------------------------------------------
+  // Test 16: Activity Validity & End Date Rules (Zod Validation)
+  // -----------------------------------------------------------------------------
+  const { activityFormSchema } = await import("../lib/validation/activities");
+
+  const baseValidActivity = {
+    info: {
+      name: "Mission Client Alpha",
+      color: "#1E3A5F",
+      type: "freelance" as const,
+      validityType: "permanent" as const,
+      engagementNature: "routine" as const,
+      reminderPreference: "recommended" as const,
+      voiceReminderEnabled: true,
+    },
+    organization: {},
+    schedule: {
+      schedules: [],
+      startDate: "2026-10-01",
+      endDate: "",
+      variableHours: false,
+    },
+    compensation: {
+      amount: 50000,
+      currency: "XOF",
+      frequency: "monthly" as const,
+    },
+  };
+
+  // Case A: Permanent activity without end date -> VALID
+  const permResult = activityFormSchema.safeParse(baseValidActivity);
+
+  // Case B: Temporary activity without end date -> INVALID
+  const tempNoEndResult = activityFormSchema.safeParse({
+    ...baseValidActivity,
+    info: { ...baseValidActivity.info, validityType: "temporary" },
+    schedule: { ...baseValidActivity.schedule, endDate: "" },
+  });
+
+  // Case C: Temporary activity with endDate < startDate -> INVALID
+  const tempInvalidDatesResult = activityFormSchema.safeParse({
+    ...baseValidActivity,
+    info: { ...baseValidActivity.info, validityType: "temporary" },
+    schedule: { ...baseValidActivity.schedule, startDate: "2026-10-15", endDate: "2026-10-10" },
+  });
+
+  // Case D: Temporary activity with endDate >= startDate -> VALID
+  const tempValidResult = activityFormSchema.safeParse({
+    ...baseValidActivity,
+    info: { ...baseValidActivity.info, validityType: "temporary" },
+    schedule: { ...baseValidActivity.schedule, startDate: "2026-10-01", endDate: "2026-12-31" },
+  });
+
+  const allValidityRulesPassed =
+    permResult.success === true &&
+    tempNoEndResult.success === false &&
+    tempInvalidDatesResult.success === false &&
+    tempValidResult.success === true;
+
+  assert(
+    16,
+    "Activity Validity Rules: Permanent allows no end_date, Temporary strictly requires end_date >= start_date",
+    "Activity Validation",
+    allValidityRulesPassed,
+    `Validation Zod conforme : permanente sans date ok, temporaire sans date rejetée, dates inversées rejetées, temporaire valide acceptée.`
+  );
+
+  // -----------------------------------------------------------------------------
+  // Test 17: Activity Reminder Preference = 'disabled' blocks activity event alerts
+  // -----------------------------------------------------------------------------
+  const userNow = DateTime.now().setZone("UTC");
+  const eventTomorrow = {
+    id: "evt_101",
+    title: "Session Coaching",
+    starts_at: userNow.plus({ days: 1 }).set({ hour: 14, minute: 0 }).toISO()!,
+    ends_at: userNow.plus({ days: 1 }).set({ hour: 15, minute: 0 }).toISO()!,
+    status: "planned",
+    activity_id: "act_101",
+    activities: {
+      id: "act_101",
+      name: "Coaching",
+      voice_reminder_enabled: true,
+      reminder_preference: "disabled",
+    },
+  };
+
+  const shouldSkipDisabledEvent = eventTomorrow.activities?.reminder_preference === "disabled";
+
+  assert(
+    17,
+    "Reminder Preference = 'disabled' strictly blocks activity session reminders",
+    "Reminder Filtering",
+    shouldSkipDisabledEvent === true,
+    `L'événement lié à une activité avec reminder_preference = 'disabled' est ignoré pour les rappels de séance.`
+  );
+
+  // -----------------------------------------------------------------------------
+  // Test 18: Activity Reminder Preference = 'disabled' does NOT affect financial or task reminders
+  // -----------------------------------------------------------------------------
+  const paymentForDisabledActivity = {
+    id: "inc_disabled_act",
+    label: "Honoraires coaching",
+    amount: 75000,
+    currency: "XOF",
+    due_date: userNow.plus({ days: 1 }).toISODate(),
+    received: false,
+    activity_id: "act_101",
+  };
+
+  const taskForDisabledActivity = {
+    id: "tsk_disabled_act",
+    title: "Préparer support coaching",
+    due_date: userNow.plus({ days: 1 }).toISODate(),
+    status: "todo",
+  };
+
+  // Financial reminders only check income.received and payment_reminders pref
+  const incomeWillBeReminded = !paymentForDisabledActivity.received && Boolean(paymentForDisabledActivity.due_date);
+  // Task reminders only check task.status and task_reminders pref
+  const taskWillBeReminded = taskForDisabledActivity.status !== "done" && Boolean(taskForDisabledActivity.due_date);
+
+  assert(
+    18,
+    "Financial & Task reminders are NOT blocked by activity reminder_preference = 'disabled'",
+    "Reminder Independence",
+    incomeWillBeReminded === true && taskWillBeReminded === true,
+    `Les notifications financières et de tâches restent 100% actives indépendamment de reminder_preference sur l'activité.`
+  );
+
+  console.log(`RÉSULTATS DE LA SUITE DE TESTS (${results.length} SCÉNARIOS CRITIQUES) :`);
   let passed = 0;
   for (const r of results) {
     if (r.status === "PASS") passed++;

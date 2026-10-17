@@ -3,6 +3,7 @@
 import { DateTime } from "luxon";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { QuickActions } from "@/components/dashboard/quick-actions";
+import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
 
 interface DashboardHeaderProps {
   userName?: string | null;
@@ -24,7 +25,8 @@ export function DashboardHeader({ userName, timezone }: DashboardHeaderProps) {
           {formattedDate} — <span className="normal-case">{t("dashboard.overview_title")}</span>
         </p>
       </div>
-      <div data-tour="dashboard-quick-actions">
+      <div className="flex items-center gap-2" data-tour="dashboard-quick-actions">
+        <SectionGuideTrigger section="dashboard" label="Guide tableau de bord" />
         <QuickActions />
       </div>
     </div>

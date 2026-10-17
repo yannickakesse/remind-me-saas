@@ -22,7 +22,7 @@ const CHANNEL_NAME = "remindme_notif_channel";
 function getStoredAlertedIds(): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
     if (raw) {
       const arr = JSON.parse(raw);
       if (Array.isArray(arr)) return new Set(arr);
@@ -35,6 +35,7 @@ function saveStoredAlertedIds(set: Set<string>) {
   if (typeof window === "undefined") return;
   try {
     const arr = Array.from(set).slice(-500);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
   } catch {}
 }
@@ -59,6 +60,14 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
           if (event.data?.type === "ALERTED_IDS" && Array.isArray(event.data.ids)) {
             event.data.ids.forEach((id: string) => alertedIdsRef.current.add(id));
             saveStoredAlertedIds(alertedIdsRef.current);
+          }
+          if (event.data?.type === "VOICE_PLAYING" && event.data.id) {
+            alertedIdsRef.current.add(event.data.id);
+            saveStoredAlertedIds(alertedIdsRef.current);
+            isSpeakingRef.current = true;
+          }
+          if (event.data?.type === "VOICE_ENDED" || event.data?.type === "VOICE_STOP") {
+            isSpeakingRef.current = false;
           }
         };
         channelRef.current = bc;
@@ -175,6 +184,8 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
                   activityTitle: firstUnread.title,
                   category: firstUnread.category,
                   language: voiceSettings.voice_language,
+                  hideAmount: voiceSettings.voice_hide_financial_amounts,
+                  includeUserName: voiceSettings.voice_include_user_name,
                 });
 
               if (voiceSettings.voice_reminders && firstUnread.metadata?.voice_reminder_enabled !== false && !isSpeakingRef.current) {
@@ -184,6 +195,7 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
                   language: voiceSettings.voice_language,
                   voiceType: voiceSettings.voice_type,
                   repeat: voiceSettings.repeat_voice,
+                  rate: voiceSettings.voice_playback_rate || 1.0,
                   onEnd: () => { isSpeakingRef.current = false; },
                   onError: () => { isSpeakingRef.current = false; },
                 }).catch(() => {
@@ -223,14 +235,16 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
           saveLocalVoiceSettings(data.voicePrefs);
         }
 
-        // Premier chargement : marquer les notifications anciennes (> 3 min) comme déjà alertées pour éviter une rafale,
-        // mais conserver les notifications fraîches (< 3 min) pour les déclencher immédiatement !
+        // Premier chargement : marquer les notifications obsolètes comme déjà alertées pour éviter une rafale,
+        // mais conserver les rappels d'activité récents (< 15 min) pour les annoncer dès l'ouverture !
         if (initialLoadRef.current) {
           initialLoadRef.current = false;
           const currentTimestamp = Date.now();
           unreadList.forEach((n) => {
             const itemCreatedAt = n.created_at ? new Date(n.created_at).getTime() : 0;
-            if (currentTimestamp - itemCreatedAt > 3 * 60 * 1000) {
+            const isActivityReminder = n.category === "activity" || n.kind?.includes("reminder");
+            const maxAgeMs = isActivityReminder ? 15 * 60 * 1000 : 3 * 60 * 1000;
+            if (currentTimestamp - itemCreatedAt > maxAgeMs) {
               alertedIdsRef.current.add(n.id);
             }
           });
@@ -246,35 +260,94 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
             alertedIdsRef.current.add(item.id);
             newlyAlerted.push(item.id);
 
-            // Vérification de fraîcheur : ne pas jouer de son/voix pour des notifications anciennes (> 3 min)
+            // Vérification de fraîcheur : 15 min pour les rappels d'activité réels, 3 min pour les alertes générales
             const itemCreatedAt = item.created_at ? new Date(item.created_at).getTime() : now;
-            const isFresh = now - itemCreatedAt < 3 * 60 * 1000 || itemCreatedAt >= mountTimestampRef.current;
+            const isActivityReminder = item.category === "activity" || item.kind?.includes("reminder");
+            const maxFreshMs = isActivityReminder ? 15 * 60 * 1000 : 3 * 60 * 1000;
+            const isFresh = now - itemCreatedAt < maxFreshMs || itemCreatedAt >= mountTimestampRef.current;
 
             if (isFresh) {
               const isVoiceEnabled = voicePrefs.voice_reminders;
               const isActivityVoiceAllowed = item.metadata?.voice_reminder_enabled !== false;
 
-              // 1. Synthèse Vocale si disponible et non occupée
-              if (isVoiceEnabled && isActivityVoiceAllowed && !isSpeakingRef.current) {
+              // Filtrage fin par catégorie autorisée
+              let isCategoryAllowed = true;
+              if (item.category === "activity" || item.kind?.includes("activity")) {
+                isCategoryAllowed = voicePrefs.voice_category_activities !== false;
+              } else if (item.category === "task" || item.kind?.includes("task")) {
+                isCategoryAllowed = voicePrefs.voice_category_tasks !== false;
+              } else if (
+                item.category === "payment" ||
+                item.category === "expense" ||
+                item.category === "finance" ||
+                item.kind?.includes("payment") ||
+                item.kind?.includes("expense")
+              ) {
+                isCategoryAllowed = voicePrefs.voice_category_finances !== false;
+              } else if (
+                item.kind?.includes("briefing") ||
+                item.kind?.includes("summary") ||
+                item.kind?.includes("checkin")
+              ) {
+                isCategoryAllowed = voicePrefs.voice_category_briefings !== false;
+              }
+
+              const voicePriority = item.kind?.includes("now") ? "critical" : "high";
+
+              // 1. Synthèse Vocale si disponible, autorisée pour la catégorie et non occupée
+              const isOtherTabSpeaking = typeof window !== "undefined" && Date.now() < Number(localStorage.getItem("remindme_voice_active_until") || 0);
+
+              if (isVoiceEnabled && isActivityVoiceAllowed && isCategoryAllowed && !isSpeakingRef.current && !isOtherTabSpeaking) {
+                // Si masquage financier actif, forcer la régénération propre sans montant
+                const isFinancialItem = item.category === "payment" || item.category === "expense" || item.category === "finance" || item.kind?.includes("payment") || item.kind?.includes("expense");
+                const shouldRegenerate = (isFinancialItem && voicePrefs.voice_hide_financial_amounts) || voicePrefs.voice_include_user_name === false;
+
                 const voiceScript =
-                  item.metadata?.voice_text ||
-                  generateVoiceMessage({
-                    userName: data.userName,
-                    activityTitle: item.title,
-                    category: item.category,
-                    language: voicePrefs.voice_language,
-                  });
+                  (!shouldRegenerate && item.metadata?.voice_text)
+                    ? item.metadata.voice_text
+                    : generateVoiceMessage({
+                        userName: data.userName,
+                        activityTitle: item.title,
+                        category: item.category,
+                        amount: item.metadata?.amount,
+                        currency: item.metadata?.currency,
+                        daysDiff: item.metadata?.days,
+                        language: voicePrefs.voice_language,
+                        hideAmount: voicePrefs.voice_hide_financial_amounts,
+                        includeUserName: voicePrefs.voice_include_user_name,
+                      });
 
                 isSpeakingRef.current = true;
+                const lockDurationMs = (Number(voicePrefs.repeat_voice || 0) + 1) * 12000;
+                localStorage.setItem("remindme_voice_active_until", String(Date.now() + lockDurationMs));
+                if (channelRef.current) {
+                  channelRef.current.postMessage({ type: "VOICE_PLAYING", id: item.id });
+                }
+
+                console.debug(`[TaskSoundWatcher] 🔊 Lecture vocale lancée pour « ${item.title} » (Priorité: ${voicePriority})`);
+
+                const onSpeechDone = () => {
+                  isSpeakingRef.current = false;
+                  localStorage.removeItem("remindme_voice_active_until");
+                  if (channelRef.current) {
+                    channelRef.current.postMessage({ type: "VOICE_ENDED", id: item.id });
+                  }
+                };
+
                 playVoiceReminder({
                   text: voiceScript,
                   language: voicePrefs.voice_language,
                   voiceType: voicePrefs.voice_type,
+                  priority: voicePriority,
                   repeat: voicePrefs.repeat_voice,
-                  onEnd: () => { isSpeakingRef.current = false; },
-                  onError: () => { isSpeakingRef.current = false; },
+                  rate: voicePrefs.voice_playback_rate || 1.0,
+                  onEnd: onSpeechDone,
+                  onError: (err) => {
+                    console.warn(`[TaskSoundWatcher] ⚠️ Erreur audio pour « ${item.title} »:`, err);
+                    onSpeechDone();
+                  },
                 }).catch(() => {
-                  isSpeakingRef.current = false;
+                  onSpeechDone();
                 });
               } else if (isSoundEnabled()) {
                 playNotificationChime(0.4);
@@ -328,8 +401,8 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
       }
     }
 
-    // Premier appel après 3s
-    const timeout = setTimeout(checkReminders, 3000);
+    // Premier appel rapide après 1.2s
+    const timeout = setTimeout(checkReminders, 1200);
     // Polling toutes les 30s
     const interval = setInterval(checkReminders, 30000);
 

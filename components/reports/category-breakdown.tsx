@@ -24,45 +24,45 @@ export function CategoryBreakdown({
 
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 sm:p-6 space-y-4 shadow-md">
-      {/* Header & Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3.5">
-        <div>
-          <h3 className="font-extrabold text-zinc-950 dark:text-white text-base flex items-center gap-2">
-            <PieChart className="w-4 h-4 text-signal" />
-            Répartition par Catégorie
-          </h3>
-          <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5 font-medium">
-            {activeMode === "expenses"
-              ? "Identifiez les postes qui consomment le plus de trésorerie"
-              : "Identifiez les activités & sources qui génèrent le plus de revenus"}
-          </p>
-        </div>
+      {/* Header */}
+      <div className="border-b border-zinc-200 dark:border-zinc-800 pb-3">
+        <h3 className="font-extrabold text-zinc-950 dark:text-white text-base flex items-center gap-2">
+          <PieChart className="w-4 h-4 text-signal" />
+          Répartition par Catégorie
+        </h3>
+        <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5 font-medium">
+          {activeMode === "expenses"
+            ? "Identifiez les postes qui consomment le plus de trésorerie"
+            : "Identifiez les activités & sources qui génèrent le plus de revenus"}
+        </p>
+      </div>
 
-        {/* Toggle Mode Buttons */}
-        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl shrink-0 self-start sm:self-auto border border-zinc-200 dark:border-zinc-700">
+      {/* Zone de commande centrée : Dépenses & Revenus face à face */}
+      <div className="flex items-center justify-center w-full py-1">
+        <div className="inline-flex items-center justify-center gap-2 p-1.5 bg-zinc-100 dark:bg-zinc-800/90 rounded-2xl border border-zinc-200 dark:border-zinc-700/80 shadow-xs w-full sm:w-auto min-w-[280px] max-w-md">
           <button
             type="button"
             onClick={() => setActiveMode("expenses")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeMode === "expenses"
-                ? "bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 shadow-xs"
-                : "text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"
+                ? "bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50"
             }`}
           >
-            <TrendingDown className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-            Dépenses ({effectiveExpenseItems.length})
+            <TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+            <span>Dépenses ({effectiveExpenseItems.length})</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveMode("income")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeMode === "income"
-                ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-xs"
-                : "text-ink-600 dark:text-ink-400 hover:text-ink-950"
+                ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50"
             }`}
           >
-            <TrendingUp className="w-3.5 h-3.5 text-positive" />
-            Revenus ({incomeItems.length})
+            <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>Revenus ({incomeItems.length})</span>
           </button>
         </div>
       </div>

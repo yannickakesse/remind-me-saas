@@ -2,498 +2,35 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
-  LayoutDashboard,
-  Briefcase,
-  CheckSquare,
-  Calendar,
-  Wallet,
-  Bell,
   ArrowRight,
   ArrowLeft,
   X,
   Sparkles,
   CheckCircle2,
-  TrendingUp,
-  BarChart3,
-  Users,
-  Settings,
-  HelpCircle,
-  Clock,
-  Download,
+  Info,
+  AlertCircle,
+  Check,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { useLanguage } from "@/components/i18n/language-provider";
 import { saveTourState } from "@/lib/onboarding/tour-actions";
+import {
+  playVoiceReminder,
+  stopVoiceReminder,
+  getLocalVoiceSettings,
+  getTourStepVoiceText,
+  type VoiceLanguage,
+} from "@/lib/voice";
+import {
+  TourStep,
+  MAIN_TOUR_STEPS,
+  CONTEXTUAL_TOURS,
+} from "./tour-data";
 
-export interface TourStep {
-  id: string;
-  route?: string; // Route cible vers laquelle naviguer automatiquement
-  targetSelector: string;
-  fallbackSelector?: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  points?: string[];
-  icon: any;
-  placement?: "bottom" | "top" | "left" | "right" | "auto";
-  isModal?: boolean; // Étape d'introduction ou conclusion sans spotlight découpé arbitrairement
-}
-
-/**
- * NIVEAU 1 — TOUR GÉNÉRAL (Première visite ou relance globale)
- * Règle stricte : Le texte décrit EXACTEMENT l'élément ciblé et navigue sur la bonne page.
- */
-export const MAIN_TOUR_STEPS: TourStep[] = [
-  {
-    id: "welcome",
-    route: "/dashboard",
-    targetSelector: "",
-    title: "Bienvenue sur Remind Me 👋",
-    subtitle: "Espace multi-activités & trésorerie",
-    description:
-      "Votre plateforme unifiée pour organiser vos différentes activités professionnelles, votre temps, vos tâches prioritaires et votre argent sans friction.",
-    points: [
-      "Multi-activités : gérez salariat, freelance et missions au même endroit",
-      "Planning & Conflits : calendrier intelligent et alertes de chevauchement",
-      "Finance réelle : distinction stricte entre attendu et réellement encaissé",
-    ],
-    icon: Sparkles,
-    isModal: true,
-  },
-  {
-    id: "dashboard",
-    route: "/dashboard",
-    targetSelector: '[data-tour="dashboard-header"]',
-    fallbackSelector: '[data-tour="dashboard-kpi"]',
-    title: "Tableau de Bord Central",
-    subtitle: "Pilotage quotidien",
-    description:
-      "Votre centre de pilotage : visualisez en un coup d'œil l'état de votre journée, vos alertes prioritaires et la santé réelle de votre trésorerie.",
-    points: [
-      "Indicateurs en temps réel (Revenus reçus vs Dépenses payées)",
-      "Panneau 'Nécessite votre attention' pour traiter les urgences",
-      "Actions rapides pour créer instantanément une activité ou un rappel",
-    ],
-    icon: LayoutDashboard,
-    placement: "bottom",
-  },
-  {
-    id: "activities",
-    route: "/activities",
-    targetSelector: '[data-tour="activity-create"]',
-    fallbackSelector: '[data-tour="nav-activities"]',
-    title: "Vos Activités Professionnelles",
-    subtitle: "Multi-casquettes, un seul outil",
-    description:
-      "Chaque métier ou contrat a ses propres règles. Configurez vos activités avec leur rémunération, leur fréquence et une couleur de référence dédiée.",
-    points: [
-      "Attribution d'une couleur unique qui colore tout votre calendrier",
-      "Calcul automatique des paiements attendus selon votre fréquence",
-      "Liaison directe avec vos entreprises clientes et contacts",
-    ],
-    icon: Briefcase,
-    placement: "bottom",
-  },
-  {
-    id: "tasks",
-    route: "/tasks",
-    targetSelector: '[data-tour="task-tabs"]',
-    fallbackSelector: '[data-tour="task-create"]',
-    title: "Gestion des Tâches & Rappels",
-    subtitle: "Cycle de vie & alertes sonores",
-    description:
-      "Pilotez vos actions quotidiennes, définissez leurs priorités et suivez leur cycle de 'À faire' à 'Terminée' sans laisser filer d'échéance.",
-    points: [
-      "Rappels sonores et carillon audio en temps réel dans votre navigateur",
-      "Cycle clair : À faire → En cours → Terminée ou Reportée (+7j)",
-      "Filtrage instantané par urgence, date et activité",
-    ],
-    icon: CheckSquare,
-    placement: "bottom",
-  },
-  {
-    id: "calendar",
-    route: "/calendar",
-    targetSelector: '[data-tour="calendar-views"]',
-    fallbackSelector: '[data-tour="nav-calendar"]',
-    title: "Calendrier & Planning Visuel",
-    subtitle: "4 vues ergonomiques",
-    description:
-      "Retrouvez toutes vos séances d'activités et vos échéances de paiement dans 4 vues complémentaires (Mois, Semaine, Jour, Agenda).",
-    points: [
-      "Créneaux automatiquement aux couleurs de chaque activité",
-      "Détection instantanée des conflits d'horaires et chevauchements",
-      "Affichage synchronisé de vos dépenses programmées à échéance",
-    ],
-    icon: Calendar,
-    placement: "bottom",
-  },
-  {
-    id: "finances",
-    route: "/finances",
-    targetSelector: '[data-tour="finances-tabs"]',
-    fallbackSelector: '[data-tour="nav-finances"]',
-    title: "Gestion Financière Réelle",
-    subtitle: "Clarté absolue sur votre argent",
-    description:
-      "Remind Me applique une règle stricte : seul l'argent réellement encaissé ou décaissé entre dans votre solde net réel.",
-    points: [
-      "Revenus attendus vs Revenus réellement encaissés",
-      "Dépenses programmées vs Dépenses payées",
-      "Suivi des budgets mensuels et épargne avec jauges visuelles",
-    ],
-    icon: Wallet,
-    placement: "bottom",
-  },
-  {
-    id: "notifications",
-    targetSelector: '[data-tour="mobile-notification-bell"]',
-    fallbackSelector: '[data-tour="notification-bell"]',
-    title: "Centre de Notifications & Alertes",
-    subtitle: "Restez toujours alerté",
-    description:
-      "Votre centre d'alertes centralisé pour vos rappels de cours, factures à échéance, tâches en retard et alertes de rentabilité.",
-    points: [
-      "Cloche d'alertes in-app avec pastille de notifications non lues",
-      "Sonneries Web Audio et notifications Push sur mobile",
-      "Actions directes possibles depuis chaque notification",
-    ],
-    icon: Bell,
-    placement: "bottom",
-  },
-  {
-    id: "completion",
-    targetSelector: '[data-tour="help-center-btn"]',
-    title: "Vous êtes prêt ! 🎉",
-    subtitle: "Aide permanente toujours disponible",
-    description:
-      "Besoin d'une précision sur une page spécifique ? Cliquez à tout moment sur le bouton '?' en haut à droite pour ouvrir les guides détaillés de chaque section.",
-    points: [
-      "Guides interactifs contextuels (Finance, Tâches, Activités...)",
-      "Explications détaillées des règles de calcul financier",
-      "Relance du guide interactif à tout moment en 1 clic",
-    ],
-    icon: HelpCircle,
-    isModal: true,
-  },
-];
-
-/**
- * NIVEAU 2 — GUIDES CONTEXTUELS PAR SECTION
- * Lancés à la demande depuis le bouton '?' ou depuis une page spécifique.
- */
-export const CONTEXTUAL_TOURS: Record<string, TourStep[]> = {
-  finances: [
-    {
-      id: "finance-header",
-      targetSelector: '[data-tour="finance-header"]',
-      title: "Vue d'ensemble Finance",
-      subtitle: "Gestion de trésorerie",
-      description:
-        "Retrouvez ici vos revenus, vos dépenses, vos budgets et vos objectifs financiers calculés avec rigueur.",
-      points: [
-        "Distinction claire entre prévu et encaissé",
-        "Export CSV comptable conforme",
-      ],
-      icon: Wallet,
-      placement: "bottom",
-    },
-    {
-      id: "finance-pending-revenue",
-      targetSelector: '[data-tour="finance-pending-revenue"]',
-      title: "Revenus en attente",
-      subtitle: "Revenus attendus",
-      description:
-        "Ici apparaissent les montants attendus selon la fréquence de vos activités, mais qui n'ont pas encore été encaissés.",
-      points: [
-        "Ne gonflent pas prématurément votre solde net",
-        "Peuvent être reportés ou encaissés en 1 clic",
-      ],
-      icon: Clock,
-      placement: "bottom",
-    },
-    {
-      id: "finance-received-revenue",
-      targetSelector: '[data-tour="finance-received-revenue"]',
-      title: "Revenus Encaissés (Total reçu)",
-      subtitle: "Argent réellement reçu",
-      description:
-        "Lorsqu'un paiement est validé ('Marquer comme encaissé'), il s'intègre immédiatement à votre Total reçu et à votre Solde net.",
-      points: [
-        "Représente la trésorerie réelle entrée sur vos comptes",
-        "Historique immuable consultable par mois",
-      ],
-      icon: TrendingUp,
-      placement: "bottom",
-    },
-    {
-      id: "finance-paid-expenses",
-      targetSelector: '[data-tour="finance-paid-expenses"]',
-      title: "Dépenses Payées",
-      subtitle: "Décaissements réels",
-      description:
-        "Retrouvez ici le montant des dépenses effectivement payées. Chaque dépense payée est automatiquement déduite de votre solde net.",
-      points: [
-        "Issu de vos dépenses programmées marquées comme payées",
-        "Alimente les jauges de vos budgets mensuels",
-      ],
-      icon: Wallet,
-      placement: "bottom",
-    },
-    {
-      id: "finance-tabs",
-      targetSelector: '[data-tour="finances-tabs"]',
-      title: "Onglets & Dépenses Programmées",
-      subtitle: "Budgets & Épargne",
-      description:
-        "Basculez entre vos Dépenses programmées, vos Budgets mensuels plafonnés et vos Cagnottes d'épargne.",
-      points: [
-        "Dépenses programmées : loyers, abonnements et factures futures",
-        "Budgets : suivi de consommation par catégorie avec jauge",
-        "Épargne & Objectifs : suivi de votre progression financière",
-      ],
-      icon: Wallet,
-      placement: "bottom",
-    },
-    {
-      id: "finance-export",
-      targetSelector: '[data-tour="finance-export"]',
-      title: "Exportation Comptable CSV",
-      subtitle: "Données téléchargeables",
-      description:
-        "Exportez l'intégralité de vos écritures financières au format CSV compatible Excel (délimiteur point-virgule et encodage UTF-8).",
-      points: [
-        "Idéal pour vos déclarations et analyses externes",
-        "Période personnalisable selon vos besoins",
-      ],
-      icon: Download,
-      placement: "bottom",
-    },
-  ],
-  activities: [
-    {
-      id: "act-nav",
-      targetSelector: '[data-tour="nav-activities"]',
-      title: "Vos Activités & Métiers",
-      subtitle: "Organisation multi-casquettes",
-      description:
-        "Une activité représente un travail salarié, un contrat freelance, une entreprise ou une mission avec sa propre rémunération et fréquence.",
-      points: [
-        "Attribution d'une couleur unique par activité",
-        "Calcul automatique des revenus attendus",
-      ],
-      icon: Briefcase,
-      placement: "right",
-    },
-    {
-      id: "act-create",
-      targetSelector: '[data-tour="activity-create"]',
-      title: "Créer une Activité",
-      subtitle: "Nouvelle mission ou métier",
-      description:
-        "Définissez le nom, le type, la couleur, la fréquence de facturation et associez-la à un client ou contact.",
-      points: [
-        "La couleur choisie colore automatiquement vos créneaux du calendrier",
-        "La rémunération génère vos revenus attendus dans Finance",
-      ],
-      icon: Briefcase,
-      placement: "bottom",
-    },
-    {
-      id: "act-list",
-      targetSelector: '[data-tour="activities-list"]',
-      title: "Gestion des Activités",
-      subtitle: "Statuts & Rémunérations",
-      description:
-        "Modifiez le montant, mettez en pause ou archivez une activité. Si vous ajustez le montant, cela s'applique aux futurs revenus sans modifier l'historique encaissé.",
-      points: [
-        "Mise en pause ou réactivation en 1 clic",
-        "Consommation horaire et rentabilité synchronisées",
-      ],
-      icon: Briefcase,
-      placement: "top",
-    },
-  ],
-  tasks: [
-    {
-      id: "task-nav",
-      targetSelector: '[data-tour="nav-tasks"]',
-      title: "Gestion des Tâches",
-      subtitle: "Priorités & Actions",
-      description:
-        "Retrouvez toutes les actions à réaliser, suivez leur progression et programmez des rappels sonores efficaces.",
-      points: [
-        "Cycle de vie clair : À faire, En cours, Terminée",
-        "Rappels audios déclenchés à la minute exacte",
-      ],
-      icon: CheckSquare,
-      placement: "right",
-    },
-    {
-      id: "task-create",
-      targetSelector: '[data-tour="task-create"]',
-      title: "Nouvelle Tâche",
-      subtitle: "Création rapide",
-      description:
-        "Créez une tâche avec son titre, sa priorité, son échéance et définissez un rappel sonore (15 min, 30 min, 1h, 1 jour avant).",
-      points: [
-        "Possibilité de lier la tâche à une activité dédiée",
-        "Carillon sonore dans le navigateur à l'échéance",
-      ],
-      icon: CheckSquare,
-      placement: "bottom",
-    },
-    {
-      id: "task-tabs",
-      targetSelector: '[data-tour="task-tabs"]',
-      title: "Filtres Temporels",
-      subtitle: "Vue ciblée",
-      description:
-        "Isolez instantanément les tâches en retard, celles prévues aujourd'hui, celles à venir ou consultez l'historique des tâches achevées.",
-      points: [
-        "Badge rouge d'alerte pour les tâches en retard",
-        "Bouton 'Reporter (+7j)' pour reprogrammer rapidement",
-      ],
-      icon: CheckSquare,
-      placement: "bottom",
-    },
-  ],
-  calendar: [
-    {
-      id: "cal-nav",
-      targetSelector: '[data-tour="nav-calendar"]',
-      title: "Calendrier Intelligent",
-      subtitle: "Planning unifié",
-      description:
-        "Retrouvez l'ensemble de vos séances d'activités, réunions et dépenses programmées dans un calendrier visuel.",
-      points: [
-        "Événements aux couleurs de chaque activité",
-        "Détection en direct des conflits d'horaires",
-      ],
-      icon: Calendar,
-      placement: "right",
-    },
-    {
-      id: "cal-views",
-      targetSelector: '[data-tour="calendar-views"]',
-      title: "Sélecteur de Vues",
-      subtitle: "4 granularités",
-      description:
-        "Basculez en un clic entre la vue Mois, Semaine, Jour et Agenda pour adapter votre visibilité selon vos besoins.",
-      points: [
-        "Vue Mois : vue macroscopique de toutes vos échéances",
-        "Vue Semaine & Jour : détail précis des créneaux horaires",
-        "Vue Agenda : liste chronologique simplifiée",
-      ],
-      icon: Calendar,
-      placement: "bottom",
-    },
-    {
-      id: "cal-grid",
-      targetSelector: '[data-tour="calendar-grid"]',
-      title: "Grille de Planning & Alertes",
-      subtitle: "Conflits & Dépenses",
-      description:
-        "Chaque séance apparaît avec sa couleur de référence. Les dépenses programmées sont indiquées sous forme de pastilles ambrées à leur date d'échéance.",
-      points: [
-        "Alerte visuelle immédiate si deux créneaux se chevauchent",
-        "Accès aux détails et modifications en cliquant sur un créneau",
-      ],
-      icon: Calendar,
-      placement: "top",
-    },
-  ],
-  reports: [
-    {
-      id: "rep-nav",
-      targetSelector: '[data-tour="nav-reports"]',
-      title: "Rapports & Rentabilité",
-      subtitle: "Valorisation de votre temps",
-      description:
-        "Analysez la profitabilité réelle de chaque activité en croisant vos heures passées dans le calendrier et vos revenus réellement encaissés.",
-      points: [
-        "Taux horaire moyen réel calculé sans estimation arbitraire",
-        "Évolution mensuelle des encaissements et décaissements",
-      ],
-      icon: BarChart3,
-      placement: "right",
-    },
-    {
-      id: "rep-export",
-      targetSelector: '[data-tour="reports-export-btn"]',
-      title: "Exportation Complète",
-      subtitle: "Rapports comptables",
-      description:
-        "Téléchargez vos analyses au format CSV pour les partager avec votre expert-comptable ou vos associés.",
-      points: [
-        "Inclut la ventilation par catégorie et par activité",
-        "Calculs certifiés sur les écritures réelles",
-      ],
-      icon: Download,
-      placement: "bottom",
-    },
-  ],
-  clients: [
-    {
-      id: "cli-nav",
-      targetSelector: '[data-tour="nav-clients"]',
-      title: "Clients & Contacts",
-      subtitle: "Carnet d'adresses professionnel",
-      description:
-        "Structurez votre réseau : créez des organisations (entreprises clientes, écoles, institutions) et rattachez-y vos contacts et activités.",
-      points: [
-        "Liaison directe avec vos contrats et revenus",
-        "Accès rapide aux téléphones et emails de relance",
-      ],
-      icon: Users,
-      placement: "right",
-    },
-    {
-      id: "cli-create",
-      targetSelector: '[data-tour="client-create"]',
-      title: "Nouveau Contact / Organisation",
-      subtitle: "Ajout simplifié",
-      description:
-        "Ajoutez des partenaires d'affaires pour centraliser toutes vos communications et facturations associées.",
-      points: [
-        "Organisation rattachable à plusieurs activités",
-        "Historique des échanges et coordonnées",
-      ],
-      icon: Users,
-      placement: "bottom",
-    },
-  ],
-  settings: [
-    {
-      id: "set-nav",
-      targetSelector: '[data-tour="nav-settings"]',
-      title: "Paramètres de Remind Me",
-      subtitle: "Personnalisation & Sécurité",
-      description:
-        "Gérez vos informations de compte, vos devises par défaut, vos fuseaux horaires et configurez vos notifications.",
-      points: [
-        "Profil : Nom, devise par défaut, fuseau horaire",
-        "Apparence : Thème Clair, Sombre ou Système",
-        "Notifications : Test de la sonnerie audio et push mobile",
-      ],
-      icon: Settings,
-      placement: "right",
-    },
-    {
-      id: "set-tabs",
-      targetSelector: '[data-tour="settings-tabs"]',
-      title: "Onglets de Configuration",
-      subtitle: "Contrôle total",
-      description:
-        "Naviguez facilement entre votre Profil, vos Canaux de notification, vos Paramètres de sécurité, vos Sessions actives et la gestion de vos Données.",
-      points: [
-        "Isolation stricte PostgreSQL RLS pour vos données",
-        "Test en direct du carillon sonore de rappel",
-      ],
-      icon: Settings,
-      placement: "bottom",
-    },
-  ],
-};
+export type { TourStep };
+export { MAIN_TOUR_STEPS, CONTEXTUAL_TOURS };
 
 const STORAGE_KEY = "remindme_tour_status";
 
@@ -504,13 +41,30 @@ interface InteractiveProductTourProps {
 export function InteractiveProductTour({ initialCompleted = false }: InteractiveProductTourProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useLanguage();
   const [isActive, setIsActive] = useState(false);
   const [currentSteps, setCurrentSteps] = useState<TourStep[]>(MAIN_TOUR_STEPS);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
   const [isContextual, setIsContextual] = useState(false);
+  const [viewport, setViewport] = useState({ width: 1920, height: 1080 });
+  const [isVoiceMuted, setIsVoiceMuted] = useState(false);
+  const [isSpeakingStep, setIsSpeakingStep] = useState(false);
+  const speechTokenRef = useRef(0);
   const tourRef = useRef<HTMLDivElement>(null);
+
+  // Synchronisation de la taille du viewport pour le calcul SVG précis
+  useEffect(() => {
+    function handleResize() {
+      if (typeof window !== "undefined") {
+        setViewport({ width: window.innerWidth, height: window.innerHeight });
+      }
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Vérifier si le tour de premier niveau doit se lancer au premier chargement
   useEffect(() => {
@@ -531,6 +85,13 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   // Écouter les événements de relance globale (remindme:start-tour)
   useEffect(() => {
     function handleStartGlobalTour() {
+      speechTokenRef.current++;
+      stopVoiceReminder(false);
+      setIsSpeakingStep(false);
+      if (typeof window !== "undefined") {
+        (window as any).__REMINDME_TOUR_ACTIVE = true;
+        window.dispatchEvent(new CustomEvent("remindme:stop-section-voice"));
+      }
       setCurrentSteps(MAIN_TOUR_STEPS);
       setIsContextual(false);
       setIsActive(true);
@@ -542,7 +103,14 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
 
     // Écouter les événements de guide contextuel (remindme:start-contextual-tour)
     function handleStartContextualTour(e: any) {
-      const section = e?.detail?.section || "finances";
+      speechTokenRef.current++;
+      stopVoiceReminder(false);
+      setIsSpeakingStep(false);
+      if (typeof window !== "undefined") {
+        (window as any).__REMINDME_TOUR_ACTIVE = true;
+        window.dispatchEvent(new CustomEvent("remindme:stop-section-voice"));
+      }
+      const section = e?.detail?.section || "dashboard";
       const steps = CONTEXTUAL_TOURS[section] || MAIN_TOUR_STEPS;
       setCurrentSteps(steps);
       setIsContextual(true);
@@ -569,7 +137,13 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       for (let i = 0; i < elements.length; i++) {
         const el = elements[i] as HTMLElement;
         const rect = el.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
+        const style = window.getComputedStyle(el);
+        if (
+          rect.width > 0 &&
+          rect.height > 0 &&
+          style.display !== "none" &&
+          style.visibility !== "hidden"
+        ) {
           return el;
         }
       }
@@ -585,7 +159,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
     if (currentStep.isModal || !currentStep.targetSelector) {
       setTargetRect(null);
       const viewportWidth = window.innerWidth;
-      const popoverWidth = Math.min(420, viewportWidth - 32);
+      const popoverWidth = Math.min(460, viewportWidth - 32);
       setPopoverStyle({
         top: "50%",
         left: "50%",
@@ -617,7 +191,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
 
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const popoverWidth = Math.min(390, viewportWidth - 28);
+      const popoverWidth = Math.min(420, viewportWidth - 28);
       const isMobile = viewportWidth < 768;
 
       let top = 0;
@@ -627,12 +201,17 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
         // Sur mobile : centrage horizontal, placement au-dessus ou en-dessous selon l'espace disponible
         left = (viewportWidth - popoverWidth) / 2;
         if (rect.top > viewportHeight / 2) {
-          top = Math.max(16, rect.top - 330);
+          // Si l'élément cible est dans la moitié inférieure de l'écran, placer le popover en haut
+          top = Math.max(16, rect.top - 360);
+          if (top + 280 > rect.top) {
+            top = 16;
+          }
         } else {
-          top = Math.min(viewportHeight - 340, rect.bottom + 14);
+          // Si l'élément cible est dans la moitié supérieure, placer le popover en dessous
+          top = Math.min(viewportHeight - 320, rect.bottom + 14);
         }
       } else {
-        // Sur desktop : positionnement selon le placement souhaité
+        // Sur desktop : positionnement selon le placement souhaité avec bascule anti-chevauchement
         if (currentStep.placement === "right") {
           left = rect.right + 16;
           top = Math.max(16, rect.top - 20);
@@ -642,12 +221,16 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
         } else if (currentStep.placement === "bottom") {
           left = Math.max(16, Math.min(rect.left, viewportWidth - popoverWidth - 16));
           top = rect.bottom + 14;
-          if (top + 340 > viewportHeight) {
-            top = Math.max(16, rect.top - 340);
+          if (top + 380 > viewportHeight) {
+            top = Math.max(16, rect.top - 380);
           }
         } else if (currentStep.placement === "top") {
           left = Math.max(16, Math.min(rect.left, viewportWidth - popoverWidth - 16));
-          top = Math.max(16, rect.top - 340);
+          if (rect.top >= 360) {
+            top = rect.top - 360;
+          } else {
+            top = rect.bottom + 14;
+          }
         } else {
           left = Math.max(16, (viewportWidth - popoverWidth) / 2);
           top = Math.max(16, rect.bottom + 14);
@@ -655,7 +238,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       }
 
       // Garde-fous d'écran stricts (aucun débordement possible)
-      top = Math.max(12, Math.min(top, viewportHeight - 370));
+      top = Math.max(12, Math.min(top, Math.max(12, viewportHeight - 260)));
       left = Math.max(12, Math.min(left, viewportWidth - popoverWidth - 12));
 
       setPopoverStyle({
@@ -668,7 +251,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       // Si aucun élément cible visible n'existe dans le DOM actuel : centrer proprement sans trou découpé erroné
       setTargetRect(null);
       const viewportWidth = window.innerWidth;
-      const popoverWidth = Math.min(400, viewportWidth - 32);
+      const popoverWidth = Math.min(440, viewportWidth - 32);
       setPopoverStyle({
         top: "50%",
         left: "50%",
@@ -680,15 +263,16 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
 
   useEffect(() => {
     updatePositions();
-    // Intervalles de stabilisation pour laisser le temps aux transitions de pages / animations
     const timer1 = setTimeout(updatePositions, 100);
     const timer2 = setTimeout(updatePositions, 350);
+    const timer3 = setTimeout(updatePositions, 700);
     window.addEventListener("resize", updatePositions);
     window.addEventListener("scroll", updatePositions, true);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
+      clearTimeout(timer3);
       window.removeEventListener("resize", updatePositions);
       window.removeEventListener("scroll", updatePositions, true);
     };
@@ -699,12 +283,26 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
     if (!isActive) return;
 
     function handleKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      const isInput =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          (target as HTMLElement).isContentEditable);
+
       if (e.key === "Escape") {
+        e.preventDefault();
         handleSkip();
       } else if (e.key === "ArrowRight") {
-        handleNext();
+        if (!isInput) {
+          e.preventDefault();
+          handleNext();
+        }
       } else if (e.key === "ArrowLeft") {
-        handlePrev();
+        if (!isInput) {
+          e.preventDefault();
+          handlePrev();
+        }
       }
     }
 
@@ -712,7 +310,100 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isActive, currentStepIndex, currentSteps]);
 
+  // Synchronisation vocale avec l'étape affichée (Objectif 1.A)
+  useEffect(() => {
+    if (!isActive || !currentStep) {
+      if (typeof window !== "undefined") {
+        (window as any).__REMINDME_TOUR_ACTIVE = false;
+      }
+      stopVoiceReminder(false);
+      setIsSpeakingStep(false);
+      return;
+    }
+
+    if (typeof window !== "undefined") {
+      (window as any).__REMINDME_TOUR_ACTIVE = true;
+    }
+
+    // Si la vidéo d'introduction est en cours, ne pas superposer la voix du guide
+    if (typeof window !== "undefined" && (window as any).__REMINDME_VIDEO_PLAYING) {
+      stopVoiceReminder(false);
+      setIsSpeakingStep(false);
+      return;
+    }
+
+    const prefs = getLocalVoiceSettings();
+    if (!prefs.voice_reminders || isVoiceMuted) {
+      stopVoiceReminder(false);
+      setIsSpeakingStep(false);
+      return;
+    }
+
+    const currentToken = ++speechTokenRef.current;
+    stopVoiceReminder(false);
+
+    const voiceLang = (prefs.voice_language || "fr") as VoiceLanguage;
+    const voiceText = getTourStepVoiceText(currentStep, voiceLang);
+
+    if (!voiceText) return;
+
+    // Délai court de 350ms pour laisser le spotlight se positionner visuellement avant de parler
+    const timer = setTimeout(async () => {
+      if (speechTokenRef.current !== currentToken || !isActive) return;
+
+      setIsSpeakingStep(true);
+      try {
+        await playVoiceReminder({
+          text: voiceText,
+          language: voiceLang,
+          voiceType: prefs.voice_type,
+          priority: "tour",
+          rate: prefs.voice_playback_rate || 1.0,
+          onStart: () => {
+            if (speechTokenRef.current === currentToken) {
+              setIsSpeakingStep(true);
+            }
+          },
+          onEnd: () => {
+            if (speechTokenRef.current === currentToken) {
+              setIsSpeakingStep(false);
+            }
+          },
+          onError: () => {
+            if (speechTokenRef.current === currentToken) {
+              setIsSpeakingStep(false);
+            }
+          },
+        });
+      } catch {
+        if (speechTokenRef.current === currentToken) {
+          setIsSpeakingStep(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      clearTimeout(timer);
+      stopVoiceReminder(false);
+      setIsSpeakingStep(false);
+    };
+  }, [isActive, currentStep, currentStepIndex, isVoiceMuted]);
+
+  // Arrêt immédiat si la vidéo motion est lancée en cours de tour
+  useEffect(() => {
+    function handleVideoActive() {
+      speechTokenRef.current++;
+      stopVoiceReminder(false);
+      setIsSpeakingStep(false);
+    }
+    window.addEventListener("remindme:video-active", handleVideoActive);
+    return () => window.removeEventListener("remindme:video-active", handleVideoActive);
+  }, []);
+
   const handleNext = async () => {
+    speechTokenRef.current++;
+    stopVoiceReminder(false);
+    setIsSpeakingStep(false);
     if (currentStepIndex < currentSteps.length - 1) {
       const nextIndex = currentStepIndex + 1;
       const nextStep = currentSteps[nextIndex];
@@ -726,6 +417,9 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   };
 
   const handlePrev = () => {
+    speechTokenRef.current++;
+    stopVoiceReminder(false);
+    setIsSpeakingStep(false);
     if (currentStepIndex > 0) {
       const prevIndex = currentStepIndex - 1;
       const prevStep = currentSteps[prevIndex];
@@ -737,7 +431,13 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   };
 
   const handleSkip = async () => {
+    speechTokenRef.current++;
+    stopVoiceReminder(false);
+    setIsSpeakingStep(false);
     setIsActive(false);
+    if (typeof window !== "undefined") {
+      (window as any).__REMINDME_TOUR_ACTIVE = false;
+    }
     if (!isContextual && typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY, "skipped");
       await saveTourState({ skipped: true, lastStep: currentStepIndex });
@@ -745,7 +445,13 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   };
 
   const handleComplete = async () => {
+    speechTokenRef.current++;
+    stopVoiceReminder(false);
+    setIsSpeakingStep(false);
     setIsActive(false);
+    if (typeof window !== "undefined") {
+      (window as any).__REMINDME_TOUR_ACTIVE = false;
+    }
     if (!isContextual && typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY, "completed");
       await saveTourState({ completed: true, lastStep: currentSteps.length });
@@ -757,52 +463,53 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   const Icon = currentStep.icon;
   const isLastStep = currentStepIndex === currentSteps.length - 1;
 
-  // Calcul géométrique du trou Spotlight SVG (avec garde stricte sur les dimensions)
+  // Calcul géométrique du trou Spotlight SVG (avec padding sécurisé)
   const isTargetValid = targetRect !== null && targetRect.width > 0 && targetRect.height > 0;
   const padding = 8;
   const spotlightX = isTargetValid ? Math.max(0, targetRect.left - padding) : 0;
   const spotlightY = isTargetValid ? Math.max(0, targetRect.top - padding) : 0;
   const spotlightW = isTargetValid ? targetRect.width + padding * 2 : 0;
   const spotlightH = isTargetValid ? targetRect.height + padding * 2 : 0;
-  const rx = 12;
+  const rx = 14;
+
+  const progressPercent = Math.round(((currentStepIndex + 1) / currentSteps.length) * 100);
+
+  // Chemin SVG avec découpe géométrique directe (fillRule evenodd) :
+  // Le trou n'a AUCUNE géométrie SVG, donc les clics passent naturellement à l'élément HTML en dessous.
+  const pathD = isTargetValid
+    ? `M 0 0 h ${viewport.width} v ${viewport.height} h -${viewport.width} Z M ${spotlightX + rx} ${spotlightY} H ${spotlightX + spotlightW - rx} A ${rx} ${rx} 0 0 1 ${spotlightX + spotlightW} ${spotlightY + rx} V ${spotlightY + spotlightH - rx} A ${rx} ${rx} 0 0 1 ${spotlightX + spotlightW - rx} ${spotlightY + spotlightH} H ${spotlightX + rx} A ${rx} ${rx} 0 0 1 ${spotlightX} ${spotlightY + spotlightH - rx} V ${spotlightY + rx} A ${rx} ${rx} 0 0 1 ${spotlightX + rx} ${spotlightY} Z`
+    : `M 0 0 h ${viewport.width} v ${viewport.height} h -${viewport.width} Z`;
 
   return (
     <div
       ref={tourRef}
-      className="fixed inset-0 z-50 overflow-hidden select-none animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 overflow-hidden pointer-events-none animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
-      aria-label="Guide interactif Remind Me"
+      data-remindme-tour="active"
+      aria-label={t("help.modal_title") || "Guide interactif Remind Me"}
     >
-      {/* Masque Sombre avec Découpe Spotlight uniquement si cible valide */}
-      <svg className="absolute inset-0 h-full w-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <mask id="spotlight-mask">
-            <rect width="100%" height="100%" fill="white" />
-            {isTargetValid && (
-              <rect
-                x={spotlightX}
-                y={spotlightY}
-                width={spotlightW}
-                height={spotlightH}
-                rx={rx}
-                fill="black"
-              />
-            )}
-          </mask>
-        </defs>
-        <rect
-          width="100%"
-          height="100%"
-          fill="rgba(11, 15, 25, 0.78)"
-          mask="url(#spotlight-mask)"
+      {/* Masque Sombre avec Découpe Spotlight directe :
+          La zone sombre intercepte les clics pour fermer/passer le guide, tandis que le trou
+          laisse interagir librement avec l'élément mis en avant. */}
+      <svg
+        className="absolute inset-0 h-full w-full pointer-events-none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d={pathD}
+          fillRule="evenodd"
+          fill="rgba(11, 15, 25, 0.52)"
+          className="pointer-events-auto cursor-pointer"
+          onClick={handleSkip}
+          aria-hidden="true"
         />
       </svg>
 
       {/* Anneau doré animé autour de l'élément ciblé uniquement si cible valide */}
       {isTargetValid && (
         <div
-          className="absolute pointer-events-none rounded-xl border-2 border-gold ring-4 ring-gold/20 shadow-gold-subtle transition-all duration-300 animate-pulse"
+          className="absolute pointer-events-none rounded-2xl border-2 border-gold ring-4 ring-gold/25 shadow-lg shadow-gold/20 transition-all duration-300 animate-pulse"
           style={{
             left: `${spotlightX}px`,
             top: `${spotlightY}px`,
@@ -812,52 +519,178 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
         />
       )}
 
-      {/* Popover Carte Flottante */}
+      {/* Popover Carte Flottante Élégante */}
       <div
-        className="fixed z-50 flex flex-col rounded-2xl border border-ink-200/80 bg-canvas-raised p-5 shadow-2xl backdrop-blur-md transition-all duration-200"
+        className="fixed z-50 flex flex-col rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 p-5 sm:p-6 shadow-2xl backdrop-blur-md transition-all duration-200 max-h-[88vh] overflow-y-auto pointer-events-auto select-text"
         style={popoverStyle}
+        onClick={(e) => e.stopPropagation()}
       >
+        {/* Barre de progression subtile */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-ink-100 dark:bg-ink-800 rounded-t-3xl overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-300"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
         {/* En-tête avec étape & bouton fermer */}
-        <div className="flex items-center justify-between gap-2 border-b border-ink-100 pb-3">
-          <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gold/15 text-gold-dark font-bold text-xs">
+        <div className="flex items-center justify-between gap-2 border-b border-ink-100 dark:border-ink-800 pb-3 mt-1">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 via-amber-400/15 to-yellow-500/10 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/25 shrink-0">
               <Icon className="h-4 w-4" />
             </span>
-            <div className="flex items-center gap-1.5">
-              <span className="rounded-md bg-signal-soft px-2 py-0.5 text-[11px] font-bold text-signal">
-                Étape {currentStepIndex + 1} / {currentSteps.length}
-              </span>
-              <span className="text-[11px] text-ink-500 font-medium hidden sm:inline">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="rounded-md bg-signal-soft/80 dark:bg-signal-soft/30 px-2 py-0.5 text-[10px] font-black text-signal uppercase tracking-wider">
+                  {t("tour.step_counter", { current: currentStepIndex + 1, total: currentSteps.length })}
+                </span>
+                {isContextual && (
+                  <span className="rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold">
+                    {t("tour.badge_contextual") || "Guide contextuel"}
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] text-ink-500 dark:text-ink-400 font-medium line-clamp-1">
                 {currentStep.subtitle}
               </span>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleSkip}
-            className="rounded-lg p-1 text-ink-400 hover:bg-ink-100 hover:text-ink-700 transition-colors"
-            title="Passer le guide (Échap)"
-            aria-label="Fermer le guide"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                if (isSpeakingStep) {
+                  speechTokenRef.current++;
+                  stopVoiceReminder(false);
+                  setIsSpeakingStep(false);
+                  setIsVoiceMuted(true);
+                } else if (isVoiceMuted) {
+                  setIsVoiceMuted(false);
+                } else {
+                  // Relancer la lecture de l'étape affichée
+                  speechTokenRef.current++;
+                  const currentToken = speechTokenRef.current;
+                  const prefs = getLocalVoiceSettings();
+                  const voiceLang = (prefs.voice_language || "fr") as VoiceLanguage;
+                  const voiceText = getTourStepVoiceText(currentStep, voiceLang);
+                  if (voiceText) {
+                    setIsSpeakingStep(true);
+                    playVoiceReminder({
+                      text: voiceText,
+                      language: voiceLang,
+                      voiceType: prefs.voice_type,
+                      priority: "tour",
+                      rate: prefs.voice_playback_rate || 1.0,
+                      onEnd: () => {
+                        if (speechTokenRef.current === currentToken) setIsSpeakingStep(false);
+                      },
+                      onError: () => {
+                        if (speechTokenRef.current === currentToken) setIsSpeakingStep(false);
+                      },
+                    });
+                  }
+                }
+              }}
+              className={`rounded-xl p-1.5 transition-all cursor-pointer ${
+                isSpeakingStep
+                  ? "bg-amber-500/20 text-amber-600 dark:text-amber-400 ring-2 ring-amber-500/40 animate-pulse"
+                  : isVoiceMuted
+                  ? "text-ink-300 dark:text-ink-600 hover:text-ink-600 dark:hover:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800"
+                  : "text-ink-500 hover:text-ink-900 dark:hover:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800"
+              }`}
+              title={
+                isSpeakingStep
+                  ? "Couper la voix du guide"
+                  : isVoiceMuted
+                  ? "Activer la voix du guide"
+                  : "Réécouter l'étape"
+              }
+              aria-label="Contrôle audio du guide"
+            >
+              {isVoiceMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSkip}
+              className="rounded-xl p-1.5 text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-700 dark:hover:text-ink-200 transition-colors cursor-pointer"
+              title={t("tour.btn_close")}
+              aria-label={t("tour.btn_close")}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Corps du message */}
-        <div className="py-3.5 space-y-2.5">
-          <h3 className="text-base font-extrabold text-ink-950 tracking-tight flex items-center gap-1.5">
+        {/* Corps pédagogique du message */}
+        <div className="py-3.5 space-y-3">
+          <h3 className="text-base sm:text-lg font-black text-ink-950 dark:text-white tracking-tight leading-snug">
             {currentStep.title}
           </h3>
-          <p className="text-xs text-ink-700 leading-relaxed">
+
+          <p className="text-xs sm:text-sm text-ink-700 dark:text-ink-200 leading-relaxed">
             {currentStep.description}
           </p>
 
+          {/* Rôle / Finalité si précisée */}
+          {currentStep.purpose && (
+            <div className="p-2.5 rounded-xl bg-signal-soft/20 border border-signal/20 text-[11px] text-ink-800 dark:text-ink-200 leading-relaxed flex items-start gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-signal shrink-0 mt-0.5" />
+              <div>
+                <strong className="font-bold text-signal">{t("tour.purpose_title")} : </strong>
+                <span>{currentStep.purpose}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Opérations clés */}
+          {currentStep.keyActions && currentStep.keyActions.length > 0 && (
+            <div className="space-y-1.5 pt-1">
+              <span className="text-[11px] font-bold text-ink-800 dark:text-ink-200 uppercase tracking-wider block">
+                {t("tour.key_actions_title")} :
+              </span>
+              <ul className="space-y-1">
+                {currentStep.keyActions.map((action, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-[11px] text-ink-600 dark:text-ink-300">
+                    <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-signal/15 text-signal text-[9px] font-bold shrink-0 mt-0.5">
+                      {idx + 1}
+                    </span>
+                    <span>{action}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Comment interpréter */}
+          {currentStep.interpretation && (
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-800 dark:text-emerald-300 leading-relaxed flex items-start gap-2">
+              <Info className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="font-bold">{t("tour.interpretation_title")} : </strong>
+                <span>{currentStep.interpretation}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Erreurs courantes à éviter */}
+          {currentStep.commonMistakes && (
+            <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-800 dark:text-rose-300 leading-relaxed flex items-start gap-2">
+              <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="font-bold">{t("tour.common_mistakes_title")} : </strong>
+                <span>{currentStep.commonMistakes}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Puces de synthèse */}
           {currentStep.points && currentStep.points.length > 0 && (
             <ul className="space-y-1.5 pt-1">
               {currentStep.points.map((pt, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-[11px] text-ink-600">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-positive shrink-0 mt-0.5" />
+                <li key={idx} className="flex items-start gap-2 text-[11px] text-ink-600 dark:text-ink-300">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                   <span>{pt}</span>
                 </li>
               ))}
@@ -865,14 +698,14 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
           )}
         </div>
 
-        {/* Pied de carte : Navigation */}
-        <div className="flex items-center justify-between pt-3 border-t border-ink-100">
+        {/* Pied de carte : Navigation Précédent / Suivant / Passer */}
+        <div className="flex items-center justify-between pt-3 border-t border-ink-100 dark:border-ink-800 mt-1">
           <button
             type="button"
             onClick={handleSkip}
-            className="text-xs font-medium text-ink-500 hover:text-ink-900 transition-colors"
+            className="text-xs font-semibold text-ink-500 hover:text-ink-900 dark:hover:text-white transition-colors cursor-pointer"
           >
-            Passer
+            {t("tour.btn_skip")}
           </button>
 
           <div className="flex items-center gap-2">
@@ -880,24 +713,24 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
               <button
                 type="button"
                 onClick={handlePrev}
-                className="flex items-center gap-1 rounded-lg border border-ink-300 bg-canvas px-3 py-1.5 text-xs font-semibold text-ink-800 hover:bg-ink-100 transition-colors"
+                className="flex items-center gap-1 rounded-xl border border-ink-200 dark:border-ink-700 bg-canvas dark:bg-ink-800 px-3 py-1.5 text-xs font-bold text-ink-800 dark:text-ink-200 hover:bg-canvas-subtle dark:hover:bg-ink-700 transition-colors cursor-pointer"
               >
-                <ArrowLeft className="h-3.5 w-3.5" /> Précédent
+                <ArrowLeft className="h-3.5 w-3.5" /> {t("tour.btn_prev")}
               </button>
             )}
 
             <button
               type="button"
               onClick={handleNext}
-              className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-3.5 py-1.5 text-xs font-bold text-white shadow-gold-subtle hover:brightness-110 active:scale-95 transition-all"
+              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 px-3.5 py-1.5 text-xs font-black text-slate-950 shadow-md shadow-amber-500/20 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
             >
               {isLastStep ? (
                 <>
-                  <Sparkles className="h-3.5 w-3.5" /> C'est parti !
+                  <Sparkles className="h-3.5 w-3.5" /> {t("tour.btn_finish")}
                 </>
               ) : (
                 <>
-                  Suivant <ArrowRight className="h-3.5 w-3.5" />
+                  {t("tour.btn_next")} <ArrowRight className="h-3.5 w-3.5" />
                 </>
               )}
             </button>
@@ -923,6 +756,8 @@ export function triggerInteractiveTour() {
  */
 export function triggerContextualTour(section: string) {
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("remindme:start-contextual-tour", { detail: { section } }));
+    window.dispatchEvent(
+      new CustomEvent("remindme:start-contextual-tour", { detail: { section } })
+    );
   }
 }

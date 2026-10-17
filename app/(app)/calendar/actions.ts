@@ -44,8 +44,8 @@ export async function setEventStatus(eventId: string, status: CalendarEventStatu
 
   if (error) throw new Error("Impossible de mettre à jour le statut de l'événement.");
 
-  // Auto-Stop ou recalibrage
-  if (status === "completed" || status === "cancelled") {
+  // Auto-Stop ou recalibrage : résolution immédiate des rappels devenus inutiles
+  if (status === "completed" || status === "cancelled" || status === "missed" || status === "postponed") {
     await resolveEntityNotifications(supabase, eventId, user.id);
   } else {
     await triggerProactiveReminders(supabase, user.id, timezone);

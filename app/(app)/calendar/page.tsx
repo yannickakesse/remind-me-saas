@@ -11,6 +11,7 @@ import { DayView } from "@/components/calendar/day-view";
 import { AgendaView } from "@/components/calendar/agenda-view";
 import type { CalendarEventView } from "@/components/calendar/types";
 import { getUserTimezone } from "@/lib/time/timezones";
+import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
 
 export default async function CalendarPage({
   searchParams,
@@ -92,14 +93,19 @@ export default async function CalendarPage({
         style={{ backgroundImage: "url('/images/backgrounds/calendar-bg.jpg')" }}
       />
 
-      <div className="relative overflow-hidden rounded-2xl bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 p-5 sm:p-6 shadow-xs">
-        <div className="relative z-10">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white truncate">
-            Calendrier & Planning
-          </h1>
-          <p className="text-xs sm:text-sm text-ink-500 mt-1">
-            Vos séances d'activités et vos échéances financières programmées.
-          </p>
+      <div className="relative overflow-hidden rounded-2xl bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 p-5 sm:p-6 shadow-xs" data-tour="calendar-header">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white truncate">
+              Calendrier &amp; Planning
+            </h1>
+            <p className="text-xs sm:text-sm text-ink-500 mt-1">
+              Vos séances d&apos;activités et vos échéances financières programmées.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <SectionGuideTrigger section="calendar" label="Guide du planning" />
+          </div>
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import type { MonthlySummaryItem } from "@/lib/reports/profitability";
 
 export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [activeMode, setActiveMode] = useState<"all" | "expenses" | "income">("all");
 
   if (items.length === 0) {
     return (
@@ -37,8 +38,10 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
       items.length === 1
         ? padLeft + chartW / 2
         : padLeft + (idx / (items.length - 1)) * chartW;
-    const yIncome = padTop + chartH * (1 - m.income / maxVal);
-    const yExpenses = padTop + chartH * (1 - m.expenses / maxVal);
+    const currentIncomeVal = activeMode === "income" ? m.incomeReceived : m.income;
+    const currentExpensesVal = activeMode === "expenses" ? m.expensesPaid : m.expenses;
+    const yIncome = padTop + chartH * (1 - currentIncomeVal / maxVal);
+    const yExpenses = padTop + chartH * (1 - currentExpensesVal / maxVal);
     return { x, yIncome, yExpenses, data: m };
   });
 
@@ -86,29 +89,53 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
     hoveredIdx !== null ? items[hoveredIdx] : (items[items.length - 1] ?? items[0]);
 
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 sm:p-6 space-y-5 shadow-md">
-      {/* Header & Legend */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3.5">
-        <div>
-          <h3 className="font-extrabold text-zinc-950 dark:text-white text-base flex items-center gap-2">
-            <Activity className="w-4 h-4 text-signal" />
-            Évolution & Courbe Mensuelle
-          </h3>
-          <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5 font-medium">
-            Suivi visuel des courbes de revenus vs dépenses
-          </p>
-        </div>
+    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 sm:p-6 space-y-4 shadow-md">
+      {/* Header */}
+      <div className="border-b border-zinc-200 dark:border-zinc-800 pb-3">
+        <h3 className="font-extrabold text-zinc-950 dark:text-white text-base flex items-center gap-2">
+          <Activity className="w-4 h-4 text-signal" />
+          Évolution & Courbe Mensuelle
+        </h3>
+        <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5 font-medium">
+          {activeMode === "all"
+            ? "Comparaison des courbes de flux : revenus vs dépenses"
+            : activeMode === "income"
+            ? "Affichage isolé de la courbe des revenus encaissés"
+            : "Affichage isolé de la courbe des dépenses décaissées"}
+        </p>
+      </div>
 
-        {/* Legend */}
-        <div className="flex items-center gap-3 text-xs shrink-0 bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700">
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-1 rounded-full bg-emerald-500" />
-            <span className="font-bold text-zinc-900 dark:text-white">Revenus</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-1 rounded-full bg-rose-500" />
-            <span className="font-bold text-zinc-900 dark:text-white">Dépenses</span>
-          </div>
+      {/* Zone de commande centrée : Sélecteurs Dépenses & Revenus face à face */}
+      <div className="flex items-center justify-center w-full py-1">
+        <div className="inline-flex items-center justify-center gap-2 p-1.5 bg-zinc-100 dark:bg-zinc-800/90 rounded-2xl border border-zinc-200 dark:border-zinc-700/80 shadow-xs w-full sm:w-auto min-w-[280px] max-w-md">
+          <button
+            type="button"
+            onClick={() => setActiveMode((prev) => (prev === "expenses" ? "all" : "expenses"))}
+            className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              activeMode === "expenses"
+                ? "bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                : activeMode === "all"
+                ? "bg-white/80 dark:bg-zinc-900/80 text-rose-600 dark:text-rose-400 shadow-2xs hover:bg-white dark:hover:bg-zinc-900"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50"
+            }`}
+          >
+            <TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+            <span>Dépenses</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveMode((prev) => (prev === "income" ? "all" : "income"))}
+            className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              activeMode === "income"
+                ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                : activeMode === "all"
+                ? "bg-white/80 dark:bg-zinc-900/80 text-emerald-600 dark:text-emerald-400 shadow-2xs hover:bg-white dark:hover:bg-zinc-900"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50"
+            }`}
+          >
+            <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>Revenus</span>
+          </button>
         </div>
       </div>
 
@@ -157,29 +184,37 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
             );
           })}
 
-          {/* Gradient Area Fills */}
-          {incomeAreaPath && <path d={incomeAreaPath} fill="url(#incomeGrad)" />}
-          {expensesAreaPath && <path d={expensesAreaPath} fill="url(#expensesGrad)" />}
+          {/* Gradient Area Fills conditionnels */}
+          {activeMode !== "expenses" && incomeAreaPath && (
+            <path d={incomeAreaPath} fill="url(#incomeGrad)" />
+          )}
+          {activeMode !== "income" && expensesAreaPath && (
+            <path d={expensesAreaPath} fill="url(#expensesGrad)" />
+          )}
 
-          {/* Smoothed Stroke Lines */}
-          <path
-            d={incomeLinePath}
-            fill="none"
-            stroke="#10B981"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="filter drop-shadow-[0_2px_4px_rgba(16,185,129,0.3)]"
-          />
-          <path
-            d={expensesLinePath}
-            fill="none"
-            stroke="#EF4444"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="filter drop-shadow-[0_2px_4px_rgba(239,68,68,0.3)]"
-          />
+          {/* Smoothed Stroke Lines conditionnelles */}
+          {activeMode !== "expenses" && (
+            <path
+              d={incomeLinePath}
+              fill="none"
+              stroke="#10B981"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="filter drop-shadow-[0_2px_4px_rgba(16,185,129,0.3)]"
+            />
+          )}
+          {activeMode !== "income" && (
+            <path
+              d={expensesLinePath}
+              fill="none"
+              stroke="#EF4444"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="filter drop-shadow-[0_2px_4px_rgba(239,68,68,0.3)]"
+            />
+          )}
 
           {/* Points & Vertical Guides */}
           {points.map((p, idx) => {
@@ -206,26 +241,30 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
                 )}
 
                 {/* Income point */}
-                <circle
-                  cx={p.x}
-                  cy={p.yIncome}
-                  r={isHovered ? 6 : 4}
-                  fill="#10B981"
-                  stroke="#FFFFFF"
-                  strokeWidth={2}
-                  className="transition-all duration-200"
-                />
+                {activeMode !== "expenses" && (
+                  <circle
+                    cx={p.x}
+                    cy={p.yIncome}
+                    r={isHovered ? 6 : 4}
+                    fill="#10B981"
+                    stroke="#FFFFFF"
+                    strokeWidth={2}
+                    className="transition-all duration-200"
+                  />
+                )}
 
                 {/* Expenses point */}
-                <circle
-                  cx={p.x}
-                  cy={p.yExpenses}
-                  r={isHovered ? 6 : 4}
-                  fill="#EF4444"
-                  stroke="#FFFFFF"
-                  strokeWidth={2}
-                  className="transition-all duration-200"
-                />
+                {activeMode !== "income" && (
+                  <circle
+                    cx={p.x}
+                    cy={p.yExpenses}
+                    r={isHovered ? 6 : 4}
+                    fill="#EF4444"
+                    stroke="#FFFFFF"
+                    strokeWidth={2}
+                    className="transition-all duration-200"
+                  />
+                )}
 
                 {/* X Axis Month Label */}
                 <text
@@ -247,27 +286,41 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
 
         {/* Dynamic Tooltip / Focus Card */}
         {activeItem && (
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-canvas-raised border border-ink-200 dark:border-ink-800 text-xs">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-canvas-raised border border-ink-200 dark:border-ink-800 text-xs shadow-xs">
             <span className="font-bold text-ink-950 dark:text-ink-50">
               Focus : {activeItem.monthLabel}
             </span>
-            <div className="flex items-center gap-4">
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" />
-                {formatAmount(activeItem.income, activeItem.currency)}
-              </span>
-              <span className="text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1">
-                <TrendingDown className="w-3.5 h-3.5" />
-                {formatAmount(activeItem.expenses, activeItem.currency)}
-              </span>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="text-right">
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-end gap-1">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  {formatAmount(activeItem.incomeReceived, activeItem.currency)} encaissés
+                </span>
+                {activeItem.incomeExpected > 0 && (
+                  <span className="text-[10.5px] text-ink-500 font-medium">
+                    +{formatAmount(activeItem.incomeExpected, activeItem.currency)} attendus
+                  </span>
+                )}
+              </div>
+              <div className="text-right">
+                <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center justify-end gap-1">
+                  <TrendingDown className="w-3.5 h-3.5" />
+                  {formatAmount(activeItem.expensesPaid, activeItem.currency)} payées
+                </span>
+                {activeItem.expensesPlanned > 0 && (
+                  <span className="text-[10.5px] text-ink-500 font-medium">
+                    +{formatAmount(activeItem.expensesPlanned, activeItem.currency)} prévues
+                  </span>
+                )}
+              </div>
               <span
-                className={`px-2 py-0.5 rounded-md font-bold text-[11px] ${
-                  activeItem.net >= 0
-                    ? "bg-positive-soft text-positive"
-                    : "bg-danger-soft text-danger"
+                className={`px-2.5 py-1 rounded-lg font-bold text-xs ${
+                  activeItem.netReal >= 0
+                    ? "bg-positive-soft text-positive border border-positive/30"
+                    : "bg-danger-soft text-danger border border-danger/30"
                 }`}
               >
-                Net : {formatAmount(activeItem.net, activeItem.currency)}
+                Solde réel : {formatAmount(activeItem.netReal, activeItem.currency)}
               </span>
             </div>
           </div>
@@ -277,11 +330,11 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
       {/* Monthly Breakdown Table / Cards below curve */}
       <div className="space-y-2 pt-1">
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-500">
-          Détail chiffré par mois
+          Détail chiffré par mois (flux réels &amp; prévisions)
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {items.map((m, idx) => {
-            const isLoss = m.net < 0;
+            const isLoss = m.netReal < 0;
             return (
               <div
                 key={`${m.monthKey}-${idx}`}
@@ -295,17 +348,23 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
               >
                 <div className="flex items-center justify-between text-xs font-bold mb-1.5">
                   <span className="text-ink-950 dark:text-ink-50">{m.monthLabel}</span>
-                  <span className={isLoss ? "text-danger" : "text-positive"}>
-                    {isLoss ? "Déficit : " : "Bénéfice : "}
-                    {formatAmount(m.net, m.currency)}
+                  <span className={isLoss ? "text-danger font-black" : "text-positive font-black"}>
+                    {isLoss ? "Déficit réel : " : "Solde réel : "}
+                    {formatAmount(m.netReal, m.currency)}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[11px] text-ink-600 dark:text-ink-400">
                   <div>
-                    Revenus : <strong className="text-emerald-600">{formatAmount(m.income, m.currency)}</strong>
+                    Encaissé : <strong className="text-emerald-600 font-bold">{formatAmount(m.incomeReceived, m.currency)}</strong>
+                    {m.incomeExpected > 0 && (
+                      <span className="text-[10px] text-ink-500 block">+{formatAmount(m.incomeExpected, m.currency)} att.</span>
+                    )}
                   </div>
                   <div className="text-right">
-                    Dépenses : <strong className="text-rose-600">{formatAmount(m.expenses, m.currency)}</strong>
+                    Payé : <strong className="text-rose-600 font-bold">{formatAmount(m.expensesPaid, m.currency)}</strong>
+                    {m.expensesPlanned > 0 && (
+                      <span className="text-[10px] text-ink-500 block">+{formatAmount(m.expensesPlanned, m.currency)} prév.</span>
+                    )}
                   </div>
                 </div>
               </div>

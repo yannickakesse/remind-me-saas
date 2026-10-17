@@ -237,6 +237,9 @@ export interface Database {
           location: string | null;
           start_date: string | null;
           end_date: string | null;
+          validity_type?: ValidityType;
+          engagement_nature?: EngagementNature;
+          reminder_preference?: ReminderPreference;
           voice_reminder_enabled?: boolean;
           created_at: string;
           updated_at: string;
@@ -257,6 +260,9 @@ export interface Database {
           location?: string | null;
           start_date?: string | null;
           end_date?: string | null;
+          validity_type?: ValidityType;
+          engagement_nature?: EngagementNature;
+          reminder_preference?: ReminderPreference;
           voice_reminder_enabled?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["activities"]["Insert"]>;
@@ -646,8 +652,16 @@ export interface Database {
           second_reminder_minutes?: number;
           voice_reminders?: boolean;
           voice_type?: "system" | "female" | "male";
-          voice_language?: "fr" | "en" | "es";
+          voice_language?: "fr" | "en" | "es" | "de" | "pt";
           repeat_voice?: number;
+          voice_category_activities?: boolean;
+          voice_category_tasks?: boolean;
+          voice_category_finances?: boolean;
+          voice_category_briefings?: boolean;
+          voice_hide_financial_amounts?: boolean;
+          voice_include_user_name?: boolean;
+          custom_voice_reminder_text?: string;
+          voice_playback_rate?: number;
           updated_at: string;
         };
         Insert: {
@@ -675,8 +689,16 @@ export interface Database {
           preferred_locale?: SupportedLocale;
           voice_reminders?: boolean;
           voice_type?: "system" | "female" | "male";
-          voice_language?: "fr" | "en" | "es";
+          voice_language?: "fr" | "en" | "es" | "de" | "pt";
           repeat_voice?: number;
+          voice_category_activities?: boolean;
+          voice_category_tasks?: boolean;
+          voice_category_finances?: boolean;
+          voice_category_briefings?: boolean;
+          voice_hide_financial_amounts?: boolean;
+          voice_include_user_name?: boolean;
+          custom_voice_reminder_text?: string;
+          voice_playback_rate?: number;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["notification_preferences"]["Insert"]>;
@@ -773,6 +795,10 @@ export interface Database {
     CompositeTypes: Record<string, never>;
   };
 }
+
+export type ValidityType = "permanent" | "temporary";
+export type EngagementNature = "routine" | "temporary_engagement" | "important" | "one_time";
+export type ReminderPreference = "enabled" | "disabled" | "recommended";
 
 export type ActivityType =
   | "salaried_job"

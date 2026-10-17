@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { X, Play, Pause, Volume2, VolumeX, Sparkles, ArrowRight } from "lucide-react";
+import { stopVoiceReminder } from "@/lib/voice";
+import { unlockVoiceAudio } from "@/lib/voice/tts";
 
 const STORAGE_KEY = "remindme_motion_popup_last_shown";
 const COOLDOWN_MS = 2.5 * 24 * 60 * 60 * 1000; // 2.5 jours (~60h)
@@ -11,7 +13,10 @@ export function WelcomeVideoModal() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const hasStartedRef = useRef(false);
+  const gestureListenerAttachedRef = useRef(false);
 
+  // Vérification de la fréquence d'affichage à l'ouverture
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -29,23 +34,104 @@ export function WelcomeVideoModal() {
     }
 
     if (shouldShow) {
-      // Petite pause d'accueil (700ms) avant d'afficher le pop-up centré
+      // Pause ergonomique de 500ms avant d'afficher le pop-up centré
       const timer = setTimeout(() => {
         setIsOpen(true);
-      }, 700);
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, []);
 
-  // Lancement automatique de la vidéo après 1.5 seconde
+  // Écoute des demandes manuelles de réouverture (Centre d'aide, Paramètres)
+  useEffect(() => {
+    function handleOpenManual() {
+      hasStartedRef.current = false;
+      setIsOpen(true);
+    }
+    window.addEventListener("remindme:open-intro-video", handleOpenManual);
+    return () => window.removeEventListener("remindme:open-intro-video", handleOpenManual);
+  }, []);
+
+  // Déverrouillage automatique du son au premier geste utilisateur
+  const enableSoundOnGesture = useCallback(() => {
+    const video = videoRef.current;
+    if (video) {
+      try {
+        video.muted = false;
+        setIsMuted(false);
+        unlockVoiceAudio();
+      } catch {}
+    }
+    removeGestureListeners();
+  }, []);
+
+  const removeGestureListeners = useCallback(() => {
+    if (typeof window === "undefined" || !gestureListenerAttachedRef.current) return;
+    window.removeEventListener("pointerdown", enableSoundOnGesture, true);
+    window.removeEventListener("touchstart", enableSoundOnGesture, true);
+    window.removeEventListener("keydown", enableSoundOnGesture, true);
+    gestureListenerAttachedRef.current = false;
+  }, [enableSoundOnGesture]);
+
+  const attachGestureListeners = useCallback(() => {
+    if (typeof window === "undefined" || gestureListenerAttachedRef.current) return;
+    window.addEventListener("pointerdown", enableSoundOnGesture, { capture: true, once: true });
+    window.addEventListener("touchstart", enableSoundOnGesture, { capture: true, once: true });
+    window.addEventListener("keydown", enableSoundOnGesture, { capture: true, once: true });
+    gestureListenerAttachedRef.current = true;
+  }, [enableSoundOnGesture]);
+
+  // Fermeture et arrêt complet de la vidéo
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+    removeGestureListeners();
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, Date.now().toString());
+      (window as any).__REMINDME_VIDEO_PLAYING = false;
+      window.dispatchEvent(new CustomEvent("remindme:video-closed"));
+    }
+
+    const video = videoRef.current;
+    if (video) {
+      try {
+        video.pause();
+        video.currentTime = 0;
+      } catch {}
+    }
+  }, [removeGestureListeners]);
+
+  // Support touche Échap
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleClose();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, handleClose]);
+
+  // Lancement automatique et robuste de la vidéo dès l'ouverture du modal
   useEffect(() => {
     if (!isOpen) return;
 
+    // 1. Couper toute synthèse vocale ou rappel en cours pour éviter toute interférence
+    stopVoiceReminder(false);
+    if (typeof window !== "undefined") {
+      (window as any).__REMINDME_VIDEO_PLAYING = true;
+      window.dispatchEvent(new CustomEvent("remindme:video-active"));
+    }
+
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || hasStartedRef.current) return;
 
     const timer = setTimeout(() => {
-      // Essayer de lire avec son en premier
+      hasStartedRef.current = true;
+
+      // Tenter d'abord la lecture avec le son activé
       video.muted = false;
       setIsMuted(false);
 
@@ -54,39 +140,56 @@ export function WelcomeVideoModal() {
         playPromise
           .then(() => {
             setIsPlaying(true);
+            setIsMuted(false);
           })
           .catch(() => {
-            // Si la politique du navigateur bloque l'audio sans geste utilisateur, démarrer en muet avec bannière pour activer le son
+            // Politique autoplay stricte du navigateur : démarrer en muet et écouter le premier geste
             video.muted = true;
             setIsMuted(true);
-            video.play().then(() => {
-              setIsPlaying(true);
-            }).catch((err) => {
-              console.log("Auto-play blocked:", err);
-            });
+            video
+              .play()
+              .then(() => {
+                setIsPlaying(true);
+                // Rétablir le son dès la première interaction autorisée de l'utilisateur
+                attachGestureListeners();
+              })
+              .catch((err) => {
+                console.debug("[WelcomeVideoModal] Autoplay muet également bloqué:", err);
+                setIsPlaying(false);
+              });
           });
       }
-    }, 1500);
+    }, 250);
 
-    return () => clearTimeout(timer);
-  }, [isOpen]);
+    return () => {
+      clearTimeout(timer);
+      removeGestureListeners();
+      if (typeof window !== "undefined") {
+        (window as any).__REMINDME_VIDEO_PLAYING = false;
+      }
+    };
+  }, [isOpen, attachGestureListeners, removeGestureListeners]);
 
-  const handleClose = () => {
-    setIsOpen(false);
+  const handleVideoEnded = () => {
+    setIsPlaying(false);
     if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, Date.now().toString());
-    }
-    const video = videoRef.current;
-    if (video) {
-      video.pause();
+      (window as any).__REMINDME_VIDEO_PLAYING = false;
+      window.dispatchEvent(new CustomEvent("remindme:video-closed"));
     }
   };
 
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
+
     if (video.paused) {
-      video.play().then(() => setIsPlaying(true)).catch(() => {});
+      video
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          stopVoiceReminder(false);
+        })
+        .catch(() => {});
     } else {
       video.pause();
       setIsPlaying(false);
@@ -96,15 +199,20 @@ export function WelcomeVideoModal() {
   const toggleMute = () => {
     const video = videoRef.current;
     if (!video) return;
+
     video.muted = !video.muted;
     setIsMuted(video.muted);
+    if (!video.muted) {
+      unlockVoiceAudio();
+      removeGestureListeners();
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-300 select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 dark:bg-black/80 backdrop-blur-md animate-in fade-in duration-300 select-none"
       role="dialog"
       aria-modal="true"
       aria-label="Présentation Remind Me"
@@ -139,8 +247,8 @@ export function WelcomeVideoModal() {
           <video
             ref={videoRef}
             playsInline
-            loop
             preload="auto"
+            onEnded={handleVideoEnded}
             className="w-full h-full object-contain bg-black"
           >
             <source src="/remindme-intro.mp4" type="video/mp4" />
@@ -178,7 +286,7 @@ export function WelcomeVideoModal() {
                 e.stopPropagation();
                 togglePlay();
               }}
-              className="flex items-center gap-1 hover:text-signal transition-colors"
+              className="flex items-center gap-1 hover:text-signal transition-colors cursor-pointer"
             >
               {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
               <span>{isPlaying ? "Pause" : "Lecture"}</span>
@@ -190,7 +298,7 @@ export function WelcomeVideoModal() {
                 e.stopPropagation();
                 toggleMute();
               }}
-              className="flex items-center gap-1 hover:text-signal transition-colors"
+              className="flex items-center gap-1 hover:text-signal transition-colors cursor-pointer"
             >
               {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               <span>{isMuted ? "Son coupé" : "Son activé"}</span>
@@ -208,6 +316,7 @@ export function WelcomeVideoModal() {
             type="button"
             onClick={handleClose}
             className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-xl bg-signal hover:bg-signal-dark active:scale-95 text-white text-xs font-black shadow-md transition-all cursor-pointer"
+            aria-label="Passer l'introduction et continuer"
           >
             <span>Passer l&apos;intro</span>
             <ArrowRight className="w-4 h-4" />

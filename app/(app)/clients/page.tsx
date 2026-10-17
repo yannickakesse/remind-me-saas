@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireCurrentUser } from "@/lib/supabase/auth";
 import { deleteOrganization, deleteContact } from "./actions";
 import { buttonClasses } from "@/components/ui/button";
+import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
 
 export default async function ClientsPage() {
   const user = await requireCurrentUser();
@@ -58,6 +59,7 @@ export default async function ClientsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <SectionGuideTrigger section="clients" label="Guide clients" />
             <Link href="/clients/organizations/new" className={buttonClasses("secondary", "sm")}>
               <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle organisation
             </Link>

@@ -6,10 +6,11 @@ export type FinanceStatus = "received" | "paid" | "overdue" | "expected" | "futu
 export function deriveFinanceStatus(
   fulfilled: boolean | string | null | undefined,
   dueDate: string | null | undefined,
-  userTimezone: string = "UTC"
+  userTimezone: string = "UTC",
+  kind: "income" | "expense" = "income"
 ): FinanceStatus {
   if (fulfilled === true || (typeof fulfilled === "string" && fulfilled.trim().length > 0)) {
-    return "received"; // ou "paid"
+    return kind === "expense" ? "paid" : "received";
   }
   if (!dueDate) {
     return "expected";

@@ -2,18 +2,41 @@ import { createClient } from "@/lib/supabase/server";
 import { requireCurrentUser } from "@/lib/supabase/auth";
 import { ActivitiesClientView, ActivityViewItem } from "@/components/shared/activities-client-view";
 
-export default async function ActivitiesPage() {
+export default async function ActivitiesPage({
+  searchParams,
+}: {
+  searchParams?: { renew?: string };
+}) {
   const user = await requireCurrentUser();
   const supabase = createClient();
   const todayISO = new Date().toISOString().slice(0, 10);
+  const renewActivityId = searchParams?.renew;
 
   const { data: activities } = await supabase
     .from("activities")
     .select(
-      "id, name, type, color, status, work_mode, start_date, end_date, organizations(name), activity_compensation(amount, currency, frequency)"
+      "id, name, type, color, status, work_mode, start_date, end_date, validity_type, engagement_nature, reminder_preference, organizations(name), activity_compensation(amount, currency, frequency)"
     )
     .eq("user_id", user!.id)
     .order("created_at", { ascending: false });
+
+  // Récupérer les suggestions d'évolution vers une routine en attente
+  const { data: rawSuggestions } = await supabase
+    .from("notifications")
+    .select("id, entity_id, title, body, metadata, created_at")
+    .eq("user_id", user!.id)
+    .eq("kind", "activity_routine_suggestion")
+    .in("status", ["unread", "read"]);
+
+  const routineSuggestions = (rawSuggestions ?? [])
+    .filter((s) => Boolean(s.entity_id))
+    .map((s) => ({
+      id: s.id,
+      activityId: s.entity_id as string,
+      title: s.title,
+      body: s.body,
+      metadata: s.metadata,
+    }));
 
   const initialActivities: ActivityViewItem[] = (activities ?? []).map((a) => {
     const comp = Array.isArray(a.activity_compensation)
@@ -38,6 +61,9 @@ export default async function ActivitiesPage() {
       work_mode: a.work_mode,
       startDate: a.start_date,
       endDate: a.end_date,
+      validity_type: a.validity_type,
+      engagement_nature: a.engagement_nature,
+      reminder_preference: a.reminder_preference,
       organizationName: org?.name ?? null,
       compensation: comp
         ? {
@@ -49,5 +75,11 @@ export default async function ActivitiesPage() {
     };
   });
 
-  return <ActivitiesClientView initialActivities={initialActivities} />;
+  return (
+    <ActivitiesClientView
+      initialActivities={initialActivities}
+      initialSuggestions={routineSuggestions}
+      initialRenewActivityId={renewActivityId}
+    />
+  );
 }

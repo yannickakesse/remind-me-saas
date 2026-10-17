@@ -24,6 +24,7 @@ import { MonthlyEvolution } from "@/components/reports/monthly-evolution";
 import { buttonClasses } from "@/components/ui/button";
 import { getUserTimezone } from "@/lib/time/timezones";
 import { getUserSubscription } from "@/lib/subscriptions/server";
+import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
 
 export default async function ReportsPage({
   searchParams,
@@ -56,8 +57,12 @@ export default async function ReportsPage({
       ? searchParams.to
       : defaultEnd;
 
-  // Synchronisation paresseuse des revenus
-  await ensureIncomeEntries(supabase, user!.id, rangeStart, rangeEnd);
+  const endDT = DateTime.fromISO(rangeEnd, { zone: timezone });
+  const sixMonthsStart = endDT.minus({ months: 5 }).startOf("month").toISODate()!;
+  const syncStart = rangeStart < sixMonthsStart ? rangeStart : sixMonthsStart;
+
+  // Synchronisation paresseuse des revenus sur la période demandée et l'historique des 6 derniers mois
+  await ensureIncomeEntries(supabase, user!.id, syncStart, rangeEnd);
 
   // Rapport complet de rentabilité & analytics
   const {
@@ -108,21 +113,24 @@ export default async function ReportsPage({
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center sm:justify-end gap-3 w-full sm:w-auto shrink-0 flex-wrap sm:flex-nowrap">
+            <SectionGuideTrigger section="reports" label="Guide rentabilité" />
             <Link
               href={`/reports/print?from=${rangeStart}&to=${rangeEnd}`}
               target="_blank"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-signal text-white text-xs font-bold shadow-xs hover:bg-signal-dark active:scale-95 transition-all"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 h-10 rounded-xl bg-signal text-white text-xs sm:text-sm font-bold shadow-xs hover:bg-signal-dark active:scale-95 transition-all flex-1 sm:flex-initial min-w-[150px] text-center"
               data-tour="reports-pdf-btn"
             >
-              <Printer className="w-3.5 h-3.5" /> Imprimer en PDF
+              <Printer className="w-4 h-4 shrink-0" />
+              <span>Imprimer en PDF</span>
             </Link>
             <a
               href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
-              className={buttonClasses("secondary", "sm")}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 h-10 rounded-xl bg-canvas border border-ink-300 dark:border-ink-700 text-ink-900 dark:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-800 text-xs sm:text-sm font-bold shadow-xs active:scale-95 transition-all flex-1 sm:flex-initial min-w-[150px] text-center"
               data-tour="reports-export-btn"
             >
-              <Download className="w-3.5 h-3.5 mr-1" /> CSV
+              <Download className="w-4 h-4 shrink-0" />
+              <span>Exporter en CSV</span>
             </a>
           </div>
         </div>

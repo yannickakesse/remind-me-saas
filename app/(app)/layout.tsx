@@ -7,6 +7,7 @@ import { NotificationBell } from "@/components/navigation/notification-bell";
 import { NotificationSyncTrigger } from "@/components/notifications/notification-sync-trigger";
 import { TaskSoundWatcher } from "@/components/notifications/task-sound-watcher";
 import { InteractiveProductTour } from "@/components/onboarding/interactive-product-tour";
+import { SectionVoiceAssistant } from "@/components/onboarding/section-voice-assistant";
 import { WelcomeVideoModal } from "@/components/motion/welcome-video-modal";
 import { HelpCenterButton } from "@/components/help/help-center-modal";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
@@ -24,6 +25,8 @@ import { SidebarNav } from "@/components/navigation/sidebar-nav";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { getUserTimezone } from "@/lib/time/timezones";
 
+import { DateTime } from "luxon";
+
 export default async function AppLayout({
   children,
 }: {
@@ -35,7 +38,10 @@ export default async function AppLayout({
 
   if (!profile?.onboarding_completed) redirect("/onboarding");
 
-  const [{ count: unreadCount }, { data: latestNotifications }, { data: userSettings }] = await Promise.all([
+  const timezone = getUserTimezone(profile);
+  const todayISO = DateTime.now().setZone(timezone).toISODate()!;
+
+  const [{ count: unreadCount }, { data: latestNotifications }, { data: userSettings }, { count: eventsTodayCount }] = await Promise.all([
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
@@ -57,6 +63,13 @@ export default async function AppLayout({
       .select("ui_prefs")
       .eq("user_id", user.id)
       .maybeSingle(),
+    supabase
+      .from("calendar_events")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("starts_at", `${todayISO}T00:00:00Z`)
+      .lte("starts_at", `${todayISO}T23:59:59Z`)
+      .neq("status", "cancelled"),
   ]);
 
   const tourState = (userSettings?.ui_prefs as any)?.tour_state;
@@ -69,11 +82,17 @@ export default async function AppLayout({
       <OfflineSyncIndicator />
       <BackgroundPreloader />
       <WelcomeVideoModal />
-      <DailyWelcomeBanner userName={profile?.full_name} timezone={getUserTimezone(profile)} />
+      <DailyWelcomeBanner
+        userName={profile?.full_name}
+        timezone={timezone}
+        hasActivitiesToday={Boolean(eventsTodayCount && eventsTodayCount > 0)}
+        tourCompleted={tourCompleted}
+      />
       <VoicePushPrompt />
       <NotificationSyncTrigger />
       <TaskSoundWatcher userId={user.id} />
       <InteractiveProductTour initialCompleted={tourCompleted} />
+      <SectionVoiceAssistant />
 
       {/* Header & Bottom Nav Mobile (< 768px) */}
       <MobileNav unreadCount={unreadCount} />

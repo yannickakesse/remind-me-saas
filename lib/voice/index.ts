@@ -6,3 +6,4 @@ export * from "./commands";
 export * from "./voices-config";
 export * from "./elevenlabs";
 export * from "./player";
+export * from "./section-guides";

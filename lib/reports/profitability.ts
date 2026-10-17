@@ -48,6 +48,11 @@ export async function calculateProfitabilityReport(
   timezone: string = "UTC",
   defaultCurrency: string = "XOF"
 ) {
+  // Calcul de la borne minimale pour couvrir à la fois la période sélectionnée et les 6 derniers mois d'historique
+  const endDT = DateTime.fromISO(endDate, { zone: timezone });
+  const sixMonthsStart = endDT.minus({ months: 5 }).startOf("month").toISODate()!;
+  const fetchStart = startDate < sixMonthsStart ? startDate : sixMonthsStart;
+
   // 1. Récupérer activités, revenus, dépenses et événements calendrier réels
   const [
     { data: activities },
@@ -63,13 +68,13 @@ export async function calculateProfitabilityReport(
       .from("income")
       .select("id, activity_id, amount, currency, due_date, received")
       .eq("user_id", userId)
-      .gte("due_date", startDate)
+      .gte("due_date", fetchStart)
       .lte("due_date", endDate),
     supabase
       .from("expenses")
       .select("id, activity_id, category, amount, currency, due_date, paid")
       .eq("user_id", userId)
-      .gte("due_date", startDate)
+      .gte("due_date", fetchStart)
       .lte("due_date", endDate),
     supabase
       .from("calendar_events")
@@ -83,12 +88,22 @@ export async function calculateProfitabilityReport(
   const activityMap = new Map<string, { name: string; color: string | null }>();
   (activities ?? []).forEach((a) => activityMap.set(a.id, { name: a.name, color: a.color }));
 
+  // Filtrage strict des transactions appartenant à la période demandée [startDate, endDate]
+  const periodIncome = (incomeEntries ?? []).filter(
+    (i) => i.due_date >= startDate && i.due_date <= endDate
+  );
+  const periodExpenses = (expenseEntries ?? []).filter(
+    (e) => e.due_date >= startDate && e.due_date <= endDate
+  );
+
   // 2. Calcul des heures travaillées réelles par activité depuis calendar_events
   const hoursByActivity = new Map<string, number>();
   let totalHoursWorked = 0;
 
   (calendarEvents ?? []).forEach((e) => {
     if (!e.starts_at || !e.ends_at) return;
+    // Une séance manquée, annulée ou reportée ne doit jamais être considérée comme terminée ou travaillée
+    if (e.status === "cancelled" || e.status === "missed" || e.status === "postponed") return;
     const start = DateTime.fromISO(e.starts_at, { zone: timezone });
     const end = DateTime.fromISO(e.ends_at, { zone: timezone });
     const durationHours = Math.max(0, end.diff(start, "hours").hours);
@@ -99,7 +114,7 @@ export async function calculateProfitabilityReport(
     totalHoursWorked += durationHours;
   });
 
-  // 3. Agrégation financière par activité et devise (avec séparation stricte Reçus / Attendus et Payées / Prévues)
+  // 3. Agrégation financière par activité et devise sur la période demandée (séparation stricte Reçus / Attendus et Payées / Prévues)
   const actStats = new Map<
     string,
     {
@@ -110,7 +125,7 @@ export async function calculateProfitabilityReport(
     }
   >();
 
-  (incomeEntries ?? []).forEach((i) => {
+  periodIncome.forEach((i) => {
     const actId = i.activity_id ?? "unassigned";
     const curr = i.currency || defaultCurrency;
     const key = `${actId}::${curr}`;
@@ -128,7 +143,7 @@ export async function calculateProfitabilityReport(
     actStats.set(key, cur);
   });
 
-  (expenseEntries ?? []).forEach((e) => {
+  periodExpenses.forEach((e) => {
     const actId = e.activity_id ?? "unassigned";
     const curr = e.currency || defaultCurrency;
     const key = `${actId}::${curr}`;
@@ -186,11 +201,15 @@ export async function calculateProfitabilityReport(
     topItem.isTopPerformer = true;
   }
 
-  // 5. Ventilation des dépenses réelles payées par catégorie
+  // 5. Ventilation des dépenses réelles de la période par catégorie (dépenses payées prioritaires pour cohérence absolue avec le Solde Réel)
   const catTotals = new Map<string, { amount: number; currency: string }>();
   let sumExpensesAll = 0;
 
-  (expenseEntries ?? []).forEach((e) => {
+  const targetExpenses = periodExpenses.some((e) => e.paid)
+    ? periodExpenses.filter((e) => e.paid)
+    : periodExpenses;
+
+  targetExpenses.forEach((e) => {
     const cat = e.category || "other";
     const curr = e.currency || defaultCurrency;
     const key = `${cat}::${curr}`;
@@ -216,11 +235,15 @@ export async function calculateProfitabilityReport(
   });
   categoryBreakdown.sort((a, b) => b.amount - a.amount);
 
-  // 5b. Ventilation des revenus par activité / source
+  // 5b. Ventilation des revenus par activité / source (revenus encaissés prioritaires pour cohérence avec le Solde Réel)
   const incTotals = new Map<string, { label: string; amount: number; currency: string }>();
   let sumIncomeAll = 0;
 
-  (incomeEntries ?? []).forEach((i) => {
+  const targetIncome = periodIncome.some((i) => i.received)
+    ? periodIncome.filter((i) => i.received)
+    : periodIncome;
+
+  targetIncome.forEach((i) => {
     const actId = i.activity_id ?? "unassigned";
     const actName = activityMap.get(actId)?.name ?? "Revenu Général / Libre";
     const curr = i.currency || defaultCurrency;
@@ -247,7 +270,6 @@ export async function calculateProfitabilityReport(
 
   // 6. Évolution mensuelle (sur les 6 derniers mois)
   const monthlySummaries: MonthlySummaryItem[] = [];
-  const endDT = DateTime.fromISO(endDate, { zone: timezone });
 
   for (let m = 5; m >= 0; m--) {
     const mDT = endDT.minus({ months: m });

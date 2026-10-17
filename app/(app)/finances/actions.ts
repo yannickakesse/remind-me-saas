@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { DateTime } from "luxon";
 import { createClient } from "@/lib/supabase/server";
 import {
   incomeFormSchema,
@@ -64,6 +65,7 @@ export async function createIncome(formData: FormData) {
   revalidatePath("/finances");
   revalidatePath("/dashboard");
   revalidatePath("/notifications");
+  revalidatePath("/reports");
   redirect("/finances?tab=income");
 }
 
@@ -102,6 +104,7 @@ export async function updateIncome(id: string, formData: FormData) {
   revalidatePath("/finances");
   revalidatePath("/dashboard");
   revalidatePath("/notifications");
+  revalidatePath("/reports");
   redirect("/finances?tab=income");
 }
 
@@ -128,6 +131,9 @@ export async function setIncomeReceived(id: string, received: boolean) {
 
   revalidatePath("/finances");
   revalidatePath("/dashboard");
+  revalidatePath("/messages");
+  revalidatePath("/notifications");
+  revalidatePath("/reports");
 }
 
 export async function postponeIncomeAction(id: string, days: number = 7) {
@@ -173,6 +179,8 @@ export async function deleteIncome(id: string) {
   revalidatePath("/finances");
   revalidatePath("/dashboard");
   revalidatePath("/notifications");
+  revalidatePath("/messages");
+  revalidatePath("/reports");
 }
 
 // ----------------------------------------------------------------------------
@@ -212,6 +220,7 @@ export async function createExpense(formData: FormData) {
   revalidatePath("/finances");
   revalidatePath("/dashboard");
   revalidatePath("/notifications");
+  revalidatePath("/reports");
   redirect("/finances?tab=expenses");
 }
 
@@ -253,6 +262,7 @@ export async function updateExpense(id: string, formData: FormData) {
   revalidatePath("/finances");
   revalidatePath("/dashboard");
   revalidatePath("/notifications");
+  revalidatePath("/reports");
   redirect("/finances?tab=expenses");
 }
 
@@ -279,6 +289,9 @@ export async function setExpensePaid(id: string, paid: boolean) {
 
   revalidatePath("/finances");
   revalidatePath("/dashboard");
+  revalidatePath("/messages");
+  revalidatePath("/notifications");
+  revalidatePath("/reports");
 }
 
 export async function deleteExpense(id: string) {
@@ -291,6 +304,9 @@ export async function deleteExpense(id: string) {
 
   revalidatePath("/finances");
   revalidatePath("/dashboard");
+  revalidatePath("/messages");
+  revalidatePath("/notifications");
+  revalidatePath("/reports");
 }
 
 // ----------------------------------------------------------------------------
@@ -553,6 +569,7 @@ export async function deleteScheduledExpenseAction(id: string) {
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
   revalidatePath("/notifications");
+  revalidatePath("/messages");
 }
 
 export async function cancelScheduledExpenseAction(id: string) {
@@ -575,6 +592,7 @@ export async function cancelScheduledExpenseAction(id: string) {
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
   revalidatePath("/notifications");
+  revalidatePath("/messages");
 }
 
 export async function postponeScheduledExpenseAction(id: string, days: number = 7) {
@@ -610,6 +628,7 @@ export async function postponeScheduledExpenseAction(id: string, days: number = 
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
   revalidatePath("/notifications");
+  revalidatePath("/messages");
 }
 
 export async function markScheduledExpensePaidAction(id: string) {
@@ -628,21 +647,39 @@ export async function markScheduledExpensePaidAction(id: string) {
 
   if (!item) return;
 
+  // Garde d'idempotence : si l'échéance ponctuelle est déjà payée, ne rien réinsérer
+  if (item.frequency === "once" && item.status === "paid") {
+    await resolveEntityNotifications(supabase, id, user.id);
+    return;
+  }
+
   const today = new Date().toISOString().split("T")[0];
 
-  // 1. Enregistrer la dépense payée dans la table expenses
-  await supabase.from("expenses").insert({
-    user_id: user.id,
-    label: item.name,
-    category: item.category,
-    amount: item.amount,
-    currency: item.currency,
-    due_date: item.next_due_date,
-    paid: true,
-    paid_at: today,
-    activity_id: item.activity_id,
-    notes: item.notes ? `Issu de la dépense programmée : ${item.notes}` : "Issu d'une dépense programmée",
-  });
+  // Garde anti-doublon : vérifier si la dépense a déjà été insérée pour cette échéance exacte
+  const { data: existingExp } = await supabase
+    .from("expenses")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("due_date", item.next_due_date)
+    .eq("amount", Number(item.amount) || 0)
+    .eq("label", item.name)
+    .maybeSingle();
+
+  if (!existingExp) {
+    // 1. Enregistrer la dépense payée dans la table expenses
+    await supabase.from("expenses").insert({
+      user_id: user.id,
+      label: item.name,
+      category: item.category,
+      amount: item.amount,
+      currency: item.currency,
+      due_date: item.next_due_date,
+      paid: true,
+      paid_at: today,
+      activity_id: item.activity_id,
+      notes: item.notes ? `Issu de la dépense programmée : ${item.notes}` : "Issu d'une dépense programmée",
+    });
+  }
 
   // Auto-Stop des rappels pour l'échéance passée
   await resolveEntityNotifications(supabase, id, user.id);
@@ -655,26 +692,37 @@ export async function markScheduledExpensePaidAction(id: string) {
       .eq("id", id)
       .eq("user_id", user.id);
   } else {
-    // Calculer la prochaine date selon la fréquence
-    const curDate = new Date(item.next_due_date);
-    let nextDate = new Date(curDate);
+    // Calculer la prochaine date selon la fréquence sans dérive UTC
+    const curDT = DateTime.fromISO(item.next_due_date);
+    let nextDT = curDT;
 
-    if (item.frequency === "daily") nextDate.setDate(nextDate.getDate() + 1);
-    else if (item.frequency === "weekly") nextDate.setDate(nextDate.getDate() + 7);
-    else if (item.frequency === "monthly") nextDate.setMonth(nextDate.getMonth() + 1);
-    else if (item.frequency === "quarterly") nextDate.setMonth(nextDate.getMonth() + 3);
-    else if (item.frequency === "yearly") nextDate.setFullYear(nextDate.getFullYear() + 1);
+    if (item.frequency === "daily") nextDT = curDT.plus({ days: 1 });
+    else if (item.frequency === "weekly") nextDT = curDT.plus({ weeks: 1 });
+    else if (item.frequency === "monthly") nextDT = curDT.plus({ months: 1 });
+    else if (item.frequency === "quarterly") nextDT = curDT.plus({ months: 3 });
+    else if (item.frequency === "yearly") nextDT = curDT.plus({ years: 1 });
 
-    const nextDueDateStr = nextDate.toISOString().split("T")[0];
+    const nextDueDateStr = nextDT.toISODate()!;
 
-    await supabase
-      .from("scheduled_expenses")
-      .update({
-        next_due_date: nextDueDateStr,
-        status: "planned",
-      })
-      .eq("id", id)
-      .eq("user_id", user.id);
+    // Respect strict des dates de contrat et d'expiration
+    if (item.end_date && nextDueDateStr > item.end_date) {
+      await supabase
+        .from("scheduled_expenses")
+        .update({
+          status: "paid",
+        })
+        .eq("id", id)
+        .eq("user_id", user.id);
+    } else {
+      await supabase
+        .from("scheduled_expenses")
+        .update({
+          next_due_date: nextDueDateStr,
+          status: "planned",
+        })
+        .eq("id", id)
+        .eq("user_id", user.id);
+    }
   }
 
   await triggerProactiveReminders(supabase, user.id);
@@ -683,4 +731,6 @@ export async function markScheduledExpensePaidAction(id: string) {
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
   revalidatePath("/notifications");
+  revalidatePath("/messages");
+  revalidatePath("/reports");
 }

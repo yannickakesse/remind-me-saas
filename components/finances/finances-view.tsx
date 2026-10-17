@@ -23,7 +23,9 @@ import { SavingsGoalsSection } from "./savings-goals-section";
 import { ScheduledExpensesSection } from "./scheduled-expenses-section";
 import { buttonClasses } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import { setIncomeReceived, postponeIncomeAction } from "@/app/(app)/finances/actions";
+import { useLanguage } from "@/components/i18n/language-provider";
+import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
+import { setIncomeReceived, postponeIncomeAction, setExpensePaid } from "@/app/(app)/finances/actions";
 
 interface FinancesViewProps {
   initialTab: FinanceTab;
@@ -49,7 +51,7 @@ export function FinancesView({
   initialTab,
   aggregates: initialAggregates,
   incomeRows: initialIncomeRows,
-  expenseRows,
+  expenseRows: initialExpenseRows,
   budgetsWithSpent,
   savingsGoals,
   scheduledExpenses,
@@ -60,13 +62,19 @@ export function FinancesView({
   rangeEnd,
 }: FinancesViewProps) {
   const toast = useToast();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<FinanceTab>(initialTab);
   const [incomes, setIncomes] = useState<any[]>(initialIncomeRows);
+  const [expenses, setExpenses] = useState<any[]>(initialExpenseRows ?? []);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     setIncomes(initialIncomeRows);
   }, [initialIncomeRows]);
+
+  useEffect(() => {
+    setExpenses(initialExpenseRows ?? []);
+  }, [initialExpenseRows]);
 
   const handleTabChange = useCallback((tab: FinanceTab) => {
     setActiveTab(tab);
@@ -88,7 +96,12 @@ export function FinancesView({
   const totalIncomePending = incomes
     .filter((i) => !i.received)
     .reduce((acc, i) => acc + Number(i.amount), 0);
-  const totalExpensesPaid = initialAggregates.totalExpensesPaid;
+  const totalExpensesPaid = expenses
+    .filter((e) => e.paid)
+    .reduce((acc, e) => acc + Number(e.amount), 0);
+  const totalExpensesPending = expenses
+    .filter((e) => !e.paid)
+    .reduce((acc, e) => acc + Number(e.amount), 0);
   const netBalance = totalIncomeReceived - totalExpensesPaid;
 
   async function handleToggleIncomeReceived(id: string, currentlyReceived: boolean) {
@@ -122,6 +135,37 @@ export function FinancesView({
     }
   }
 
+  async function handleToggleExpensePaid(id: string, currentlyPaid: boolean) {
+    if (actionLoadingId) return;
+    setActionLoadingId(id);
+    const newStatus = !currentlyPaid;
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Mise à jour optimiste immédiate (0ms)
+    setExpenses((prev) =>
+      prev.map((e) =>
+        e.id === id
+          ? { ...e, paid: newStatus, paid_at: newStatus ? today : null }
+          : e
+      )
+    );
+
+    try {
+      await setExpensePaid(id, newStatus);
+      toast.push(
+        newStatus
+          ? "Dépense marquée comme payée ! Solde net actualisé."
+          : "Dépense remise en attente de règlement.",
+        "success"
+      );
+    } catch (err) {
+      setExpenses(initialExpenseRows ?? []);
+      toast.push("Erreur lors de la mise à jour de la dépense.", "error");
+    } finally {
+      setActionLoadingId(null);
+    }
+  }
+
   async function handlePostponeIncome(id: string) {
     if (actionLoadingId) return;
     setActionLoadingId(id);
@@ -137,7 +181,7 @@ export function FinancesView({
 
   const hasNoData =
     (incomes ?? []).length === 0 &&
-    (expenseRows ?? []).length === 0 &&
+    (expenses ?? []).length === 0 &&
     (scheduledExpenses ?? []).length === 0 &&
     (budgetsWithSpent ?? []).length === 0 &&
     (savingsGoals ?? []).length === 0;
@@ -167,36 +211,37 @@ export function FinancesView({
               <span className="bg-gradient-to-r from-gold to-gold-dark text-white p-2 rounded-xl shadow-gold-subtle inline-flex">
                 <Wallet className="w-5 h-5" />
               </span>
-              Gestion Financière &amp; Factures
+              {t("finances.title")}
             </h1>
             <p className="text-xs text-ink-500 mt-1">
-              Suivez vos encaissements, dépenses et échéances en un coup d'œil.
+              {t("finances.subtitle")}
             </p>
           </div>
 
-          <div className="flex items-center justify-center sm:justify-end gap-2.5 flex-wrap shrink-0 mt-2 sm:mt-0">
+          <div className="flex items-center justify-center sm:justify-end gap-2.5 flex-wrap shrink-0 mt-2 sm:mt-0 w-full sm:w-auto">
+            <SectionGuideTrigger section="finances" label="Guide financier" />
             <Link
               href={`/finances/print?month=${rangeStart.slice(0, 7)}`}
               target="_blank"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-canvas border border-ink-300 dark:border-ink-700 text-xs font-semibold text-ink-900 dark:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shadow-xs"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 h-10 rounded-xl bg-canvas border border-ink-300 dark:border-ink-700 text-xs sm:text-sm font-semibold text-ink-900 dark:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shadow-xs flex-1 sm:flex-initial"
               title="Imprimer ou enregistrer le relevé en PDF"
             >
-              <Printer className="w-3.5 h-3.5 text-signal" /> Relevé PDF
+              <Printer className="w-4 h-4 text-signal shrink-0" /> {t("finances.pdf_statement")}
             </Link>
             <a
               href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
               download
               data-tour="finance-export"
-              className={buttonClasses("secondary", "sm")}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 h-10 rounded-xl bg-canvas border border-ink-300 dark:border-ink-700 text-xs sm:text-sm font-semibold text-ink-900 dark:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shadow-xs flex-1 sm:flex-initial"
               title="Exporter les données financières au format CSV"
             >
-              <Download className="w-3.5 h-3.5 mr-1" /> CSV
+              <Download className="w-4 h-4 mr-1 shrink-0" /> {t("finances.export_csv")}
             </a>
             <Link
               href="/finances/income/new"
-              className={buttonClasses("primary", "sm")}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 h-10 rounded-xl bg-signal text-white text-xs sm:text-sm font-bold hover:bg-signal/90 transition-colors shadow-xs flex-1 sm:flex-initial"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" /> Revenu
+              <Plus className="w-4 h-4 mr-1 shrink-0" /> {t("finances.add_income")}
             </Link>
           </div>
         </div>
@@ -213,33 +258,33 @@ export function FinancesView({
           {/* 4 Cartes Principales de la Vue Globale */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full min-w-0" data-tour="finances-kpi">
             <StatCard
-              label="Paiements en attente"
+              label={t("finances.kpi_pending")}
               value={formatAmount(totalIncomePending, defaultCurrency)}
-              helper="Revenus attendus"
+              helper={t("finances.kpi_pending_helper")}
               tone="warning"
               icon={Clock}
               dataTour="finance-pending-revenue"
             />
             <StatCard
-              label="Total reçu"
+              label={t("finances.kpi_received")}
               value={formatAmount(totalIncomeReceived, defaultCurrency)}
-              helper="Argent encaissé"
+              helper={t("finances.kpi_received_helper")}
               tone="positive"
               icon={TrendingUp}
               dataTour="finance-received-revenue"
             />
             <StatCard
-              label="Dépenses payées"
+              label={t("finances.kpi_paid")}
               value={formatAmount(totalExpensesPaid, defaultCurrency)}
-              helper="Payé ce mois"
+              helper={t("finances.kpi_paid_helper")}
               tone="danger"
               icon={TrendingDown}
               dataTour="finance-paid-expenses"
             />
             <StatCard
-              label="Solde net"
+              label={t("finances.kpi_net")}
               value={formatAmount(netBalance, defaultCurrency)}
-              helper="Total reçu − Dépenses payées"
+              helper={t("finances.kpi_net_helper")}
               tone={netBalance >= 0 ? "positive" : "danger"}
               icon={Wallet}
               dataTour="finance-net-balance"
@@ -533,29 +578,37 @@ export function FinancesView({
                 <span className="p-1.5 rounded-xl bg-danger text-white shadow-xs">
                   <TrendingDown className="w-4 h-4" />
                 </span>
-                Dépenses payées du mois
+                Dépenses du mois
               </h3>
               <p className="text-xs text-ink-500 mt-1">
-                Historique des décaissements réels déduits du Solde Net.
+                Historique des décaissements et charges à régler déduits du Solde Net.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => handleTabChange("scheduled")}
-              className={buttonClasses("secondary", "sm")}
-            >
-              <Plus className="w-3.5 h-3.5 mr-1" /> Programmer une dépense
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link
+                href="/finances/expenses/new"
+                className={buttonClasses("primary", "sm")}
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle dépense
+              </Link>
+              <button
+                type="button"
+                onClick={() => handleTabChange("scheduled")}
+                className={buttonClasses("secondary", "sm")}
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" /> Programmer une dépense
+              </button>
+            </div>
           </div>
 
-          {(expenseRows ?? []).length === 0 ? (
+          {(expenses ?? []).length === 0 ? (
             <div className="relative z-10 p-8 text-center rounded-2xl border border-dashed border-ink-300 dark:border-ink-700 bg-canvas dark:bg-ink-950 space-y-3">
               <div className="w-10 h-10 rounded-full bg-danger-soft text-danger flex items-center justify-center mx-auto">
                 <TrendingDown className="w-5 h-5" />
               </div>
-              <p className="font-semibold text-ink-950 dark:text-white text-sm">Aucune dépense payée pour ce mois</p>
+              <p className="font-semibold text-ink-950 dark:text-white text-sm">Aucune dépense pour ce mois</p>
               <p className="text-xs text-ink-500 max-w-sm mx-auto">
-                Les dépenses payées sont automatiquement enregistrées lorsque vous marquez une dépense programmée comme payée.
+                Les dépenses payées sont automatiquement enregistrées lorsque vous marquez une dépense programmée comme payée ou en ajoutant une charge.
               </p>
               <button
                 type="button"
@@ -567,26 +620,71 @@ export function FinancesView({
             </div>
           ) : (
             <div className="relative z-10 divide-y divide-ink-100 dark:divide-ink-800">
-              {(expenseRows ?? []).map((exp) => (
-                <div key={exp.id} className="py-3 flex items-center justify-between gap-3 min-w-0">
-                  <div className="min-w-0 flex-1">
-                    <div className="font-bold text-sm text-ink-950 dark:text-white truncate" title={exp.label}>
-                      {exp.label}
+              {(expenses ?? []).map((exp) => {
+                const isLoading = actionLoadingId === exp.id;
+                return (
+                  <div key={exp.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-ink-950 dark:text-white truncate" title={exp.label}>
+                          {exp.label}
+                        </span>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
+                            exp.paid
+                              ? "bg-positive-soft text-positive border border-positive/30"
+                              : "bg-warning-soft text-warning border border-warning/30"
+                          }`}
+                        >
+                          {exp.paid ? "Payée" : "À payer"}
+                        </span>
+                      </div>
+                      <div className="text-xs text-ink-500 truncate mt-0.5">
+                        {exp.category} • {exp.paid && exp.paid_at ? "Payé le " + exp.paid_at : "Échéance : " + exp.due_date}
+                        {exp.activity?.name ? ` • Activité : ${exp.activity.name}` : ""}
+                      </div>
                     </div>
-                    <div className="text-xs text-ink-500 truncate">
-                      {exp.category} • {exp.paid ? "Payé le " + exp.paid_at : "Échéance : " + exp.due_date}
+
+                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                      <div className="text-right">
+                        <div className="font-bold text-sm text-ink-950 dark:text-white">
+                          {formatAmount(exp.amount, exp.currency)}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        {!exp.paid ? (
+                          <button
+                            type="button"
+                            disabled={isLoading}
+                            onClick={() => handleToggleExpensePaid(exp.id, false)}
+                            className="px-2.5 py-1.5 rounded-lg bg-danger text-white text-xs font-semibold hover:bg-danger/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
+                            title="Marquer cette dépense comme réglée et déduire du Solde Net"
+                          >
+                            {isLoading ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Check className="w-3.5 h-3.5" />
+                            )}
+                            <span>{isLoading ? "Traitement..." : "Régler"}</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={isLoading}
+                            onClick={() => handleToggleExpensePaid(exp.id, true)}
+                            className="px-2 py-1 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1"
+                            title="Remettre cette dépense en attente de règlement"
+                          >
+                            {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                            <span>{isLoading ? "Annulation..." : "Annuler le paiement"}</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-bold text-sm text-ink-950 dark:text-white">
-                      {formatAmount(exp.amount, exp.currency)}
-                    </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-positive-soft text-positive inline-block mt-0.5 border border-positive/30">
-                      {exp.paid ? "Payée" : "À payer"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

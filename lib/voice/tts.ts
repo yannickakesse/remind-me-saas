@@ -73,7 +73,7 @@ export function getAvailableVoices(language: VoiceLanguage = "fr"): SpeechSynthe
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return [];
 
   const all = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
-  const langPrefix = language === "fr" ? "fr" : language === "es" ? "es" : "en";
+  const langPrefix = language;
 
   return all.filter((v) => v.lang.toLowerCase().startsWith(langPrefix));
 }
@@ -95,8 +95,16 @@ export function findBestVoice(language: VoiceLanguage = "fr", voiceType: VoiceTy
     return defaultVoice || matchingVoices[0] || null;
   }
 
-  const femaleKeywords = ["female", "femme", "woman", "amélie", "audrey", "aurélie", "julie", "virginie", "samantha", "victoria", "karen", "zira", "mónica", "paulina", "helena", "clara", "marie", "celine", "alice"];
-  const maleKeywords = ["male", "homme", "man", "thomas", "nicolas", "paul", "henri", "daniel", "david", "george", "jorge", "diego", "carlos", "alain", "antoine", "bernard", "guy"];
+  const femaleKeywords = [
+    "female", "femme", "woman", "amélie", "audrey", "aurélie", "julie", "virginie",
+    "samantha", "victoria", "karen", "zira", "mónica", "paulina", "helena", "clara",
+    "marie", "celine", "alice", "anna", "marlene", "vicki", "francisca", "luciana", "joana"
+  ];
+  const maleKeywords = [
+    "male", "homme", "man", "thomas", "nicolas", "paul", "henri", "daniel", "david",
+    "george", "jorge", "diego", "carlos", "alain", "antoine", "bernard", "guy",
+    "stefan", "markus", "hans", "duarte", "antonio", "felipe"
+  ];
 
   const targetKeywords = voiceType === "female" ? femaleKeywords : maleKeywords;
 
@@ -112,10 +120,20 @@ export function findBestVoice(language: VoiceLanguage = "fr", voiceType: VoiceTy
   return matchingVoices[0] || null;
 }
 
+let ttsRepeatTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let isTtsStopped = false;
+let currentTtsSessionId = 0;
+
 /**
  * Arrête toute lecture vocale en cours
  */
 export function stopSpeaking(): void {
+  isTtsStopped = true;
+  currentTtsSessionId++;
+  if (ttsRepeatTimeoutId) {
+    clearTimeout(ttsRepeatTimeoutId);
+    ttsRepeatTimeoutId = null;
+  }
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
     try {
       window.speechSynthesis.cancel();
@@ -124,10 +142,24 @@ export function stopSpeaking(): void {
 }
 
 /**
+ * Vérifie si la synthèse vocale SpeechSynthesis est activement en cours de lecture
+ */
+export function isSpeechSynthesizing(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    "speechSynthesis" in window &&
+    (window.speechSynthesis.speaking || window.speechSynthesis.pending)
+  );
+}
+
+/**
  * Exécute la lecture vocale intelligente avec gestion de la répétition
  */
 export function speakVoiceReminder(options: VoiceSpeakOptions): Promise<boolean> {
   return new Promise((resolve) => {
+    isTtsStopped = false;
+    const sessionId = ++currentTtsSessionId;
+
     if (!isSpeechSupported()) {
       // Si la synthèse vocale n'est pas supportée, fallback sur le carillon officiel
       playNotificationChime(0.4);
@@ -158,12 +190,26 @@ export function speakVoiceReminder(options: VoiceSpeakOptions): Promise<boolean>
       window.speechSynthesis.cancel();
 
       const selectedVoice = findBestVoice(language, voiceType);
-      const targetLang = language === "fr" ? "fr-FR" : language === "es" ? "es-ES" : "en-US";
+      const targetLang =
+        language === "fr"
+          ? "fr-FR"
+          : language === "es"
+          ? "es-ES"
+          : language === "de"
+          ? "de-DE"
+          : language === "pt"
+          ? "pt-PT"
+          : "en-US";
 
       let currentIteration = 0;
       const totalIterations = Math.max(1, repeat + 1);
 
       function speakOnce() {
+        if (sessionId !== currentTtsSessionId || isTtsStopped) {
+          resolve(false);
+          return;
+        }
+
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = targetLang;
         utterance.rate = Math.max(0.7, Math.min(1.5, rate));
@@ -175,25 +221,39 @@ export function speakVoiceReminder(options: VoiceSpeakOptions): Promise<boolean>
         }
 
         utterance.onstart = () => {
-          if (currentIteration === 0 && onStart) {
+          if (sessionId === currentTtsSessionId && currentIteration === 0 && onStart) {
             onStart();
           }
         };
 
         utterance.onend = () => {
+          if (sessionId !== currentTtsSessionId || isTtsStopped) {
+            resolve(false);
+            return;
+          }
+
           currentIteration++;
           if (currentIteration < totalIterations) {
             // Pause courte de 1.2s entre les répétitions pour une clarté maximale
-            setTimeout(() => {
-              speakOnce();
+            ttsRepeatTimeoutId = setTimeout(() => {
+              ttsRepeatTimeoutId = null;
+              if (sessionId === currentTtsSessionId && !isTtsStopped) {
+                speakOnce();
+              } else {
+                resolve(false);
+              }
             }, 1200);
           } else {
-            if (onEnd) onEnd();
-            resolve(true);
+            if (onEnd && sessionId === currentTtsSessionId && !isTtsStopped) onEnd();
+            resolve(sessionId === currentTtsSessionId && !isTtsStopped);
           }
         };
 
         utterance.onerror = (err) => {
+          if (sessionId !== currentTtsSessionId) {
+            resolve(false);
+            return;
+          }
           console.warn("[RemindMe TTS] Utterance error:", err);
           if (onError) onError(err);
           // Fallback sur le carillon Remind Me
@@ -206,6 +266,10 @@ export function speakVoiceReminder(options: VoiceSpeakOptions): Promise<boolean>
 
       speakOnce();
     } catch (err) {
+      if (sessionId !== currentTtsSessionId) {
+        resolve(false);
+        return;
+      }
       console.warn("[RemindMe TTS] Speak execution failed:", err);
       playNotificationChime(0.4);
       if (onError) onError(err);

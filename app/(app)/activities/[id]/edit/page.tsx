@@ -23,7 +23,7 @@ export default async function EditActivityPage({
   ] = await Promise.all([
     supabase
       .from("activities")
-      .select("*, organizations(name), contacts(name, phone, email)")
+      .select("*, organizations(name, address), contacts(name, phone, email)")
       .eq("id", params.id)
       .eq("user_id", user.id)
       .single(),
@@ -97,11 +97,14 @@ export default async function EditActivityPage({
           contactName: contact?.name ?? "",
           contactPhone: contact?.phone ?? "",
           contactEmail: contact?.email ?? "",
-          address: "",
+          address: org?.address ?? "",
           workMode: activity.work_mode ?? "onsite",
           location: activity.location ?? "",
           startDate: activity.start_date ?? "",
           endDate: activity.end_date ?? "",
+          validityType: activity.validity_type,
+          engagementNature: activity.engagement_nature,
+          reminderPreference: activity.reminder_preference,
           variableHours: schedules?.[0]?.variable_hours ?? false,
           schedules: (schedules ?? []).map((s) => ({
             weekday: s.weekday,

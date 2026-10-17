@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { DateTime } from "luxon";
 import {
   TrendingUp,
@@ -27,6 +28,8 @@ import { typeLabel } from "@/lib/validation/activities";
 import { eventStatusLabel, getContrastTextColor } from "@/lib/validation/calendar";
 import { TASK_PRIORITY_STYLES, taskPriorityLabel } from "@/lib/validation/tasks";
 import { FloatingMessagesButton } from "@/components/dashboard/floating-messages-button";
+import { t } from "@/lib/i18n/format";
+import type { SupportedLocale } from "@/lib/i18n/types";
 import type { Notification } from "@/types/database";
 
 export default async function DashboardPage() {
@@ -34,6 +37,12 @@ export default async function DashboardPage() {
     requireCurrentUser(),
     getCurrentProfile(),
   ]);
+
+  const cookieStore = cookies();
+  const locale =
+    (cookieStore.get("NEXT_LOCALE")?.value as SupportedLocale) ||
+    (profile?.locale as SupportedLocale) ||
+    "fr";
 
   const supabase = createClient();
   const timezone = getUserTimezone(profile);
@@ -195,14 +204,14 @@ export default async function DashboardPage() {
               <Calendar className="w-4 h-4" />
             </div>
             <h2 id="today-heading" className="text-sm font-bold uppercase tracking-wider text-ink-800 dark:text-ink-200">
-              Aujourd&apos;hui • {now.setLocale("fr").toFormat("cccc d MMMM yyyy")}
+              {t("calendar.today_btn", locale)} • {now.setLocale(locale).toFormat("cccc d MMMM yyyy")}
             </h2>
           </div>
           <Link
             href="/calendar"
             className="text-xs font-semibold text-signal hover:underline flex items-center gap-1"
           >
-            Planning complet <ArrowRight className="w-3.5 h-3.5" />
+            {t("dashboard.see_all", locale)} <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
@@ -214,18 +223,18 @@ export default async function DashboardPage() {
           >
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-signal" /> Agenda &amp; Séances ({todayEvents.length})
+                <Clock className="w-4 h-4 text-signal" /> {t("dashboard.today_events", locale)} ({todayEvents.length})
               </h3>
               <Link href="/calendar" className="text-xs text-signal font-semibold hover:underline flex items-center gap-0.5">
-                Calendrier <ArrowRight className="w-3 h-3" />
+                {t("nav.calendar", locale)} <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
 
             {todayEvents.length === 0 ? (
               <div className="p-6 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
-                <p>Aucune séance planifiée aujourd&apos;hui.</p>
+                <p>{t("dashboard.no_events_today", locale)}</p>
                 <Link href="/calendar" className="mt-2 inline-block text-signal font-bold hover:underline">
-                  + Planifier une séance
+                  + {t("nav.calendar", locale)}
                 </Link>
               </div>
             ) : (
@@ -275,18 +284,18 @@ export default async function DashboardPage() {
           >
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
-                <AlertTriangle className="w-4 h-4 text-warning" /> Tâches prioritaires ({urgentTasks?.length ?? 0})
+                <AlertTriangle className="w-4 h-4 text-warning" /> {t("dashboard.urgent_tasks", locale)} ({urgentTasks?.length ?? 0})
               </h3>
               <Link href="/tasks" className="text-xs text-signal font-semibold hover:underline flex items-center gap-0.5">
-                Voir tout <ArrowRight className="w-3 h-3" />
+                {t("dashboard.see_all", locale)} <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
 
             {(urgentTasks?.length ?? 0) === 0 ? (
               <div className="p-6 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
-                <p>Toutes vos tâches sont à jour pour aujourd&apos;hui.</p>
+                <p>{t("tasks.empty_today", locale)}</p>
                 <Link href="/tasks/new" className="mt-2 inline-block text-signal font-bold hover:underline">
-                  + Nouvelle tâche
+                  + {t("tasks.new_task", locale)}
                 </Link>
               </div>
             ) : (
@@ -318,14 +327,14 @@ export default async function DashboardPage() {
               <Wallet className="w-4 h-4" />
             </div>
             <h2 id="finances-heading" className="text-sm font-bold uppercase tracking-wider text-ink-800 dark:text-ink-200">
-              Finances &amp; Dépenses programmées
+              {t("nav.finances", locale)} &amp; {t("dashboard.scheduled_expenses_title", locale)}
             </h2>
           </div>
           <Link
             href="/finances"
             className="text-xs font-semibold text-signal hover:underline flex items-center gap-1"
           >
-            Vue financière globale <ArrowRight className="w-3.5 h-3.5" />
+            {t("nav.overview", locale)} <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
@@ -337,18 +346,18 @@ export default async function DashboardPage() {
           >
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-amber-600" /> Dépenses programmées ({scheduledExpenses?.length ?? 0})
+                <Clock className="w-4 h-4 text-amber-600" /> {t("dashboard.scheduled_expenses_title", locale)} ({scheduledExpenses?.length ?? 0})
               </h3>
               <Link href="/finances?tab=scheduled" className="text-xs text-signal font-semibold hover:underline flex items-center gap-0.5">
-                Gérer <ArrowRight className="w-3 h-3" />
+                {t("dashboard.manage", locale)} <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
 
             {(scheduledExpenses?.length ?? 0) === 0 ? (
               <div className="p-6 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
-                <p>Aucune dépense programmée à venir.</p>
+                <p>{t("finances.scheduled_empty", locale)}</p>
                 <Link href="/finances?tab=scheduled" className="mt-2 inline-block text-signal font-bold hover:underline">
-                  + Programmer une dépense
+                  + {t("finances.add_expense", locale)}
                 </Link>
               </div>
             ) : (
@@ -361,10 +370,26 @@ export default async function DashboardPage() {
                   );
                   const daysLabel =
                     daysDiff < 0
-                      ? `En retard de ${Math.abs(daysDiff)} j`
+                      ? locale === "fr"
+                        ? `En retard de ${Math.abs(daysDiff)} j`
+                        : locale === "es"
+                        ? `Atrasado ${Math.abs(daysDiff)} d`
+                        : locale === "de"
+                        ? `${Math.abs(daysDiff)} T. überfällig`
+                        : locale === "pt"
+                        ? `Atrasado ${Math.abs(daysDiff)} d`
+                        : `${Math.abs(daysDiff)} d overdue`
                       : daysDiff === 0
-                      ? "Aujourd'hui"
-                      : `Dans ${daysDiff} j`;
+                      ? t("calendar.today_btn", locale)
+                      : locale === "fr"
+                      ? `Dans ${daysDiff} j`
+                      : locale === "es"
+                      ? `En ${daysDiff} d`
+                      : locale === "de"
+                      ? `In ${daysDiff} T.`
+                      : locale === "pt"
+                      ? `Em ${daysDiff} d`
+                      : `In ${daysDiff} d`;
 
                   return (
                     <li key={exp.id}>
@@ -401,10 +426,10 @@ export default async function DashboardPage() {
           >
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
-                <TrendingUp className="w-4 h-4 text-positive" /> Règlements &amp; Encaissements attendus ({lateIncome?.length ?? 0})
+                <TrendingUp className="w-4 h-4 text-positive" /> {t("attention.subtitle", locale)} ({lateIncome?.length ?? 0})
               </h3>
               <Link href="/finances?tab=income" className="text-xs text-signal font-semibold hover:underline flex items-center gap-0.5">
-                Voir tout <ArrowRight className="w-3 h-3" />
+                {t("dashboard.see_all", locale)} <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
 
@@ -412,7 +437,7 @@ export default async function DashboardPage() {
               <div className="p-6 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
                 <p>Tous vos encaissements sont à jour pour l&apos;instant.</p>
                 <Link href="/finances?tab=income" className="mt-2 inline-block text-signal font-bold hover:underline">
-                  + Saisir un revenu
+                  + {t("finances.add_income", locale)}
                 </Link>
               </div>
             ) : (
@@ -426,10 +451,26 @@ export default async function DashboardPage() {
                   const isLate = daysDiff < 0;
                   const daysLabel =
                     daysDiff < 0
-                      ? `En retard de ${Math.abs(daysDiff)} j`
+                      ? locale === "fr"
+                        ? `En retard de ${Math.abs(daysDiff)} j`
+                        : locale === "es"
+                        ? `Atrasado ${Math.abs(daysDiff)} d`
+                        : locale === "de"
+                        ? `${Math.abs(daysDiff)} T. überfällig`
+                        : locale === "pt"
+                        ? `Atrasado ${Math.abs(daysDiff)} d`
+                        : `${Math.abs(daysDiff)} d overdue`
                       : daysDiff === 0
-                      ? "Aujourd'hui"
-                      : `Dans ${daysDiff} j`;
+                      ? t("calendar.today_btn", locale)
+                      : locale === "fr"
+                      ? `Dans ${daysDiff} j`
+                      : locale === "es"
+                      ? `En ${daysDiff} d`
+                      : locale === "de"
+                      ? `In ${daysDiff} T.`
+                      : locale === "pt"
+                      ? `Em ${daysDiff} d`
+                      : `In ${daysDiff} d`;
 
                   return (
                     <li key={inc.id}>
@@ -469,7 +510,7 @@ export default async function DashboardPage() {
               <Briefcase className="w-4 h-4" />
             </div>
             <h2 id="activities-heading" className="text-sm font-bold uppercase tracking-wider text-ink-800 dark:text-ink-200">
-              Vos activités &amp; missions ({activities?.length ?? 0})
+              {t("nav.activities", locale)} ({activities?.length ?? 0})
             </h2>
           </div>
           <div className="flex items-center gap-2">
@@ -477,13 +518,13 @@ export default async function DashboardPage() {
               href="/activities/new"
               className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-signal text-white hover:bg-signal/90 transition-colors"
             >
-              + Nouvelle activité
+              + {t("activities.add_btn", locale)}
             </Link>
             <Link
               href="/activities"
               className="text-xs font-semibold text-signal hover:underline flex items-center gap-0.5 ml-1"
             >
-              Gérer <ArrowRight className="w-3.5 h-3.5" />
+              {t("dashboard.manage", locale)} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
@@ -494,10 +535,10 @@ export default async function DashboardPage() {
         >
           {(activities?.length ?? 0) === 0 ? (
             <div className="p-8 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
-              <p className="text-sm font-medium text-ink-700 dark:text-ink-300">Aucune activité créée pour le moment.</p>
-              <p className="text-xs text-ink-500 mt-1">Configurez vos métiers, missions et taux de rémunération pour activer les rappels.</p>
+              <p className="text-sm font-medium text-ink-700 dark:text-ink-300">{t("activities.empty_title", locale)}</p>
+              <p className="text-xs text-ink-500 mt-1">{t("activities.empty_desc", locale)}</p>
               <Link href="/activities/new" className="mt-3 inline-block px-4 py-2 rounded-xl bg-signal text-white font-bold hover:bg-signal/90 transition-colors">
-                + Créer votre première activité
+                + {t("activities.add_btn", locale)}
               </Link>
             </div>
           ) : (
@@ -506,6 +547,27 @@ export default async function DashboardPage() {
                 const comp = Array.isArray(activity.activity_compensation)
                   ? activity.activity_compensation[0]
                   : activity.activity_compensation;
+                const compensationLabel =
+                  locale === "fr"
+                    ? "Rémunération"
+                    : locale === "es"
+                    ? "Remuneración"
+                    : locale === "de"
+                    ? "Vergütung"
+                    : locale === "pt"
+                    ? "Remuneração"
+                    : "Compensation";
+                const noCompLabel =
+                  locale === "fr"
+                    ? "Rémunération non définie"
+                    : locale === "es"
+                    ? "Remuneración no definida"
+                    : locale === "de"
+                    ? "Keine Vergütung festgelegt"
+                    : locale === "pt"
+                    ? "Remuneração não definida"
+                    : "No compensation set";
+
                 return (
                   <Link
                     key={activity.id}
@@ -530,14 +592,14 @@ export default async function DashboardPage() {
                     </div>
                     {comp ? (
                       <div className="mt-3 pt-2.5 border-t border-ink-100/60 dark:border-ink-800/60 flex items-center justify-between text-[11px]">
-                        <span className="text-ink-400">Rémunération</span>
+                        <span className="text-ink-400">{compensationLabel}</span>
                         <span className="font-bold text-ink-900 dark:text-ink-100">
                           {formatAmount(comp.amount, comp.currency)}
                         </span>
                       </div>
                     ) : (
                       <div className="mt-3 pt-2.5 border-t border-ink-100/60 dark:border-ink-800/60 text-[10px] text-ink-400">
-                        Rémunération non définie
+                        {noCompLabel}
                       </div>
                     )}
                   </Link>
@@ -552,7 +614,7 @@ export default async function DashboardPage() {
       <FloatingMessagesButton
         initialUnreadCount={unreadMessagesCount ?? 0}
         timezone={timezone}
-        locale={profile?.locale || "fr"}
+        locale={locale}
       />
     </div>
   );

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Search, X, CheckCircle2, Plus, CheckSquare } from "lucide-react";
 import { TaskCard, type TaskItemData } from "./task-card";
 import { buttonClasses } from "@/components/ui/button";
+import { useLanguage } from "@/components/i18n/language-provider";
+import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
 import type { TaskPriority, TaskStatus } from "@/types/database";
 
 export type TaskTab = "all" | "overdue" | "today" | "upcoming" | "no_date" | "completed";
@@ -110,13 +112,14 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
     });
   }, [tasks, activeTab, selectedActivity, selectedPriority, searchQuery, todayStr]);
 
+  const { t, locale } = useLanguage();
   const tabs: { id: TaskTab; label: string; count: number; alert?: boolean }[] = [
-    { id: "all", label: "À faire", count: counts.all },
-    { id: "overdue", label: "En retard", count: counts.overdue, alert: counts.overdue > 0 },
-    { id: "today", label: "Aujourd'hui", count: counts.today },
-    { id: "upcoming", label: "À venir", count: counts.upcoming },
-    { id: "no_date", label: "Sans date", count: counts.no_date },
-    { id: "completed", label: "Terminées", count: counts.completed },
+    { id: "all", label: t("tasks.tab_all"), count: counts.all },
+    { id: "overdue", label: t("tasks.tab_overdue"), count: counts.overdue, alert: counts.overdue > 0 },
+    { id: "today", label: t("tasks.tab_today"), count: counts.today },
+    { id: "upcoming", label: t("tasks.tab_upcoming"), count: counts.upcoming },
+    { id: "no_date", label: t("tasks.tab_nodate"), count: counts.no_date },
+    { id: "completed", label: t("tasks.tab_completed"), count: counts.completed },
   ];
 
   const bgImage = useMemo(() => {
@@ -145,7 +148,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
       />
 
       {/* En-tête principal */}
-      <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-5 sm:p-6 shadow-xs">
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-5 sm:p-6 shadow-xs" data-tour="tasks-header">
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="min-w-0">
@@ -153,27 +156,28 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
               <span className="p-1.5 rounded-xl bg-signal text-white shadow-xs">
                 <CheckSquare className="h-4 w-4" />
               </span>
-              Tâches &amp; To-Do List
+              {t("tasks.title")}
             </h1>
             <p className="text-xs text-ink-500 mt-1 truncate">
-              {counts.all} active{counts.all > 1 ? "s" : ""}
+              {t("tasks.count_active", { count: counts.all })}
               {counts.overdue > 0 ? (
                 <span className="ml-2 font-semibold text-danger">
-                  • {counts.overdue} en retard
+                  • {t("tasks.count_overdue", { count: counts.overdue })}
                 </span>
               ) : null}
               {counts.today > 0 ? (
                 <span className="ml-2 font-semibold text-warning">
-                  • {counts.today} aujourd'hui
+                  • {t("tasks.count_today", { count: counts.today })}
                 </span>
               ) : null}
             </p>
           </div>
 
-          <div className="shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <SectionGuideTrigger section="tasks" label="Guide des tâches" />
             <Link href="/tasks/new" data-tour="task-create" className={buttonClasses("primary", "sm")}>
               <Plus className="mr-1 h-3.5 w-3.5" />
-              Nouvelle tâche
+              {t("tasks.new_task")}
             </Link>
           </div>
         </div>
@@ -223,7 +227,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher une tâche..."
+            placeholder={t("actions.search_placeholder") || "Rechercher..."}
             className="w-full rounded-xl border border-ink-300 bg-canvas-raised px-3.5 py-2 pl-9 text-xs sm:text-sm text-ink-950 placeholder-ink-400 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal min-h-[40px]"
           />
           <Search className="absolute left-3 top-3 h-4 w-4 text-ink-400" />
@@ -245,8 +249,28 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
             onChange={(e) => setSelectedActivity(e.target.value)}
             className="flex-1 sm:w-44 rounded-xl border border-ink-300 bg-canvas-raised px-3 py-2 text-xs text-ink-950 focus:border-signal focus:outline-none min-h-[40px] truncate"
           >
-            <option value="all">Toutes les activités</option>
-            <option value="unassigned">Sans activité</option>
+            <option value="all">
+              {locale === "fr"
+                ? "Toutes les activités"
+                : locale === "es"
+                ? "Todas las actividades"
+                : locale === "de"
+                ? "Alle Aktivitäten"
+                : locale === "pt"
+                ? "Todas as atividades"
+                : "All activities"}
+            </option>
+            <option value="unassigned">
+              {locale === "fr"
+                ? "Sans activité"
+                : locale === "es"
+                ? "Sin actividad"
+                : locale === "de"
+                ? "Ohne Aktivität"
+                : locale === "pt"
+                ? "Sem atividade"
+                : "Unassigned"}
+            </option>
             {activities.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
@@ -259,11 +283,21 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
             onChange={(e) => setSelectedPriority(e.target.value)}
             className="flex-1 sm:w-36 rounded-xl border border-ink-300 bg-canvas-raised px-3 py-2 text-xs text-ink-950 focus:border-signal focus:outline-none min-h-[40px]"
           >
-            <option value="all">Priorités : toutes</option>
-            <option value="urgent">Urgente</option>
-            <option value="high">Haute</option>
-            <option value="medium">Moyenne</option>
-            <option value="low">Basse</option>
+            <option value="all">
+              {locale === "fr"
+                ? "Priorités : toutes"
+                : locale === "es"
+                ? "Prioridades: todas"
+                : locale === "de"
+                ? "Prioritäten: alle"
+                : locale === "pt"
+                ? "Prioridades: todas"
+                : "Priorities: all"}
+            </option>
+            <option value="urgent">{t("tasks.priority_urgent")}</option>
+            <option value="high">{t("tasks.priority_high")}</option>
+            <option value="medium">{t("tasks.priority_medium")}</option>
+            <option value="low">{t("tasks.priority_low")}</option>
           </select>
         </div>
       </div>
@@ -276,12 +310,14 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
           </div>
           <h3 className="text-base font-semibold text-ink-950">
             {activeTab === "overdue"
-              ? "Aucune tâche en retard"
+              ? t("tasks.empty_overdue")
               : activeTab === "today"
-              ? "Rien de planifié pour aujourd'hui"
+              ? t("tasks.empty_today")
               : activeTab === "completed"
-              ? "Aucune tâche terminée pour l'instant"
-              : "Aucune tâche trouvée"}
+              ? t("tasks.empty_completed")
+              : activeTab === "upcoming"
+              ? t("tasks.empty_upcoming")
+              : t("tasks.empty_all")}
           </h3>
           <p className="mt-1 text-sm text-ink-500 max-w-sm mx-auto">
             {activeTab === "overdue"
@@ -292,7 +328,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
           </p>
           <div className="mt-5">
             <Link href="/tasks/new" className={buttonClasses("primary", "sm")}>
-              <Plus className="w-3.5 h-3.5 mr-1" /> Créer une tâche
+              <Plus className="w-3.5 h-3.5 mr-1" /> {t("tasks.new_task")}
             </Link>
           </div>
         </div>
