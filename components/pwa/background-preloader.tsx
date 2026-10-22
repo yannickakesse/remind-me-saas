@@ -37,7 +37,7 @@ export function BackgroundPreloader() {
 
     // 2. Précharger dans le Cache Storage du Service Worker si disponible
     if ("caches" in window) {
-      caches.open("remindme-v1.1.0").then((cache) => {
+      caches.open("remindme-v2.0.0").then((cache) => {
         cache.addAll(BACKGROUND_IMAGES).catch(() => {
           // Ignorer si déjà en cache
         });
