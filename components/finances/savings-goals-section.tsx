@@ -180,18 +180,8 @@ export function SavingsGoalsSection({
 
   return (
     <div className="space-y-6">
-      {/* En-tête avec bannière visuelle retravaillée et visible */}
+      {/* En-tête avec bannière visuelle retravaillée */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-7 shadow-xs">
-        <div 
-          className="absolute right-0 top-0 bottom-0 w-1/3 sm:w-1/2 bg-contain bg-right bg-no-repeat opacity-85 dark:opacity-80 pointer-events-none hidden sm:block"
-          style={{ backgroundImage: "url('/images/backgrounds/savings-bg.jpg')" }}
-        />
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-35 pointer-events-none sm:hidden"
-          style={{ backgroundImage: "url('/images/backgrounds/savings-bg.jpg')" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/85 to-transparent pointer-events-none" />
-
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2">
@@ -369,7 +359,7 @@ export function SavingsGoalsSection({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {localGoals.map((g) => {
             const proj = calculateGoalProjection(g);
             const isCompleted = proj.remainingAmount === 0;

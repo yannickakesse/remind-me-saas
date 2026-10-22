@@ -374,12 +374,6 @@ export function ActivitiesClientView({
 
   return (
     <div className="relative isolate min-h-full w-full space-y-8">
-      {/* Fond d'écran global de la page Activités */}
-      <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10"
-        style={{ backgroundImage: "url('/images/backgrounds/activities-bg.jpg')" }}
-      />
-
       {/* En-tête responsive */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-6 sm:p-8 shadow-sm" data-tour="activities-header">
 
@@ -426,7 +420,7 @@ export function ActivitiesClientView({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-tour="activities-list">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5" data-tour="activities-list">
           {active.map((activity) => {
             const isDeleting = deletingId === activity.id;
             const isArchiving = archivingId === activity.id;
@@ -644,7 +638,7 @@ export function ActivitiesClientView({
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {expired.map((activity) => {
               const isDeleting = deletingId === activity.id;
               const isConfirmingDelete = confirmDeleteId === activity.id;
@@ -740,7 +734,7 @@ export function ActivitiesClientView({
               — Hors comptabilité prévisionnelle
             </span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {suspended.map((activity) => {
               const isDeleting = deletingId === activity.id;
               const isResuming = resumingId === activity.id;
@@ -804,7 +798,7 @@ export function ActivitiesClientView({
           <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
             Activités archivées ({archived.length})
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 opacity-85">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 opacity-85">
             {archived.map((activity) => {
               const isDeleting = deletingId === activity.id;
               const isRestoring = restoringId === activity.id;

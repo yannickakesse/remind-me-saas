@@ -89,14 +89,14 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
     hoveredIdx !== null ? items[hoveredIdx] : (items[items.length - 1] ?? items[0]);
 
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 sm:p-6 space-y-4 shadow-md">
+    <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised dark:bg-slate-900 p-5 sm:p-6 space-y-4 shadow-xs">
       {/* Header */}
-      <div className="border-b border-zinc-200 dark:border-zinc-800 pb-3">
-        <h3 className="font-extrabold text-zinc-950 dark:text-white text-base flex items-center gap-2">
+      <div className="border-b border-ink-100 dark:border-ink-800 pb-3">
+        <h3 className="font-bold text-ink-950 dark:text-white text-base flex items-center gap-2">
           <Activity className="w-4 h-4 text-signal" />
-          Évolution & Courbe Mensuelle
+          Évolution &amp; Courbe Mensuelle
         </h3>
-        <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5 font-medium">
+        <p className="text-xs text-ink-500 mt-0.5 font-medium">
           {activeMode === "all"
             ? "Comparaison des courbes de flux : revenus vs dépenses"
             : activeMode === "income"
@@ -107,19 +107,19 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
 
       {/* Zone de commande centrée : Sélecteurs Dépenses & Revenus face à face */}
       <div className="flex items-center justify-center w-full py-1">
-        <div className="inline-flex items-center justify-center gap-2 p-1.5 bg-zinc-100 dark:bg-zinc-800/90 rounded-2xl border border-zinc-200 dark:border-zinc-700/80 shadow-xs w-full sm:w-auto min-w-[280px] max-w-md">
+        <div className="inline-flex items-center justify-center gap-2 p-1.5 bg-ink-100 dark:bg-ink-800/90 rounded-2xl border border-ink-200 dark:border-ink-700/80 shadow-xs w-full sm:w-auto min-w-[280px] max-w-md">
           <button
             type="button"
             onClick={() => setActiveMode((prev) => (prev === "expenses" ? "all" : "expenses"))}
             className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeMode === "expenses"
-                ? "bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                ? "bg-canvas-raised dark:bg-ink-900 text-danger shadow-xs ring-1 ring-black/5 dark:ring-white/10"
                 : activeMode === "all"
-                ? "bg-white/80 dark:bg-zinc-900/80 text-rose-600 dark:text-rose-400 shadow-2xs hover:bg-white dark:hover:bg-zinc-900"
-                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50"
+                ? "bg-canvas-raised/80 dark:bg-ink-900/80 text-danger shadow-2xs hover:bg-canvas-raised dark:hover:bg-ink-900"
+                : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white hover:bg-ink-200/50 dark:hover:bg-ink-700/50"
             }`}
           >
-            <TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+            <TrendingDown className="w-4 h-4 text-danger shrink-0" />
             <span>Dépenses</span>
           </button>
           <button
@@ -127,13 +127,13 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
             onClick={() => setActiveMode((prev) => (prev === "income" ? "all" : "income"))}
             className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeMode === "income"
-                ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                ? "bg-canvas-raised dark:bg-ink-900 text-positive shadow-xs ring-1 ring-black/5 dark:ring-white/10"
                 : activeMode === "all"
-                ? "bg-white/80 dark:bg-zinc-900/80 text-emerald-600 dark:text-emerald-400 shadow-2xs hover:bg-white dark:hover:bg-zinc-900"
-                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50"
+                ? "bg-canvas-raised/80 dark:bg-ink-900/80 text-positive shadow-2xs hover:bg-canvas-raised dark:hover:bg-ink-900"
+                : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white hover:bg-ink-200/50 dark:hover:bg-ink-700/50"
             }`}
           >
-            <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <TrendingUp className="w-4 h-4 text-positive shrink-0" />
             <span>Revenus</span>
           </button>
         </div>
@@ -348,22 +348,22 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
               >
                 <div className="flex items-center justify-between text-xs font-bold mb-1.5">
                   <span className="text-ink-950 dark:text-ink-50">{m.monthLabel}</span>
-                  <span className={isLoss ? "text-danger font-black" : "text-positive font-black"}>
+                  <span className={`font-mono tabular-nums ${isLoss ? "text-danger font-bold" : "text-positive font-bold"}`}>
                     {isLoss ? "Déficit réel : " : "Solde réel : "}
                     {formatAmount(m.netReal, m.currency)}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[11px] text-ink-600 dark:text-ink-400">
                   <div>
-                    Encaissé : <strong className="text-emerald-600 font-bold">{formatAmount(m.incomeReceived, m.currency)}</strong>
+                    Encaissé : <strong className="text-emerald-600 font-bold font-mono tabular-nums">{formatAmount(m.incomeReceived, m.currency)}</strong>
                     {m.incomeExpected > 0 && (
-                      <span className="text-[10px] text-ink-500 block">+{formatAmount(m.incomeExpected, m.currency)} att.</span>
+                      <span className="text-[10px] text-ink-500 font-mono block">+{formatAmount(m.incomeExpected, m.currency)} att.</span>
                     )}
                   </div>
                   <div className="text-right">
-                    Payé : <strong className="text-rose-600 font-bold">{formatAmount(m.expensesPaid, m.currency)}</strong>
+                    Payé : <strong className="text-danger font-bold font-mono tabular-nums">{formatAmount(m.expensesPaid, m.currency)}</strong>
                     {m.expensesPlanned > 0 && (
-                      <span className="text-[10px] text-ink-500 block">+{formatAmount(m.expensesPlanned, m.currency)} prév.</span>
+                      <span className="text-[10px] text-ink-500 font-mono block">+{formatAmount(m.expensesPlanned, m.currency)} prév.</span>
                     )}
                   </div>
                 </div>

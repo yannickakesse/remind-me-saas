@@ -1,83 +1,54 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, Briefcase, CheckSquare, TrendingDown } from "lucide-react";
-import { buttonClasses } from "@/components/ui/button";
-import { useLanguage } from "@/components/i18n/language-provider";
-import type { TranslationKey } from "@/lib/i18n/types";
-
-const ACTIONS: { href: string; label: string; icon: any; tone: "primary" | "secondary" }[] = [
-  { href: "/activities", label: "Activités & Missions", icon: Briefcase, tone: "primary" },
-  { href: "/tasks", label: "Tâches & To-Do", icon: CheckSquare, tone: "secondary" },
-  { href: "/finances", label: "Finances & Dépenses", icon: TrendingDown, tone: "secondary" },
-];
+import { Plus, CheckSquare, TrendingDown, TrendingUp } from "lucide-react";
+import { openQuickTransaction } from "@/components/finances/quick-transaction-modal";
 
 export function QuickActions() {
-  const { locale } = useLanguage();
-
-  const activitiesLabel =
-    locale === "fr"
-      ? "Activités & Missions"
-      : locale === "es"
-      ? "Actividades y Misiones"
-      : locale === "de"
-      ? "Aktivitäten & Aufgaben"
-      : locale === "pt"
-      ? "Atividades e Missões"
-      : "Activities & Missions";
-
-  const tasksLabel =
-    locale === "fr"
-      ? "Tâches & To-Do"
-      : locale === "es"
-      ? "Tareas y To-Do"
-      : locale === "de"
-      ? "Aufgaben & To-Do"
-      : locale === "pt"
-      ? "Tarefas e To-Do"
-      : "Tasks & To-Do";
-
-  const financesLabel =
-    locale === "fr"
-      ? "Finances & Dépenses"
-      : locale === "es"
-      ? "Finanzas y Gastos"
-      : locale === "de"
-      ? "Finanzen & Ausgaben"
-      : locale === "pt"
-      ? "Finanças e Despesas"
-      : "Finances & Expenses";
-
   return (
-    <div className="flex flex-col gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-      {/* Ligne 1 : Activités & Missions face-à-face avec Tâches & To-Do */}
-      <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
-        <Link
-          href="/activities"
-          className="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-xs tap-active cursor-pointer bg-signal text-white hover:bg-signal-dark hover:shadow-md"
-        >
-          <Briefcase className="w-3.5 h-3.5 shrink-0 text-white" strokeWidth={2.2} />
-          <span className="truncate">{activitiesLabel}</span>
-        </Link>
-        <Link
-          href="/tasks"
-          className="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-xs tap-active cursor-pointer bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-ink-950 dark:text-white hover:bg-ink-100 dark:hover:bg-ink-800"
-        >
-          <CheckSquare className="w-3.5 h-3.5 shrink-0 text-signal" strokeWidth={2.2} />
-          <span className="truncate">{tasksLabel}</span>
-        </Link>
-      </div>
+    <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+      {/* 1. Dépense rapide */}
+      <button
+        type="button"
+        onClick={() => openQuickTransaction("expense")}
+        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-2xs tap-active cursor-pointer bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 border border-rose-200/90 dark:border-rose-900/60 min-h-[42px]"
+        title="Ajouter une dépense ponctuelle"
+      >
+        <TrendingDown className="w-3.5 h-3.5 shrink-0 text-rose-600 dark:text-rose-400" strokeWidth={2.5} />
+        <span>+ Dépense</span>
+      </button>
 
-      {/* Ligne 2 : Finances & Dépenses centré au milieu */}
-      <div className="flex justify-center w-full">
-        <Link
-          href="/finances"
-          className="flex items-center justify-center gap-1.5 px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-xs tap-active cursor-pointer bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-800 text-ink-950 dark:text-white hover:bg-ink-100 dark:hover:bg-ink-800 w-full sm:w-auto max-w-[260px]"
-        >
-          <TrendingDown className="w-3.5 h-3.5 shrink-0 text-amber-500" strokeWidth={2.2} />
-          <span className="truncate">{financesLabel}</span>
-        </Link>
-      </div>
+      {/* 2. Revenu rapide */}
+      <button
+        type="button"
+        onClick={() => openQuickTransaction("income")}
+        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-2xs tap-active cursor-pointer bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/90 dark:border-emerald-900/60 min-h-[42px]"
+        title="Ajouter un revenu ou encaissement"
+      >
+        <TrendingUp className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" strokeWidth={2.5} />
+        <span>+ Revenu</span>
+      </button>
+
+      {/* 3. Tâche rapide */}
+      <Link
+        href="/tasks/new"
+        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-2xs tap-active cursor-pointer bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 border border-blue-200/90 dark:border-blue-900/60 min-h-[42px]"
+        title="Créer une nouvelle tâche"
+      >
+        <CheckSquare className="w-3.5 h-3.5 shrink-0 text-blue-600 dark:text-blue-400" strokeWidth={2.2} />
+        <span>+ Tâche</span>
+      </Link>
+
+      {/* 4. Activité / Séance */}
+      <Link
+        href="/activities/new"
+        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-xs tap-active cursor-pointer bg-signal text-white hover:bg-signal-dark min-h-[42px]"
+        title="Créer une nouvelle activité ou mission"
+      >
+        <Plus className="w-3.5 h-3.5 shrink-0 text-white" strokeWidth={2.8} />
+        <span>+ Activité</span>
+      </Link>
     </div>
   );
 }
+

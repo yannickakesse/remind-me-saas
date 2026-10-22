@@ -309,14 +309,22 @@ export function TaskCard({ task }: TaskCardProps) {
               </button>
             )}
 
-            {/* Reporter rapide (+1 jour ou +3 jours) */}
+            {/* Reporter rapide (+1 jour ou +7 jours) */}
             <button
               type="button"
               onClick={() => handlePostpone(1)}
-              className="rounded-lg border border-ink-200 bg-canvas-raised px-2 py-1 text-xs font-medium text-ink-600 hover:bg-ink-100 active:scale-95 transition-all tap-active"
+              className="rounded-lg border border-ink-200 dark:border-ink-700 bg-canvas-raised dark:bg-ink-950 px-2 py-1 text-xs font-medium text-ink-600 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active cursor-pointer"
               title="Reporter à demain (+1 jour)"
             >
               +1j
+            </button>
+            <button
+              type="button"
+              onClick={() => handlePostpone(7)}
+              className="rounded-lg border border-ink-200 dark:border-ink-700 bg-canvas-raised dark:bg-ink-950 px-2 py-1 text-xs font-medium text-ink-600 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active cursor-pointer"
+              title="Reporter de 7 jours (+1 semaine)"
+            >
+              +7j
             </button>
 
             {/* Annuler */}

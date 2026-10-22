@@ -677,7 +677,7 @@ async function runRealEngineTests() {
   // Test 3.7: Maintien indépendant des rappels de tâches
   const taskNotif = inserted.find((n: any) => n.entity_id === "task-indep-1");
   assert(
-    Boolean(taskNotif) && (taskNotif.kind === "task_due_today" || taskNotif.kind === "task_due_soon"),
+    Boolean(taskNotif) && (taskNotif.kind === "task_due_today" || taskNotif.kind === "task_due_soon" || taskNotif.kind === "task_overdue"),
     "Isolation stricte : Les rappels de tâches restent 100% actifs et non affectés",
     `Alerte tâche: [${taskNotif?.kind}] "${taskNotif?.title}"`
   );

@@ -202,6 +202,8 @@ export async function createExpense(formData: FormData) {
     notes: formData.get("notes") || undefined,
   });
 
+  const isPaid = formData.get("paid") === "true" || formData.get("paid") === "on";
+
   const { error } = await supabase.from("expenses").insert({
     user_id: user.id,
     activity_id: parsed.activityId || null,
@@ -210,18 +212,162 @@ export async function createExpense(formData: FormData) {
     amount: parsed.amount,
     currency: parsed.currency,
     due_date: parsed.dueDate || new Date().toISOString().slice(0, 10),
+    paid: isPaid,
     notes: parsed.notes || null,
   });
 
   if (error) throw new Error("Impossible d'ajouter la dépense.");
 
-  await triggerProactiveReminders(supabase, user.id);
+  if (!isPaid) {
+    await triggerProactiveReminders(supabase, user.id);
+  }
 
   revalidatePath("/finances");
   revalidatePath("/dashboard");
   revalidatePath("/notifications");
   revalidatePath("/reports");
   redirect("/finances?tab=expenses");
+}
+
+export async function createQuickExpenseAction(
+  formData: FormData
+): Promise<{ success: boolean; error?: string; id?: string }> {
+  try {
+    const { supabase, user } = await requireUser();
+    const rawActivityId = formData.get("activityId")?.toString().trim();
+    const activityId =
+      rawActivityId && rawActivityId !== "null" && rawActivityId !== "undefined"
+        ? rawActivityId
+        : "";
+
+    const rawLabel = formData.get("label")?.toString().trim() || "";
+    const rawCategory = formData.get("category")?.toString().trim() || "other";
+    const rawAmount = formData.get("amount");
+    const rawCurrency = (formData.get("currency")?.toString().trim() || "XOF").toUpperCase();
+    const rawDueDate =
+      formData.get("dueDate")?.toString().trim() || new Date().toISOString().slice(0, 10);
+    const rawPaymentMethod = formData.get("paymentMethod")?.toString().trim() || undefined;
+    const rawNotes = formData.get("notes")?.toString().trim() || undefined;
+    const isPaid = formData.get("paid") === "true" || formData.get("paid") === "on";
+
+    const parsed = expenseFormSchema.parse({
+      activityId,
+      label: rawLabel,
+      category: rawCategory,
+      amount: rawAmount,
+      currency: rawCurrency,
+      dueDate: rawDueDate,
+      paymentMethod: rawPaymentMethod,
+      notes: rawNotes,
+    });
+
+    const { data: inserted, error } = await supabase
+      .from("expenses")
+      .insert({
+        user_id: user.id,
+        activity_id: parsed.activityId || null,
+        label: parsed.label,
+        category: parsed.category,
+        amount: parsed.amount,
+        currency: parsed.currency,
+        due_date: parsed.dueDate || new Date().toISOString().slice(0, 10),
+        paid: isPaid,
+        notes: parsed.notes || null,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      console.error("Erreur insertion dépense rapide :", error);
+      return { success: false, error: error.message || "Impossible d'enregistrer la dépense." };
+    }
+
+    if (!isPaid) {
+      await triggerProactiveReminders(supabase, user.id);
+    }
+
+    revalidatePath("/finances");
+    revalidatePath("/dashboard");
+    revalidatePath("/notifications");
+    revalidatePath("/reports");
+    revalidatePath("/messages");
+
+    return { success: true, id: inserted?.id };
+  } catch (err: any) {
+    console.error("Erreur validation dépense rapide :", err);
+    return { success: false, error: err?.message || "Erreur de validation de la dépense." };
+  }
+}
+
+export async function createQuickIncomeAction(
+  formData: FormData
+): Promise<{ success: boolean; error?: string; id?: string }> {
+  try {
+    const { supabase, user } = await requireUser();
+    const rawActivityId = formData.get("activityId")?.toString().trim();
+    const activityId =
+      rawActivityId && rawActivityId !== "null" && rawActivityId !== "undefined"
+        ? rawActivityId
+        : "";
+
+    const rawLabel = formData.get("label")?.toString().trim() || "";
+    const rawAmount = formData.get("amount");
+    const rawCurrency = (formData.get("currency")?.toString().trim() || "XOF").toUpperCase();
+    const rawDueDate =
+      formData.get("dueDate")?.toString().trim() || new Date().toISOString().slice(0, 10);
+    const rawIncomeType = (formData.get("incomeType")?.toString().trim() || "contract") as any;
+    const rawPaymentMethod = formData.get("paymentMethod")?.toString().trim() || undefined;
+    const rawNotes = formData.get("notes")?.toString().trim() || undefined;
+    const isReceived = formData.get("received") === "true" || formData.get("received") === "on";
+
+    const parsed = incomeFormSchema.parse({
+      activityId,
+      label: rawLabel,
+      amount: rawAmount,
+      currency: rawCurrency,
+      dueDate: rawDueDate,
+      incomeType: rawIncomeType,
+      paymentMethod: rawPaymentMethod,
+      notes: rawNotes,
+    });
+
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: inserted, error } = await supabase
+      .from("income")
+      .insert({
+        user_id: user.id,
+        activity_id: parsed.activityId || null,
+        label: parsed.label,
+        amount: parsed.amount,
+        currency: parsed.currency,
+        due_date: parsed.dueDate || today,
+        received: isReceived,
+        received_at: isReceived ? today : null,
+        notes: parsed.notes || null,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      console.error("Erreur insertion revenu rapide :", error);
+      return { success: false, error: error.message || "Impossible d'enregistrer le revenu." };
+    }
+
+    if (!isReceived) {
+      await triggerProactiveReminders(supabase, user.id);
+    }
+
+    revalidatePath("/finances");
+    revalidatePath("/dashboard");
+    revalidatePath("/notifications");
+    revalidatePath("/reports");
+    revalidatePath("/messages");
+
+    return { success: true, id: inserted?.id };
+  } catch (err: any) {
+    console.error("Erreur validation revenu rapide :", err);
+    return { success: false, error: err?.message || "Erreur de validation du revenu." };
+  }
 }
 
 export async function updateExpense(id: string, formData: FormData) {

@@ -85,17 +85,14 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
   }
 
   return (
-    <div className="rounded-2xl border-2 border-warning/30 bg-warning-soft/10 p-4 sm:p-6 space-y-4 shadow-sm transition-all">
+    <div className="rounded-2xl sm:rounded-3xl border border-amber-300/80 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/20 backdrop-blur-md p-4 sm:p-5 space-y-3.5 shadow-2xs transition-all">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-3 w-3 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-danger" />
-          </span>
-          <h2 className="text-base font-bold text-ink-950 dark:text-white">
+        <div className="flex items-center gap-2">
+          <span className="flex h-2.5 w-2.5 rounded-full bg-amber-500 ring-4 ring-amber-500/20" />
+          <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-ink-950 dark:text-white">
             {t("attention.title")} ({urgentItems.length})
           </h2>
-          <span className="text-xs text-ink-500 hidden sm:inline">
+          <span className="text-xs text-ink-500 dark:text-ink-400 hidden sm:inline">
             — {t("attention.subtitle")}
           </span>
         </div>

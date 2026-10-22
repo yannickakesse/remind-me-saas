@@ -23,14 +23,14 @@ export function CategoryBreakdown({
   const currentItems = activeMode === "expenses" ? effectiveExpenseItems : incomeItems;
 
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-5 sm:p-6 space-y-4 shadow-md">
+    <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised dark:bg-slate-900 p-5 sm:p-6 space-y-4 shadow-xs">
       {/* Header */}
-      <div className="border-b border-zinc-200 dark:border-zinc-800 pb-3">
-        <h3 className="font-extrabold text-zinc-950 dark:text-white text-base flex items-center gap-2">
+      <div className="border-b border-ink-100 dark:border-ink-800 pb-3">
+        <h3 className="font-bold text-ink-950 dark:text-white text-base flex items-center gap-2">
           <PieChart className="w-4 h-4 text-signal" />
           Répartition par Catégorie
         </h3>
-        <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5 font-medium">
+        <p className="text-xs text-ink-500 mt-0.5 font-medium">
           {activeMode === "expenses"
             ? "Identifiez les postes qui consomment le plus de trésorerie"
             : "Identifiez les activités & sources qui génèrent le plus de revenus"}
@@ -39,17 +39,17 @@ export function CategoryBreakdown({
 
       {/* Zone de commande centrée : Dépenses & Revenus face à face */}
       <div className="flex items-center justify-center w-full py-1">
-        <div className="inline-flex items-center justify-center gap-2 p-1.5 bg-zinc-100 dark:bg-zinc-800/90 rounded-2xl border border-zinc-200 dark:border-zinc-700/80 shadow-xs w-full sm:w-auto min-w-[280px] max-w-md">
+        <div className="inline-flex items-center justify-center gap-2 p-1.5 bg-ink-100 dark:bg-ink-800/90 rounded-2xl border border-ink-200 dark:border-ink-700/80 shadow-xs w-full sm:w-auto min-w-[280px] max-w-md">
           <button
             type="button"
             onClick={() => setActiveMode("expenses")}
             className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeMode === "expenses"
-                ? "bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
-                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50"
+                ? "bg-canvas-raised dark:bg-ink-900 text-danger shadow-xs ring-1 ring-black/5 dark:ring-white/10"
+                : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white hover:bg-ink-200/50 dark:hover:bg-ink-700/50"
             }`}
           >
-            <TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+            <TrendingDown className="w-4 h-4 text-danger shrink-0" />
             <span>Dépenses ({effectiveExpenseItems.length})</span>
           </button>
           <button
@@ -57,11 +57,11 @@ export function CategoryBreakdown({
             onClick={() => setActiveMode("income")}
             className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeMode === "income"
-                ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
-                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50"
+                ? "bg-canvas-raised dark:bg-ink-900 text-positive shadow-xs ring-1 ring-black/5 dark:ring-white/10"
+                : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white hover:bg-ink-200/50 dark:hover:bg-ink-700/50"
             }`}
           >
-            <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <TrendingUp className="w-4 h-4 text-positive shrink-0" />
             <span>Revenus ({incomeItems.length})</span>
           </button>
         </div>
@@ -69,7 +69,7 @@ export function CategoryBreakdown({
 
       {/* List / Progress Bars */}
       {currentItems.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-ink-300 dark:border-ink-800 bg-canvas/50 p-6 text-center text-xs text-ink-500">
+        <div className="rounded-2xl border border-dashed border-ink-300 dark:border-ink-800 bg-canvas/50 p-6 text-center text-xs text-ink-500">
           {activeMode === "expenses"
             ? "Aucune dépense enregistrée sur cette période."
             : "Aucun revenu enregistré sur cette période."}
@@ -92,30 +92,30 @@ export function CategoryBreakdown({
                     <span
                       className={`h-2.5 w-2.5 rounded-full shrink-0 ${
                         activeMode === "expenses"
-                          ? "bg-rose-500"
-                          : "bg-emerald-500"
+                          ? "bg-danger"
+                          : "bg-positive"
                       }`}
                     />
-                    <span className="font-bold text-zinc-900 dark:text-white truncate">
+                    <span className="font-bold text-ink-950 dark:text-white truncate">
                       {label}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-extrabold text-zinc-950 dark:text-white">
+                    <span className="font-bold font-mono tabular-nums text-ink-950 dark:text-white">
                       {formatAmount(item.amount, item.currency)}
                     </span>
-                    <span className="text-[11px] font-black text-zinc-700 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-1.5 py-0.5 rounded-md">
+                    <span className="text-[11px] font-bold font-mono text-ink-700 dark:text-ink-300 bg-ink-100 dark:bg-ink-800 border border-ink-200 dark:border-ink-700 px-1.5 py-0.5 rounded-md">
                       {item.percentage}%
                     </span>
                   </div>
                 </div>
 
-                <div className="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+                <div className="h-2 w-full rounded-full bg-ink-100 dark:bg-ink-800 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       activeMode === "expenses"
-                        ? "bg-gradient-to-r from-danger/80 to-danger"
-                        : "bg-gradient-to-r from-positive/80 to-positive"
+                        ? "bg-danger"
+                        : "bg-positive"
                     }`}
                     style={{ width: `${Math.max(2, Math.min(100, item.percentage))}%` }}
                   />

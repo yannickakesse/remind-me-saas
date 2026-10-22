@@ -122,31 +122,8 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
     { id: "completed", label: t("tasks.tab_completed"), count: counts.completed },
   ];
 
-  const bgImage = useMemo(() => {
-    switch (activeTab) {
-      case "overdue":
-        return "/images/backgrounds/tasks-overdue-bg.jpg";
-      case "today":
-        return "/images/backgrounds/tasks-today-bg.jpg";
-      case "upcoming":
-        return "/images/backgrounds/tasks-upcoming-bg.jpg";
-      case "no_date":
-        return "/images/backgrounds/tasks-nodate-bg.jpg";
-      case "completed":
-        return "/images/backgrounds/tasks-completed-bg.jpg";
-      default:
-        return "/images/backgrounds/tasks-bg.jpg";
-    }
-  }, [activeTab]);
-
   return (
     <div className="relative isolate min-h-full w-full space-y-5 min-w-0 max-w-full">
-      {/* Fond d'écran dynamique de la section Tâches (Aujourd'hui, À venir, etc.) */}
-      <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10 transition-all duration-300"
-        style={{ backgroundImage: `url('${bgImage}')` }}
-      />
-
       {/* En-tête principal */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-5 sm:p-6 shadow-xs" data-tour="tasks-header">
 
@@ -333,7 +310,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-2.5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
           {filteredTasks.map((task) => (
             <TaskCard key={task.id} task={task} />
           ))}

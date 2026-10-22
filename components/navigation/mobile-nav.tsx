@@ -33,6 +33,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { openQuickTransaction } from "@/components/finances/quick-transaction-modal";
 
 interface MobileNavProps {
   unreadCount?: number | null;
@@ -43,6 +44,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
   const searchParams = useSearchParams();
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
+  const [isSpeedDialOpen, setIsSpeedDialOpen] = useState(false);
   const [financesOpen, setFinancesOpen] = useState(true);
 
   // Sur les pages d'impression (/print), ne pas afficher la navigation mobile
@@ -115,6 +117,14 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
               </span>
             ) : null}
           </Link>
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            aria-label="Menu de navigation"
+            className="flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active"
+          >
+            <Menu className="w-5 h-5 text-ink-700 dark:text-ink-300" strokeWidth={2} />
+          </button>
         </div>
       </header>
 
@@ -128,15 +138,14 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
             aria-hidden="true"
           />
 
-          {/* Drawer content — Image de fond portefeuille avec billets (drawer-bg.jpg) 100% visible et sans voile */}
+          {/* Drawer content — Surface en verre dépoli ultra-lisible et contrastée */}
           <div 
-            className="relative flex flex-col w-[85%] max-w-[320px] h-full shadow-2xl z-10 border-r border-zinc-300 dark:border-zinc-800 overflow-y-auto bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "url('/images/backgrounds/drawer-bg.jpg')" }}
+            className="relative flex flex-col w-[85%] max-w-[320px] h-full shadow-2xl z-10 border-r border-ink-200 dark:border-ink-800 overflow-y-auto bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-xl"
           >
-            {/* Contenu du Drawer (Header, Liens, Footer) directement sur l'image avec cartes opaques ultra-lisibles */}
+            {/* Contenu du Drawer */}
             <div className="relative z-10 flex flex-col h-full">
               {/* Drawer Header */}
-              <div className="flex items-center justify-between p-4 border-b border-zinc-200/90 dark:border-zinc-800/90 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md safe-area-top shadow-2xs">
+              <div className="flex items-center justify-between p-4 border-b border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised dark:bg-slate-900 safe-area-top shadow-2xs">
                 <RemindMeLogo size="sm" showText={true} />
 
                 <button
@@ -295,6 +304,132 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
         </div>
       )}
 
+      {/* Speed Dial / Action Sheet Mobile (< 768px) */}
+      {isSpeedDialOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
+            onClick={() => setIsSpeedDialOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Action Sheet Panel */}
+          <div className="relative z-10 w-full max-w-md mx-auto bg-canvas-raised dark:bg-slate-900 rounded-t-3xl border-t border-x border-ink-200/90 dark:border-ink-800/90 p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom duration-200 safe-area-bottom">
+            {/* Grabber */}
+            <div className="w-12 h-1.5 rounded-full bg-ink-300 dark:bg-ink-700 mx-auto" />
+
+            <div className="flex items-center justify-between pb-1 border-b border-ink-100 dark:border-ink-800">
+              <div>
+                <h3 className="text-sm font-extrabold text-ink-950 dark:text-white">
+                  Création Rapide
+                </h3>
+                <p className="text-[11px] text-ink-500">
+                  Que souhaitez-vous enregistrer ?
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSpeedDialOpen(false)}
+                className="p-1.5 rounded-xl text-ink-400 hover:text-ink-700 dark:hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Grille des 4 actions rapides ergonomiques */}
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* 1. Dépense */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSpeedDialOpen(false);
+                  openQuickTransaction("expense");
+                }}
+                className="flex flex-col items-start p-3.5 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/30 text-left hover:scale-[1.02] active:scale-95 transition-all shadow-2xs group"
+              >
+                <div className="w-9 h-9 rounded-xl bg-danger text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-110 transition-transform">
+                  <TrendingDown className="w-5 h-5 stroke-[2.2]" />
+                </div>
+                <span className="text-xs font-bold text-ink-950 dark:text-white">
+                  + Dépense
+                </span>
+                <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
+                  Ponctuelle ou comptant
+                </span>
+              </button>
+
+              {/* 2. Revenu */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSpeedDialOpen(false);
+                  openQuickTransaction("income");
+                }}
+                className="flex flex-col items-start p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/30 text-left hover:scale-[1.02] active:scale-95 transition-all shadow-2xs group"
+              >
+                <div className="w-9 h-9 rounded-xl bg-positive text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-110 transition-transform">
+                  <TrendingUp className="w-5 h-5 stroke-[2.2]" />
+                </div>
+                <span className="text-xs font-bold text-ink-950 dark:text-white">
+                  + Revenu
+                </span>
+                <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
+                  Facture ou paiement client
+                </span>
+              </button>
+
+              {/* 3. Tâche */}
+              <Link
+                href="/tasks/new"
+                onClick={() => setIsSpeedDialOpen(false)}
+                className="flex flex-col items-start p-3.5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/30 text-left hover:scale-[1.02] active:scale-95 transition-all shadow-2xs group"
+              >
+                <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-110 transition-transform">
+                  <CheckSquare className="w-5 h-5 stroke-[2.2]" />
+                </div>
+                <span className="text-xs font-bold text-ink-950 dark:text-white">
+                  + Tâche
+                </span>
+                <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
+                  To-do ou priorité du jour
+                </span>
+              </Link>
+
+              {/* 4. Séance / Activité */}
+              <Link
+                href="/activities/new"
+                onClick={() => setIsSpeedDialOpen(false)}
+                className="flex flex-col items-start p-3.5 rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/30 text-left hover:scale-[1.02] active:scale-95 transition-all shadow-2xs group"
+              >
+                <div className="w-9 h-9 rounded-xl bg-signal text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-110 transition-transform">
+                  <Calendar className="w-5 h-5 stroke-[2.2]" />
+                </div>
+                <span className="text-xs font-bold text-ink-950 dark:text-white">
+                  + Activité / Séance
+                </span>
+                <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
+                  Nouvelle mission ou planning
+                </span>
+              </Link>
+            </div>
+
+            {/* Dépense récurrente */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsSpeedDialOpen(false);
+                openQuickTransaction("scheduled");
+              }}
+              className="w-full py-2.5 px-3 rounded-xl border border-ink-200 dark:border-ink-800 bg-canvas/70 dark:bg-ink-950/70 text-xs font-bold text-ink-700 dark:text-ink-300 hover:text-signal flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <Clock className="w-3.5 h-3.5 text-signal" />
+              <span>Programmer une dépense récurrente (loyer, abonnement)</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Navigation Bar (< 768px) — Centrée, équilibrée & ultra-réactive */}
       <nav
         aria-label="Navigation mobile principale"
@@ -340,24 +475,19 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
             <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.calendar")}</span>
           </Link>
 
-          <Link
-            href="/tasks"
-            prefetch={true}
-            data-tour="nav-tasks"
-            className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all duration-150 select-none active:scale-90 active:opacity-75 ${
-              pathname.startsWith("/tasks")
-                ? "text-signal font-bold bg-signal/10 dark:bg-signal/20"
-                : "text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium"
-            }`}
+          {/* Bouton Central Action Rapide (+) avec halo et relief */}
+          <button
+            type="button"
+            onClick={() => setIsSpeedDialOpen(true)}
+            aria-label="Action rapide"
+            data-tour="mobile-quick-action"
+            className="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all select-none active:scale-90 group tap-active"
           >
-            <CheckSquare
-              className={`w-5 h-5 mb-1 shrink-0 transition-transform ${
-                pathname.startsWith("/tasks") ? "scale-110 text-signal" : ""
-              }`}
-              strokeWidth={pathname.startsWith("/tasks") ? 2.3 : 1.8}
-            />
-            <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.tasks")}</span>
-          </Link>
+            <div className="w-10 h-10 -mt-2 rounded-full bg-gradient-to-tr from-signal to-signal-dark text-white flex items-center justify-center shadow-lg shadow-signal/30 group-active:scale-95 transition-transform border-2 border-white dark:border-slate-900">
+              <Plus className="w-5 h-5 stroke-[2.8]" />
+            </div>
+            <span className="text-[10px] font-extrabold text-signal tracking-tight mt-0.5">Ajouter</span>
+          </button>
 
           <Link
             href="/finances"
@@ -378,14 +508,28 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
             <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.finances")}</span>
           </Link>
 
+          {/* Bouton Menu (Ouvre le tiroir latéral à une main avec toutes les sections) */}
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            data-tour="nav-menu"
-            className="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium transition-all duration-150 select-none active:scale-90 active:opacity-75 focus:outline-none cursor-pointer"
+            aria-label="Menu principal et autres sections"
+            data-tour="nav-menu-mobile"
+            className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all duration-150 select-none active:scale-90 active:opacity-75 ${
+              isOpen
+                ? "text-signal font-bold bg-signal/10 dark:bg-signal/20"
+                : "text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium"
+            }`}
           >
-            <Menu className="w-5 h-5 mb-1 shrink-0" strokeWidth={1.8} />
-            <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.menu")}</span>
+            <div className="relative">
+              <Menu
+                className="w-5 h-5 mb-1 shrink-0"
+                strokeWidth={1.9}
+              />
+              {unreadCount ? (
+                <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-danger ring-2 ring-white dark:ring-slate-900" />
+              ) : null}
+            </div>
+            <span className="text-[10px] tracking-tight leading-none truncate">Menu</span>
           </button>
         </div>
       </nav>

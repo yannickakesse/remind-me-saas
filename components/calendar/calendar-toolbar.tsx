@@ -95,44 +95,52 @@ export function CalendarToolbar({
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 shadow-xs relative">
-      {/* Navigation précédente / aujourd'hui / suivante */}
-      <div className="flex items-center gap-2 max-w-full flex-wrap">
-        <Link
-          href={`/calendar?view=${view}&date=${prev}`}
-          className="rounded-xl border border-ink-200 dark:border-ink-700 bg-canvas dark:bg-ink-950 px-3 py-1.5 text-xs sm:text-sm font-bold text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors cursor-pointer"
-          aria-label={t("calendar.prev_period")}
-        >
-          ←
-        </Link>
-        <Link
-          href={`/calendar?view=${view}&date=${today}`}
-          className="rounded-xl border border-ink-200 dark:border-ink-700 bg-canvas dark:bg-ink-950 px-3 py-1.5 text-xs sm:text-sm font-bold text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors cursor-pointer"
-        >
-          {t("calendar.today_btn")}
-        </Link>
-        <Link
-          href={`/calendar?view=${view}&date=${next}`}
-          className="rounded-xl border border-ink-200 dark:border-ink-700 bg-canvas dark:bg-ink-950 px-3 py-1.5 text-xs sm:text-sm font-bold text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors cursor-pointer"
-          aria-label={t("calendar.next_period")}
-        >
-          →
-        </Link>
-        <p className="ml-2 text-sm sm:text-base font-extrabold capitalize text-ink-950 dark:text-white truncate max-w-[200px] sm:max-w-none">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 shadow-2xs relative">
+      {/* 1. Navigation temporelle (Précédent / Aujourd'hui / Suivant + Titre de la période) */}
+      <div className="flex items-center justify-between sm:justify-start gap-2 w-full md:w-auto">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Link
+            href={`/calendar?view=${view}&date=${prev}`}
+            className="rounded-xl border border-ink-200/90 dark:border-ink-700 bg-canvas dark:bg-ink-950 px-3 py-2 text-xs sm:text-sm font-bold text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors cursor-pointer min-h-[40px] flex items-center justify-center tap-active shadow-2xs"
+            aria-label={t("calendar.prev_period")}
+          >
+            ←
+          </Link>
+          <Link
+            href={`/calendar?view=${view}&date=${today}`}
+            className="rounded-xl border border-ink-200/90 dark:border-ink-700 bg-canvas dark:bg-ink-950 px-3 py-2 text-xs sm:text-sm font-bold text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors cursor-pointer min-h-[40px] flex items-center justify-center tap-active shadow-2xs"
+          >
+            {t("calendar.today_btn")}
+          </Link>
+          <Link
+            href={`/calendar?view=${view}&date=${next}`}
+            className="rounded-xl border border-ink-200/90 dark:border-ink-700 bg-canvas dark:bg-ink-950 px-3 py-2 text-xs sm:text-sm font-bold text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors cursor-pointer min-h-[40px] flex items-center justify-center tap-active shadow-2xs"
+            aria-label={t("calendar.next_period")}
+          >
+            →
+          </Link>
+        </div>
+
+        <p className="text-sm sm:text-base font-extrabold capitalize text-ink-950 dark:text-white truncate ml-1 sm:ml-2">
           {label}
         </p>
       </div>
 
-      {/* Actions de droite : Vues + Bouton Exporter / Imprimer PDF */}
-      <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-        {/* Sélecteur de vues */}
-        <div className="flex items-center gap-1.5 rounded-xl bg-canvas dark:bg-ink-950 border border-ink-200/90 dark:border-ink-800/90 p-1 max-w-full overflow-x-auto no-scrollbar" data-tour="calendar-views">
+      {/* 2. Actions : Sélecteur de vues + Bouton Exporter PDF */}
+      <div className="flex items-center justify-between sm:justify-end gap-2 w-full md:w-auto flex-wrap sm:flex-nowrap pt-2 md:pt-0 border-t md:border-t-0 border-ink-100 dark:border-ink-800">
+        {/* Sélecteur de vues (Pills) */}
+        <div
+          className="flex items-center gap-1 rounded-2xl bg-canvas dark:bg-ink-950 border border-ink-200/90 dark:border-ink-800/90 p-1 flex-1 sm:flex-initial justify-between sm:justify-start"
+          data-tour="calendar-views"
+        >
           {CALENDAR_VIEWS.map((v) => (
             <Link
               key={v.value}
               href={`/calendar?view=${v.value}&date=${anchorDate}`}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold shrink-0 whitespace-nowrap transition-all ${
-                v.value === view ? "bg-signal text-white shadow-xs" : "text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-950 dark:hover:text-white"
+              className={`flex-1 sm:flex-initial text-center rounded-xl px-2.5 sm:px-3 py-1.5 text-xs font-bold transition-all min-h-[36px] flex items-center justify-center ${
+                v.value === view
+                  ? "bg-signal text-white shadow-xs"
+                  : "text-ink-600 dark:text-ink-300 hover:text-ink-950 dark:hover:text-white"
               }`}
             >
               {t(VIEW_TRANSLATION_KEYS[v.value])}

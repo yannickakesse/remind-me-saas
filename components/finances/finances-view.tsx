@@ -26,6 +26,7 @@ import { useToast } from "@/components/ui/toast";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
 import { setIncomeReceived, postponeIncomeAction, setExpensePaid } from "@/app/(app)/finances/actions";
+import { openQuickTransaction } from "@/components/finances/quick-transaction-modal";
 
 interface FinancesViewProps {
   initialTab: FinanceTab;
@@ -186,23 +187,8 @@ export function FinancesView({
     (budgetsWithSpent ?? []).length === 0 &&
     (savingsGoals ?? []).length === 0;
 
-  const currentBgImage =
-    activeTab === "expenses"
-      ? "/images/backgrounds/expenses-bg.jpg"
-      : activeTab === "scheduled"
-      ? "/images/backgrounds/scheduled-expenses-bg.jpg"
-      : activeTab === "savings"
-      ? "/images/backgrounds/savings-bg.jpg"
-      : "/images/backgrounds/finances-overview-bg.jpg";
-
   return (
     <div className="relative isolate min-h-full w-full space-y-5 max-w-7xl mx-auto min-w-0">
-      {/* Fond d'écran global dynamique de la section Finance */}
-      <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10 transition-all duration-700"
-        style={{ backgroundImage: `url('${currentBgImage}')` }}
-      />
-
       {/* Header avec bannière visuelle retravaillée */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-5 sm:p-7 shadow-xs" data-tour="finance-header">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -239,6 +225,12 @@ export function FinancesView({
             </a>
             <Link
               href="/finances/income/new"
+              onClick={(e) => {
+                if (!e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                  e.preventDefault();
+                  openQuickTransaction("income");
+                }
+              }}
               className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 h-10 rounded-xl bg-signal text-white text-xs sm:text-sm font-bold hover:bg-signal/90 transition-colors shadow-xs flex-1 sm:flex-initial"
             >
               <Plus className="w-4 h-4 mr-1 shrink-0" /> {t("finances.add_income")}
@@ -302,7 +294,16 @@ export function FinancesView({
                 Toutes les métriques affichées proviennent de vos transactions réelles. Ajoutez votre premier revenu ou programmez votre première dépense pour commencer le suivi.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                <Link href="/finances/income/new" className={buttonClasses("primary", "sm")}>
+                <Link
+                  href="/finances/income/new"
+                  onClick={(e) => {
+                    if (!e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                      e.preventDefault();
+                      openQuickTransaction("income");
+                    }
+                  }}
+                  className={buttonClasses("primary", "sm")}
+                >
                   <Plus className="w-3.5 h-3.5 mr-1" /> Enregistrer un premier revenu
                 </Link>
                 <button
@@ -336,7 +337,16 @@ export function FinancesView({
               {(incomes ?? []).filter((i) => !i.received).slice(0, 4).length === 0 ? (
                 <div className="py-6 text-center space-y-2 rounded-lg bg-canvas border border-ink-100">
                   <p className="text-xs text-ink-500">Aucun revenu en attente ce mois-ci</p>
-                  <Link href="/finances/income/new" className="inline-flex items-center text-xs font-semibold text-signal hover:underline">
+                  <Link
+                    href="/finances/income/new"
+                    onClick={(e) => {
+                      if (!e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                        e.preventDefault();
+                        openQuickTransaction("income");
+                      }
+                    }}
+                    className="inline-flex items-center text-xs font-semibold text-signal hover:underline"
+                  >
                     + Ajouter un revenu
                   </Link>
                 </div>
@@ -454,7 +464,16 @@ export function FinancesView({
                 Encaissez vos paiements reçus pour les intégrer à votre Total reçu et Solde net.
               </p>
             </div>
-            <Link href="/finances/income/new" className={buttonClasses("primary", "sm")}>
+            <Link
+              href="/finances/income/new"
+              onClick={(e) => {
+                if (!e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                  e.preventDefault();
+                  openQuickTransaction("income");
+                }
+              }}
+              className={buttonClasses("primary", "sm")}
+            >
               <Plus className="w-3.5 h-3.5 mr-1" /> Nouveau revenu
             </Link>
           </div>
@@ -468,87 +487,123 @@ export function FinancesView({
               <p className="text-xs text-ink-500 max-w-sm mx-auto">
                 Ajoutez vos prestations, contrats ou salaires pour suivre vos encaissements et votre chiffre d'affaires.
               </p>
-              <Link href="/finances/income/new" className={buttonClasses("primary", "sm")}>
+              <Link
+                href="/finances/income/new"
+                onClick={(e) => {
+                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                    e.preventDefault();
+                    openQuickTransaction("income");
+                  }
+                }}
+                className={buttonClasses("primary", "sm")}
+              >
                 <Plus className="w-3.5 h-3.5 mr-1" /> Ajouter un revenu
               </Link>
             </div>
           ) : (
             <div className="divide-y divide-ink-100 dark:divide-ink-800">
+              {/* En-tête de colonnes alignées sur tablette & desktop */}
+              <div className="hidden md:grid grid-cols-12 gap-3 pb-2.5 text-[11px] font-bold uppercase tracking-wider text-ink-500">
+                <div className="col-span-5">Libellé &amp; Activité</div>
+                <div className="col-span-3">Échéance &amp; Statut</div>
+                <div className="col-span-2 text-right">Montant</div>
+                <div className="col-span-2 text-right">Actions</div>
+              </div>
+
               {(incomes ?? []).map((inc) => {
                 const isLoading = actionLoadingId === inc.id;
                 return (
-                  <div key={inc.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
-                    <div className="min-w-0 flex-1">
+                  <div key={inc.id} className="py-3.5 flex flex-col md:grid md:grid-cols-12 md:gap-3 md:items-center min-w-0">
+                    {/* Colonne 1 : Libellé & Activité */}
+                    <div className="min-w-0 md:col-span-5">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm text-ink-950 dark:text-white truncate" title={inc.label}>
                           {inc.label}
                         </span>
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
+                          className={`md:hidden text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
                             inc.received ? "bg-positive-soft text-positive border border-positive/30" : "bg-warning-soft text-warning border border-warning/30"
                           }`}
                         >
-                          {inc.received ? "Payé / Encaissé" : "En attente"}
+                          {inc.received ? "Payé" : "En attente"}
                         </span>
                       </div>
                       <div className="text-xs text-ink-500 truncate mt-0.5">
-                        Échéance : {inc.due_date} {inc.received && inc.received_at ? `• Encaissé le ${inc.received_at}` : ""}
-                        {inc.activity?.name ? ` • Activité : ${inc.activity.name}` : ""}
+                        {inc.activity?.name ? `Activité : ${inc.activity.name}` : "Revenu direct"}
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                      <div className="text-right">
-                        <div className="font-bold text-sm text-ink-950 dark:text-white">
-                          {formatAmount(inc.amount, inc.currency)}
-                        </div>
+                    {/* Colonne 2 : Échéance & Statut */}
+                    <div className="min-w-0 md:col-span-3 text-xs text-ink-500 mt-1 md:mt-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="hidden md:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 border"
+                          style={{
+                            backgroundColor: inc.received ? "rgba(16, 185, 129, 0.1)" : "rgba(245, 158, 11, 0.1)",
+                            color: inc.received ? "#059669" : "#D97706",
+                            borderColor: inc.received ? "rgba(16, 185, 129, 0.3)" : "rgba(245, 158, 11, 0.3)",
+                          }}
+                        >
+                          {inc.received ? "Encaissé" : "En attente"}
+                        </span>
+                        <span className="truncate">
+                          {inc.received && inc.received_at ? `Reçu le ${inc.received_at}` : `Échéance : ${inc.due_date}`}
+                        </span>
                       </div>
+                    </div>
 
-                      <div className="flex items-center gap-1.5">
-                        {!inc.received ? (
-                          <>
-                            <button
-                              type="button"
-                              disabled={isLoading}
-                              onClick={() => handleToggleIncomeReceived(inc.id, false)}
-                              className="px-2.5 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
-                              title="Confirmer l'encaissement et ajouter au Solde Net"
-                            >
-                              {isLoading ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <Check className="w-3.5 h-3.5" />
-                              )}
-                              <span>{isLoading ? "Traitement..." : "Encaisser"}</span>
-                            </button>
-                            <button
-                              type="button"
-                              disabled={isLoading}
-                              onClick={() => handlePostponeIncome(inc.id)}
-                              className="px-2 py-1.5 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-300 bg-canvas dark:bg-ink-950 text-xs font-medium hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
-                              title="Reporter l'échéance de 7 jours"
-                            >
-                              {isLoading ? (
-                                <Loader2 className="w-3 h-3 animate-spin text-amber-600" />
-                              ) : (
-                                <Clock className="w-3 h-3 text-amber-600" />
-                              )}
-                              <span>{isLoading ? "Report..." : "Reporter (+7j)"}</span>
-                            </button>
-                          </>
-                        ) : (
+                    {/* Colonne 3 : Montant */}
+                    <div className="md:col-span-2 text-right mt-2 md:mt-0 flex items-center justify-between md:justify-end">
+                      <span className="text-xs text-ink-400 md:hidden">Montant :</span>
+                      <span className="font-mono font-bold text-sm text-ink-950 dark:text-white tabular-nums">
+                        {formatAmount(inc.amount, inc.currency)}
+                      </span>
+                    </div>
+
+                    {/* Colonne 4 : Actions */}
+                    <div className="md:col-span-2 flex items-center justify-end gap-1.5 mt-2 md:mt-0 shrink-0">
+                      {!inc.received ? (
+                        <>
                           <button
                             type="button"
                             disabled={isLoading}
-                            onClick={() => handleToggleIncomeReceived(inc.id, true)}
-                            className="px-2 py-1 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1"
-                            title="Remettre ce revenu en attente"
+                            onClick={() => handleToggleIncomeReceived(inc.id, false)}
+                            className="px-2.5 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
+                            title="Confirmer l'encaissement et ajouter au Solde Net"
                           >
-                            {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
-                            <span>{isLoading ? "Annulation..." : "Annuler l'encaissement"}</span>
+                            {isLoading ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Check className="w-3.5 h-3.5" />
+                            )}
+                            <span>{isLoading ? "..." : "Encaisser"}</span>
                           </button>
-                        )}
-                      </div>
+                          <button
+                            type="button"
+                            disabled={isLoading}
+                            onClick={() => handlePostponeIncome(inc.id)}
+                            className="px-2 py-1.5 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-300 bg-canvas dark:bg-ink-950 text-xs font-medium hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
+                            title="Reporter l'échéance de 7 jours"
+                          >
+                            {isLoading ? (
+                              <Loader2 className="w-3 h-3 animate-spin text-amber-600" />
+                            ) : (
+                              <Clock className="w-3 h-3 text-amber-600" />
+                            )}
+                            <span>+7j</span>
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={isLoading}
+                          onClick={() => handleToggleIncomeReceived(inc.id, true)}
+                          className="px-2 py-1 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1"
+                          title="Remettre ce revenu en attente"
+                        >
+                          {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                          <span>Annuler</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -561,17 +616,6 @@ export function FinancesView({
       {/* Tab: EXPENSES */}
       {activeTab === "expenses" && (
         <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md p-5 sm:p-7 space-y-5 min-w-0 animate-in fade-in-50 duration-150 shadow-sm">
-          {/* 100$ burning dollar illustration — clearly visible */}
-          <div 
-            className="absolute right-0 top-0 bottom-0 w-1/3 sm:w-1/2 bg-contain bg-right bg-no-repeat opacity-90 dark:opacity-85 pointer-events-none hidden sm:block"
-            style={{ backgroundImage: "url('/images/backgrounds/expenses-bg.jpg')" }}
-          />
-          <div 
-            className="absolute inset-0 bg-cover bg-center opacity-25 dark:opacity-30 pointer-events-none sm:hidden"
-            style={{ backgroundImage: "url('/images/backgrounds/expenses-bg.jpg')" }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/90 to-transparent pointer-events-none" />
-
           <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="font-extrabold text-base sm:text-lg text-ink-950 dark:text-ink-50 flex items-center gap-2 truncate">
@@ -587,6 +631,12 @@ export function FinancesView({
             <div className="flex items-center gap-2 flex-wrap">
               <Link
                 href="/finances/expenses/new"
+                onClick={(e) => {
+                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                    e.preventDefault();
+                    openQuickTransaction("expense");
+                  }
+                }}
                 className={buttonClasses("primary", "sm")}
               >
                 <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle dépense
@@ -610,27 +660,50 @@ export function FinancesView({
               <p className="text-xs text-ink-500 max-w-sm mx-auto">
                 Les dépenses payées sont automatiquement enregistrées lorsque vous marquez une dépense programmée comme payée ou en ajoutant une charge.
               </p>
-              <button
-                type="button"
-                onClick={() => handleTabChange("scheduled")}
-                className={buttonClasses("secondary", "sm")}
-              >
-                <Plus className="w-3.5 h-3.5 mr-1" /> Programmer une dépense
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <Link
+                  href="/finances/expenses/new"
+                  onClick={(e) => {
+                    if (!e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                      e.preventDefault();
+                      openQuickTransaction("expense");
+                    }
+                  }}
+                  className={buttonClasses("primary", "sm")}
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle dépense
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleTabChange("scheduled")}
+                  className={buttonClasses("secondary", "sm")}
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Programmer une dépense
+                </button>
+              </div>
             </div>
           ) : (
             <div className="relative z-10 divide-y divide-ink-100 dark:divide-ink-800">
+              {/* En-tête de colonnes alignées sur tablette & desktop */}
+              <div className="hidden md:grid grid-cols-12 gap-3 pb-2.5 text-[11px] font-bold uppercase tracking-wider text-ink-500">
+                <div className="col-span-5">Libellé &amp; Catégorie</div>
+                <div className="col-span-3">Échéance &amp; Statut</div>
+                <div className="col-span-2 text-right">Montant</div>
+                <div className="col-span-2 text-right">Actions</div>
+              </div>
+
               {(expenses ?? []).map((exp) => {
                 const isLoading = actionLoadingId === exp.id;
                 return (
-                  <div key={exp.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
-                    <div className="min-w-0 flex-1">
+                  <div key={exp.id} className="py-3 flex flex-col md:grid md:grid-cols-12 md:gap-3 md:items-center min-w-0">
+                    {/* Colonne 1 : Libellé & Catégorie */}
+                    <div className="min-w-0 md:col-span-5">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm text-ink-950 dark:text-white truncate" title={exp.label}>
                           {exp.label}
                         </span>
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
+                          className={`md:hidden text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
                             exp.paid
                               ? "bg-positive-soft text-positive border border-positive/30"
                               : "bg-warning-soft text-warning border border-warning/30"
@@ -640,47 +713,65 @@ export function FinancesView({
                         </span>
                       </div>
                       <div className="text-xs text-ink-500 truncate mt-0.5">
-                        {exp.category} • {exp.paid && exp.paid_at ? "Payé le " + exp.paid_at : "Échéance : " + exp.due_date}
-                        {exp.activity?.name ? ` • Activité : ${exp.activity.name}` : ""}
+                        {exp.category} {exp.activity?.name ? ` • Activité : ${exp.activity.name}` : ""}
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                      <div className="text-right">
-                        <div className="font-bold text-sm text-ink-950 dark:text-white">
-                          {formatAmount(exp.amount, exp.currency)}
-                        </div>
+                    {/* Colonne 2 : Échéance & Statut */}
+                    <div className="min-w-0 md:col-span-3 text-xs text-ink-500 mt-1 md:mt-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="hidden md:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 border"
+                          style={{
+                            backgroundColor: exp.paid ? "rgba(16, 185, 129, 0.1)" : "rgba(245, 158, 11, 0.1)",
+                            color: exp.paid ? "#059669" : "#D97706",
+                            borderColor: exp.paid ? "rgba(16, 185, 129, 0.3)" : "rgba(245, 158, 11, 0.3)",
+                          }}
+                        >
+                          {exp.paid ? "Payée" : "À payer"}
+                        </span>
+                        <span className="truncate">
+                          {exp.paid && exp.paid_at ? `Payé le ${exp.paid_at}` : `Échéance : ${exp.due_date}`}
+                        </span>
                       </div>
+                    </div>
 
-                      <div className="flex items-center gap-1.5">
-                        {!exp.paid ? (
-                          <button
-                            type="button"
-                            disabled={isLoading}
-                            onClick={() => handleToggleExpensePaid(exp.id, false)}
-                            className="px-2.5 py-1.5 rounded-lg bg-danger text-white text-xs font-semibold hover:bg-danger/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
-                            title="Marquer cette dépense comme réglée et déduire du Solde Net"
-                          >
-                            {isLoading ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <Check className="w-3.5 h-3.5" />
-                            )}
-                            <span>{isLoading ? "Traitement..." : "Régler"}</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={isLoading}
-                            onClick={() => handleToggleExpensePaid(exp.id, true)}
-                            className="px-2 py-1 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1"
-                            title="Remettre cette dépense en attente de règlement"
-                          >
-                            {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
-                            <span>{isLoading ? "Annulation..." : "Annuler le paiement"}</span>
-                          </button>
-                        )}
-                      </div>
+                    {/* Colonne 3 : Montant */}
+                    <div className="md:col-span-2 text-right mt-2 md:mt-0 flex items-center justify-between md:justify-end">
+                      <span className="text-xs text-ink-400 md:hidden">Montant :</span>
+                      <span className="font-mono font-bold text-sm text-ink-950 dark:text-white tabular-nums">
+                        {formatAmount(exp.amount, exp.currency)}
+                      </span>
+                    </div>
+
+                    {/* Colonne 4 : Actions */}
+                    <div className="md:col-span-2 flex items-center justify-end gap-1.5 mt-2 md:mt-0 shrink-0">
+                      {!exp.paid ? (
+                        <button
+                          type="button"
+                          disabled={isLoading}
+                          onClick={() => handleToggleExpensePaid(exp.id, false)}
+                          className="px-2.5 py-1.5 rounded-lg bg-danger text-white text-xs font-semibold hover:bg-danger/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
+                          title="Marquer cette dépense comme réglée et déduire du Solde Net"
+                        >
+                          {isLoading ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Check className="w-3.5 h-3.5" />
+                          )}
+                          <span>{isLoading ? "..." : "Régler"}</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={isLoading}
+                          onClick={() => handleToggleExpensePaid(exp.id, true)}
+                          className="px-2 py-1 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1"
+                          title="Remettre cette dépense en attente de règlement"
+                        >
+                          {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                          <span>Annuler</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

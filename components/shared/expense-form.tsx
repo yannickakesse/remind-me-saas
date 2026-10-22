@@ -61,18 +61,48 @@ export function ExpenseForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-5">
-      <input type="hidden" name="category" value={initial?.category ?? "other"} />
-      <input type="hidden" name="activityId" value={initial?.activityId ?? ""} />
-
       <Field label="Libellé de la dépense *" htmlFor="label">
         <TextInput
           id="label"
           name="label"
           defaultValue={initial?.label}
-          placeholder="Ex : Loyer, Abonnement, Matériel, Transport..."
+          placeholder="Ex : Loyer, Abonnement, Matériel, Transport, Déjeuner..."
           required
         />
       </Field>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Catégorie *" htmlFor="category">
+          <select
+            id="category"
+            name="category"
+            defaultValue={initial?.category ?? "other"}
+            className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
+          >
+            {EXPENSE_CATEGORIES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Activité liée (optionnel)" htmlFor="activityId">
+          <select
+            id="activityId"
+            name="activityId"
+            defaultValue={initial?.activityId ?? ""}
+            className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
+          >
+            <option value="">Aucune — dépense générale</option>
+            {activities.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="sm:col-span-2">
@@ -83,6 +113,7 @@ export function ExpenseForm({
               type="number"
               step="0.01"
               min="0.01"
+              inputMode="decimal"
               defaultValue={initial?.amount}
               placeholder="0.00"
               required
@@ -105,6 +136,24 @@ export function ExpenseForm({
             </select>
           </Field>
         </div>
+      </div>
+
+      {/* Statut de paiement */}
+      <div className="flex items-center gap-3 p-3.5 rounded-xl border border-ink-200 bg-canvas/60 dark:bg-ink-900/40">
+        <input
+          id="paid"
+          name="paid"
+          type="checkbox"
+          value="true"
+          defaultChecked={true}
+          className="w-4 h-4 rounded text-signal focus:ring-signal"
+        />
+        <label htmlFor="paid" className="text-xs font-semibold text-ink-900 dark:text-ink-100 cursor-pointer">
+          Dépense déjà payée / réglée au comptant
+          <span className="block text-[11px] font-normal text-ink-500">
+            Décocher si la facture est en attente de règlement à l'échéance.
+          </span>
+        </label>
       </div>
 
       {/* Date et Moyen de paiement */}

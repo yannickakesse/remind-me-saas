@@ -187,19 +187,8 @@ export function ScheduledExpensesSection({
 
   return (
     <div className="space-y-6">
-      {/* Header with summary card and new button, styled with scheduled-expenses-bg.jpg */}
+      {/* Header with summary card and new button */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-7 shadow-xs">
-        {/* Scheduled Expenses Background Illustration — clearly visible */}
-        <div 
-          className="absolute right-0 top-0 bottom-0 w-1/3 sm:w-1/2 bg-contain bg-right bg-no-repeat opacity-85 dark:opacity-80 pointer-events-none hidden sm:block"
-          style={{ backgroundImage: "url('/images/backgrounds/scheduled-expenses-bg.jpg')" }}
-        />
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-35 pointer-events-none sm:hidden"
-          style={{ backgroundImage: "url('/images/backgrounds/scheduled-expenses-bg.jpg')" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-canvas-raised via-canvas-raised/85 to-transparent pointer-events-none" />
-
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2">
@@ -259,14 +248,7 @@ export function ScheduledExpensesSection({
       {/* Expenses Cards List */}
       {filtered.length === 0 ? (
         <div className="p-8 text-center rounded-2xl border border-dashed border-ink-300 dark:border-ink-800 bg-canvas-raised">
-          {filter === "cancelled" ? (
-            <div
-              className="w-16 h-16 mx-auto mb-3 bg-contain bg-no-repeat bg-center opacity-70"
-              style={{ backgroundImage: "url('/images/backgrounds/cancelled-expenses-bg.jpg')" }}
-            />
-          ) : (
-            <Clock className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-          )}
+          <Clock className="w-8 h-8 text-amber-600 mx-auto mb-2" />
           <div className="font-bold text-sm text-ink-900 dark:text-ink-100">
             {filter === "cancelled" ? "Aucune dépense annulée" : "Aucune dépense programmée"}
           </div>
@@ -286,7 +268,7 @@ export function ScheduledExpensesSection({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
           {filtered.map((item) => {
             const statusInfo = scheduledStatusLabel(item.status);
             const isLoading = actionLoadingId === item.id;
@@ -301,14 +283,6 @@ export function ScheduledExpensesSection({
                     : "border-ink-200 dark:border-ink-800"
                 }`}
               >
-                {/* Cancelled Stamp Background Watermark — bold & clearly visible */}
-                {isCancelled && (
-                  <div
-                    className="absolute right-2 top-2 w-28 h-28 bg-contain bg-no-repeat bg-center opacity-70 dark:opacity-85 pointer-events-none rotate-[-12deg] drop-shadow-sm"
-                    style={{ backgroundImage: "url('/images/backgrounds/cancelled-expenses-bg.jpg')" }}
-                  />
-                )}
-
                 <div className="relative z-10">
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -336,14 +310,14 @@ export function ScheduledExpensesSection({
                   <div className="mt-3 flex items-baseline justify-between">
                     <div>
                       <div className="text-[10px] text-ink-500 uppercase tracking-wider">Montant</div>
-                      <div className="text-lg font-bold text-ink-950">
+                      <div className="text-lg font-bold font-mono tabular-nums text-ink-950 dark:text-white">
                         {formatAmount(item.amount, item.currency)}
                       </div>
                     </div>
 
                     <div className="text-right">
                       <div className="text-[10px] text-ink-500 uppercase tracking-wider">Prochaine échéance</div>
-                      <div className="text-xs font-bold text-ink-900">
+                      <div className="text-xs font-bold text-ink-900 dark:text-ink-100">
                         {item.next_due_date}
                       </div>
                     </div>

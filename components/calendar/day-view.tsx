@@ -22,23 +22,26 @@ export function DayView({
     .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
 
   return (
-    <div className="rounded-lg border border-ink-100 bg-canvas-raised">
+    <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-2xs overflow-hidden">
       <div className="flex">
-        <div className="w-14 shrink-0 border-r border-ink-100">
+        <div className="w-14 sm:w-16 shrink-0 border-r border-ink-100 dark:border-ink-800 bg-canvas/40 dark:bg-ink-950/40">
           {TIMELINE_HOURS.map((hour) => (
-            <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="border-b border-ink-100 pr-2 text-right text-xs text-ink-500">
+            <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="border-b border-ink-100/70 dark:border-ink-800/70 pr-2 text-right text-xs text-ink-500 font-mono">
               <span className="relative -top-2">{String(hour).padStart(2, "0")}:00</span>
             </div>
           ))}
         </div>
         <div className="relative flex-1" style={{ height: TIMELINE_HEIGHT_PX }}>
           {TIMELINE_HOURS.map((hour) => (
-            <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="border-b border-ink-100" />
+            <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="border-b border-ink-100/70 dark:border-ink-800/70" />
           ))}
           {dayEvents.length === 0 ? (
-            <p className="absolute inset-x-0 top-8 text-center text-sm text-ink-500">
-              Aucun événement ce jour-là.
-            </p>
+            <div className="absolute inset-x-0 top-12 text-center text-xs text-ink-400">
+              <p className="font-semibold">Aucun événement ce jour-là.</p>
+              <Link href="/activities/new" className="mt-1 inline-block text-signal font-bold hover:underline">
+                + Planifier une séance
+              </Link>
+            </div>
           ) : null}
           {dayEvents.map((event) => {
             const { topPx, heightPx } = timelinePosition(event.starts_at, event.ends_at, timezone);

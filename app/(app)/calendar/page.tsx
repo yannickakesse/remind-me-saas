@@ -87,12 +87,6 @@ export default async function CalendarPage({
 
   return (
     <div className="relative isolate min-h-full w-full space-y-5 max-w-7xl mx-auto min-w-0">
-      {/* Fond d'écran global de la page Calendrier */}
-      <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10"
-        style={{ backgroundImage: "url('/images/backgrounds/calendar-bg.jpg')" }}
-      />
-
       <div className="relative overflow-hidden rounded-2xl bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 p-5 sm:p-6 shadow-xs" data-tour="calendar-header">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>

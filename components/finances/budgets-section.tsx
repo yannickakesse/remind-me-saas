@@ -226,7 +226,7 @@ export function BudgetsSection({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
           {localBudgets.map((b) => {
             const limit = Number(b.monthly_limit);
             const spent = Number(b.spent) || 0;

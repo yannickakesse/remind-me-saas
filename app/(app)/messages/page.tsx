@@ -77,12 +77,6 @@ export default async function MessagesPage() {
 
   return (
     <div className="relative isolate min-h-full w-full space-y-6 max-w-7xl mx-auto min-w-0">
-      {/* Fond d'écran global */}
-      <div
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10"
-        style={{ backgroundImage: "url('/images/backgrounds/dashboard-bg.jpg')" }}
-      />
-
       <MessagesInboxView
         initialItems={inboxItems}
         initialMessages={messagesList || []}

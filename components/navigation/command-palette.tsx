@@ -17,6 +17,7 @@ import {
   X,
   LucideIcon,
 } from "lucide-react";
+import { openQuickTransaction } from "@/components/finances/quick-transaction-modal";
 
 interface SearchResultItem {
   id: string;
@@ -42,8 +43,9 @@ interface QuickActionItem {
 }
 
 const QUICK_ACTIONS: QuickActionItem[] = [
-  { id: "task-new", title: "Nouvelle tâche", subtitle: "Ajouter une tâche à faire", href: "/tasks/new", icon: CheckSquare, iconColor: "text-amber-700", iconBg: "bg-amber-100/70" },
+  { id: "expense-quick", title: "Nouvelle dépense", subtitle: "Saisir une dépense ponctuelle", href: "/finances/expenses/new", icon: TrendingDown, iconColor: "text-rose-700", iconBg: "bg-rose-100/70" },
   { id: "income-new", title: "Nouveau revenu", subtitle: "Saisir un paiement attendu ou reçu", href: "/finances/income/new", icon: TrendingUp, iconColor: "text-emerald-700", iconBg: "bg-emerald-100/70" },
+  { id: "task-new", title: "Nouvelle tâche", subtitle: "Ajouter une tâche à faire", href: "/tasks/new", icon: CheckSquare, iconColor: "text-amber-700", iconBg: "bg-amber-100/70" },
   { id: "expense-new", title: "Programmer une dépense", subtitle: "Planifier une charge ou facture récurrente", href: "/finances?tab=scheduled&action=new", icon: TrendingDown, iconColor: "text-rose-700", iconBg: "bg-rose-100/70" },
   { id: "activity-new", title: "Nouvelle activité", subtitle: "Créer une activité et ses horaires", href: "/activities/new", icon: Briefcase, iconColor: "text-indigo-700", iconBg: "bg-indigo-100/70" },
   { id: "contact-new", title: "Nouveau contact", subtitle: "Ajouter un client ou collaborateur", href: "/clients/contacts/new", icon: User, iconColor: "text-cyan-700", iconBg: "bg-cyan-100/70" },
@@ -115,6 +117,18 @@ export function CommandPalette() {
 
   function handleSelect(href: string) {
     setIsOpen(false);
+    if (href === "/finances/expenses/new") {
+      openQuickTransaction("expense");
+      return;
+    }
+    if (href === "/finances/income/new") {
+      openQuickTransaction("income");
+      return;
+    }
+    if (href === "/finances?tab=scheduled&action=new") {
+      openQuickTransaction("scheduled");
+      return;
+    }
     router.push(href);
   }
 

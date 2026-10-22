@@ -27,6 +27,8 @@ import { getUserTimezone } from "@/lib/time/timezones";
 
 import { DateTime } from "luxon";
 
+import { QuickTransactionModal } from "@/components/finances/quick-transaction-modal";
+
 export default async function AppLayout({
   children,
 }: {
@@ -41,7 +43,13 @@ export default async function AppLayout({
   const timezone = getUserTimezone(profile);
   const todayISO = DateTime.now().setZone(timezone).toISODate()!;
 
-  const [{ count: unreadCount }, { data: latestNotifications }, { data: userSettings }, { count: eventsTodayCount }] = await Promise.all([
+  const [
+    { count: unreadCount },
+    { data: latestNotifications },
+    { data: userSettings },
+    { count: eventsTodayCount },
+    { data: userActivities },
+  ] = await Promise.all([
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
@@ -70,6 +78,12 @@ export default async function AppLayout({
       .gte("starts_at", `${todayISO}T00:00:00Z`)
       .lte("starts_at", `${todayISO}T23:59:59Z`)
       .neq("status", "cancelled"),
+    supabase
+      .from("activities")
+      .select("id, name, color")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .order("name", { ascending: true }),
   ]);
 
   const tourState = (userSettings?.ui_prefs as any)?.tour_state;
@@ -93,6 +107,10 @@ export default async function AppLayout({
       <TaskSoundWatcher userId={user.id} />
       <InteractiveProductTour initialCompleted={tourCompleted} />
       <SectionVoiceAssistant />
+      <QuickTransactionModal
+        activities={userActivities ?? []}
+        defaultCurrency={profile?.default_currency ?? "XOF"}
+      />
 
       {/* Header & Bottom Nav Mobile (< 768px) */}
       <MobileNav unreadCount={unreadCount} />

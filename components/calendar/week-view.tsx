@@ -27,9 +27,9 @@ export function WeekView({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-ink-100 bg-canvas-raised shadow-xs">
-      <div className="min-w-[680px]">
-        <div className="flex border-b border-ink-100">
+    <div className="overflow-x-auto rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-2xs">
+      <div className="min-w-[640px]">
+        <div className="flex border-b border-ink-100 dark:border-ink-800 bg-canvas/40 dark:bg-ink-950/40">
           <div className="w-14 shrink-0" />
           {days.map((day) => {
             const iso = day.toISODate()!;

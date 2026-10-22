@@ -36,12 +36,6 @@ export default async function ClientsPage() {
 
   return (
     <div className="relative isolate min-h-full w-full space-y-10">
-      {/* Fond d'écran global de la page Clients & Contacts */}
-      <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10"
-        style={{ backgroundImage: "url('/images/backgrounds/clients-call-bg.jpg')" }}
-      />
-
       {/* En-tête avec bannière */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-6 sm:p-8 shadow-xs" data-tour="clients-header">
 
