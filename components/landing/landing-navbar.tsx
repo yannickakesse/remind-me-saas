@@ -6,6 +6,7 @@ import { RemindMeLogo } from "./remindme-logo";
 import { useTheme } from "@/components/theme/theme-provider";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import { useLanguage } from "@/components/i18n/language-provider";
+import { ArrowRight, Moon, Sun, Menu, X } from "lucide-react";
 
 interface LandingNavbarProps {
   user: { email?: string; id?: string } | null;
@@ -30,6 +31,14 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
     else setTheme("dark");
   };
 
+  const navLinks = [
+    { href: "#features", label: "Fonctionnalités" },
+    { href: "#comparison", label: "Espace Unifié" },
+    { href: "#how-it-works", label: "Comment ça marche" },
+    { href: "#pricing", label: "Tarifs" },
+    { href: "#faq", label: "FAQ" },
+  ];
+
   return (
     <header className="fixed top-[max(0.6rem,env(safe-area-inset-top,0px))] sm:top-4 left-0 right-0 z-50 px-3 sm:px-6 pointer-events-none transition-all duration-300">
       <div className="max-w-6xl mx-auto pointer-events-auto">
@@ -41,96 +50,56 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
           }`}
         >
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center group shrink-0">
+          <Link href="/" className="flex items-center group shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg">
             <RemindMeLogo size="sm" showText={true} />
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-ink-700 tracking-tight">
-            <a
-              href="#features"
-              className="hover:text-ink-950 transition-colors duration-150"
-            >
-              {t("landing.nav_features")}
-            </a>
-            <a
-              href="#how-it-works"
-              className="hover:text-ink-950 transition-colors duration-150"
-            >
-              {t("landing.nav_how_it_works")}
-            </a>
-            <a
-              href="#personas"
-              className="hover:text-ink-950 transition-colors duration-150"
-            >
-              {t("landing.nav_personas")}
-            </a>
-            <a
-              href="#pricing"
-              className="hover:text-ink-950 transition-colors duration-150"
-            >
-              {t("landing.nav_pricing")}
-            </a>
-            <a
-              href="#faq"
-              className="hover:text-ink-950 transition-colors duration-150"
-            >
-              {t("landing.nav_faq")}
-            </a>
+          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-ink-700 dark:text-ink-300 tracking-tight">
+            {navLinks.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="hover:text-ink-950 dark:hover:text-white transition-colors duration-150"
+              >
+                {item.label}
+              </a>
+            ))}
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Direct Sign in / Action Pill */}
             {user ? (
               <Link
                 href="/dashboard"
                 prefetch={true}
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active shrink-0"
+                className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active shrink-0"
               >
-                <span className="hidden sm:inline">{t("nav.dashboard")}</span>
-                <span className="sm:hidden text-[11px] font-bold">Cockpit</span>
-                <svg
-                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
+                <span>Mon Cockpit</span>
+                <ArrowRight className="w-3.5 h-3.5 shrink-0" />
               </Link>
             ) : (
-              <Link
-                href="/login"
-                prefetch={true}
-                className="inline-flex items-center gap-1 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active shrink-0"
-              >
-                <span>{t("landing.nav_login")}</span>
-              </Link>
-            )}
-
-            {/* Desktop Start/Register Button */}
-            {!user && (
-              <Link
-                href="/register"
-                prefetch={true}
-                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
-              >
-                <span>{t("landing.nav_start")}</span>
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
+              <>
+                <Link
+                  href="/login"
+                  prefetch={true}
+                  className="px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold text-ink-700 dark:text-ink-300 hover:text-ink-950 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800/60 transition-colors shrink-0"
                 >
-                  <path d="M7 17L17 7M17 7H7M17 7V17" />
-                </svg>
-              </Link>
+                  Connexion
+                </Link>
+                <Link
+                  href="/register"
+                  prefetch={true}
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
+                >
+                  <span>Commencer</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </>
             )}
 
-            {/* Interactive Language Selector (Pill on Desktop/Tablet, Compact on Mobile) */}
+            {/* Language Selector */}
             <div className="hidden sm:inline-flex shrink-0">
               <LanguageSelector variant="pill" />
             </div>
@@ -141,36 +110,28 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-1.5 sm:p-2 rounded-full text-ink-500 hover:text-ink-950 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0"
+              className="p-1.5 sm:p-2 rounded-full text-ink-500 hover:text-ink-950 dark:text-ink-400 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0 cursor-pointer"
               title={theme === "dark" ? "Mode clair" : "Mode sombre"}
               aria-label="Changer le thème"
             >
               {theme === "dark" ? (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <circle cx="12" cy="12" r="5" />
-                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-                </svg>
+                <Sun className="w-4 h-4" />
               ) : (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
+                <Moon className="w-4 h-4" />
               )}
             </button>
 
             {/* Mobile Menu Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-1.5 sm:p-2 rounded-full text-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0"
-              aria-label="Ouvrir le menu"
+              className="md:hidden p-1.5 sm:p-2 rounded-full text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0 cursor-pointer"
+              aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-5 h-5" />
               ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                <Menu className="w-5 h-5" />
               )}
             </button>
           </div>
@@ -179,53 +140,24 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden mt-2 bg-canvas-raised/95 backdrop-blur-xl border border-ink-200/80 dark:border-ink-800 rounded-3xl p-4 space-y-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
-            <nav className="flex flex-col space-y-1.5 font-medium text-xs text-ink-700">
-              <a
-                href="#features"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3.5 py-2.5 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-950 transition-colors flex items-center justify-between"
-              >
-                <span>{t("landing.nav_features")}</span>
-                <span className="text-ink-400">→</span>
-              </a>
-              <a
-                href="#how-it-works"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3.5 py-2.5 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-950 transition-colors flex items-center justify-between"
-              >
-                <span>{t("landing.nav_how_it_works")}</span>
-                <span className="text-ink-400">→</span>
-              </a>
-              <a
-                href="#personas"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3.5 py-2.5 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-950 transition-colors flex items-center justify-between"
-              >
-                <span>{t("landing.nav_personas")}</span>
-                <span className="text-ink-400">→</span>
-              </a>
-              <a
-                href="#pricing"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3.5 py-2.5 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-950 transition-colors flex items-center justify-between"
-              >
-                <span>{t("landing.nav_pricing")}</span>
-                <span className="text-ink-400">→</span>
-              </a>
-              <a
-                href="#faq"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3.5 py-2.5 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-950 transition-colors flex items-center justify-between"
-              >
-                <span>{t("landing.nav_faq")}</span>
-                <span className="text-ink-400">→</span>
-              </a>
+            <nav className="flex flex-col space-y-1 font-medium text-xs text-ink-700 dark:text-ink-200">
+              {navLinks.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-2.5 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-950 dark:hover:text-white transition-colors flex items-center justify-between"
+                >
+                  <span>{item.label}</span>
+                  <span className="text-ink-400">→</span>
+                </a>
+              ))}
             </nav>
             <div className="pt-2 border-t border-ink-100 dark:border-ink-800 flex items-center justify-between px-1">
-              <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">{t("nav.language")} :</span>
+              <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">Langue :</span>
               <LanguageSelector variant="pill" />
             </div>
-            <div className="pt-1 flex flex-col gap-2">
+            <div className="pt-2 flex flex-col gap-2">
               {user ? (
                 <Link
                   href="/dashboard"
@@ -233,7 +165,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full text-center py-2.5 rounded-full bg-emerald-600 text-white font-semibold text-xs shadow"
                 >
-                  {t("landing.nav_dashboard")} →
+                  Mon Cockpit →
                 </Link>
               ) : (
                 <>
@@ -243,15 +175,15 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="w-full text-center py-2.5 rounded-full border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold text-xs hover:bg-ink-100 dark:hover:bg-ink-800"
                   >
-                    {t("landing.nav_login")}
+                    Connexion
                   </Link>
                   <Link
                     href="/register"
                     prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full text-center py-2.5 rounded-full bg-ink-950 dark:bg-white text-white dark:text-ink-950 font-semibold text-xs shadow shadow-ink-950/20"
+                    className="w-full text-center py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow shadow-amber-500/20"
                   >
-                    {t("nav.start")}
+                    Commencer gratuitement
                   </Link>
                 </>
               )}

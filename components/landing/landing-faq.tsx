@@ -1,79 +1,80 @@
 "use client";
 
 import { useState } from "react";
-import { useLanguage } from "@/components/i18n/language-provider";
+import { ChevronDown, HelpCircle } from "lucide-react";
 
 export function LandingFAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const { t } = useLanguage();
 
   const faqs = [
     {
-      q: t("faq.q1"),
-      a: t("faq.a1"),
+      q: "À qui s'adresse principalement Remind Me ?",
+      a: "Remind Me a été spécialement conçu pour les professionnels, consultants, freelances, formateurs, créateurs et indépendants qui mènent plusieurs activités de front et ont besoin d'une vision unifiée de leur temps, de leurs tâches et de leurs finances.",
     },
     {
-      q: t("faq.q2"),
-      a: t("faq.a2"),
+      q: "Peut-on gérer plusieurs activités distinctes avec des tarifs différents ?",
+      a: "Oui. Vous pouvez créer autant d'activités permanentes (ex : Conseil récurrent, Cabinet) ou temporaires (ex : Mission de 3 mois avec date de fin) que votre forfait le permet. Chaque activité possède sa couleur, ses contacts, son mode de tarification (taux horaire ou forfait) et sa devise dédiée.",
     },
     {
-      q: t("faq.q3"),
-      a: t("faq.a3"),
+      q: "Comment fonctionne le suivi de la trésorerie et des encaissements ?",
+      a: "Remind Me centralise vos entrées et vos sorties d'argent. Vous enregistrez vos paiements encaissés, vos factures en attente et vos charges fixes programmées. Le cockpit calcule automatiquement votre solde net et votre rentabilité horaire réelle pour chaque activité.",
     },
     {
-      q: t("faq.q4"),
-      a: t("faq.a4"),
+      q: "Comment fonctionne la détection des conflits dans le calendrier ?",
+      a: "Lorsque vous planifiez un événement ou une séance pour une activité, Remind Me vérifie instantanément si ce créneau chevauche un engagement d'une autre activité. Si un conflit est détecté, une alerte visuelle claire vous avertit avant même la confirmation.",
     },
     {
-      q: t("faq.q5"),
-      a: t("faq.a5"),
+      q: "Peut-on utiliser Remind Me sur téléphone mobile et ordinateur ?",
+      a: "Absolument. Remind Me est développé selon les standards PWA (Progressive Web App). Vous pouvez l'utiliser directement dans votre navigateur sur ordinateur ou l'installer comme une application native sur votre smartphone (iOS ou Android) avec synchronisation en temps réel.",
     },
     {
-      q: t("faq.q6"),
-      a: t("faq.a6"),
+      q: "Comment démarrer et créer un compte ?",
+      a: "Il vous suffit de cliquer sur 'Commencer gratuitement'. L'inscription prend moins de 2 minutes, ne nécessite aucune carte bancaire et vous donne un accès immédiat à votre cockpit avec toutes les fonctionnalités du forfait découverte.",
     },
   ];
 
   return (
-    <section id="faq" className="py-24 bg-canvas-raised border-y border-ink-100">
+    <section id="faq" className="py-24 sm:py-32 bg-canvas-raised border-y border-ink-200/60 dark:border-ink-800/60">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <span className="text-xs font-semibold uppercase tracking-wider text-signal bg-signal-soft px-3.5 py-1.5 rounded-full">
-            {t("faq.badge")}
+        {/* Section Header */}
+        <div className="text-center mb-16 sm:mb-20">
+          <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3.5 py-1.5 rounded-full border border-amber-500/20">
+            Questions Fréquentes
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-ink-950 mt-4 tracking-tight font-sans">
-            {t("faq.title")}
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-ink-950 dark:text-white mt-4 tracking-tight font-sans">
+            Tout ce que vous devez savoir.
           </h2>
-          <p className="text-base sm:text-lg text-ink-700 mt-4 leading-relaxed">
-            {t("faq.subtitle")}
+          <p className="text-base sm:text-lg text-ink-600 dark:text-ink-300 mt-4 leading-relaxed">
+            Des réponses claires basées sur le fonctionnement réel de Remind Me.
           </p>
         </div>
 
+        {/* Accordion */}
         <div className="space-y-4">
           {faqs.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
               <div
                 key={idx}
-                className="rounded-3xl bg-canvas border border-ink-200/70 shadow-xs card-interactive overflow-hidden transition-colors"
+                className="rounded-3xl bg-canvas border border-ink-200/70 dark:border-ink-800 shadow-xs overflow-hidden transition-colors"
               >
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className="w-full p-6 text-left flex items-center justify-between gap-4 font-semibold text-ink-950 hover:text-signal transition-colors cursor-pointer"
+                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 font-semibold text-ink-950 dark:text-white hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer"
                   aria-expanded={isOpen}
                 >
-                  <span className="text-sm sm:text-base">{faq.q}</span>
+                  <span className="text-sm sm:text-base pr-2">{faq.q}</span>
                   <span
-                    className={`w-6 h-6 rounded-full bg-ink-100 flex items-center justify-center shrink-0 text-ink-700 transition-transform duration-200 ${
-                      isOpen ? "rotate-180 bg-signal text-white" : ""
+                    className={`w-7 h-7 rounded-full bg-ink-100 dark:bg-ink-800 flex items-center justify-center shrink-0 text-ink-700 dark:text-ink-200 transition-transform duration-200 ${
+                      isOpen ? "rotate-180 bg-amber-500 text-slate-950" : ""
                     }`}
                   >
-                    ↓
+                    <ChevronDown className="w-4 h-4" />
                   </span>
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-6 text-xs sm:text-sm text-ink-700 leading-relaxed animate-in fade-in duration-200">
+                  <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-ink-600 dark:text-ink-300 leading-relaxed border-t border-ink-100 dark:border-ink-800/60 pt-4 animate-in fade-in duration-200">
                     {faq.a}
                   </div>
                 )}

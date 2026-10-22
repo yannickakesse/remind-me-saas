@@ -2,231 +2,240 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Sparkles } from "lucide-react";
-import { useLanguage } from "@/components/i18n/language-provider";
+import { Check, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
+import { PLAN_ENTITLEMENTS } from "@/lib/subscriptions/entitlements";
 
 export function LandingPricing() {
   const [yearly, setYearly] = useState(true);
-  const { t } = useLanguage();
 
   return (
-    <section id="pricing" className="py-24 bg-canvas border-t border-ink-100">
+    <section id="pricing" className="py-24 sm:py-32 bg-canvas">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-semibold uppercase tracking-wider text-signal bg-signal-soft px-3 py-1 rounded-full">
-            {t("pricing.badge")}
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
+          <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3.5 py-1.5 rounded-full border border-amber-500/20">
+            Tarifs Transparents
           </span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-ink-950 mt-3 font-sans">
-            {t("pricing.title")}
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-ink-950 dark:text-white mt-4 tracking-tight font-sans">
+            Des forfaits clairs, sans surprise.
           </h2>
-          <p className="text-base sm:text-lg text-ink-700 mt-4">
-            {t("pricing.subtitle")}
+          <p className="text-base sm:text-lg text-ink-600 dark:text-ink-300 mt-4 leading-relaxed">
+            Commencez gratuitement sans carte bancaire, puis évoluez selon l&apos;ampleur de vos activités.
           </p>
 
-          {/* Toggle Mensuel / Annuel */}
-          <div className="mt-8 inline-flex items-center gap-3 bg-canvas-raised p-1.5 rounded-full border border-ink-200">
+          {/* Monthly / Yearly Toggle */}
+          <div className="mt-8 inline-flex items-center gap-2 bg-canvas-raised p-1.5 rounded-full border border-ink-200 dark:border-ink-800 shadow-xs">
             <button
               onClick={() => setYearly(false)}
               className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                !yearly ? "bg-ink-950 text-white shadow-xs" : "text-ink-600 hover:text-ink-950"
+                !yearly
+                  ? "bg-ink-950 dark:bg-white text-white dark:text-ink-950 shadow-sm"
+                  : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
               }`}
             >
-              {t("pricing.toggle_monthly")}
+              Facturation mensuelle
             </button>
             <button
               onClick={() => setYearly(true)}
               className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                yearly ? "bg-ink-950 text-white shadow-xs" : "text-ink-600 hover:text-ink-950"
+                yearly
+                  ? "bg-ink-950 dark:bg-white text-white dark:text-ink-950 shadow-sm"
+                  : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
               }`}
             >
-              <span>{t("pricing.toggle_yearly")}</span>
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-positive/20 text-positive font-bold">
-                {t("pricing.discount_badge")}
+              <span>Facturation annuelle</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">
+                2 mois offerts
               </span>
             </button>
           </div>
         </div>
 
-        {/* Pricing Cards Grid */}
+        {/* 3 Pricing Cards Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-          {/* Tier 1: Découverte / Free */}
-          <div className="p-8 rounded-2xl bg-canvas border border-ink-100 shadow-sm flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
+          {/* Plan 1: Gratuit (Free) */}
+          <div className="p-8 rounded-3xl bg-canvas border border-ink-200/80 dark:border-ink-800 shadow-sm flex flex-col justify-between space-y-8">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-ink-950">{t("pricing.free_name")}</h3>
-                <span className="px-2.5 py-1 rounded text-xs font-semibold bg-ink-100 text-ink-700">
-                  {t("pricing.free_badge")}
+                <div>
+                  <h3 className="text-xl font-bold text-ink-950 dark:text-white">Gratuit</h3>
+                  <p className="text-xs text-ink-500 mt-0.5">Pour découvrir et démarrer</p>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300">
+                  Découverte
                 </span>
               </div>
-              <p className="text-xs text-ink-500">
-                {t("pricing.free_desc")}
-              </p>
 
-              <div className="flex items-baseline gap-1 pt-2">
-                <span className="text-4xl font-extrabold text-ink-950">{t("pricing.free_price")}</span>
-                <span className="text-xs text-ink-500 font-medium">{t("pricing.free_period")}</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl sm:text-5xl font-extrabold font-mono text-ink-950 dark:text-white">0 €</span>
+                <span className="text-xs text-ink-500">/ mois</span>
               </div>
+              <p className="text-xs text-ink-500 font-medium">Sans engagement ni carte bancaire</p>
 
-              <ul className="space-y-3 pt-6 border-t border-ink-100 text-xs text-ink-700">
+              <ul className="space-y-3 pt-6 border-t border-ink-100 dark:border-ink-800 text-xs text-ink-700 dark:text-ink-300">
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.free_f1")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span>Jusqu&apos;à <strong>3 activités</strong> simultanées</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.free_f2")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span>Jusqu&apos;à <strong>5 contacts / clients</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.free_f3")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span>2 objectifs & 3 budgets prévisionnels</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.free_f4")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span>Calendrier avec détection des conflits</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.free_f5")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span>Export des données au format CSV</span>
                 </li>
               </ul>
             </div>
 
             <Link
               href="/register"
-              className="w-full py-3 px-4 rounded-full border border-ink-300 text-ink-950 font-semibold text-xs text-center hover:bg-ink-100 transition-colors tap-active"
+              className="w-full py-3.5 px-4 rounded-full border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold text-xs text-center hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors tap-active"
             >
-              {t("pricing.free_cta")}
+              Commencer gratuitement
             </Link>
           </div>
 
-          {/* Tier 2: Pro (Featured) */}
-          <div className="p-8 rounded-2xl bg-canvas-raised border-2 border-signal shadow-xl shadow-signal/10 flex flex-col justify-between space-y-6 relative">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-signal text-white text-[11px] font-bold tracking-wide uppercase shadow-sm">
-              <Sparkles className="w-3 h-3 text-white" />
-              {t("pricing.pro_badge_popular")}
+          {/* Plan 2: Pro (Featured) */}
+          <div className="p-8 rounded-3xl bg-canvas-raised border-2 border-amber-500 shadow-xl shadow-amber-500/10 flex flex-col justify-between space-y-8 relative">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500 text-slate-950 text-[11px] font-bold tracking-wide uppercase shadow-sm">
+              <Sparkles className="w-3 h-3 text-slate-950" />
+              Recommandé pour indépendants
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-ink-950">{t("pricing.pro_name")}</h3>
-                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-signal-soft text-signal">
-                  {t("pricing.pro_badge")}
+                <div>
+                  <h3 className="text-xl font-bold text-ink-950 dark:text-white">Pro</h3>
+                  <p className="text-xs text-ink-500 mt-0.5">Pour consultants et pluriactifs</p>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                  Complet
                 </span>
               </div>
-              <p className="text-xs text-ink-500">
-                {t("pricing.pro_desc")}
-              </p>
 
-              <div className="flex items-baseline gap-1 pt-2">
-                <span className="text-4xl font-extrabold text-ink-950">
-                  {yearly ? t("pricing.pro_price_yearly") : t("pricing.pro_price_monthly")}
-                </span>
-                <span className="text-xs text-ink-500 font-medium">{t("pricing.pro_period")}</span>
+              <div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl sm:text-5xl font-extrabold font-mono text-ink-950 dark:text-white">
+                    {yearly ? "90 €" : "9 €"}
+                  </span>
+                  <span className="text-xs text-ink-500">{yearly ? "/ an" : "/ mois"}</span>
+                </div>
+                {yearly && (
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
+                    Équivaut à 7,50 € / mois (2 mois offerts)
+                  </p>
+                )}
               </div>
-              {yearly && (
-                <span className="text-[11px] text-positive font-semibold">
-                  {t("pricing.pro_billed_yearly")}
-                </span>
-              )}
 
-              <ul className="space-y-3 pt-6 border-t border-ink-100 text-xs text-ink-950">
+              <ul className="space-y-3 pt-6 border-t border-ink-100 dark:border-ink-800 text-xs text-ink-900 dark:text-ink-100">
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.pro_f1")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span>Jusqu&apos;à <strong>15 activités</strong> simultanées</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.pro_f2")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span>Jusqu&apos;à <strong>50 contacts / clients</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.pro_f3")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span>10 objectifs & 15 budgets</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.pro_f4")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span><strong>Calcul de la rentabilité horaire nette</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span><strong>{t("pricing.pro_f5")}</strong></span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span><strong>Multi-devises</strong> (EUR, XOF, USD, GBP...)</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span><strong>{t("pricing.pro_f6")}</strong></span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span><strong>Automatisations récurrentes</strong> & échéanciers</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.pro_f7")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span>Export complet CSV & rapports</span>
                 </li>
               </ul>
             </div>
 
             <Link
               href="/register"
-              className="w-full py-3.5 px-4 rounded-full bg-signal text-white font-semibold text-xs text-center shadow-md shadow-signal/20 hover:bg-signal-dark hover:shadow-lg transition-all tap-active"
+              className="w-full py-3.5 px-4 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs text-center shadow-md shadow-amber-500/20 hover:shadow-lg transition-all tap-active"
             >
-              {t("pricing.pro_cta")}
+              Choisir le forfait Pro
             </Link>
           </div>
 
-          {/* Tier 3: Premium */}
-          <div className="p-8 rounded-2xl bg-canvas border border-ink-100 shadow-sm flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
+          {/* Plan 3: Premium */}
+          <div className="p-8 rounded-3xl bg-canvas border border-ink-200/80 dark:border-ink-800 shadow-sm flex flex-col justify-between space-y-8">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-ink-950">{t("pricing.premium_name")}</h3>
-                <span className="px-2.5 py-1 rounded text-xs font-semibold bg-gold-soft text-gold-dark font-bold">
-                  {t("pricing.premium_badge")}
+                <div>
+                  <h3 className="text-xl font-bold text-ink-950 dark:text-white">Premium</h3>
+                  <p className="text-xs text-ink-500 mt-0.5">Pour les structures et agences</p>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-400">
+                  Illimité
                 </span>
               </div>
-              <p className="text-xs text-ink-500">
-                {t("pricing.premium_desc")}
-              </p>
 
-              <div className="flex items-baseline gap-1 pt-2">
-                <span className="text-4xl font-extrabold text-ink-950">
-                  {yearly ? t("pricing.premium_price_yearly") : t("pricing.premium_price_monthly")}
-                </span>
-                <span className="text-xs text-ink-500 font-medium">{t("pricing.premium_period")}</span>
+              <div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl sm:text-5xl font-extrabold font-mono text-ink-950 dark:text-white">
+                    {yearly ? "190 €" : "19 €"}
+                  </span>
+                  <span className="text-xs text-ink-500">{yearly ? "/ an" : "/ mois"}</span>
+                </div>
+                {yearly && (
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
+                    Équivaut à 15,83 € / mois (2 mois offerts)
+                  </p>
+                )}
               </div>
-              {yearly && (
-                <span className="text-[11px] text-positive font-semibold">
-                  {t("pricing.premium_billed_yearly")}
-                </span>
-              )}
 
-              <ul className="space-y-3 pt-6 border-t border-ink-100 text-xs text-ink-700">
+              <ul className="space-y-3 pt-6 border-t border-ink-100 dark:border-ink-800 text-xs text-ink-700 dark:text-ink-300">
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span><strong>{t("pricing.premium_f1")}</strong></span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span><strong>Activités illimitées</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span><strong>{t("pricing.premium_f2")}</strong></span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span><strong>Contacts & clients illimités</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span><strong>{t("pricing.premium_f3")}</strong></span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span><strong>Objectifs & budgets illimités</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.premium_f4")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span><strong>Assistant IA & insights prédictifs</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span><strong>{t("pricing.premium_f5")}</strong></span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span>Toutes les fonctionnalités Pro incluses</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={3} />
-                  <span>{t("pricing.premium_f6")}</span>
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  <span>Support prioritaire par email</span>
                 </li>
               </ul>
             </div>
 
             <Link
               href="/register"
-              className="w-full py-3 px-4 rounded-full border border-ink-300 text-ink-950 font-semibold text-xs text-center hover:bg-ink-100 transition-colors tap-active"
+              className="w-full py-3.5 px-4 rounded-full border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold text-xs text-center hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors tap-active"
             >
-              {t("pricing.premium_cta")}
+              Choisir le forfait Premium
             </Link>
           </div>
         </div>
