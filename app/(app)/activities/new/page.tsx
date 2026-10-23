@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ActivityForm } from "@/components/shared/activity-form";
 import { createActivity } from "../actions";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
-import { Copy } from "lucide-react";
+import { Copy, ArrowLeft, Plus, Sparkles } from "lucide-react";
 
 export default async function NewActivityPage({
   searchParams,
@@ -117,35 +118,64 @@ export default async function NewActivityPage({
     : undefined;
 
   return (
-    <div>
-      <div className="mb-8">
-        {isDuplicating ? (
+    <div className="relative isolate min-h-full w-full space-y-6 max-w-4xl">
+      {/* Auras d'ambiance en arrière-plan */}
+      <div className="absolute top-0 -left-12 w-64 h-64 rounded-full bg-signal/10 dark:bg-signal/5 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 -right-12 w-72 h-72 rounded-full bg-purple-500/10 dark:bg-purple-500/5 blur-3xl pointer-events-none" />
+
+      {/* Navigation retour */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/activities"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white bg-canvas-raised/80 dark:bg-slate-900/80 border border-ink-200/80 dark:border-white/10 hover:border-signal/40 transition-all shadow-2xs group"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+          <span>Retour au portefeuille d&apos;activités</span>
+        </Link>
+      </div>
+
+      {/* Hero Banner Header */}
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs">
+        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-signal/15 dark:bg-signal/20 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-signal/10 text-signal border border-signal/20">
-                <Copy className="w-3 h-3" />
-                Duplication rapide & modification
-              </span>
+            <div className="flex items-center gap-2 mb-2">
+              {isDuplicating ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-signal/15 text-signal border border-signal/25 shadow-2xs">
+                  <Copy className="w-3 h-3" />
+                  Duplication rapide & modification
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-signal/10 dark:bg-signal/20 text-signal border border-signal/20 shadow-2xs">
+                  <Plus className="w-3 h-3" />
+                  Configuration de mission
+                </span>
+              )}
+              {isFirstActivity && (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20">
+                  <Sparkles className="w-3 h-3" /> Première étape
+                </span>
+              )}
             </div>
-            <h1 className="text-2xl font-bold text-ink-950">
-              Dupliquer « {sourceActivity?.name} »
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink-950 dark:text-white">
+              {isDuplicating
+                ? `Dupliquer « ${sourceActivity?.name} »`
+                : isFirstActivity
+                ? "Créons votre première activité"
+                : "Nouvelle activité"}
             </h1>
-            <p className="text-sm text-ink-500 mt-1">
-              Les données de l'activité originale ont été préremplies. Modifiez le jour, les horaires ou les détails selon vos besoins puis enregistrez la nouvelle activité.
+
+            <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 mt-1 max-w-2xl">
+              {isDuplicating
+                ? "Les données de l'activité originale ont été préremplies. Ajustez les jours, créneaux ou rémunération puis enregistrez."
+                : isFirstActivity
+                ? "Ces informations alimenteront votre calendrier intelligent et vos prévisions de trésorerie."
+                : "Renseignez les horaires, modalités d'intervention et rémunération pour un suivi automatisé."}
             </p>
           </div>
-        ) : (
-          <div>
-            <h1 className="text-2xl font-semibold text-ink-950">
-              {isFirstActivity ? "Créons votre première activité" : "Nouvelle activité"}
-            </h1>
-            <p className="text-ink-500">
-              {isFirstActivity
-                ? "Ces informations alimenteront votre calendrier et vos revenus prévisionnels."
-                : "Renseignez les horaires et la rémunération pour un suivi automatique."}
-            </p>
-          </div>
-        )}
+        </div>
       </div>
 
       <ActivityForm

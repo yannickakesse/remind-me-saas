@@ -222,8 +222,8 @@ export function ActivityForm({
   return (
     <form onSubmit={handleSubmit} className="flex max-w-2xl flex-col gap-6 sm:gap-8">
       {/* ---- Informations Essentielles ---- */}
-      <section className="rounded-xl border border-ink-200/80 bg-canvas p-4 sm:p-6 shadow-sm flex flex-col gap-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
+      <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-5">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
           Informations principales
         </h2>
 
@@ -244,7 +244,7 @@ export function ActivityForm({
               id="type"
               name="type"
               defaultValue={initial?.type ?? ACTIVITY_TYPES[0].value}
-              className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950 focus:border-signal"
+              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal transition-colors shadow-2xs cursor-pointer"
             >
               {ACTIVITY_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>
@@ -255,7 +255,7 @@ export function ActivityForm({
           </Field>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-ink-700">
+            <label className="mb-1.5 block text-xs sm:text-sm font-bold text-zinc-950 dark:text-white transition-colors">
               Couleur visuelle
             </label>
             <div className="flex flex-wrap gap-2 pt-1">
@@ -266,11 +266,11 @@ export function ActivityForm({
                   onClick={() => setColor(c)}
                   aria-label={`Couleur ${c}`}
                   aria-pressed={color === c}
-                  className="h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-transform hover:scale-105"
+                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all hover:scale-110 active:scale-95 shadow-2xs cursor-pointer ${
+                    color === c ? "ring-2 ring-offset-2 ring-signal dark:ring-offset-slate-900 scale-105" : ""
+                  }`}
                   style={{
                     backgroundColor: c,
-                    outline: color === c ? `2px solid ${c}` : "none",
-                    outlineOffset: 2,
                   }}
                 />
               ))}
@@ -280,9 +280,9 @@ export function ActivityForm({
       </section>
 
       {/* ---- Validité & Nature de l'engagement ---- */}
-      <section className="rounded-xl border border-ink-200/80 bg-canvas p-4 sm:p-6 shadow-sm flex flex-col gap-5">
+      <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-5">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
             Validité & Nature de l'engagement
           </h2>
           <p className="text-xs text-ink-500 mt-0.5">
@@ -292,15 +292,15 @@ export function ActivityForm({
 
         {/* 1. Type de validité : Permanent vs Temporaire */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-ink-800">
+          <label className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">
             Durée de validité de l'activité *
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label
-              className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+              className={`flex items-start gap-3.5 p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${
                 validityType === "permanent"
-                  ? "border-signal bg-signal-soft/20 text-ink-950 shadow-xs"
-                  : "border-ink-200 bg-canvas-raised text-ink-700 hover:border-ink-300"
+                  ? "border-signal bg-signal/10 dark:bg-signal/15 text-ink-950 dark:text-white ring-1 ring-signal/30 shadow-xs"
+                  : "border-ink-200/90 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-800/40 text-ink-700 dark:text-ink-300 hover:border-ink-300 dark:hover:border-white/20"
               }`}
             >
               <input
@@ -312,18 +312,18 @@ export function ActivityForm({
                 className="mt-1 text-signal focus:ring-signal"
               />
               <div>
-                <span className="font-semibold text-sm block text-ink-950">Permanent</span>
-                <span className="text-xs text-ink-500 leading-relaxed block mt-0.5">
+                <span className="font-bold text-sm block text-ink-950 dark:text-white">Permanent</span>
+                <span className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed block mt-0.5">
                   Durée indéfinie (emploi, routine, activité stable). Pas de date de fin obligatoire.
                 </span>
               </div>
             </label>
 
             <label
-              className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+              className={`flex items-start gap-3.5 p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${
                 validityType === "temporary"
-                  ? "border-signal bg-signal-soft/20 text-ink-950 shadow-xs"
-                  : "border-ink-200 bg-canvas-raised text-ink-700 hover:border-ink-300"
+                  ? "border-signal bg-signal/10 dark:bg-signal/15 text-ink-950 dark:text-white ring-1 ring-signal/30 shadow-xs"
+                  : "border-ink-200/90 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-800/40 text-ink-700 dark:text-ink-300 hover:border-ink-300 dark:hover:border-white/20"
               }`}
             >
               <input
@@ -335,8 +335,8 @@ export function ActivityForm({
                 className="mt-1 text-signal focus:ring-signal"
               />
               <div>
-                <span className="font-semibold text-sm block text-ink-950">Engagement temporaire</span>
-                <span className="text-xs text-ink-500 leading-relaxed block mt-0.5">
+                <span className="font-bold text-sm block text-ink-950 dark:text-white">Engagement temporaire</span>
+                <span className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed block mt-0.5">
                   Mission bornée dans le temps (date de fin obligatoire). Arrête les créneaux futurs à l'échéance.
                 </span>
               </div>
@@ -384,7 +384,7 @@ export function ActivityForm({
               name="engagementNature"
               value={engagementNature}
               onChange={(e) => setEngagementNature(e.target.value as EngagementNature)}
-              className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950 focus:border-signal text-sm"
+              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal text-sm shadow-2xs cursor-pointer transition-colors"
             >
               {ENGAGEMENT_NATURES.map((n) => (
                 <option key={n.value} value={n.value}>
@@ -400,7 +400,7 @@ export function ActivityForm({
               name="reminderPreference"
               value={reminderPreference}
               onChange={(e) => setReminderPreference(e.target.value as ReminderPreference)}
-              className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950 focus:border-signal text-sm"
+              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal text-sm shadow-2xs cursor-pointer transition-colors"
             >
               {REMINDER_PREFERENCES.map((p) => (
                 <option key={p.value} value={p.value}>
@@ -413,8 +413,8 @@ export function ActivityForm({
       </section>
 
       {/* ---- Rémunération Principale ---- */}
-      <section className="rounded-xl border border-ink-200/80 bg-canvas p-4 sm:p-6 shadow-sm flex flex-col gap-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
+      <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-5">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
           Rémunération
         </h2>
 
@@ -437,7 +437,7 @@ export function ActivityForm({
               id="currency"
               name="currency"
               defaultValue={initial?.currency ?? defaultCurrency}
-              className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950 focus:border-signal"
+              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal shadow-2xs cursor-pointer transition-colors"
             >
               {currencies.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -452,7 +452,7 @@ export function ActivityForm({
               id="frequency"
               name="frequency"
               defaultValue={initial?.frequency ?? "monthly"}
-              className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950 focus:border-signal"
+              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal shadow-2xs cursor-pointer transition-colors"
             >
               {COMPENSATION_FREQUENCIES.map((f) => (
                 <option key={f.value} value={f.value}>
@@ -465,10 +465,10 @@ export function ActivityForm({
       </section>
 
       {/* ---- Horaires / Créneaux ---- */}
-      <section className="rounded-xl border border-ink-200/80 bg-canvas p-4 sm:p-6 shadow-sm flex flex-col gap-4">
+      <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500 flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-ink-400" /> Horaires & Planning (optionnel)
+          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white flex items-center gap-1.5">
+            <Clock className="w-4 h-4 text-signal" /> Horaires & Planning (optionnel)
           </h2>
         </div>
 
@@ -488,14 +488,14 @@ export function ActivityForm({
             {schedules.map((row, i) => (
               <div
                 key={i}
-                className="flex flex-col sm:flex-row sm:items-end gap-3 rounded-lg border border-ink-200 bg-canvas-raised p-3.5"
+                className="flex flex-col sm:flex-row sm:items-end gap-3.5 rounded-2xl border border-ink-200/90 dark:border-white/10 bg-canvas-subtle/60 dark:bg-slate-800/40 p-4 shadow-2xs hover:border-signal/30 transition-all"
               >
                 <div className="flex-1 min-w-[120px]">
-                  <label className="text-xs font-medium text-ink-600 block mb-1">Jour</label>
+                  <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">Jour</label>
                   <select
                     value={row.weekday}
                     onChange={(e) => updateSchedule(i, { weekday: Number(e.target.value) })}
-                    className="w-full rounded-md border border-ink-300 bg-canvas px-2.5 py-1.5 text-sm"
+                    className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none"
                   >
                     {WEEKDAYS.map((d) => (
                       <option key={d.value} value={d.value}>
@@ -504,42 +504,42 @@ export function ActivityForm({
                     ))}
                   </select>
                 </div>
-                <div className="flex gap-2 flex-1">
+                <div className="flex gap-2.5 flex-1">
                   <div className="flex-1">
-                    <label className="text-xs font-medium text-ink-600 block mb-1">Début</label>
+                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">Début</label>
                     <input
                       type="time"
                       value={row.startTime}
                       onChange={(e) => updateSchedule(i, { startTime: e.target.value })}
-                      className="w-full rounded-md border border-ink-300 bg-canvas px-2.5 py-1.5 text-sm"
+                      className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none"
                     />
                   </div>
                   <div className="flex-1">
-                    <label className="text-xs font-medium text-ink-600 block mb-1">Fin</label>
+                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">Fin</label>
                     <input
                       type="time"
                       value={row.endTime}
                       onChange={(e) => updateSchedule(i, { endTime: e.target.value })}
-                      className="w-full rounded-md border border-ink-300 bg-canvas px-2.5 py-1.5 text-sm"
+                      className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none"
                     />
                   </div>
                 </div>
                 <div className="w-full sm:w-28 flex items-center justify-between sm:justify-start gap-2">
                   <div className="flex-1 sm:w-20">
-                    <label className="text-xs font-medium text-ink-600 block mb-1">Pause (min)</label>
+                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">Pause (min)</label>
                     <input
                       type="number"
                       min={0}
                       value={row.breakMinutes}
                       onChange={(e) => updateSchedule(i, { breakMinutes: Number(e.target.value) })}
-                      className="w-full rounded-md border border-ink-300 bg-canvas px-2.5 py-1.5 text-sm"
+                      className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => removeSchedule(i)}
                     aria-label="Supprimer ce créneau"
-                    className="p-1.5 text-danger hover:bg-danger/10 rounded-md transition-colors sm:mt-5"
+                    className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors sm:mt-5 cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -568,7 +568,7 @@ export function ActivityForm({
       </section>
 
       {/* ---- Rappel Vocal Intelligent ---- */}
-      <section className="rounded-xl border border-signal/30 bg-signal-soft/15 p-4 sm:p-5 shadow-sm space-y-3">
+      <section className="rounded-3xl border border-signal/30 dark:border-signal/20 bg-signal-soft/15 dark:bg-signal/10 p-5 sm:p-6 shadow-xs space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="p-2 rounded-xl bg-signal text-white shrink-0 mt-0.5">
@@ -601,25 +601,27 @@ export function ActivityForm({
       </section>
 
       {/* ---- Accordéon : Détails complémentaires (optionnels) ---- */}
-      <section className="rounded-xl border border-ink-200/80 bg-canvas overflow-hidden shadow-sm">
+      <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 overflow-hidden shadow-xs">
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-ink-50/50 transition-colors"
+          className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-ink-50/50 dark:hover:bg-white/5 transition-colors cursor-pointer"
         >
           <div>
-            <h3 className="text-sm font-semibold text-ink-800">
+            <h3 className="text-sm font-bold text-ink-950 dark:text-white">
               Détails complémentaires (optionnel)
             </h3>
-            <p className="text-xs text-ink-500 mt-0.5">
-              Description, client, contact, lieu de travail et dates
+            <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">
+              Description, client, contact, lieu de travail et conditions de règlement
             </p>
           </div>
-          {showAdvanced ? (
-            <ChevronUp className="w-5 h-5 text-ink-500 shrink-0" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-ink-500 shrink-0" />
-          )}
+          <div className="p-1 rounded-xl bg-ink-100 dark:bg-white/10 text-ink-600 dark:text-ink-300">
+            {showAdvanced ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </div>
         </button>
 
         {showAdvanced && (
@@ -631,7 +633,7 @@ export function ActivityForm({
                 placeholder="Notes ou détails sur vos missions..."
                 defaultValue={initial?.description}
                 rows={2}
-                className="w-full rounded-md border border-ink-300 bg-canvas px-3 py-2 text-ink-950 placeholder:text-ink-400 focus:border-signal"
+                className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3.5 py-2.5 text-sm text-ink-950 dark:text-white placeholder:text-ink-400 focus:border-signal focus:outline-none transition-colors shadow-2xs"
               />
             </Field>
 
@@ -678,7 +680,7 @@ export function ActivityForm({
                   id="workMode"
                   name="workMode"
                   defaultValue={initial?.workMode ?? "onsite"}
-                  className="w-full rounded-md border border-ink-300 bg-canvas px-3 py-2 text-ink-950 focus:border-signal"
+                  className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal text-sm shadow-2xs cursor-pointer"
                 >
                   <option value="onsite">Présentiel</option>
                   <option value="remote">Télétravail</option>
@@ -795,7 +797,7 @@ export function ActivityForm({
             variant="secondary"
             onClick={() => router.back()}
             disabled={submitting || deleting}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto rounded-2xl border border-ink-200/90 dark:border-white/10 dark:bg-slate-800/80 text-ink-700 dark:text-ink-200 hover:bg-canvas dark:hover:bg-slate-700/80 py-2.5 cursor-pointer"
           >
             Annuler
           </Button>
@@ -805,7 +807,7 @@ export function ActivityForm({
             loading={submitting}
             disabled={submitting || deleting || Boolean(scheduleConflict)}
             data-tour="activity-form-submit"
-            className="w-full sm:w-auto sm:min-w-[180px]"
+            className="w-full sm:w-auto sm:min-w-[180px] rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:shadow-[0_6px_20px_rgba(217,119,6,0.35)] hover:-translate-y-0.5 transition-all font-bold shadow-xs py-2.5 cursor-pointer text-white border border-amber-400/40"
           >
             {submitting
               ? currentActivityId

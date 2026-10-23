@@ -19,6 +19,7 @@ import {
   Clock,
   Sparkles,
   X,
+  Search,
 } from "lucide-react";
 import {
   archiveActivity,
@@ -85,6 +86,8 @@ export function ActivitiesClientView({
   const { t } = useLanguage();
   const [activities, setActivities] = useState<ActivityViewItem[]>(initialActivities);
   const [suggestions, setSuggestions] = useState<RoutineSuggestionItem[]>(initialSuggestions);
+  const [filterTab, setFilterTab] = useState<"all" | "active" | "expired" | "suspended" | "archived">("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [evolutionProcessingId, setEvolutionProcessingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -101,10 +104,27 @@ export function ActivitiesClientView({
   const [renewSubmitting, setRenewSubmitting] = useState(false);
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
 
-  const active = activities.filter((a) => a.status === "active");
-  const expired = activities.filter((a) => a.status === "expired");
-  const suspended = activities.filter((a) => a.status === "suspended");
-  const archived = activities.filter((a) => a.status === "archived");
+  const totalActive = activities.filter((a) => a.status === "active").length;
+  const totalExpired = activities.filter((a) => a.status === "expired").length;
+  const totalSuspended = activities.filter((a) => a.status === "suspended").length;
+  const totalArchived = activities.filter((a) => a.status === "archived").length;
+
+  const filteredActivities = activities.filter((a) => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchName = a.name.toLowerCase().includes(q);
+      const matchOrg = a.organizationName?.toLowerCase().includes(q);
+      const matchType = typeLabel(a.type).toLowerCase().includes(q);
+      if (!matchName && !matchOrg && !matchType) return false;
+    }
+    if (filterTab === "all") return true;
+    return a.status === filterTab;
+  });
+
+  const active = filteredActivities.filter((a) => a.status === "active");
+  const expired = filteredActivities.filter((a) => a.status === "expired");
+  const suspended = filteredActivities.filter((a) => a.status === "suspended");
+  const archived = filteredActivities.filter((a) => a.status === "archived");
 
   async function handleAcceptEvolution(activityId: string, suggestionId?: string) {
     if (evolutionProcessingId) return;
@@ -373,112 +393,309 @@ export function ActivitiesClientView({
   }
 
   return (
-    <div className="relative isolate min-h-full w-full space-y-8">
-      {/* En-tête responsive */}
-      <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-6 sm:p-8 shadow-sm" data-tour="activities-header">
+    <div className="relative isolate min-h-full w-full space-y-6">
+      {/* Auras d'ambiance en arrière-plan */}
+      <div className="absolute top-0 -left-16 w-72 h-72 rounded-full bg-signal/10 dark:bg-signal/5 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 -right-16 w-80 h-80 rounded-full bg-purple-500/10 dark:bg-purple-500/5 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* En-tête responsive haute fidélité */}
+      <div
+        className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs"
+        data-tour="activities-header"
+      >
+        <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-signal/15 dark:bg-signal/20 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2.5">
-              <span className="p-2 rounded-xl bg-signal text-white shadow-xs">
-                <Briefcase className="h-5 w-5" />
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-signal/10 dark:bg-signal/20 text-signal text-[11px] font-bold border border-signal/20 shadow-2xs">
+                <Briefcase className="w-3 h-3" />
+                <span>Portefeuille d&apos;activités</span>
               </span>
+              <span className="text-xs text-ink-500">
+                {activities.length} activité{activities.length > 1 ? "s" : ""} au total
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink-950 dark:text-white flex items-center gap-2.5">
               {t("activities.title")}
             </h1>
-            <p className="text-sm text-ink-500 mt-1">
-              {t("activities.count_active", { count: active.length })}
-              {expired.length > 0 ? ` · ${t("activities.count_expired", { count: expired.length })}` : ""}
-              {suspended.length > 0 ? ` · ${t("activities.count_suspended", { count: suspended.length })}` : ""}
-              {archived.length > 0 ? ` · ${t("activities.count_archived", { count: archived.length })}` : ""}
+            <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 mt-1">
+              Pilotez vos différentes casquettes, contrats, tarifs et temps de mission en un seul endroit.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <SectionGuideTrigger section="activities" label="Guide des activités" />
-            <Link href="/activities/new" data-tour="activity-create" className={buttonClasses("primary", "md")}>
-              <Plus className="h-4 w-4 mr-1.5" />
-              {t("activities.add_btn")}
+
+          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+            <SectionGuideTrigger section="activities" label="Guide" />
+            <Link
+              href="/activities/new"
+              data-tour="activity-create"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 shadow-[0_4px_16px_rgba(217,119,6,0.25)] hover:shadow-[0_6px_20px_rgba(217,119,6,0.35)] tap-active cursor-pointer bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 border border-amber-400/40 min-h-[42px]"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2.8} />
+              <span>{t("activities.add_btn")}</span>
             </Link>
           </div>
         </div>
       </div>
 
-      {/* 1. ACTIVITÉS ACTIVES */}
-      {active.length === 0 && expired.length === 0 && suspended.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-ink-300 bg-canvas-raised/50 p-10 text-center" data-tour="activities-list">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-signal-soft text-signal">
-            <Briefcase className="h-6 w-6" />
+      {/* Barre de navigation par onglets & Recherche */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Onglets Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar p-1 rounded-2xl border border-ink-200/80 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-900/80 backdrop-blur-md shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setFilterTab("all")}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+              filterTab === "all"
+                ? "bg-signal text-white shadow-xs"
+                : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
+            }`}
+          >
+            <span>Toutes</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                filterTab === "all" ? "bg-white/20 text-white" : "bg-ink-100 dark:bg-white/10 text-ink-700 dark:text-ink-300"
+              }`}
+            >
+              {activities.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilterTab("active")}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+              filterTab === "active"
+                ? "bg-signal text-white shadow-xs"
+                : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
+            }`}
+          >
+            <span>Actives</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                filterTab === "active" ? "bg-white/20 text-white" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+              }`}
+            >
+              {totalActive}
+            </span>
+          </button>
+
+          {totalExpired > 0 && (
+            <button
+              type="button"
+              onClick={() => setFilterTab("expired")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                filterTab === "expired"
+                  ? "bg-purple-700 text-white shadow-xs"
+                  : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+              <span>Expirées</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                  filterTab === "expired" ? "bg-white/20 text-white" : "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                }`}
+              >
+                {totalExpired}
+              </span>
+            </button>
+          )}
+
+          {totalSuspended > 0 && (
+            <button
+              type="button"
+              onClick={() => setFilterTab("suspended")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                filterTab === "suspended"
+                  ? "bg-amber-600 text-white shadow-xs"
+                  : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
+              }`}
+            >
+              <Pause className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>En pause</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                  filterTab === "suspended" ? "bg-white/20 text-white" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                }`}
+              >
+                {totalSuspended}
+              </span>
+            </button>
+          )}
+
+          {totalArchived > 0 && (
+            <button
+              type="button"
+              onClick={() => setFilterTab("archived")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                filterTab === "archived"
+                  ? "bg-ink-800 text-white shadow-xs"
+                  : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
+              }`}
+            >
+              <Archive className="w-3.5 h-3.5 text-ink-400" />
+              <span>Archivées</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                  filterTab === "archived" ? "bg-white/20 text-white" : "bg-ink-100 dark:bg-white/10 text-ink-600 dark:text-ink-400"
+                }`}
+              >
+                {totalArchived}
+              </span>
+            </button>
+          )}
+        </div>
+
+        {/* Champ de recherche */}
+        <div className="relative w-full sm:w-64">
+          <Search className="w-4 h-4 text-ink-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Rechercher une activité..."
+            className="w-full pl-9 pr-8 py-2 rounded-2xl border border-ink-200/80 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-900/80 text-xs text-ink-950 dark:text-white placeholder:text-ink-400 focus:outline-none focus:border-signal transition-colors shadow-2xs"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-700 dark:hover:text-white"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* LISTE PRINCIPALE DES ACTIVITÉS */}
+      {filteredActivities.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-ink-200 dark:border-ink-800 bg-canvas-raised/50 dark:bg-slate-900/50 p-10 text-center space-y-3">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-signal/10 text-signal border border-signal/20 shadow-xs">
+            <Briefcase className="h-7 w-7" />
           </div>
-          <h3 className="text-base font-bold text-ink-950">{t("activities.empty_title")}</h3>
-          <p className="text-sm text-ink-500 mt-1 max-w-sm mx-auto">
-            {t("activities.empty_desc")}
+          <h3 className="text-base font-bold text-ink-950 dark:text-white">
+            {searchQuery ? "Aucune activité ne correspond à votre recherche" : t("activities.empty_title")}
+          </h3>
+          <p className="text-xs sm:text-sm text-ink-500 max-w-sm mx-auto">
+            {searchQuery ? `Essayez de modifier votre terme de recherche « ${searchQuery} »` : t("activities.empty_desc")}
           </p>
-          <div className="mt-5">
-            <Link href="/activities/new" data-tour="activity-create" className={buttonClasses("primary", "sm")}>
-              <Plus className="h-4 w-4 mr-1" />
-              {t("activities.add_btn")}
-            </Link>
+          <div className="pt-2">
+            {searchQuery ? (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="px-4 py-2 rounded-xl bg-ink-100 dark:bg-white/10 text-ink-900 dark:text-white text-xs font-bold hover:bg-ink-200 transition-colors"
+              >
+                Effacer la recherche
+              </button>
+            ) : (
+              <Link
+                href="/activities/new"
+                data-tour="activity-create"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-signal text-white text-xs font-bold hover:bg-signal-dark transition-colors shadow-2xs"
+              >
+                <Plus className="h-4 w-4" />
+                {t("activities.add_btn")}
+              </Link>
+            )}
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5" data-tour="activities-list">
-          {active.map((activity) => {
+          {filteredActivities.map((activity) => {
             const isDeleting = deletingId === activity.id;
             const isArchiving = archivingId === activity.id;
             const isSuspending = suspendingId === activity.id;
+            const isRestoring = restoringId === activity.id;
+            const isResuming = resumingId === activity.id;
             const isConfirmingDelete = confirmDeleteId === activity.id;
             const itemError = errorMap[activity.id];
+            const activityColor = activity.color ?? "#E5A91E";
 
             return (
               <div
                 key={activity.id}
-                className="flex flex-col justify-between gap-4 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md p-6 hover:border-signal/50 hover:shadow-md transition-all shadow-xs"
+                className="relative overflow-hidden flex flex-col justify-between gap-4 rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-6 shadow-xs hover:-translate-y-1 hover:shadow-md transition-all duration-200 group"
               >
-                <div className="space-y-3">
+                {/* Barre d'accentuation supérieure thématique */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-1.5 opacity-80 group-hover:opacity-100 transition-opacity"
+                  style={{ backgroundColor: activityColor }}
+                />
+
+                <div className="space-y-3.5 pt-1">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span
-                        className="h-3.5 w-3.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: activity.color ?? "#1E3A5F" }}
+                        className="h-3.5 w-3.5 shrink-0 rounded-full ring-2 ring-white/20 shadow-2xs"
+                        style={{ backgroundColor: activityColor }}
                       />
-                      <h3 className="font-bold text-ink-950 text-base truncate">{activity.name}</h3>
+                      <h3 className="font-bold text-ink-950 dark:text-white text-base truncate group-hover:text-signal transition-colors">
+                        {activity.name}
+                      </h3>
                     </div>
+
                     <div className="flex items-center gap-1.5 flex-wrap justify-end shrink-0">
-                      <span className="rounded-full bg-ink-100 dark:bg-ink-800 px-2.5 py-0.5 text-xs font-semibold text-ink-700 dark:text-ink-300 shrink-0">
+                      <span className="rounded-full bg-ink-100 dark:bg-white/5 border border-ink-200/50 dark:border-white/5 px-2.5 py-0.5 text-xs font-semibold text-ink-700 dark:text-ink-300 shrink-0">
                         {typeLabel(activity.type)}
                       </span>
+
+                      {activity.status === "expired" && (
+                        <span className="rounded-full bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 text-[11px] font-bold text-purple-700 dark:text-purple-300 shrink-0 flex items-center gap-1">
+                          <Clock className="w-2.5 h-2.5" /> Expirée
+                        </span>
+                      )}
+
+                      {activity.status === "suspended" && (
+                        <span className="rounded-full bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-300 shrink-0 flex items-center gap-1">
+                          <Pause className="w-2.5 h-2.5" /> En pause
+                        </span>
+                      )}
+
+                      {activity.status === "archived" && (
+                        <span className="rounded-full bg-ink-100 dark:bg-white/10 px-2 py-0.5 text-[11px] font-medium text-ink-600 dark:text-ink-400 shrink-0">
+                          Archivée
+                        </span>
+                      )}
+
                       {activity.engagement_nature === "routine" && (
-                        <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 shrink-0">
+                        <span className="rounded-full bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 shrink-0">
                           Routine
                         </span>
                       )}
+
                       {activity.engagement_nature === "important" && (
-                        <span className="rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 px-2 py-0.5 text-[11px] font-bold text-purple-700 dark:text-purple-300 shrink-0">
+                        <span className="rounded-full bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 text-[11px] font-bold text-purple-700 dark:text-purple-300 shrink-0">
                           Important
                         </span>
                       )}
+
                       {activity.validity_type === "permanent" ? (
-                        <span className="rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-300 shrink-0">
+                        <span className="rounded-full bg-sky-500/15 border border-sky-500/25 px-2 py-0.5 text-[11px] font-medium text-sky-700 dark:text-sky-300 shrink-0">
                           Permanente
                         </span>
                       ) : activity.validity_type === "temporary" ? (
-                        <span className="rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300 shrink-0">
+                        <span className="rounded-full bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300 shrink-0">
                           Temporaire
                         </span>
                       ) : null}
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-600">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ink-600 dark:text-ink-400">
                     {activity.organizationName ? (
-                      <span className="inline-flex items-center gap-1.5 font-medium text-ink-800">
-                        <Building2 className="h-3.5 w-3.5 text-ink-500" />
+                      <span className="inline-flex items-center gap-1.5 font-medium text-ink-800 dark:text-ink-200">
+                        <Building2 className="h-3.5 w-3.5 text-ink-400" />
                         {activity.organizationName}
                       </span>
                     ) : null}
 
                     {activity.compensation ? (
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-signal">
-                        <Wallet className="h-3.5 w-3.5 text-signal" />
+                      <span className="inline-flex items-center gap-1.5 font-mono font-bold text-signal bg-signal/10 dark:bg-signal/20 px-2.5 py-0.5 rounded-lg border border-signal/20">
+                        <Wallet className="h-3.5 w-3.5" />
                         {formatAmount(activity.compensation.amount, activity.compensation.currency)} /{" "}
                         {activity.compensation.frequency === "monthly"
                           ? "mois"
@@ -509,7 +726,7 @@ export function ActivitiesClientView({
                     const isBusy = evolutionProcessingId === activity.id;
 
                     return (
-                      <div className="rounded-2xl border border-amber-300/80 bg-amber-50/90 dark:border-amber-800/80 dark:bg-amber-950/40 p-4 space-y-2.5 mt-2">
+                      <div className="rounded-2xl border border-amber-400/50 bg-amber-50/80 dark:border-amber-500/30 dark:bg-amber-950/30 p-3.5 space-y-2.5 mt-2 shadow-2xs">
                         <div className="flex items-center gap-2 text-amber-900 dark:text-amber-200 font-bold text-xs">
                           <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                           <span>{suggestion.title}</span>
@@ -522,7 +739,7 @@ export function ActivitiesClientView({
                             type="button"
                             disabled={isBusy}
                             onClick={() => handleAcceptEvolution(activity.id, suggestion.id)}
-                            className="px-3 py-1.5 rounded-lg bg-signal hover:bg-signal-dark text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-signal hover:bg-signal-dark text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer"
                           >
                             Passer en routine
                           </button>
@@ -530,7 +747,7 @@ export function ActivitiesClientView({
                             type="button"
                             disabled={isBusy}
                             onClick={() => handleDeclineEvolution(activity.id, suggestion.id)}
-                            className="px-3 py-1.5 rounded-lg bg-ink-100 hover:bg-ink-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-ink-700 dark:text-ink-200 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-ink-100 hover:bg-ink-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-ink-700 dark:text-ink-200 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
                           >
                             Garder la configuration actuelle (répit 30j)
                           </button>
@@ -540,10 +757,10 @@ export function ActivitiesClientView({
                   })()}
                 </div>
 
-                <div className="pt-3 border-t border-ink-100">
+                <div className="pt-3 border-t border-ink-100/70 dark:border-white/5">
                   {isConfirmingDelete ? (
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-2 bg-danger/10 border border-danger/20 p-2.5 rounded-xl text-xs">
-                      <span className="text-danger font-semibold">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-2 bg-rose-500/10 border border-rose-500/20 p-3 rounded-2xl text-xs">
+                      <span className="text-rose-600 dark:text-rose-400 font-semibold">
                         Supprimer définitivement « {activity.name} » ?
                       </span>
                       <div className="flex items-center gap-2">
@@ -569,48 +786,102 @@ export function ActivitiesClientView({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-1 w-full sm:w-auto">
-                      {itemError && <span className="text-danger text-xs text-right">{itemError}</span>}
+                    <div className="flex flex-col gap-1 w-full">
+                      {itemError && <span className="text-rose-600 text-xs text-right">{itemError}</span>}
                       <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                        {activity.status === "expired" && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setRenewingActivity(activity)}
+                              className="rounded-xl px-2.5 py-1.5 text-xs font-bold text-purple-900 dark:text-purple-200 bg-purple-100 dark:bg-purple-950/60 hover:bg-purple-200 transition-colors min-h-[32px] inline-flex items-center gap-1 shadow-2xs cursor-pointer border border-purple-300 dark:border-purple-800"
+                            >
+                              <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                              Renouveler
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleKeepExpired(activity.id)}
+                              className="rounded-xl px-2 py-1.5 text-xs font-medium text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-white/5 transition-colors min-h-[32px] inline-flex items-center gap-1 cursor-pointer"
+                              title="Conserver l'activité expirée sans la renouveler"
+                            >
+                              <X className="w-3.5 h-3.5 text-ink-400" />
+                              Conserver expirée
+                            </button>
+                          </>
+                        )}
+
+                        {activity.status === "suspended" && (
+                          <button
+                            type="button"
+                            onClick={() => handleResume(activity.id)}
+                            disabled={isResuming || isDeleting}
+                            className="rounded-xl px-2.5 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/90 dark:bg-emerald-950/60 hover:bg-emerald-200 transition-colors min-h-[32px] inline-flex items-center gap-1 shadow-2xs border border-emerald-300 dark:border-emerald-800"
+                          >
+                            <Play className="w-3.5 h-3.5 fill-emerald-800 dark:fill-emerald-300" />
+                            {isResuming ? "..." : "Reprendre"}
+                          </button>
+                        )}
+
+                        {activity.status === "archived" && (
+                          <button
+                            type="button"
+                            onClick={() => handleRestore(activity.id)}
+                            disabled={isRestoring || isDeleting}
+                            className="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal/10 transition-colors min-h-[32px] inline-flex items-center gap-1 border border-signal/20"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            {isRestoring ? "..." : "Restaurer"}
+                          </button>
+                        )}
+
                         <Link
                           href={`/activities/${activity.id}/edit`}
-                          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal-soft transition-colors min-h-[32px] inline-flex items-center gap-1"
+                          className="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal/10 transition-colors min-h-[32px] inline-flex items-center gap-1 border border-signal/20"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                           Modifier
                         </Link>
+
                         <Link
                           href={`/activities/new?duplicate_from=${activity.id}`}
                           title="Dupliquer cette activité pour créer une nouvelle occurrence rapidement"
-                          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:text-ink-950 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                          className="rounded-xl px-2.5 py-1.5 text-xs font-medium text-ink-700 dark:text-ink-300 hover:text-ink-950 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-white/5 transition-colors min-h-[32px] inline-flex items-center gap-1"
                         >
-                          <Copy className="w-3.5 h-3.5 text-ink-500" />
+                          <Copy className="w-3.5 h-3.5 text-ink-400" />
                           Dupliquer
                         </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleSuspend(activity.id)}
-                          disabled={isSuspending || isArchiving || isDeleting}
-                          title="Mettre en pause temporairement"
-                          className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100/60 bg-amber-50 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                        >
-                          <Pause className="w-3.5 h-3.5 text-amber-600" />
-                          {isSuspending ? "..." : "Suspendre"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleArchive(activity.id)}
-                          disabled={isSuspending || isArchiving || isDeleting}
-                          className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-500 hover:text-ink-800 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                        >
-                          <Archive className="w-3.5 h-3.5" />
-                          {isArchiving ? "..." : "Archiver"}
-                        </button>
+
+                        {activity.status === "active" && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleSuspend(activity.id)}
+                              disabled={isSuspending || isArchiving || isDeleting}
+                              title="Mettre en pause temporairement"
+                              className="rounded-xl px-2.5 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/40 bg-amber-500/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                            >
+                              <Pause className="w-3.5 h-3.5 text-amber-600" />
+                              {isSuspending ? "..." : "Suspendre"}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleArchive(activity.id)}
+                              disabled={isSuspending || isArchiving || isDeleting}
+                              className="rounded-xl px-2.5 py-1.5 text-xs font-medium text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-white/5 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                            >
+                              <Archive className="w-3.5 h-3.5" />
+                              {isArchiving ? "..." : "Archiver"}
+                            </button>
+                          </>
+                        )}
+
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteId(activity.id)}
                           disabled={isSuspending || isArchiving || isDeleting}
-                          className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                          className="rounded-xl px-2.5 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           Supprimer
@@ -624,235 +895,6 @@ export function ActivitiesClientView({
           })}
         </div>
       )}
-
-      {/* 2. ACTIVITÉS EXPIRÉES (CONTRATS TERMINÉS / À RENOUVELER) */}
-      {expired.length > 0 ? (
-        <div className="space-y-3 pt-6 border-t border-purple-200/80">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold uppercase tracking-wide text-purple-900 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-purple-600" /> Activités & Contrats expirés ({expired.length})
-              </h2>
-              <span className="text-xs text-purple-700 font-normal">
-                — Historique comptable conservé intact, libère le quota actif
-              </span>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {expired.map((activity) => {
-              const isDeleting = deletingId === activity.id;
-              const isConfirmingDelete = confirmDeleteId === activity.id;
-              const itemError = errorMap[activity.id];
-
-              return (
-                <div
-                  key={activity.id}
-                  className="flex flex-col justify-between gap-3 rounded-xl border border-purple-300/80 bg-purple-50/40 p-4"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span
-                          className="h-3 w-3 shrink-0 rounded-full opacity-60"
-                          style={{ backgroundColor: activity.color ?? "#1E3A5F" }}
-                        />
-                        <div className="min-w-0">
-                          <div className="font-semibold text-ink-950 text-sm truncate">{activity.name}</div>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full mt-0.5">
-                            <Clock className="w-2.5 h-2.5" /> Expirée le {activity.endDate ? new Date(activity.endDate).toLocaleDateString("fr-FR") : "terme échu"}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-[11px] font-semibold text-ink-600">
-                        {typeLabel(activity.type)}
-                      </span>
-                    </div>
-
-                    {activity.compensation ? (
-                      <div className="text-xs text-ink-600 font-medium">
-                        Rémunération historique :{" "}
-                        <span className="font-semibold text-ink-900">
-                          {formatAmount(activity.compensation.amount, activity.compensation.currency)}
-                        </span>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="pt-2 border-t border-purple-200/60 flex items-center justify-between">
-                    <span className="text-[11px] text-ink-500">Toutes les données passées restent aux rapports</span>
-                    <div className="flex items-center gap-2 flex-wrap justify-end">
-                      {itemError && <span className="text-danger text-xs">{itemError}</span>}
-                      <button
-                        type="button"
-                        onClick={() => setRenewingActivity(activity)}
-                        className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-purple-900 bg-purple-200/80 hover:bg-purple-300 transition-colors min-h-[32px] inline-flex items-center gap-1 shadow-xs cursor-pointer"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-purple-700" />
-                        Renouveler
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleKeepExpired(activity.id)}
-                        className="rounded-lg px-2 py-1.5 text-xs font-medium text-ink-600 hover:text-ink-900 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1 cursor-pointer"
-                        title="Conserver l'activité expirée sans la renouveler"
-                      >
-                        <X className="w-3.5 h-3.5 text-ink-400" />
-                        Conserver expirée
-                      </button>
-                      <Link
-                        href={`/activities/new?duplicate_from=${activity.id}`}
-                        title="Dupliquer cette activité pour créer une nouvelle occurrence"
-                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-purple-900 hover:bg-purple-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                        Dupliquer
-                      </Link>
-                      <Link
-                        href={`/activities/${activity.id}/edit`}
-                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        Modifier
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-
-      {/* 3. ACTIVITÉS SUSPENDUES (EN PAUSE) */}
-      {suspended.length > 0 ? (
-        <div className="space-y-3 pt-6 border-t border-amber-200/80">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-amber-800 flex items-center gap-1.5">
-              <Pause className="w-4 h-4 text-amber-600" /> Activités suspendues ({suspended.length})
-            </h2>
-            <span className="text-xs text-amber-700/80 font-normal">
-              — Hors comptabilité prévisionnelle
-            </span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {suspended.map((activity) => {
-              const isDeleting = deletingId === activity.id;
-              const isResuming = resumingId === activity.id;
-              const isConfirmingDelete = confirmDeleteId === activity.id;
-              const itemError = errorMap[activity.id];
-
-              return (
-                <div
-                  key={activity.id}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-amber-300/80 bg-amber-50/40 p-4"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className="h-3 w-3 shrink-0 rounded-full opacity-60"
-                      style={{ backgroundColor: activity.color ?? "#1E3A5F" }}
-                    />
-                    <div className="min-w-0">
-                      <div className="font-semibold text-ink-950 text-sm truncate">{activity.name}</div>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full mt-0.5">
-                        <Pause className="w-2.5 h-2.5" /> En pause
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {itemError && <span className="text-danger text-xs mr-2">{itemError}</span>}
-                    <button
-                      type="button"
-                      onClick={() => handleResume(activity.id)}
-                      disabled={isResuming || isDeleting}
-                      className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-100/80 hover:bg-emerald-200 transition-colors min-h-[32px] inline-flex items-center gap-1 shadow-xs"
-                    >
-                      <Play className="w-3.5 h-3.5 fill-emerald-800" />
-                      {isResuming ? "..." : "Reprendre / Activer"}
-                    </button>
-                    <Link
-                      href={`/activities/new?duplicate_from=${activity.id}`}
-                      title="Dupliquer cette activité"
-                      className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      Dupliquer
-                    </Link>
-                    <Link
-                      href={`/activities/${activity.id}/edit`}
-                      className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-600 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-
-      {/* 4. ACTIVITÉS ARCHIVÉES */}
-      {archived.length > 0 ? (
-        <div className="space-y-3 pt-6 border-t border-ink-200">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">
-            Activités archivées ({archived.length})
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 opacity-85">
-            {archived.map((activity) => {
-              const isDeleting = deletingId === activity.id;
-              const isRestoring = restoringId === activity.id;
-              const isConfirmingDelete = confirmDeleteId === activity.id;
-              const itemError = errorMap[activity.id];
-
-              return (
-                <div
-                  key={activity.id}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-ink-200 bg-canvas p-4"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className="h-3 w-3 shrink-0 rounded-full opacity-60"
-                      style={{ backgroundColor: activity.color ?? "#1E3A5F" }}
-                    />
-                    <span className="font-medium text-ink-700 text-sm truncate">{activity.name}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {itemError && <span className="text-danger text-xs mr-2">{itemError}</span>}
-                    <Link
-                      href={`/activities/new?duplicate_from=${activity.id}`}
-                      title="Dupliquer cette activité archivée"
-                      className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      Dupliquer
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => handleRestore(activity.id)}
-                      disabled={isRestoring || isDeleting}
-                      className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal-soft transition-colors min-h-[32px] inline-flex items-center gap-1"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      {isRestoring ? "..." : "Restaurer"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDeleteId(activity.id)}
-                      disabled={isRestoring || isDeleting}
-                      className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Supprimer
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
 
       {/* MODAL DE RENOUVELLEMENT D'ACTIVITÉ */}
       {renewingActivity ? (

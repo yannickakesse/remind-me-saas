@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Copy } from "lucide-react";
+import { Copy, ArrowLeft, Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ActivityForm } from "@/components/shared/activity-form";
 import { updateActivity, deleteActivity } from "../../actions";
@@ -63,21 +63,68 @@ export default async function EditActivityPage({
     : activity.organizations;
   const contact = Array.isArray(activity.contacts) ? activity.contacts[0] : activity.contacts;
 
+  const activityColor = activity.color ?? "#E5A91E";
+
   return (
-    <div data-tour="edit-activity-container">
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-ink-950">Modifier {activity.name}</h1>
-          <p className="text-sm text-ink-500">Mettez à jour les horaires, la rémunération ou les coordonnées.</p>
-        </div>
+    <div data-tour="edit-activity-container" className="relative isolate min-h-full w-full space-y-6 max-w-4xl">
+      {/* Auras d'ambiance en arrière-plan */}
+      <div
+        className="absolute top-0 -left-12 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-20 dark:opacity-15"
+        style={{ backgroundColor: activityColor }}
+      />
+      <div className="absolute top-1/3 -right-12 w-72 h-72 rounded-full bg-signal/10 dark:bg-signal/5 blur-3xl pointer-events-none" />
+
+      {/* Navigation retour */}
+      <div className="flex items-center justify-between">
         <Link
-          href={`/activities/new?duplicate_from=${activity.id}`}
-          title="Dupliquer cette activité pour créer une nouvelle occurrence"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-canvas px-3 py-2 text-xs font-semibold text-ink-700 hover:bg-ink-50 hover:border-ink-300 transition-all self-start sm:self-auto shadow-2xs"
+          href="/activities"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white bg-canvas-raised/80 dark:bg-slate-900/80 border border-ink-200/80 dark:border-white/10 hover:border-signal/40 transition-all shadow-2xs group"
         >
-          <Copy className="w-3.5 h-3.5 text-ink-500" />
-          Dupliquer pour modifier
+          <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+          <span>Retour au portefeuille d&apos;activités</span>
         </Link>
+      </div>
+
+      {/* Hero Banner Header */}
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs">
+        {/* Ligne d'accentuation couleur de l'activité */}
+        <div
+          className="absolute top-0 left-0 right-0 h-1.5"
+          style={{ backgroundColor: activityColor }}
+        />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-signal/10 dark:bg-signal/20 text-signal border border-signal/20 shadow-2xs">
+                <Pencil className="w-3 h-3" />
+                Édition d&apos;activité
+              </span>
+              <span
+                className="h-3.5 w-3.5 rounded-full ring-2 ring-white/20 shadow-2xs"
+                style={{ backgroundColor: activityColor }}
+                title={`Couleur configurée : ${activityColor}`}
+              />
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink-950 dark:text-white">
+              Modifier « {activity.name} »
+            </h1>
+
+            <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 mt-1 max-w-2xl">
+              Mettez à jour les horaires, la rémunération, le mode de travail ou les coordonnées du contact.
+            </p>
+          </div>
+
+          <Link
+            href={`/activities/new?duplicate_from=${activity.id}`}
+            title="Dupliquer cette activité pour créer une nouvelle occurrence"
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-ink-200/90 dark:border-white/10 bg-canvas-subtle/80 dark:bg-slate-800/80 px-3.5 py-2 text-xs font-bold text-ink-800 dark:text-ink-200 hover:bg-canvas dark:hover:bg-slate-700/80 hover:border-signal/40 transition-all self-start sm:self-auto shadow-2xs hover:-translate-y-0.5"
+          >
+            <Copy className="w-3.5 h-3.5 text-signal" />
+            <span>Dupliquer pour modifier</span>
+          </Link>
+        </div>
       </div>
 
       <ActivityForm
