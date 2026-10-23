@@ -172,7 +172,11 @@ export default async function DashboardPage() {
       ) : null}
 
       {/* C. GRILLE PRINCIPALE RESPONSIVE (Asymétrique Desktop 8+4 & Mobile 1 colonne naturelle) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+      <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+        {/* Auras lumineuses d'ambiance en arrière-plan */}
+        <div className="absolute top-1/4 -left-20 w-72 h-72 rounded-full bg-signal/10 dark:bg-signal/5 blur-3xl pointer-events-none" />
+        <div className="absolute top-2/3 -right-20 w-80 h-80 rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-3xl pointer-events-none" />
+
         {/* 1. FOCUS DE LA JOURNÉE : Séances & Tâches prioritaires (Desktop 8 cols, Mobile premier bloc) */}
         <div className="lg:col-span-8 order-1">
           <TodayFocus
@@ -197,33 +201,42 @@ export default async function DashboardPage() {
 
         {/* 3. DÉPENSES PROGRAMMÉES (Desktop 6 cols, Mobile order-3) */}
         <div className="lg:col-span-6 order-3" data-tour="dashboard-scheduled-expenses">
-          <div className="p-4 sm:p-5 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-2xs space-y-3">
+          <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-4 sm:p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                <span>{t("dashboard.scheduled_expenses_title", locale)}</span>
-                <span className="text-ink-400 font-normal">({scheduledExpenses?.length ?? 0})</span>
-              </h3>
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
+                    {t("dashboard.scheduled_expenses_title", locale)}
+                  </h3>
+                  <span className="text-[11px] text-ink-500">
+                    {scheduledExpenses?.length ?? 0} charge{scheduledExpenses && scheduledExpenses.length > 1 ? "s" : ""} prévue{scheduledExpenses && scheduledExpenses.length > 1 ? "s" : ""}
+                  </span>
+                </div>
+              </div>
               <Link
                 href="/finances?tab=scheduled"
-                className="text-xs text-signal font-semibold hover:underline flex items-center gap-0.5"
+                className="text-xs text-signal font-semibold hover:underline flex items-center gap-1 group"
               >
-                {t("dashboard.manage", locale)} <ArrowRight className="w-3 h-3" />
+                <span>{t("dashboard.manage", locale)}</span>
+                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
 
             {(scheduledExpenses?.length ?? 0) === 0 ? (
-              <div className="p-5 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
+              <div className="p-6 text-center text-xs text-ink-500 bg-canvas/60 dark:bg-slate-950/40 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800 space-y-2">
                 <p>{t("finances.scheduled_empty", locale)}</p>
                 <Link
                   href="/finances?tab=scheduled"
-                  className="mt-2 inline-block text-signal font-bold hover:underline"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-signal/10 hover:bg-signal/20 text-signal font-bold transition-colors"
                 >
                   + {t("finances.add_expense", locale)}
                 </Link>
               </div>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {scheduledExpenses!.slice(0, 4).map((exp) => {
                   const daysDiff = Math.ceil(
                     DateTime.fromISO(exp.next_due_date, { zone: timezone })
@@ -247,23 +260,29 @@ export default async function DashboardPage() {
                     <li key={exp.id}>
                       <Link
                         href="/finances?tab=scheduled"
-                        className="flex items-center justify-between p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs hover:border-ink-300 dark:hover:border-ink-700 transition-colors shadow-2xs group"
+                        className="flex items-center justify-between p-3.5 rounded-2xl border border-ink-100/90 dark:border-white/5 bg-canvas dark:bg-slate-950/70 hover:border-amber-400/40 dark:hover:border-amber-400/30 transition-all duration-200 hover:-translate-y-0.5 shadow-2xs group"
                       >
                         <div className="min-w-0 pr-2">
-                          <div className="font-semibold text-ink-950 dark:text-white truncate group-hover:text-signal transition-colors">
+                          <div className="font-semibold text-xs sm:text-sm text-ink-950 dark:text-white truncate group-hover:text-signal transition-colors">
                             {exp.name}
                           </div>
-                          <div className="text-[10px] text-ink-500">
-                            {exp.category} • Échéance : {exp.next_due_date}
+                          <div className="text-[11px] text-ink-500 mt-0.5 flex items-center gap-1.5">
+                            <span className="capitalize">{exp.category}</span>
+                            <span>•</span>
+                            <span>Échéance : {exp.next_due_date}</span>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="font-mono font-bold text-ink-900 dark:text-white">
+                          <div className="font-mono font-bold text-xs sm:text-sm text-ink-950 dark:text-white">
                             {formatAmount(exp.amount, exp.currency)}
                           </div>
                           <div
-                            className={`text-[10px] font-bold ${
-                              isLate || isToday ? "text-danger" : "text-ink-500"
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${
+                              isLate
+                                ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                                : isToday
+                                ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                                : "bg-ink-100 dark:bg-white/5 text-ink-600 dark:text-ink-400"
                             }`}
                           >
                             {daysLabel}
@@ -280,33 +299,42 @@ export default async function DashboardPage() {
 
         {/* 4. RÈGLEMENTS & ENCAISSEMENTS ATTENDUS (Desktop 6 cols, Mobile order-4) */}
         <div className="lg:col-span-6 order-4" data-tour="dashboard-late-income">
-          <div className="p-4 sm:p-5 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-2xs space-y-3">
+          <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-4 sm:p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300 flex items-center gap-1.5">
-                <TrendingUp className="w-4 h-4 text-positive" />
-                <span>Encaissements attendus</span>
-                <span className="text-ink-400 font-normal">({lateIncome?.length ?? 0})</span>
-              </h3>
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
+                    Encaissements attendus
+                  </h3>
+                  <span className="text-[11px] text-ink-500">
+                    {lateIncome?.length ?? 0} facture{lateIncome && lateIncome.length > 1 ? "s" : ""} en attente
+                  </span>
+                </div>
+              </div>
               <Link
                 href="/finances?tab=income"
-                className="text-xs text-signal font-semibold hover:underline flex items-center gap-0.5"
+                className="text-xs text-signal font-semibold hover:underline flex items-center gap-1 group"
               >
-                {t("dashboard.see_all", locale)} <ArrowRight className="w-3 h-3" />
+                <span>{t("dashboard.see_all", locale)}</span>
+                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
 
             {(lateIncome?.length ?? 0) === 0 ? (
-              <div className="p-5 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
+              <div className="p-6 text-center text-xs text-ink-500 bg-canvas/60 dark:bg-slate-950/40 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800 space-y-2">
                 <p>Tous vos encaissements sont à jour pour l&apos;instant.</p>
                 <Link
                   href="/finances?tab=income"
-                  className="mt-2 inline-block text-signal font-bold hover:underline"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-signal/10 hover:bg-signal/20 text-signal font-bold transition-colors"
                 >
                   + {t("finances.add_income", locale)}
                 </Link>
               </div>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {lateIncome!.slice(0, 4).map((inc) => {
                   const daysDiff = Math.ceil(
                     DateTime.fromISO(inc.due_date, { zone: timezone })
@@ -330,23 +358,25 @@ export default async function DashboardPage() {
                     <li key={inc.id}>
                       <Link
                         href="/finances?tab=income"
-                        className="flex items-center justify-between p-3 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 text-xs hover:border-ink-300 dark:hover:border-ink-700 transition-colors shadow-2xs group"
+                        className="flex items-center justify-between p-3.5 rounded-2xl border border-ink-100/90 dark:border-white/5 bg-canvas dark:bg-slate-950/70 hover:border-emerald-400/40 dark:hover:border-emerald-400/30 transition-all duration-200 hover:-translate-y-0.5 shadow-2xs group"
                       >
                         <div className="min-w-0 pr-2">
-                          <div className="font-semibold text-ink-950 dark:text-white truncate group-hover:text-signal transition-colors">
+                          <div className="font-semibold text-xs sm:text-sm text-ink-950 dark:text-white truncate group-hover:text-signal transition-colors">
                             {inc.label}
                           </div>
-                          <div className="text-[10px] text-ink-500">
+                          <div className="text-[11px] text-ink-500 mt-0.5">
                             Échéance : {inc.due_date}
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="font-mono font-bold text-positive">
+                          <div className="font-mono font-bold text-xs sm:text-sm text-emerald-600 dark:text-emerald-400">
                             +{formatAmount(inc.amount, inc.currency)}
                           </div>
                           <div
-                            className={`text-[10px] font-bold ${
-                              isLate ? "text-danger" : "text-ink-500"
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${
+                              isLate
+                                ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                                : "bg-ink-100 dark:bg-white/5 text-ink-600 dark:text-ink-400"
                             }`}
                           >
                             {daysLabel}
@@ -363,51 +393,57 @@ export default async function DashboardPage() {
 
         {/* 5. VOS ACTIVITÉS & MISSIONS (Pleine largeur 12 cols, en bas du dashboard) */}
         <div className="lg:col-span-12 order-5" data-tour="dashboard-activities">
-          <section className="space-y-3" aria-labelledby="activities-heading">
+          <section className="space-y-3.5" aria-labelledby="activities-heading">
             <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-2">
-                <div className="p-1 rounded-md bg-signal/10 text-signal">
-                  <Briefcase className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-signal/10 text-signal border border-signal/20">
+                  <Briefcase className="w-4 h-4" />
                 </div>
-                <h2
-                  id="activities-heading"
-                  className="text-xs font-bold uppercase tracking-wider text-ink-800 dark:text-ink-200"
-                >
-                  {t("nav.activities", locale)} ({activities?.length ?? 0})
-                </h2>
+                <div>
+                  <h2
+                    id="activities-heading"
+                    className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white"
+                  >
+                    {t("nav.activities", locale)} ({activities?.length ?? 0})
+                  </h2>
+                  <p className="text-[11px] text-ink-500">
+                    Vos différentes casquettes et rémunérations associées
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Link
                   href="/activities/new"
-                  className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-signal text-white hover:bg-signal/90 transition-colors shadow-2xs"
+                  className="text-xs font-bold px-3 py-1.5 rounded-xl bg-signal text-white hover:bg-signal-dark transition-all duration-150 shadow-2xs hover:shadow-sm"
                 >
                   + {t("activities.add_btn", locale)}
                 </Link>
                 <Link
                   href="/activities"
-                  className="text-xs font-semibold text-signal hover:underline flex items-center gap-0.5 ml-1"
+                  className="text-xs font-semibold text-signal hover:underline flex items-center gap-1 group ml-1"
                 >
-                  {t("dashboard.manage", locale)} <ArrowRight className="w-3 h-3" />
+                  <span>{t("dashboard.manage", locale)}</span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>
             </div>
 
-            <div className="p-4 sm:p-6 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-2xs">
+            <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-4 sm:p-6 shadow-xs">
               {(activities?.length ?? 0) === 0 ? (
-                <div className="p-6 text-center text-xs text-ink-400 bg-canvas dark:bg-ink-950/60 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800">
-                  <p className="text-sm font-medium text-ink-700 dark:text-ink-300">
+                <div className="p-8 text-center text-xs text-ink-500 bg-canvas/60 dark:bg-slate-950/40 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800 space-y-2">
+                  <p className="text-sm font-semibold text-ink-950 dark:text-white">
                     {t("activities.empty_title", locale)}
                   </p>
-                  <p className="text-xs text-ink-500 mt-1">{t("activities.empty_desc", locale)}</p>
+                  <p className="text-xs text-ink-500">{t("activities.empty_desc", locale)}</p>
                   <Link
                     href="/activities/new"
-                    className="mt-3 inline-block px-4 py-2 rounded-xl bg-signal text-white font-bold hover:bg-signal/90 transition-colors"
+                    className="mt-3 inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-signal text-white font-bold hover:bg-signal-dark transition-colors shadow-2xs"
                   >
                     + {t("activities.add_btn", locale)}
                   </Link>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                   {activities!.map((activity) => {
                     const comp = Array.isArray(activity.activity_compensation)
                       ? activity.activity_compensation[0]
@@ -418,38 +454,46 @@ export default async function DashboardPage() {
                       locale === "fr"
                         ? "Rémunération non définie"
                         : "No compensation set";
+                    const activityColor = activity.color ?? "#E5A91E";
 
                     return (
                       <Link
                         key={activity.id}
                         href={`/activities/${activity.id}/edit`}
-                        className="flex flex-col justify-between p-4 rounded-2xl border border-ink-100 dark:border-ink-800 bg-canvas dark:bg-ink-950 hover:border-signal/50 dark:hover:border-signal/50 transition-all shadow-2xs group"
+                        className="relative overflow-hidden flex flex-col justify-between p-4 rounded-2xl border border-ink-100/90 dark:border-white/5 bg-canvas dark:bg-slate-950/70 hover:border-signal/50 dark:hover:border-signal/40 transition-all duration-200 hover:-translate-y-1 shadow-2xs hover:shadow-xs group"
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-2.5 min-w-0">
+                        {/* Barre d'accentuation supérieure thématique */}
+                        <div
+                          className="absolute top-0 left-0 right-0 h-1 opacity-70 group-hover:opacity-100 transition-opacity"
+                          style={{ backgroundColor: activityColor }}
+                        />
+
+                        <div className="flex items-start justify-between gap-2 pt-1">
+                          <div className="flex items-center gap-3 min-w-0">
                             <span
-                              className="h-3 w-3 shrink-0 rounded-full ring-2 ring-white/10"
-                              style={{ backgroundColor: activity.color ?? "#1E3A5F" }}
+                              className="h-3.5 w-3.5 shrink-0 rounded-full ring-2 ring-white/20 shadow-2xs"
+                              style={{ backgroundColor: activityColor }}
                             />
                             <div className="min-w-0">
-                              <div className="font-semibold text-ink-950 dark:text-white text-xs truncate group-hover:text-signal transition-colors">
+                              <div className="font-bold text-ink-950 dark:text-white text-xs sm:text-sm truncate group-hover:text-signal transition-colors">
                                 {activity.name}
                               </div>
-                              <div className="text-[10px] text-ink-500">
+                              <div className="text-[11px] text-ink-500 capitalize">
                                 {typeLabel(activity.type)}
                               </div>
                             </div>
                           </div>
                         </div>
+
                         {comp ? (
-                          <div className="mt-3 pt-2.5 border-t border-ink-100/60 dark:border-ink-800/60 flex items-center justify-between text-[11px]">
-                            <span className="text-ink-400">{compensationLabel}</span>
-                            <span className="font-mono font-bold text-ink-900 dark:text-ink-100">
+                          <div className="mt-3.5 pt-2.5 border-t border-ink-100/80 dark:border-white/5 flex items-center justify-between text-[11px]">
+                            <span className="text-ink-500">{compensationLabel}</span>
+                            <span className="font-mono font-bold text-xs text-ink-950 dark:text-white">
                               {formatAmount(comp.amount, comp.currency)}
                             </span>
                           </div>
                         ) : (
-                          <div className="mt-3 pt-2.5 border-t border-ink-100/60 dark:border-ink-800/60 text-[10px] text-ink-400">
+                          <div className="mt-3.5 pt-2.5 border-t border-ink-100/80 dark:border-white/5 text-[11px] text-ink-400">
                             {noCompLabel}
                           </div>
                         )}

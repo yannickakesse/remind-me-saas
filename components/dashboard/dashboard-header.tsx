@@ -33,30 +33,39 @@ export function DashboardHeader({ userName, timezone }: DashboardHeaderProps) {
 
   return (
     <div
-      className="flex flex-col md:flex-row md:items-center md:justify-between gap-3.5"
+      className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4"
       data-tour="dashboard-header"
     >
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-signal/10 dark:bg-signal/20 text-signal text-[10px] sm:text-[11px] font-bold">
-            <Sparkles className="w-3 h-3" />
+      {/* Halo d'ambiance doré subtil */}
+      <div className="absolute -top-16 -left-16 w-52 h-52 rounded-full bg-signal/15 dark:bg-signal/20 blur-3xl pointer-events-none" />
+
+      <div className="relative min-w-0 z-10">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-signal/10 dark:bg-signal/20 text-signal text-[10px] sm:text-[11px] font-bold border border-signal/20 shadow-2xs">
+            <Sparkles className="w-3 h-3 animate-pulse" />
             <span>Remind Me</span>
           </span>
-          <span className="text-[11px] text-ink-500 dark:text-ink-400 flex items-center gap-1">
+
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-ink-100/70 dark:bg-white/5 text-[11px] text-ink-600 dark:text-ink-400 border border-ink-200/50 dark:border-white/5">
             <CalendarIcon className="w-3 h-3 text-ink-400" />
             <span className="capitalize">{formattedDate}</span>
           </span>
+
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold border border-emerald-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+            <span>Cockpit actif</span>
+          </span>
         </div>
 
-        <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight text-ink-950 dark:text-white truncate mt-1">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-ink-950 dark:text-white truncate mt-1.5">
           {greeting}{firstName ? `, ${firstName}` : ""} 👋
         </h1>
-        <p className="text-xs text-ink-600 dark:text-ink-400 mt-0.5 line-clamp-1">
+        <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 mt-0.5 line-clamp-1">
           {t("dashboard.overview_title")}
         </p>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap" data-tour="dashboard-quick-actions">
+      <div className="relative z-10 flex items-center gap-2 flex-wrap sm:flex-nowrap" data-tour="dashboard-quick-actions">
         <SectionGuideTrigger section="dashboard" label="Guide" />
         <QuickActions />
       </div>
