@@ -34,10 +34,10 @@ export function LandingFAQ() {
   ];
 
   return (
-    <section id="faq" className="py-24 sm:py-32 bg-canvas-raised border-y border-ink-200/60 dark:border-ink-800/60">
+    <section id="faq" className="py-20 sm:py-28 bg-canvas-raised border-t border-ink-200/60 dark:border-ink-800/60 transition-colors">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16 sm:mb-20">
+        <div className="text-center mb-14 sm:mb-18">
           <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3.5 py-1.5 rounded-full border border-amber-500/20">
             Questions Fréquentes
           </span>
@@ -50,23 +50,26 @@ export function LandingFAQ() {
         </div>
 
         {/* Accordion */}
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {faqs.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
               <div
                 key={idx}
-                className="rounded-3xl bg-canvas border border-ink-200/70 dark:border-ink-800 shadow-xs overflow-hidden transition-colors"
+                className="rounded-2xl sm:rounded-3xl bg-canvas border border-ink-200/70 dark:border-ink-800 shadow-xs overflow-hidden transition-colors"
               >
                 <button
+                  type="button"
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
                   className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 font-semibold text-ink-950 dark:text-white hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer"
                   aria-expanded={isOpen}
                 >
                   <span className="text-sm sm:text-base pr-2">{faq.q}</span>
                   <span
-                    className={`w-7 h-7 rounded-full bg-ink-100 dark:bg-ink-800 flex items-center justify-center shrink-0 text-ink-700 dark:text-ink-200 transition-transform duration-200 ${
-                      isOpen ? "rotate-180 bg-amber-500 text-slate-950" : ""
+                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-transform duration-200 ${
+                      isOpen
+                        ? "rotate-180 bg-amber-500 text-slate-950"
+                        : "bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-200"
                     }`}
                   >
                     <ChevronDown className="w-4 h-4" />
@@ -74,7 +77,7 @@ export function LandingFAQ() {
                 </button>
 
                 {isOpen && (
-                  <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-ink-600 dark:text-ink-300 leading-relaxed border-t border-ink-100 dark:border-ink-800/60 pt-4 animate-in fade-in duration-200">
+                  <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-xs sm:text-sm text-ink-600 dark:text-ink-300 leading-relaxed border-t border-ink-100 dark:border-ink-800 pt-3">
                     {faq.a}
                   </div>
                 )}

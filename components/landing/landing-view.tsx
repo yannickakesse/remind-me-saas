@@ -3,12 +3,7 @@
 import { useEffect } from "react";
 import { LandingNavbar } from "./landing-navbar";
 import { LandingHero } from "./landing-hero";
-import { LandingTrustBanner } from "./landing-trust-banner";
-import { LandingVideoShowcase } from "./landing-video-showcase";
-import { LandingProductPreview } from "./landing-product-preview";
-import { LandingComparison } from "./landing-comparison";
 import { LandingFeatures } from "./landing-features";
-import { LandingWorkflow } from "./landing-workflow";
 import { LandingPricing } from "./landing-pricing";
 import { LandingFAQ } from "./landing-faq";
 import { LandingCTA } from "./landing-cta";
@@ -20,50 +15,35 @@ interface LandingViewProps {
 
 export function LandingView({ user }: LandingViewProps) {
   useEffect(() => {
-    // S'assure que le visiteur commence toujours tout en haut de la page d'accueil si pas de fragment
+    // S'assure que le visiteur commence tout en haut de la page si aucun fragment d'ancrage n'est présent
     if (typeof window !== "undefined" && !window.location.hash) {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     }
   }, []);
 
   return (
-    <div className="min-h-screen bg-canvas text-ink-950 dark:text-white flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
-      {/* 1. Header & Navigation */}
+    <div className="min-h-screen bg-canvas text-ink-950 dark:text-white flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950 transition-colors duration-300">
+      {/* Navigation supérieure */}
       <LandingNavbar user={user} />
 
       <main className="flex-1">
-        {/* 2. Hero Section avec Composition Produit Réaliste */}
+        {/* SECTION 1 : Hero initial & SECTION 2 : Vidéo motion design intégrée */}
         <LandingHero />
 
-        {/* 3. Bandeau de Crédibilité & Transition Fonctionnelle (4 Piliers) */}
-        <LandingTrustBanner />
-
-        {/* 4. Démonstration Produit Vidéo Officielle 45s */}
-        <LandingVideoShowcase />
-
-        {/* 5. Aperçu Produit Interactif Cockpit */}
-        <LandingProductPreview />
-
-        {/* 6. Un Seul Espace, Plus de Clarté (Comparatif Outils Fragmentés vs Écosystème Connecté) */}
-        <LandingComparison />
-
-        {/* 7. Fonctionnalités Clés : Montrer, ne pas seulement décrire (6 Modules Démontrés) */}
+        {/* SECTION 3, 4 & 5 : Fonctionnalités clés validées (Montrer n'est pas seulement décrire, Vision centralisée, Activités & Finances) */}
         <LandingFeatures />
 
-        {/* 8. Comment ça marche (3 Étapes Concrètes) */}
-        <LandingWorkflow />
-
-        {/* 9. Tarifs & Forfaits Réels (Gratuit 0€, Pro 9€, Premium 19€) */}
+        {/* SECTION 6 : Des forfaits clairs, sans surprise (Tarifs réels 0€, 9€, 19€) */}
         <LandingPricing />
 
-        {/* 10. FAQ Réelle & Accessible */}
+        {/* SECTION 7 : Tout ce que vous devez savoir (FAQ) */}
         <LandingFAQ />
 
-        {/* 11. CTA Final de Conversion */}
+        {/* SECTION 8 : Appel à l'action final */}
         <LandingCTA />
       </main>
 
-      {/* 12. Footer Raffiné */}
+      {/* SECTION 9 : Footer */}
       <LandingFooter />
     </div>
   );

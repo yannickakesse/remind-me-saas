@@ -12,6 +12,35 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Palette officielle Remind Me
+        forest: {
+          DEFAULT: "#214E3B",
+          hover: "#1A3E2F",
+          deep: "#153326",
+          soft: "#E8EFEA",
+          border: "#2D624B",
+        },
+        ivory: {
+          DEFAULT: "#F7F6F2",
+          light: "#FAF9F6",
+          dark: "#EFECE4",
+        },
+        brandAmber: {
+          DEFAULT: "#D99A24",
+          hover: "#C3881C",
+          soft: "#FDF5E8",
+          border: "#E9B657",
+        },
+        brandGreen: {
+          DEFAULT: "#159A68",
+          soft: "#E7F6F0",
+          dark: "#0F764F",
+        },
+        deepInk: {
+          DEFAULT: "#17211D",
+          light: "#2A3832",
+          muted: "#5B6C64",
+        },
         // Couleurs branchées sur les variables CSS de app/globals.css
         // (support Dark Mode — §7-8 du prompt maître). Le format
         // `rgb(var(--x) / <alpha-value>)` préserve les modificateurs

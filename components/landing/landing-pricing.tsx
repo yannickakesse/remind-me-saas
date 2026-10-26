@@ -2,59 +2,60 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
-import { PLAN_ENTITLEMENTS } from "@/lib/subscriptions/entitlements";
+import { Check, Sparkles } from "lucide-react";
 
 export function LandingPricing() {
   const [yearly, setYearly] = useState(true);
 
   return (
-    <section id="pricing" className="py-24 sm:py-32 bg-canvas">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="pricing" className="py-20 sm:py-28 bg-canvas border-t border-ink-200/60 dark:border-ink-800/60 transition-colors">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
+        <div className="text-center max-w-2xl mx-auto mb-14 sm:mb-18">
           <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3.5 py-1.5 rounded-full border border-amber-500/20">
             Tarifs Transparents
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-ink-950 dark:text-white mt-4 tracking-tight font-sans">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-ink-950 dark:text-white mt-4 tracking-tight font-sans">
             Des forfaits clairs, sans surprise.
           </h2>
-          <p className="text-base sm:text-lg text-ink-600 dark:text-ink-300 mt-4 leading-relaxed">
+          <p className="text-base sm:text-lg text-ink-600 dark:text-ink-300 mt-3 leading-relaxed">
             Commencez gratuitement sans carte bancaire, puis évoluez selon l&apos;ampleur de vos activités.
           </p>
 
-          {/* Monthly / Yearly Toggle */}
-          <div className="mt-8 inline-flex items-center gap-2 bg-canvas-raised p-1.5 rounded-full border border-ink-200 dark:border-ink-800 shadow-xs">
+          {/* Toggle Mensuel / Annuel */}
+          <div className="mt-8 inline-flex items-center gap-1.5 bg-canvas-raised p-1.5 rounded-full border border-ink-200 dark:border-ink-800 shadow-xs">
             <button
+              type="button"
               onClick={() => setYearly(false)}
               className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 !yearly
-                  ? "bg-ink-950 dark:bg-white text-white dark:text-ink-950 shadow-sm"
+                  ? "bg-ink-950 dark:bg-white text-white dark:text-slate-950 shadow-sm"
                   : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
               }`}
             >
               Facturation mensuelle
             </button>
             <button
+              type="button"
               onClick={() => setYearly(true)}
               className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                 yearly
-                  ? "bg-ink-950 dark:bg-white text-white dark:text-ink-950 shadow-sm"
+                  ? "bg-ink-950 dark:bg-white text-white dark:text-slate-950 shadow-sm"
                   : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
               }`}
             >
               <span>Facturation annuelle</span>
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">
                 2 mois offerts
               </span>
             </button>
           </div>
         </div>
 
-        {/* 3 Pricing Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-          {/* Plan 1: Gratuit (Free) */}
-          <div className="p-8 rounded-3xl bg-canvas border border-ink-200/80 dark:border-ink-800 shadow-sm flex flex-col justify-between space-y-8">
+        {/* 3 Cartes de forfaits */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
+          {/* Plan 1: Gratuit */}
+          <div className="p-7 sm:p-8 rounded-3xl bg-canvas border border-ink-200/80 dark:border-ink-800 shadow-sm flex flex-col justify-between space-y-8">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -66,11 +67,13 @@ export function LandingPricing() {
                 </span>
               </div>
 
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl sm:text-5xl font-extrabold font-mono text-ink-950 dark:text-white">0 €</span>
-                <span className="text-xs text-ink-500">/ mois</span>
+              <div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl sm:text-5xl font-extrabold font-mono text-ink-950 dark:text-white">0 €</span>
+                  <span className="text-xs text-ink-500">/ mois</span>
+                </div>
+                <p className="text-xs text-ink-500 font-medium mt-1">Sans engagement ni carte bancaire</p>
               </div>
-              <p className="text-xs text-ink-500 font-medium">Sans engagement ni carte bancaire</p>
 
               <ul className="space-y-3 pt-6 border-t border-ink-100 dark:border-ink-800 text-xs text-ink-700 dark:text-ink-300">
                 <li className="flex items-center gap-2.5">
@@ -91,21 +94,21 @@ export function LandingPricing() {
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
-                  <span>Export des données au format CSV</span>
+                  <span>Export des données CSV</span>
                 </li>
               </ul>
             </div>
 
             <Link
               href="/register"
-              className="w-full py-3.5 px-4 rounded-full border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold text-xs text-center hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors tap-active"
+              className="w-full py-3.5 px-4 rounded-full border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold text-xs text-center hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
             >
               Commencer gratuitement
             </Link>
           </div>
 
-          {/* Plan 2: Pro (Featured) */}
-          <div className="p-8 rounded-3xl bg-canvas-raised border-2 border-amber-500 shadow-xl shadow-amber-500/10 flex flex-col justify-between space-y-8 relative">
+          {/* Plan 2: Pro (Recommandé) */}
+          <div className="p-7 sm:p-8 rounded-3xl bg-canvas-raised border-2 border-amber-500 shadow-xl shadow-amber-500/10 flex flex-col justify-between space-y-8 relative">
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500 text-slate-950 text-[11px] font-bold tracking-wide uppercase shadow-sm">
               <Sparkles className="w-3 h-3 text-slate-950" />
               Recommandé pour indépendants
@@ -151,7 +154,7 @@ export function LandingPricing() {
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
-                  <span><strong>Calcul de la rentabilité horaire nette</strong></span>
+                  <span><strong>Calcul de rentabilité horaire nette</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
@@ -170,14 +173,14 @@ export function LandingPricing() {
 
             <Link
               href="/register"
-              className="w-full py-3.5 px-4 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs text-center shadow-md shadow-amber-500/20 hover:shadow-lg transition-all tap-active"
+              className="w-full py-3.5 px-4 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs text-center shadow-md shadow-amber-500/20 hover:shadow-lg transition-all"
             >
               Choisir le forfait Pro
             </Link>
           </div>
 
           {/* Plan 3: Premium */}
-          <div className="p-8 rounded-3xl bg-canvas border border-ink-200/80 dark:border-ink-800 shadow-sm flex flex-col justify-between space-y-8">
+          <div className="p-7 sm:p-8 rounded-3xl bg-canvas border border-ink-200/80 dark:border-ink-800 shadow-sm flex flex-col justify-between space-y-8">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -233,7 +236,7 @@ export function LandingPricing() {
 
             <Link
               href="/register"
-              className="w-full py-3.5 px-4 rounded-full border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold text-xs text-center hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors tap-active"
+              className="w-full py-3.5 px-4 rounded-full border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold text-xs text-center hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
             >
               Choisir le forfait Premium
             </Link>

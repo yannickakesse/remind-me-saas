@@ -33,8 +33,6 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
 
   const navLinks = [
     { href: "#features", label: "Fonctionnalités" },
-    { href: "#comparison", label: "Espace Unifié" },
-    { href: "#how-it-works", label: "Comment ça marche" },
     { href: "#pricing", label: "Tarifs" },
     { href: "#faq", label: "FAQ" },
   ];
@@ -45,8 +43,8 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
         <div
           className={`flex items-center justify-between px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full transition-all duration-300 ${
             scrolled
-              ? "bg-canvas/90 backdrop-blur-xl border border-ink-200/80 dark:border-ink-800/80 shadow-lg shadow-black/5"
-              : "bg-canvas/75 backdrop-blur-md border border-ink-200/50 dark:border-ink-800/50 shadow-md shadow-black/5"
+              ? "bg-canvas/90 dark:bg-canvas-raised/90 backdrop-blur-xl border border-ink-200/80 dark:border-ink-800/80 shadow-lg shadow-black/5"
+              : "bg-canvas/75 dark:bg-canvas-raised/75 backdrop-blur-md border border-ink-200/50 dark:border-ink-800/50 shadow-sm"
           }`}
         >
           {/* Logo & Brand */}
@@ -55,12 +53,12 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-ink-700 dark:text-ink-300 tracking-tight">
+          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-ink-700 dark:text-ink-300 tracking-tight">
             {navLinks.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="hover:text-ink-950 dark:hover:text-white transition-colors duration-150"
+                className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors duration-150"
               >
                 {item.label}
               </a>
@@ -74,29 +72,27 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
               <Link
                 href="/dashboard"
                 prefetch={true}
-                className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active shrink-0"
+                className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active shrink-0"
               >
                 <span>Mon Cockpit</span>
                 <ArrowRight className="w-3.5 h-3.5 shrink-0" />
               </Link>
             ) : (
-              <>
                 <Link
                   href="/login"
                   prefetch={true}
-                  className="px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold text-ink-700 dark:text-ink-300 hover:text-ink-950 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800/60 transition-colors shrink-0"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold bg-[#00875A] hover:bg-emerald-700 text-white transition-colors shadow-xs shrink-0"
                 >
                   Connexion
                 </Link>
                 <Link
                   href="/register"
                   prefetch={true}
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#F59E0B] hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
                 >
                   <span>Commencer</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
-              </>
             )}
 
             {/* Language Selector */}
@@ -163,7 +159,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                   href="/dashboard"
                   prefetch={true}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-full bg-emerald-600 text-white font-semibold text-xs shadow"
+                  className="w-full text-center py-2.5 rounded-full bg-emerald-600 text-white font-semibold text-xs shadow-sm transition-colors"
                 >
                   Mon Cockpit →
                 </Link>
@@ -173,7 +169,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                     href="/login"
                     prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full text-center py-2.5 rounded-full border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold text-xs hover:bg-ink-100 dark:hover:bg-ink-800"
+                    className="w-full text-center py-2.5 rounded-full border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold text-xs hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
                   >
                     Connexion
                   </Link>
@@ -181,7 +177,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                     href="/register"
                     prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full text-center py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow shadow-amber-500/20"
+                    className="w-full text-center py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow shadow-amber-500/20 transition-colors"
                   >
                     Commencer gratuitement
                   </Link>

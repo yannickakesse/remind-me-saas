@@ -6,9 +6,9 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Remind Me — Toutes vos activités. Une vision plus claire.",
+  title: "Remind Me — Gérez votre travail, votre temps et votre argent",
   description:
-    "Un espace intelligent pour organiser vos activités, maîtriser vos échéances, détecter les conflits d'agenda et garder une vision limpide de vos finances.",
+    "Un espace intelligent pour organiser vos activités, maîtriser vos échéances, éviter les conflits d’agenda et garder une vision limpide de vos finances, sans vous éparpiller.",
   keywords: [
     "SaaS",
     "gestion multi-activités",
@@ -22,9 +22,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Remind Me Team" }],
   openGraph: {
-    title: "Remind Me — Toutes vos activités. Une vision plus claire.",
+    title: "Remind Me — Gérez votre travail, votre temps et votre argent",
     description:
-      "Un espace intelligent pour organiser vos activités, maîtriser vos échéances, détecter les conflits d'agenda et garder une vision limpide de vos finances.",
+      "Un espace intelligent pour organiser vos activités, maîtriser vos échéances, éviter les conflits d’agenda et garder une vision limpide de vos finances, sans vous éparpiller.",
     url: "https://remind-me-saas.vercel.app",
     siteName: "Remind Me",
     locale: "fr_FR",
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Remind Me — Toutes vos activités. Une vision plus claire.",
+    title: "Remind Me — Gérez votre travail, votre temps et votre argent",
     description:
-      "Un espace intelligent pour organiser vos activités, maîtriser vos échéances, détecter les conflits d'agenda et garder une vision limpide de vos finances.",
+      "Un espace intelligent pour organiser vos activités, maîtriser vos échéances, éviter les conflits d’agenda et garder une vision limpide de vos finances, sans vous éparpiller.",
   },
 };
 
