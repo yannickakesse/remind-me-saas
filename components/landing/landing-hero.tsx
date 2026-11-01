@@ -135,7 +135,9 @@ export function LandingHero() {
 
         {/* Titre principal centré fidèle à l'image */}
         <div className="text-center max-w-4xl mx-auto mb-6 sm:mb-8">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-black tracking-tight text-ink-950 dark:text-white leading-[1.08] font-sans">
+          {/* Mobile : taille fluide calée sur la ligne la plus longue (~11,75em)
+              pour conserver exactement 3 lignes en pyramide inversée. */}
+          <h1 className="text-[clamp(1.5rem,calc((100vw_-_2rem)/12.5),3rem)] whitespace-nowrap sm:whitespace-normal sm:text-5xl md:text-6xl lg:text-[68px] font-black tracking-tight text-ink-950 dark:text-white leading-[1.08] font-sans">
             <span className="block">Gérez votre travail, votre</span>
             <span className="block">temps et votre argent.</span>
             <span className="block">En parfait contrôle.</span>
