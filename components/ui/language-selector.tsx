@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { Globe, Check, ChevronDown, X, Search } from "lucide-react";
+import { Globe, Check, X, Search } from "lucide-react";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { CountryFlag } from "@/components/ui/country-flag";
 import type { SupportedLocale } from "@/lib/i18n/types";
@@ -21,6 +21,8 @@ export function LanguageSelector({
   const [search, setSearch] = useState("");
   const [mounted, setMounted] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -48,7 +50,10 @@ export function LanguageSelector({
     } else {
       setSearch("");
       document.body.style.overflow = "";
+      // Rend le focus à la pastille après fermeture (navigation clavier)
+      if (wasOpenRef.current) triggerRef.current?.focus();
     }
+    wasOpenRef.current = isOpen;
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
@@ -72,84 +77,33 @@ export function LanguageSelector({
     setIsOpen(false);
   };
 
+  // Libellé accessible : le bouton fermé n'affiche que le drapeau, le nom
+  // complet de la langue reste donc exposé aux technologies d'assistance.
+  const triggerLabel = `Changer de langue — ${currentLocale.label}`;
+
   return (
     <>
-      {/* Trigger Button Variants */}
-      {variant === "pill" && (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          aria-expanded={isOpen}
-          aria-label="Changer de langue / Change language"
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-full border border-ink-200 dark:border-ink-800 text-xs font-semibold text-ink-900 dark:text-ink-100 bg-canvas-raised hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs tap-active cursor-pointer min-h-[34px] ${className}`}
-        >
-          <CountryFlag code={currentLocale.countryCode || currentLocale.code} size="md" className="rounded-xs shadow-2xs" />
-          <span className="font-bold text-xs text-ink-950 dark:text-white">
-            {currentLocale.label}
-          </span>
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300">
-            {currentLocale.code}
-          </span>
-          <ChevronDown className="w-3.5 h-3.5 text-ink-400 shrink-0" />
-        </button>
-      )}
-
-      {variant === "compact" && (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          aria-expanded={isOpen}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-ink-200 dark:border-ink-800 bg-canvas-raised text-ink-800 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active ${className}`}
-          title="Changer de langue"
-        >
-          <CountryFlag code={currentLocale.countryCode || currentLocale.code} size="md" />
-          <span className="text-xs font-bold uppercase">{currentLocale.code}</span>
-        </button>
-      )}
-
-      {variant === "button" && (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          aria-expanded={isOpen}
-          className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border border-ink-200 dark:border-ink-800 bg-canvas-raised hover:border-signal/50 hover:bg-signal-soft/10 active:scale-98 transition-all shadow-xs tap-active ${className}`}
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-100 dark:bg-ink-800 shrink-0 border border-ink-200 dark:border-ink-700">
-              <CountryFlag code={currentLocale.countryCode || currentLocale.code} size="lg" />
-            </div>
-            <div className="flex flex-col text-left min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-ink-950 dark:text-white truncate">
-                  {currentLocale.label}
-                </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300">
-                  {currentLocale.code}
-                </span>
-              </div>
-              <span className="text-xs text-ink-400 truncate">{currentLocale.nativeLabel}</span>
-            </div>
-          </div>
-          <ChevronDown className="w-4 h-4 text-ink-400 shrink-0" />
-        </button>
-      )}
-
-      {variant === "drawer" && (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl font-medium text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 transition-all ${className}`}
-        >
-          <div className="flex items-center gap-3">
-            <CountryFlag code={currentLocale.countryCode || currentLocale.code} size="lg" />
-            <span className="font-semibold">{currentLocale.label}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-bold uppercase px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{currentLocale.code}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-          </div>
-        </button>
-      )}
+      {/* Déclencheur unique et harmonisé : pastille ronde contenant uniquement
+          le drapeau de la langue active. Toutes les variantes historiques
+          ("pill", "compact", "button", "drawer") partagent désormais ce même
+          rendu afin de garantir une seule identité visuelle dans l'app. */}
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setIsOpen(true)}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        aria-label={triggerLabel}
+        title={triggerLabel}
+        data-variant={variant}
+        className={`group inline-flex items-center justify-center h-10 w-10 sm:h-9 sm:w-9 shrink-0 rounded-full border border-ink-200 dark:border-ink-800 bg-canvas-raised shadow-xs hover:border-signal/50 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all duration-150 tap-active cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/50 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${className}`}
+      >
+        <CountryFlag
+          code={currentLocale.countryCode || currentLocale.code}
+          size="sm"
+          className="rounded-[3px] group-hover:scale-110 transition-transform duration-150"
+        />
+      </button>
 
       {/* Portal-rendered Centered Modal Dialog — Guaranteed 100% Opaque & Never Clipped */}
       {mounted &&
@@ -229,6 +183,8 @@ export function LanguageSelector({
                         key={loc.code}
                         type="button"
                         onClick={() => handleSelect(loc.code)}
+                        aria-pressed={isSelected}
+                        aria-current={isSelected ? "true" : undefined}
                         className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all tap-active cursor-pointer ${
                           isSelected
                             ? "border-signal bg-amber-50/80 dark:bg-amber-950/30 text-signal font-bold shadow-xs ring-2 ring-signal/30"
@@ -240,14 +196,9 @@ export function LanguageSelector({
                             <CountryFlag code={loc.countryCode || loc.code} size="xl" />
                           </div>
                           <div className="flex flex-col min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs sm:text-sm font-bold text-slate-950 dark:text-white truncate">
-                                {loc.label}
-                              </span>
-                              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold uppercase bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
-                                {loc.code}
-                              </span>
-                            </div>
+                            <span className="text-xs sm:text-sm font-bold text-slate-950 dark:text-white truncate">
+                              {loc.label}
+                            </span>
                             <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                               {loc.nativeLabel}
                             </span>

@@ -78,6 +78,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                 <ArrowRight className="w-3.5 h-3.5 shrink-0" />
               </Link>
             ) : (
+              <>
                 <Link
                   href="/login"
                   prefetch={true}
@@ -93,15 +94,11 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                   <span>Commencer</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
+              </>
             )}
 
-            {/* Language Selector */}
-            <div className="hidden sm:inline-flex shrink-0">
-              <LanguageSelector variant="pill" />
-            </div>
-            <div className="sm:hidden inline-flex shrink-0">
-              <LanguageSelector variant="compact" />
-            </div>
+            {/* Language Selector — pastille drapeau unique (desktop & mobile) */}
+            <LanguageSelector />
 
             {/* Theme Toggle Button */}
             <button
