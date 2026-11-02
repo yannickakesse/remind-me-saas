@@ -341,12 +341,12 @@ export function SavingsGoalsSection({
 
       {/* Liste des objectifs */}
       {localGoals.length === 0 && !isAdding ? (
-        <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised/50 p-8 text-center">
+        <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised p-8 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gold-soft text-gold-dark mb-3">
             <Coins className="h-6 w-6" />
           </div>
           <p className="font-semibold text-ink-950">Aucun objectif d'épargne pour l'instant</p>
-          <p className="text-sm text-ink-500 mt-1 max-w-md mx-auto">
+          <p className="text-sm text-ink-700 dark:text-ink-300 mt-1 max-w-md mx-auto leading-relaxed">
             Créez des poches d'épargne dédiées pour visualiser votre progression et anticiper la réalisation de vos projets.
           </p>
           <button

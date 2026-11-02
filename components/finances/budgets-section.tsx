@@ -113,7 +113,7 @@ export function BudgetsSection({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-ink-950">Budgets Mensuels</h2>
-          <p className="text-sm text-ink-500">
+          <p className="text-sm text-ink-700 dark:text-ink-300 mt-1 leading-relaxed">
             Définissez des plafonds de dépenses par catégorie pour garder le contrôle de vos coûts.
           </p>
         </div>

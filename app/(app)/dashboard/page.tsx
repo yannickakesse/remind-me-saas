@@ -5,7 +5,6 @@ import { DateTime } from "luxon";
 import {
   TrendingUp,
   Clock,
-  Briefcase,
   ArrowRight,
   Wallet,
 } from "lucide-react";
@@ -20,7 +19,6 @@ import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { ensureNotifications } from "@/lib/notifications/sync";
 import { getUserTimezone } from "@/lib/time/timezones";
-import { typeLabel } from "@/lib/validation/activities";
 import { FloatingMessagesButton } from "@/components/dashboard/floating-messages-button";
 import { t } from "@/lib/i18n/format";
 import type { SupportedLocale } from "@/lib/i18n/types";
@@ -65,7 +63,7 @@ export default async function DashboardPage() {
     ensureNotifications(supabase, user.id, timezone),
     supabase
       .from("activities")
-      .select("id, name, type, color, activity_compensation(amount, currency)")
+      .select("id")
       .eq("user_id", user.id)
       .eq("status", "active")
       .order("created_at", { ascending: false }),
@@ -180,8 +178,8 @@ export default async function DashboardPage() {
         <div className="absolute top-1/4 -left-20 w-72 h-72 rounded-full bg-signal/10 dark:bg-signal/5 blur-3xl pointer-events-none" />
         <div className="absolute top-2/3 -right-20 w-80 h-80 rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-3xl pointer-events-none" />
 
-        {/* 1. FOCUS DE LA JOURNÉE : Séances & Tâches prioritaires (Desktop 8 cols, Mobile premier bloc) */}
-        <div className="lg:col-span-8 order-1">
+        {/* 1. FOCUS DE LA JOURNÉE : Séances & Tâches prioritaires (Desktop 8 cols, Mobile après les finances) */}
+        <div className="lg:col-span-8 order-2">
           <TodayFocus
             todayEvents={todayEvents}
             urgentTasks={(urgentTasks ?? []) as any}
@@ -191,8 +189,8 @@ export default async function DashboardPage() {
           />
         </div>
 
-        {/* 2. SYNTHÈSE FINANCIÈRE DU MOIS (Desktop 4 cols à droite, Mobile juste après la journée) */}
-        <div className="lg:col-span-4 order-2">
+        {/* 2. SYNTHÈSE FINANCIÈRE DU MOIS (Desktop 4 cols, Mobile premier bloc après l'en-tête) */}
+        <div className="lg:col-span-4 order-1">
           <DashboardKpis
             incomeExpected={incomeExpected}
             incomeReceived={incomeReceived}
@@ -321,7 +319,7 @@ export default async function DashboardPage() {
                 href="/finances?tab=income"
                 className="text-xs text-signal font-semibold hover:underline flex items-center gap-1 group"
               >
-                <span>{t("dashboard.see_all", locale)}</span>
+                <span>{locale === "fr" ? "Voir" : t("dashboard.see_all", locale)}</span>
                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
@@ -392,121 +390,6 @@ export default async function DashboardPage() {
               </ul>
             )}
           </div>
-        </div>
-
-        {/* 5. VOS ACTIVITÉS & MISSIONS (Pleine largeur 12 cols, en bas du dashboard) */}
-        <div className="lg:col-span-12 order-5" data-tour="dashboard-activities">
-          <section className="space-y-3.5" aria-labelledby="activities-heading">
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-signal/10 text-signal border border-signal/20">
-                  <Briefcase className="w-4 h-4" />
-                </div>
-                <div>
-                  <h2
-                    id="activities-heading"
-                    className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white"
-                  >
-                    {t("nav.activities", locale)} ({activities?.length ?? 0})
-                  </h2>
-                  <p className="text-[11px] text-ink-500">
-                    Vos différentes casquettes et rémunérations associées
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/activities/new"
-                  className="text-xs font-bold px-3 py-1.5 rounded-xl bg-signal text-white hover:bg-signal-dark transition-all duration-150 shadow-2xs hover:shadow-sm"
-                >
-                  + {t("activities.add_btn", locale)}
-                </Link>
-                <Link
-                  href="/activities"
-                  className="text-xs font-semibold text-signal hover:underline flex items-center gap-1 group ml-1"
-                >
-                  <span>{t("dashboard.manage", locale)}</span>
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-4 sm:p-6 shadow-xs">
-              {(activities?.length ?? 0) === 0 ? (
-                <div className="p-8 text-center text-xs text-ink-500 bg-canvas/60 dark:bg-slate-950/40 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800 space-y-2">
-                  <p className="text-sm font-semibold text-ink-950 dark:text-white">
-                    {t("activities.empty_title", locale)}
-                  </p>
-                  <p className="text-xs text-ink-500">{t("activities.empty_desc", locale)}</p>
-                  <Link
-                    href="/activities/new"
-                    className="mt-3 inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-signal text-white font-bold hover:bg-signal-dark transition-colors shadow-2xs"
-                  >
-                    + {t("activities.add_btn", locale)}
-                  </Link>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                  {activities!.map((activity) => {
-                    const comp = Array.isArray(activity.activity_compensation)
-                      ? activity.activity_compensation[0]
-                      : activity.activity_compensation;
-                    const compensationLabel =
-                      locale === "fr" ? "Rémunération" : "Compensation";
-                    const noCompLabel =
-                      locale === "fr"
-                        ? "Rémunération non définie"
-                        : "No compensation set";
-                    const activityColor = activity.color ?? "#E5A91E";
-
-                    return (
-                      <Link
-                        key={activity.id}
-                        href={`/activities/${activity.id}/edit`}
-                        className="relative overflow-hidden flex flex-col justify-between p-4 rounded-2xl border border-ink-100/90 dark:border-white/5 bg-canvas dark:bg-slate-950/70 hover:border-signal/50 dark:hover:border-signal/40 transition-all duration-200 hover:-translate-y-1 shadow-2xs hover:shadow-xs group"
-                      >
-                        {/* Barre d'accentuation supérieure thématique */}
-                        <div
-                          className="absolute top-0 left-0 right-0 h-1 opacity-70 group-hover:opacity-100 transition-opacity"
-                          style={{ backgroundColor: activityColor }}
-                        />
-
-                        <div className="flex items-start justify-between gap-2 pt-1">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <span
-                              className="h-3.5 w-3.5 shrink-0 rounded-full ring-2 ring-white/20 shadow-2xs"
-                              style={{ backgroundColor: activityColor }}
-                            />
-                            <div className="min-w-0">
-                              <div className="font-bold text-ink-950 dark:text-white text-xs sm:text-sm truncate group-hover:text-signal transition-colors">
-                                {activity.name}
-                              </div>
-                              <div className="text-[11px] text-ink-500 capitalize">
-                                {typeLabel(activity.type)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {comp ? (
-                          <div className="mt-3.5 pt-2.5 border-t border-ink-100/80 dark:border-white/5 flex items-center justify-between text-[11px]">
-                            <span className="text-ink-500">{compensationLabel}</span>
-                            <span className="font-mono font-bold text-xs text-ink-950 dark:text-white">
-                              {formatAmount(comp.amount, comp.currency)}
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="mt-3.5 pt-2.5 border-t border-ink-100/80 dark:border-white/5 text-[11px] text-ink-400">
-                            {noCompLabel}
-                          </div>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </section>
         </div>
       </div>
 

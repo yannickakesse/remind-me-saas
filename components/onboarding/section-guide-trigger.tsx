@@ -12,7 +12,7 @@ import { useLanguage } from "@/components/i18n/language-provider";
 interface SectionGuideTriggerProps {
   section: string;
   label?: string;
-  variant?: "pill" | "button" | "compact";
+  variant?: "pill" | "button" | "compact" | "audio-first";
   className?: string;
 }
 
@@ -174,6 +174,38 @@ export function SectionGuideTrigger({
     );
   }
 
+  // Variant "audio-first" : pastille compacte [🔊 | Guide], le son en premier
+  if (variant === "audio-first") {
+    return (
+      <div
+        className={`inline-flex items-center rounded-full border border-signal/30 bg-signal/10 text-signal text-xs font-bold shadow-2xs ${className}`}
+      >
+        <button
+          type="button"
+          onClick={handleVoiceClick}
+          title={isVoiceActive ? "Arrêter la voix" : "Écouter le guide vocal"}
+          aria-label={isVoiceActive ? "Arrêter la voix" : "Écouter le guide vocal de cette section"}
+          className={`p-1.5 pl-2.5 transition-all cursor-pointer ${
+            isVoiceActive ? "animate-pulse scale-110" : "hover:scale-110"
+          }`}
+        >
+          {isVoiceActive ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+        </button>
+
+        <span className="h-3.5 w-px bg-signal/30" />
+
+        <button
+          type="button"
+          onClick={handleTrigger}
+          title={displayLabel}
+          className="pl-2 pr-3 py-1.5 hover:opacity-80 active:scale-95 transition-all cursor-pointer"
+        >
+          {label ?? "Guide"}
+        </button>
+      </div>
+    );
+  }
+
   if (variant === "button") {
     return (
       <div
@@ -220,7 +252,7 @@ export function SectionGuideTrigger({
       >
         <Sparkles className="w-3 h-3 text-gold-dark dark:text-gold-light" />
         <span className="hidden sm:inline">{displayLabel}</span>
-        <span className="sm:hidden">{t("help.tab_page_guide") || "Guide"}</span>
+        <span className="sm:hidden">Guide</span>
       </button>
 
       <span className="h-3 w-px bg-ink-200 dark:bg-ink-700 mx-0.5" />

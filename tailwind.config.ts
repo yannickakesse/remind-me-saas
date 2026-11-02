@@ -51,6 +51,14 @@ const config: Config = {
           500: "rgb(var(--ink-500) / <alpha-value>)",
           300: "rgb(var(--ink-300) / <alpha-value>)",
           100: "rgb(var(--ink-100) / <alpha-value>)",
+          // Nuances intermédiaires fixes (non inversées en dark mode) : très utilisées
+          // dans le code avec des variantes dark: explicites, elles n'étaient pas générées.
+          50: "#FAF9F7",
+          200: "#E4DFD7",
+          400: "#A8A29E",
+          600: "#57534E",
+          800: "#292524",
+          900: "#1C1917",
         },
         canvas: {
           DEFAULT: "rgb(var(--canvas) / <alpha-value>)", // fond principal, presque blanc, pas de cream AI-cliché
@@ -95,6 +103,10 @@ const config: Config = {
         lg: "14px",
         xl: "18px",
         "2xl": "22px",
+      },
+      // Opacité « /98 » utilisée pour les cartes quasi opaques posées sur les fonds d'écran
+      opacity: {
+        98: "0.98",
       },
       boxShadow: {
         gold: "0 10px 25px -5px rgba(229, 169, 30, 0.25), 0 8px 10px -6px rgba(229, 169, 30, 0.15)",

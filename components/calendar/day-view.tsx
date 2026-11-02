@@ -23,17 +23,19 @@ export function DayView({
 
   return (
     <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-2xs overflow-hidden">
-      <div className="flex">
-        <div className="w-14 sm:w-16 shrink-0 border-r border-ink-100 dark:border-ink-800 bg-canvas/40 dark:bg-ink-950/40">
+      <div className="flex py-3">
+        <div className="w-14 sm:w-16 shrink-0">
           {TIMELINE_HOURS.map((hour) => (
-            <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="border-b border-ink-100/70 dark:border-ink-800/70 pr-2 text-right text-xs text-ink-500 font-mono">
-              <span className="relative -top-2">{String(hour).padStart(2, "0")}:00</span>
+            <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="relative pr-2.5 text-right">
+              <span className="absolute right-2.5 top-0 -translate-y-1/2 text-[11px] font-medium tabular-nums text-ink-500 dark:text-ink-400">
+                {String(hour).padStart(2, "0")}:00
+              </span>
             </div>
           ))}
         </div>
-        <div className="relative flex-1" style={{ height: TIMELINE_HEIGHT_PX }}>
+        <div className="relative flex-1 border-l border-ink-200/80 dark:border-ink-800" style={{ height: TIMELINE_HEIGHT_PX }}>
           {TIMELINE_HOURS.map((hour) => (
-            <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="border-b border-ink-100/70 dark:border-ink-800/70" />
+            <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="border-t border-ink-200/70 dark:border-ink-800/70" />
           ))}
           {dayEvents.length === 0 ? (
             <div className="absolute inset-x-0 top-12 text-center text-xs text-ink-400">
@@ -63,7 +65,7 @@ export function DayView({
                   color: textColor,
                   border: "1px solid rgba(0, 0, 0, 0.15)",
                 }}
-                className={`absolute left-2 right-2 overflow-hidden rounded-md px-2.5 py-1.5 text-xs shadow-xs transition-all hover:scale-[1.005] hover:brightness-110 ${
+                className={`absolute left-2 right-2 overflow-hidden rounded-xl px-3 py-2 text-xs shadow-sm transition-all hover:scale-[1.005] hover:brightness-110 ${
                   isCancelled ? "opacity-50 line-through" : ""
                 } ${hasConflict ? "ring-2 ring-danger ring-offset-1 z-20" : "z-10"}`}
               >

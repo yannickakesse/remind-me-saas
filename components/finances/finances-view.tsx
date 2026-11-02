@@ -320,9 +320,11 @@ export function FinancesView({
                 <button
                   type="button"
                   onClick={() => handleTabChange("scheduled")}
-                  className={buttonClasses("secondary", "sm")}
+                  className={`${buttonClasses("secondary", "sm")} w-full sm:w-auto justify-center whitespace-nowrap`}
                 >
-                  <Plus className="w-3.5 h-3.5 mr-1" /> Programmer une dépense
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  <span className="sm:hidden">Programmer</span>
+                  <span className="hidden sm:inline">Programmer une dépense</span>
                 </button>
               </div>
             </div>
@@ -635,11 +637,11 @@ export function FinancesView({
                 </span>
                 Dépenses du mois
               </h3>
-              <p className="text-xs text-ink-500 mt-1">
+              <p className="text-xs text-ink-700 dark:text-ink-300 mt-1">
                 Historique des décaissements et charges à régler déduits du Solde Net.
               </p>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
               <Link
                 href="/finances/expenses/new"
                 onClick={(e) => {
@@ -648,16 +650,18 @@ export function FinancesView({
                     openQuickTransaction("expense");
                   }
                 }}
-                className={buttonClasses("primary", "sm")}
+                className={`${buttonClasses("primary", "sm")} w-full sm:w-auto justify-center whitespace-nowrap`}
               >
                 <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle dépense
               </Link>
               <button
                 type="button"
                 onClick={() => handleTabChange("scheduled")}
-                className={buttonClasses("secondary", "sm")}
+                className={`${buttonClasses("secondary", "sm")} w-full sm:w-auto justify-center whitespace-nowrap`}
               >
-                <Plus className="w-3.5 h-3.5 mr-1" /> Programmer une dépense
+                <Plus className="w-3.5 h-3.5 mr-1" />
+                <span className="sm:hidden">Programmer</span>
+                <span className="hidden sm:inline">Programmer une dépense</span>
               </button>
             </div>
           </div>
@@ -671,7 +675,7 @@ export function FinancesView({
               <p className="text-xs text-ink-500 max-w-sm mx-auto">
                 Les dépenses payées sont automatiquement enregistrées lorsque vous marquez une dépense programmée comme payée ou en ajoutant une charge.
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+              <div className="grid grid-cols-2 gap-2 pt-1 max-w-sm mx-auto sm:flex sm:justify-center">
                 <Link
                   href="/finances/expenses/new"
                   onClick={(e) => {
@@ -680,16 +684,18 @@ export function FinancesView({
                       openQuickTransaction("expense");
                     }
                   }}
-                  className={buttonClasses("primary", "sm")}
+                  className={`${buttonClasses("primary", "sm")} w-full sm:w-auto justify-center whitespace-nowrap`}
                 >
                   <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle dépense
                 </Link>
                 <button
                   type="button"
                   onClick={() => handleTabChange("scheduled")}
-                  className={buttonClasses("secondary", "sm")}
+                  className={`${buttonClasses("secondary", "sm")} w-full sm:w-auto justify-center whitespace-nowrap`}
                 >
-                  <Plus className="w-3.5 h-3.5 mr-1" /> Programmer une dépense
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  <span className="sm:hidden">Programmer</span>
+                  <span className="hidden sm:inline">Programmer une dépense</span>
                 </button>
               </div>
             </div>

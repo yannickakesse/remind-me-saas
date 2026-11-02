@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { Volume2, VolumeX, Sparkles, X } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import {
   playVoiceReminder,
   stopVoiceReminder,
@@ -283,53 +283,33 @@ export function SectionVoiceAssistant() {
     setCurrentNarratingSection(null);
   };
 
-  if (!isSpeaking || !currentNarratingSection) return null;
+  const pageSection = resolveSectionFromPath(pathname);
+  if (!pageSection) return null;
 
+  const activeSection = isSpeaking ? currentNarratingSection ?? pageSection : pageSection;
   const sectionLabel =
-    SECTION_LABELS[currentNarratingSection]?.[locale] ||
-    SECTION_LABELS[currentNarratingSection]?.fr ||
-    currentNarratingSection;
+    SECTION_LABELS[activeSection]?.[locale] || SECTION_LABELS[activeSection]?.fr || activeSection;
 
+  // Bouton rond flottant : un appui lit le guide vocal de la page, un second l'arrête.
+  // Placé au-dessus de la barre de navigation mobile (zone de sécurité iPhone comprise).
   return (
-    <div
-      className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-slate-950/95 dark:bg-slate-900/95 border border-amber-500/40 text-white shadow-2xl backdrop-blur-md animate-in slide-in-from-bottom-3 duration-300 pointer-events-auto select-none"
-      role="status"
-      aria-live="polite"
+    <button
+      type="button"
+      onClick={() => (isSpeaking ? handleStop() : speakSection(pageSection, true))}
+      title={isSpeaking ? `Arrêter le guide vocal — ${sectionLabel}` : `Écouter le guide vocal — ${sectionLabel}`}
+      aria-label={isSpeaking ? "Arrêter le guide vocal" : "Écouter le guide vocal de cette page"}
+      aria-pressed={isSpeaking}
+      className={`fixed right-4 sm:right-6 bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:bottom-6 z-40 flex h-12 w-12 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-200 active:scale-90 cursor-pointer select-none print:hidden ${
+        isSpeaking
+          ? "bg-signal text-white border-signal shadow-signal/30 ring-4 ring-signal/20"
+          : "bg-canvas-raised/95 dark:bg-slate-900/95 text-signal border-signal/30 hover:bg-signal hover:text-white"
+      }`}
     >
-      <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 shadow-xs shrink-0 animate-pulse">
-        <Volume2 className="h-4 w-4" />
-      </div>
-
-      <div className="flex flex-col pr-1">
-        <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
-          <Sparkles className="w-2.5 h-2.5" /> Guidage vocal
-        </span>
-        <span className="text-xs font-semibold text-white truncate max-w-[170px] sm:max-w-[220px]">
-          {sectionLabel}
-        </span>
-      </div>
-
-      <button
-        type="button"
-        onClick={handleStop}
-        title="Arrêter la voix"
-        aria-label="Arrêter la voix"
-        className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-zinc-300 hover:text-white text-[11px] font-bold transition-all cursor-pointer ml-1"
-      >
-        <VolumeX className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">Arrêter</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={handleStop}
-        title="Fermer"
-        aria-label="Fermer l'indicateur"
-        className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-      >
-        <X className="w-3.5 h-3.5" />
-      </button>
-    </div>
+      {isSpeaking && (
+        <span className="absolute inset-0 rounded-full bg-signal/40 animate-ping" aria-hidden="true" />
+      )}
+      {isSpeaking ? <VolumeX className="relative h-5 w-5" /> : <Volume2 className="relative h-5 w-5" />}
+    </button>
   );
 }
 

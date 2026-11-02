@@ -160,7 +160,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
               </div>
 
               {/* Navigation links list — Typographie soignée, contrastée et élégante */}
-              <div className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+              <div className="flex-1 m-3 p-2 space-y-0.5 overflow-y-auto rounded-2xl bg-canvas-raised/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-sm">
                 {navLinks.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
@@ -171,37 +171,33 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                       prefetch={true}
                       data-tour={item.tourKey}
                       onClick={() => setIsOpen(false)}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all min-h-[44px] shadow-2xs border ${
-                        isActive
-                          ? "bg-signal text-white font-bold border-signal shadow-sm"
-                          : "bg-white/95 dark:bg-zinc-900/95 text-zinc-900 dark:text-zinc-100 border-zinc-200/90 dark:border-zinc-700/90 hover:bg-white dark:hover:bg-zinc-800"
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium tracking-[-0.005em] transition-colors min-h-[44px] ${
+                        isActive ? "bg-signal/10 text-signal" : "text-ink-700 dark:text-ink-300 hover:bg-ink-100/70 dark:hover:bg-white/5"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-signal"}`} strokeWidth={2.2} />
-                      <span className={isActive ? "text-white font-bold" : "text-zinc-900 dark:text-zinc-100 font-semibold"}>
-                        {t(item.labelKey)}
-                      </span>
+                      <Icon className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-signal" : "text-ink-400"}`} strokeWidth={1.8} />
+                      <span className={isActive ? "font-semibold" : ""}>{t(item.labelKey)}</span>
                     </Link>
                   );
                 })}
 
                 {/* Collapsible Finances Section */}
-                <div className="pt-2">
+                <div>
                   <button
                     type="button"
                     onClick={() => setFinancesOpen(!financesOpen)}
-                    className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 hover:text-signal bg-white/95 dark:bg-zinc-900/95 rounded-xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-2xs cursor-pointer"
+                    className="flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-[14px] font-medium text-ink-700 dark:text-ink-300 hover:bg-ink-100/70 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <Wallet className="w-4 h-4 text-signal" strokeWidth={2.2} /> {t("nav.finances")}
+                      <Wallet className="w-[18px] h-[18px] text-ink-400" strokeWidth={1.8} /> {t("nav.finances")}
                     </span>
                     <span>
-                      {financesOpen ? <ChevronDown className="w-4 h-4 stroke-[2.2]" /> : <ChevronRight className="w-4 h-4 stroke-[2.2]" />}
+                      {financesOpen ? <ChevronDown className="w-4 h-4 text-ink-400" /> : <ChevronRight className="w-4 h-4 text-ink-400" />}
                     </span>
                   </button>
 
                   {financesOpen && (
-                    <div className="pl-2.5 mt-1.5 space-y-1 border-l-2 border-signal ml-2">
+                    <div className="ml-[21px] pl-3 my-0.5 space-y-0.5 border-l border-ink-200 dark:border-ink-800">
                       {financeSubLinks.map((sub) => {
                         const tabParam = searchParams?.get("tab");
                         const isOverview = sub.href === "/finances" && !tabParam;
@@ -214,14 +210,14 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                             href={sub.href}
                             prefetch={true}
                             onClick={() => setIsOpen(false)}
-                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors min-h-[40px] shadow-2xs border ${
+                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] transition-colors min-h-[38px] ${
                               isActive
-                                ? "bg-signal/20 text-signal font-semibold border-signal/40"
-                                : "bg-white/95 dark:bg-zinc-900/95 text-zinc-800 dark:text-zinc-200 border-zinc-200/80 dark:border-zinc-800/80 hover:bg-white dark:hover:bg-zinc-800"
+                                ? "bg-signal/10 text-signal font-semibold"
+                                : "text-ink-600 dark:text-ink-400 hover:bg-ink-100/70 dark:hover:bg-white/5"
                             }`}
                           >
-                            <SubIcon className="w-3.5 h-3.5 text-signal shrink-0" strokeWidth={2.2} />
-                            <span className="text-zinc-900 dark:text-zinc-100">{t(sub.labelKey)}</span>
+                            <SubIcon className={`w-4 h-4 shrink-0 ${isActive ? "text-signal" : "text-ink-400"}`} strokeWidth={1.8} />
+                            <span>{t(sub.labelKey)}</span>
                           </Link>
                         );
                       })}
@@ -229,8 +225,8 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                   )}
                 </div>
 
-                <div className="pt-2 border-t border-zinc-300/80 dark:border-zinc-800">
-                  <div className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 bg-white/95 dark:bg-zinc-900/95 rounded-lg border border-zinc-200/80 dark:border-zinc-800/80 shadow-2xs mb-1.5 inline-block w-full">
+                <div className="pt-2 mt-2 border-t border-ink-200/80 dark:border-ink-800">
+                  <div className="px-3 pt-1 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-400">
                     {t("nav.general")}
                   </div>
                   {secondaryLinks.map((item) => {
@@ -243,15 +239,13 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                         prefetch={true}
                         data-tour={item.tourKey}
                         onClick={() => setIsOpen(false)}
-                        className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all min-h-[44px] shadow-2xs border mb-1.5 ${
-                          isActive
-                            ? "bg-signal text-white font-bold border-signal shadow-sm"
-                            : "bg-white/95 dark:bg-zinc-900/95 text-zinc-900 dark:text-zinc-100 border-zinc-200/90 dark:border-zinc-700/90 hover:bg-white dark:hover:bg-zinc-800"
+                        className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-[14px] font-medium transition-colors min-h-[44px] ${
+                          isActive ? "bg-signal/10 text-signal" : "text-ink-700 dark:text-ink-300 hover:bg-ink-100/70 dark:hover:bg-white/5"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-signal"}`} strokeWidth={2.2} />
-                          <span className={isActive ? "text-white font-bold" : "text-zinc-900 dark:text-zinc-100 font-semibold"}>
+                          <Icon className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-signal" : "text-ink-400"}`} strokeWidth={1.8} />
+                          <span className={isActive ? "font-semibold" : ""}>
                             {item.label ? item.label : item.labelKey ? t(item.labelKey) : ""}
                           </span>
                         </div>
@@ -266,7 +260,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                 </div>
 
                 {/* Language Selector inside Drawer */}
-                <div className="pt-2 border-t border-zinc-300/80 dark:border-zinc-800">
+                <div className="pt-2 mt-2 border-t border-ink-200/80 dark:border-ink-800">
                   <LanguageSelector variant="drawer" />
                 </div>
               </div>

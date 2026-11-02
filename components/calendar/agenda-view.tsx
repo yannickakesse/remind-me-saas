@@ -72,7 +72,8 @@ export function AgendaView({
 
         return (
           <div key={iso} className="space-y-2.5">
-            <div className="flex items-center gap-2 px-1">
+            {/* Date posée sur une pastille opaque : lisible quel que soit le fond d'écran */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-canvas-raised/95 dark:bg-slate-900/95 backdrop-blur-md border border-ink-200/80 dark:border-ink-800 shadow-2xs">
               <span
                 className={`text-xs font-bold uppercase tracking-wider capitalize ${
                   isToday ? "text-signal" : "text-ink-700 dark:text-ink-300"

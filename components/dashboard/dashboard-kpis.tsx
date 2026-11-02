@@ -47,10 +47,11 @@ export function DashboardKpis({
         </div>
         <Link
           href="/finances"
-          className="text-xs font-semibold text-signal hover:underline flex items-center gap-1 group"
+          aria-label={t("dashboard.see_all")}
+          title={t("dashboard.see_all")}
+          className="p-1.5 rounded-full text-signal hover:bg-signal/10 flex items-center group"
         >
-          <span>{t("dashboard.see_all")}</span>
-          <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
 
