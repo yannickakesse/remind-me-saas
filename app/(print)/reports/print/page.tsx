@@ -59,7 +59,7 @@ export default async function ReportsPrintPage({
     totalExpensesPlanned,
     realNetBalance,
     otherCurrencies,
-  } = await calculateProfitabilityReport(supabase, user.id, rangeStart, rangeEnd, timezone, defaultCurrency);
+  } = await calculateProfitabilityReport(supabase, user.id, rangeStart, rangeEnd, timezone, defaultCurrency, user.created_at);
 
   const averageHourlyRate =
     totalHoursWorked > 0 ? Math.round(realNetBalance / totalHoursWorked) : null;

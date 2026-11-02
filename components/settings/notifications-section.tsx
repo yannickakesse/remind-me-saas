@@ -594,7 +594,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl space-y-8">
+    <form onSubmit={handleSubmit} className="w-full space-y-8">
       <div>
         <h3 className="text-base font-bold text-ink-950">Centre de notifications & Alertes réelles</h3>
         <p className="text-xs text-ink-500 mt-1">
@@ -846,7 +846,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           </div>
 
           {/* 4. WhatsApp (Statut véridique & Architecture prête) */}
-          <div className="p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl shadow-md space-y-2.5 sm:col-span-2">
+          <div className="pt-5 border-t border-ink-200/70 dark:border-ink-800 space-y-2.5 sm:col-span-2">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-1.5">
                 <MessageSquare className="w-4 h-4 text-signal" />
@@ -866,7 +866,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       {/* Section 1.5: Sonnerie Audio & Rappels Vocaux Intelligents */}
       <div className="space-y-4">
         {/* Carillon Sonore Officiel */}
-        <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl shadow-md space-y-3">
+        <div className="pt-6 border-t border-ink-200/70 dark:border-ink-800 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-start gap-3">
               <div className="p-2.5 rounded-xl bg-signal text-white shrink-0 mt-0.5 shadow-sm">
@@ -911,7 +911,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         </div>
 
         {/* Rappels Vocaux Intelligents (Text-to-Speech) */}
-        <div className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl shadow-md space-y-4">
+        <div className="pt-6 border-t border-ink-200/70 dark:border-ink-800 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-start gap-3">
               <div className="p-2.5 rounded-xl bg-signal text-white shrink-0 mt-0.5 shadow-sm">

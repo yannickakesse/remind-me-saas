@@ -12,7 +12,6 @@ import {
   Archive,
   RotateCcw,
   Edit3,
-  Copy,
   Pause,
   Play,
   Calendar,
@@ -77,6 +76,10 @@ interface ActivitiesClientViewProps {
   initialSuggestions?: RoutineSuggestionItem[];
   initialRenewActivityId?: string;
 }
+
+// Bouton d'action rond, icône seule (cible tactile 40 px)
+const ICON_ACTION =
+  "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer";
 
 export function ActivitiesClientView({
   initialActivities,
@@ -791,7 +794,7 @@ export function ActivitiesClientView({
                   ) : (
                     <div className="flex flex-col gap-1 w-full">
                       {itemError && <span className="text-rose-600 text-xs text-right">{itemError}</span>}
-                      <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
                         {activity.status === "expired" && (
                           <>
                             <button
@@ -814,80 +817,75 @@ export function ActivitiesClientView({
                           </>
                         )}
 
+                        {/* Actions en icônes seules (libellé au survol / lecteur d'écran) */}
+                        <Link
+                          href={`/activities/${activity.id}/edit`}
+                          title="Modifier"
+                          aria-label={`Modifier « ${activity.name} »`}
+                          className={`${ICON_ACTION} border-signal/30 text-signal hover:bg-signal/10`}
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </Link>
+
+                        {activity.status === "active" && (
+                          <button
+                            type="button"
+                            onClick={() => handleSuspend(activity.id)}
+                            disabled={isSuspending || isArchiving || isResuming || isRestoring || isDeleting}
+                            title="Suspendre"
+                            aria-label={`Suspendre « ${activity.name} »`}
+                            className={`${ICON_ACTION} border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20`}
+                          >
+                            <Pause className={`w-4 h-4 ${isSuspending ? "animate-pulse" : ""}`} />
+                          </button>
+                        )}
+
                         {activity.status === "suspended" && (
                           <button
                             type="button"
                             onClick={() => handleResume(activity.id)}
-                            disabled={isResuming || isDeleting}
-                            className="rounded-xl px-2.5 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/90 dark:bg-emerald-950/60 hover:bg-emerald-200 transition-colors min-h-[32px] inline-flex items-center gap-1 shadow-2xs border border-emerald-300 dark:border-emerald-800"
+                            disabled={isSuspending || isArchiving || isResuming || isRestoring || isDeleting}
+                            title="Reprendre"
+                            aria-label={`Reprendre « ${activity.name} »`}
+                            className={`${ICON_ACTION} border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20`}
                           >
-                            <Play className="w-3.5 h-3.5 fill-emerald-800 dark:fill-emerald-300" />
-                            {isResuming ? "..." : "Reprendre"}
+                            <Play className={`w-4 h-4 ${isResuming ? "animate-pulse" : ""}`} />
                           </button>
                         )}
 
-                        {activity.status === "archived" && (
+                        {activity.status === "archived" ? (
                           <button
                             type="button"
                             onClick={() => handleRestore(activity.id)}
-                            disabled={isRestoring || isDeleting}
-                            className="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal/10 transition-colors min-h-[32px] inline-flex items-center gap-1 border border-signal/20"
+                            disabled={isSuspending || isArchiving || isResuming || isRestoring || isDeleting}
+                            title="Restaurer"
+                            aria-label={`Restaurer « ${activity.name} »`}
+                            className={`${ICON_ACTION} border-signal/30 text-signal hover:bg-signal/10`}
                           >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            {isRestoring ? "..." : "Restaurer"}
+                            <RotateCcw className={`w-4 h-4 ${isRestoring ? "animate-spin" : ""}`} />
                           </button>
-                        )}
-
-                        <Link
-                          href={`/activities/${activity.id}/edit`}
-                          className="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal/10 transition-colors min-h-[32px] inline-flex items-center gap-1 border border-signal/20"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          Modifier
-                        </Link>
-
-                        <Link
-                          href={`/activities/new?duplicate_from=${activity.id}`}
-                          title="Dupliquer cette activité pour créer une nouvelle occurrence rapidement"
-                          className="rounded-xl px-2.5 py-1.5 text-xs font-medium text-ink-700 dark:text-ink-300 hover:text-ink-950 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-white/5 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                        >
-                          <Copy className="w-3.5 h-3.5 text-ink-400" />
-                          Dupliquer
-                        </Link>
-
-                        {activity.status === "active" && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleSuspend(activity.id)}
-                              disabled={isSuspending || isArchiving || isDeleting}
-                              title="Mettre en pause temporairement"
-                              className="rounded-xl px-2.5 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/40 bg-amber-500/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                            >
-                              <Pause className="w-3.5 h-3.5 text-amber-600" />
-                              {isSuspending ? "..." : "Suspendre"}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleArchive(activity.id)}
-                              disabled={isSuspending || isArchiving || isDeleting}
-                              className="rounded-xl px-2.5 py-1.5 text-xs font-medium text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-white/5 transition-colors min-h-[32px] inline-flex items-center gap-1"
-                            >
-                              <Archive className="w-3.5 h-3.5" />
-                              {isArchiving ? "..." : "Archiver"}
-                            </button>
-                          </>
-                        )}
+                        ) : activity.status === "active" ? (
+                          <button
+                            type="button"
+                            onClick={() => handleArchive(activity.id)}
+                            disabled={isSuspending || isArchiving || isResuming || isRestoring || isDeleting}
+                            title="Archiver"
+                            aria-label={`Archiver « ${activity.name} »`}
+                            className={`${ICON_ACTION} border-ink-200 dark:border-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-white/5`}
+                          >
+                            <Archive className={`w-4 h-4 ${isArchiving ? "animate-pulse" : ""}`} />
+                          </button>
+                        ) : null}
 
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteId(activity.id)}
-                          disabled={isSuspending || isArchiving || isDeleting}
-                          className="rounded-xl px-2.5 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
+                          disabled={isSuspending || isArchiving || isResuming || isRestoring || isDeleting}
+                          title="Supprimer"
+                          aria-label={`Supprimer « ${activity.name} »`}
+                          className={`${ICON_ACTION} ml-auto border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10`}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          Supprimer
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>

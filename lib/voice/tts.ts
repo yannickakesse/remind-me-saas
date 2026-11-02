@@ -78,11 +78,28 @@ export function getAvailableVoices(language: VoiceLanguage = "fr"): SpeechSynthe
   return all.filter((v) => v.lang.toLowerCase().startsWith(langPrefix));
 }
 
+// Voix « naturelles » (neuronales) proposées par les navigateurs et systèmes récents :
+// Edge/Windows « Natural/Online », Chrome « Google », Apple « Premium/Enhanced/Siri ».
+const NATURAL_VOICE_HINTS = ["natural", "neural", "online", "premium", "enhanced", "siri", "google", "wavenet"];
+
+function naturalnessScore(voice: SpeechSynthesisVoice): number {
+  const name = voice.name.toLowerCase();
+  let score = NATURAL_VOICE_HINTS.reduce((acc, hint) => (name.includes(hint) ? acc + 2 : acc), 0);
+  if (!voice.localService) score += 1; // voix réseau = généralement neuronales
+  if (name.includes("compact") || name.includes("espeak")) score -= 3; // voix robotiques connues
+  return score;
+}
+
+/** Trie les voix de la plus naturelle à la plus robotique. */
+function byNaturalness(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice[] {
+  return [...voices].sort((a, b) => naturalnessScore(b) - naturalnessScore(a));
+}
+
 /**
  * Sélectionne la voix native optimale selon le genre (féminine, masculine ou système)
  */
 export function findBestVoice(language: VoiceLanguage = "fr", voiceType: VoiceType = "system"): SpeechSynthesisVoice | null {
-  const matchingVoices = getAvailableVoices(language);
+  const matchingVoices = byNaturalness(getAvailableVoices(language));
   if (matchingVoices.length === 0) {
     // Fallback sur n'importe quelle voix si aucune voix spécifique n'est trouvée
     const all = cachedVoices.length > 0 ? cachedVoices : (typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis.getVoices() : []);
@@ -90,9 +107,11 @@ export function findBestVoice(language: VoiceLanguage = "fr", voiceType: VoiceTy
   }
 
   if (voiceType === "system") {
-    // Préférer la voix par défaut du système pour cette langue
+    // La voix la plus naturelle disponible ; la voix par défaut seulement à qualité égale
+    const best = matchingVoices[0];
     const defaultVoice = matchingVoices.find((v) => v.default);
-    return defaultVoice || matchingVoices[0] || null;
+    if (defaultVoice && (!best || naturalnessScore(defaultVoice) >= naturalnessScore(best))) return defaultVoice;
+    return best || null;
   }
 
   const femaleKeywords = [

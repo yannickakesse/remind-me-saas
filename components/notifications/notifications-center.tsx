@@ -30,6 +30,8 @@ import {
   Filter,
   RotateCcw,
   SlidersHorizontal,
+  MoreHorizontal,
+  ChevronDown,
 } from "lucide-react";
 import { playVoiceReminder, stopVoiceReminder, getLocalVoiceSettings } from "@/lib/voice";
 import type { Notification, NotificationPriority } from "@/types/database";
@@ -171,6 +173,8 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [isCompletingAll, setIsCompletingAll] = useState(false);
   const [isReadingAll, setIsReadingAll] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   // État du modal de renouvellement rapide sans navigation inutile
   const [renewModal, setRenewModal] = useState<{
@@ -859,1063 +863,486 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
 
   const isAnyActionPending = isCompletingAll || isReadingAll;
 
-  return (
-    <div className="relative isolate min-h-full w-full space-y-5 min-w-0 max-w-full">
-      <PageBackground src="/images/backgrounds/notifications-bg.jpg" />
+  // ── Actions contextuelles (extraites pour l'affichage compact : 1 action principale + menu « ⋯ ») ──
+  const runQuickAction = async (
+    item: Notification,
+    nextStatus: "actioned" | "dismissed" | "resolved",
+    serverAction: () => Promise<any>,
+    fallbackAction: string | null,
+    successMessage: string,
+    errorMessage: string,
+    toastKind: "success" | "info" = "success"
+  ) => {
+    if (processingId) return;
+    setProcessingId(item.id);
+    setOpenMenuId(null);
+    const previous = [...notifications];
+    const nowIso = new Date().toISOString();
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n.id === item.id
+          ? { ...n, status: nextStatus, resolved_at: nowIso, ...(nextStatus === "actioned" ? { actioned_at: nowIso } : {}) }
+          : n
+      )
+    );
+    try {
+      const res = await serverAction();
+      if (!res?.success && fallbackAction) {
+        const apiRes = await fetch("/api/notifications/quick-action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: fallbackAction, notificationId: item.id, entityId: item.entity_id }),
+        });
+        if (!apiRes.ok) throw new Error("Échec");
+      } else if (res && res.success === false) {
+        throw new Error("Échec");
+      }
+      showToast(successMessage, toastKind);
+      startTransition(() => router.refresh());
+    } catch {
+      setNotifications(previous);
+      showToast(errorMessage, "error");
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
+  const openRenewModal = (item: Notification) => {
+    setOpenMenuId(null);
+    setRenewEndDate(DateTime.now().setZone(timezone).plus({ months: 1 }).toISODate()!);
+    setRenewModal({
+      notificationId: item.id,
+      activityId: item.entity_id || "",
+      activityName: (item as any).metadata?.name || item.title,
+      currentEndDate: (item as any).metadata?.endDate,
+    });
+  };
 
-      {/* Header with Title and Global Actions */}
-      <div className="rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800/80 p-5 sm:p-6 shadow-xs" data-tour="notifications-header">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3.5">
-            <div className="p-2.5 rounded-xl bg-signal/15 text-signal inline-flex shrink-0 mt-0.5">
-              <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 dark:text-white truncate">
-                  {t("nav.notifications")}
-                </h1>
-                {unreadCount > 0 && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-danger text-white text-[11px] font-bold animate-pulse shrink-0">
-                    {unreadCount} {t("actions.filter_unread")}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs sm:text-sm text-ink-500 mt-1">
-                {activeCount > 0
-                  ? `${activeCount} élément${activeCount > 1 ? "s" : ""} nécessite${activeCount > 1 ? "nt" : ""} votre attention ou une action rapide.`
-                  : "Votre centre de notifications est parfaitement à jour."}
-              </p>
-            </div>
+  const handleSpeak = async (item: Notification) => {
+    setOpenMenuId(null);
+    if (playingId === item.id) {
+      stopVoiceReminder();
+      setPlayingId(null);
+      return;
+    }
+    setPlayingId(item.id);
+    const prefs = getLocalVoiceSettings();
+    await playVoiceReminder({
+      text: (item as any).metadata?.voice_text || `${item.title}. ${item.body}`,
+      language: prefs.voice_language,
+      voiceType: prefs.voice_type,
+      repeat: 0,
+      rate: prefs.voice_playback_rate || 1.0,
+      onEnd: () => setPlayingId(null),
+      onError: () => setPlayingId(null),
+    });
+  };
+
+  type RowAction = { label: string; icon: React.ElementType; onClick: () => void; tone?: "primary" | "positive" | "danger" };
+
+  /** Classe la notification et renvoie son action principale + ses actions secondaires. */
+  const describe = (item: Notification) => {
+    const isResolved = item.status === "resolved" || item.status === "dismissed" || item.status === "actioned";
+    const isUnread = !item.read_at && item.status !== "read" && !isResolved;
+    const isIncome = item.category === "payment" || item.entity_type === "income";
+    const isExpense = item.category === "expense" || item.entity_type === "expense";
+    const isScheduledExpense = item.entity_type === "scheduled_expense";
+    const isTask = item.category === "task" || item.entity_type === "task";
+    const isActivityOrEvent =
+      item.category === "activity" || item.entity_type === "activity" || item.kind.includes("activity");
+    const isDailySummary =
+      item.entity_type === "daily_summary" ||
+      item.kind === "evening_checkin" ||
+      Boolean((item as any).metadata?.is_daily_summary);
+    const isInformative =
+      Boolean((item as any).metadata?.is_informative) || item.kind.includes("activity_upcoming");
+
+    let primary: RowAction | null = null;
+    const secondary: RowAction[] = [];
+    let group: "income" | "expense" | "task" | "activity" | "other" = "other";
+
+    if (!isResolved && item.kind === "activity_routine_suggestion") {
+      primary = {
+        label: "Passer en routine",
+        icon: Sparkles,
+        tone: "primary",
+        onClick: () =>
+          runQuickAction(item, "actioned", () => acceptEvolutionAction(item.entity_id || "", item.id), "accept_evolution",
+            "Activité passée en routine avec succès !", "Erreur lors du passage en routine."),
+      };
+      secondary.push({
+        label: "Garder la configuration actuelle",
+        icon: X,
+        onClick: () =>
+          runQuickAction(item, "dismissed", () => declineEvolutionAction(item.entity_id || "", item.id), "decline_evolution",
+            "Choix respecté : configuration actuelle conservée.", "Erreur lors de l'enregistrement de votre choix."),
+      });
+    } else if (!isResolved && (item.kind === "activity_expired" || item.kind === "activity_expiring_soon")) {
+      primary = { label: "Renouveler", icon: Sparkles, tone: "primary", onClick: () => openRenewModal(item) };
+      secondary.push({
+        label: "Laisser expirée",
+        icon: X,
+        onClick: () =>
+          runQuickAction(item, "dismissed", () => keepExpiredAction(item.entity_id || "", item.id), "keep_expired",
+            "Activité maintenue expirée sans renouvellement.", "Erreur lors de l'enregistrement de votre choix.", "info"),
+      });
+    } else if (!isResolved && isDailySummary) {
+      primary = {
+        label: "Clôturer la journée",
+        icon: Check,
+        tone: "positive",
+        onClick: () => {
+          const summaryDate = (item as any).metadata?.date || new Date().toISOString().split("T")[0];
+          runQuickAction(item, "resolved", () => validateDailySummaryAction(summaryDate, item.id), null,
+            "Bilan de la journée validé avec succès !", "Erreur lors de la validation du bilan.");
+        },
+      };
+    } else if (isTask) {
+      group = "task";
+      if (!isResolved && item.entity_id) {
+        primary = { label: t("actions.mark_done"), icon: Check, tone: "positive", onClick: () => handleResolve(item.id, "task", item.entity_id) };
+        secondary.push({ label: "Reporter à demain", icon: Clock, onClick: () => handleTaskPostpone(item.id, item.entity_id, 1) });
+      }
+    } else if (isIncome) {
+      group = "income";
+      if (!isResolved && item.entity_id) {
+        primary = { label: t("actions.mark_received"), icon: Check, tone: "positive", onClick: () => handleResolve(item.id, "income", item.entity_id) };
+      }
+    } else if (isExpense || isScheduledExpense) {
+      group = "expense";
+      if (!isResolved && item.entity_id) {
+        primary = {
+          label: t("actions.mark_paid"),
+          icon: Check,
+          tone: "primary",
+          onClick: () => handleResolve(item.id, isScheduledExpense ? "scheduled_expense" : "expense", item.entity_id),
+        };
+      }
+    } else if (isActivityOrEvent) {
+      group = "activity";
+      if (!isResolved && !isInformative && item.entity_id) {
+        primary = { label: t("actions.mark_completed"), icon: Check, tone: "positive", onClick: () => handleResolve(item.id, "activity", item.entity_id) };
+        secondary.push({ label: "Reporter de 2 heures", icon: Clock, onClick: () => handleEventPostpone(item.id, item.entity_id, 2) });
+        secondary.push({ label: "Signaler comme manquée", icon: X, tone: "danger", onClick: () => handleEventMissed(item.id, item.entity_id) });
+      }
+    }
+
+    if (isUnread && !isDailySummary) {
+      secondary.push({ label: "Marquer comme lu", icon: CheckCheck, onClick: () => handleMarkRead(item.id) });
+    }
+    if (!isResolved && item.status !== "snoozed") {
+      secondary.push({ label: "Me le rappeler dans 24 h", icon: Clock, onClick: () => handleSnooze(item.id, 24) });
+    }
+    secondary.push({
+      label: playingId === item.id ? "Arrêter la lecture" : "Écouter",
+      icon: playingId === item.id ? VolumeX : Volume2,
+      onClick: () => handleSpeak(item),
+    });
+    secondary.push({ label: t("actions.delete"), icon: Trash2, tone: "danger", onClick: () => handleDelete(item.id) });
+
+    // Pastille de couleur à la place des étiquettes « Critique » / « Action requise »
+    const dot = isResolved
+      ? null
+      : item.priority === "critical"
+      ? "bg-danger"
+      : item.priority === "high" || primary
+      ? "bg-amber-500"
+      : isUnread
+      ? "bg-signal"
+      : null;
+
+    return { isResolved, isUnread, primary, secondary, group, dot };
+  };
+
+  const GROUP_LABELS: Record<string, [string, string]> = {
+    income: ["paiement attendu", "paiements attendus"],
+    expense: ["dépense à régler", "dépenses à régler"],
+    task: ["tâche", "tâches"],
+    activity: ["séance", "séances"],
+  };
+
+  // Regroupement par jour (Aujourd'hui / Hier / Plus tôt), puis par type au sein de chaque jour
+  const dayBuckets = useMemo(() => {
+    const today = DateTime.now().setZone(timezone).startOf("day");
+    const buckets: { key: string; label: string; items: Notification[] }[] = [
+      { key: "today", label: "Aujourd'hui", items: [] },
+      { key: "yesterday", label: "Hier", items: [] },
+      { key: "earlier", label: "Plus tôt", items: [] },
+    ];
+    for (const n of filtered) {
+      const day = DateTime.fromISO(n.created_at, { zone: timezone }).startOf("day");
+      const diff = Math.round(today.diff(day, "days").days);
+      buckets[diff <= 0 ? 0 : diff === 1 ? 1 : 2]!.items.push(n);
+    }
+    return buckets.filter((b) => b.items.length > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtered, timezone]);
+
+  const renderRow = (item: Notification, nested = false) => {
+    const { isResolved, isUnread, primary, secondary, dot } = describe(item);
+    const isThisBusy = processingId === item.id;
+    const menuOpen = openMenuId === item.id;
+    const PrimaryIcon = primary?.icon;
+
+    return (
+      <div
+        key={item.id}
+        onClick={() => isUnread && handleMarkRead(item.id)}
+        className={`relative flex gap-3 px-4 py-3.5 ${nested ? "pl-6" : ""} ${isUnread ? "cursor-pointer" : ""} ${
+          isResolved ? "opacity-70" : ""
+        }`}
+      >
+        <span className="relative shrink-0">
+          {renderCategoryIcon(item.category, item.kind, isResolved)}
+          {dot && (
+            <span className={`absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-canvas-raised dark:ring-ink-900 ${dot}`} />
+          )}
+        </span>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <p
+              className={`text-sm leading-snug break-words ${
+                isResolved
+                  ? "line-through decoration-ink-300 text-ink-600 dark:text-ink-400"
+                  : isUnread
+                  ? "font-semibold text-ink-950 dark:text-white"
+                  : "font-medium text-ink-900 dark:text-ink-100"
+              }`}
+            >
+              {item.title}
+            </p>
+            <span className="shrink-0 pt-0.5 text-[11px] text-ink-400 whitespace-nowrap">
+              {DateTime.fromISO(item.created_at, { zone: timezone }).setLocale(locale).toRelative({ style: "short" })}
+            </span>
           </div>
 
-          {/* Boutons d'Action Globale */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full sm:w-auto shrink-0">
-            <SectionGuideTrigger section="notifications" label="Guide des notifications" />
-            <div className="grid grid-cols-2 gap-2.5 w-full sm:w-auto">
-              {/* Bouton Tout compléter */}
-              <button
-                type="button"
-                disabled={isAnyActionPending || activeCount === 0}
-                onClick={handleCompleteAll}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-signal text-white text-xs font-bold hover:bg-signal-dark active:scale-95 transition-all shadow-xs disabled:opacity-40 disabled:pointer-events-none tap-active cursor-pointer min-h-[40px]"
-                title="Marquer toutes les notifications actives comme traitées"
-              >
-                {isCompletingAll ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-                    <span className="truncate">Traitement...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCheck className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">Tout compléter</span>
-                  </>
-                )}
-              </button>
+          {item.body && (
+            <p className="mt-0.5 text-xs leading-relaxed text-ink-600 dark:text-ink-400 line-clamp-2 break-words">{item.body}</p>
+          )}
 
-              {/* Bouton Tout marquer comme lu */}
+          <div className="mt-2.5 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            {primary && PrimaryIcon && (
               <button
                 type="button"
-                disabled={isAnyActionPending || unreadCount === 0}
-                onClick={handleMarkAllRead}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-canvas dark:bg-ink-900 border border-ink-300 dark:border-ink-700 text-xs font-semibold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all shadow-xs disabled:opacity-40 disabled:pointer-events-none tap-active cursor-pointer min-h-[40px]"
-                title="Marquer toutes les notifications comme lues"
+                disabled={isThisBusy}
+                onClick={primary.onClick}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer ${
+                  primary.tone === "positive" ? "bg-positive hover:bg-positive/90" : "bg-signal hover:bg-signal-dark"
+                }`}
               >
-                {isReadingAll ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-                    <span className="truncate">Traitement...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-3.5 h-3.5 shrink-0" />
-                    <span className="hidden sm:inline truncate">{t("actions.mark_all_read")}</span>
-                    <span className="sm:hidden truncate">Tout lire</span>
-                  </>
-                )}
+                {isThisBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PrimaryIcon className="h-3.5 w-3.5" />}
+                {primary.label}
               </button>
+            )}
+            {isResolved && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-positive">
+                <Check className="h-3 w-3" /> {item.status === "dismissed" ? "Écartée" : "Traitée"}
+              </span>
+            )}
+            {item.link && (
+              <Link
+                href={item.link}
+                onClick={() => isUnread && handleMarkRead(item.id)}
+                className="inline-flex items-center gap-0.5 text-xs font-medium text-signal hover:underline"
+              >
+                Voir <ArrowRight className="h-3 w-3" />
+              </Link>
+            )}
+
+            {/* Menu « ⋯ » : toutes les autres actions */}
+            <div className="relative ml-auto">
+              <button
+                type="button"
+                onClick={() => setOpenMenuId(menuOpen ? null : item.id)}
+                aria-label="Plus d'actions"
+                aria-expanded={menuOpen}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-ink-500 hover:bg-ink-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+              {menuOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setOpenMenuId(null)} />
+                  <div className="absolute right-0 top-9 z-40 w-56 overflow-hidden rounded-2xl border border-ink-200/80 dark:border-ink-800 bg-canvas-raised dark:bg-slate-900 p-1 shadow-xl animate-in fade-in zoom-in-95 duration-100">
+                    {secondary.map((a) => {
+                      const Icon = a.icon;
+                      return (
+                        <button
+                          key={a.label}
+                          type="button"
+                          disabled={isThisBusy}
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            a.onClick();
+                          }}
+                          className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] transition-colors cursor-pointer disabled:opacity-50 ${
+                            a.tone === "danger"
+                              ? "text-danger hover:bg-danger/10"
+                              : "text-ink-700 dark:text-ink-200 hover:bg-ink-100/80 dark:hover:bg-white/5"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          {a.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
+    );
+  };
 
-      {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full min-w-0" data-tour="notifications-tabs">
-        <div className="w-full sm:w-auto overflow-x-auto no-scrollbar pb-0.5">
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-ink-100/80 dark:bg-ink-900/80 border border-ink-200/80 dark:border-ink-800/80 min-w-max">
+  return (
+    <div className="relative isolate min-h-full w-full space-y-5 min-w-0 max-w-full">
+      <PageBackground src="/images/backgrounds/notifications-bg.jpg" />
+
+      {/* En-tête épuré : titre, résumé, guide et « Tout lire » */}
+      <div className="rounded-3xl bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md border border-ink-200/80 dark:border-ink-800/80 p-5 sm:p-6 shadow-xs" data-tour="notifications-header">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 dark:text-white">
+              {t("nav.notifications")}
+            </h1>
+            <p className="mt-1 text-xs sm:text-sm text-ink-600 dark:text-ink-400">
+              {activeCount > 0
+                ? `${activeCount} à traiter${unreadCount > 0 ? ` · ${unreadCount} non lue${unreadCount > 1 ? "s" : ""}` : ""}`
+                : "Vous êtes à jour."}
+            </p>
+          </div>
+          <SectionGuideTrigger section="notifications" label="Guide" className="shrink-0" />
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-3" data-tour="notifications-tabs">
+          {/* Deux vues seulement : à traiter / historique */}
+          <div className="inline-flex rounded-full bg-ink-100/80 dark:bg-white/5 p-1">
             {[
-              { key: "active", label: t("actions.filter_active"), count: activeCount },
-              { key: "unread", label: t("actions.filter_unread"), count: unreadCount },
-              {
-                key: "finances",
-                label: t("actions.filter_finances"),
-                count: notifications.filter(
-                  (n) =>
-                    (n.category === "payment" ||
-                      n.category === "expense" ||
-                      n.entity_type === "income" ||
-                      n.entity_type === "expense" ||
-                      n.entity_type === "scheduled_expense") &&
-                    n.status !== "resolved" &&
-                    n.status !== "dismissed" &&
-                    n.status !== "actioned"
-                ).length,
-              },
-              {
-                key: "tasks",
-                label: t("actions.filter_tasks"),
-                count: notifications.filter(
-                  (n) =>
-                    (n.category === "task" || n.category === "activity" || n.entity_type === "task") &&
-                    n.status !== "resolved" &&
-                    n.status !== "dismissed" &&
-                    n.status !== "actioned"
-                ).length,
-              },
-              { key: "history", label: t("actions.filter_history"), count: resolvedCount },
-              { key: "all", label: t("actions.filter_all"), count: notifications.length },
+              { key: "active", label: "À traiter", count: activeCount },
+              { key: "history", label: "Historique", count: 0 },
             ].map((tab) => (
               <button
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key as TabKey)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs transition-all whitespace-nowrap flex items-center gap-1.5 tap-active cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs transition-all cursor-pointer ${
                   activeTab === tab.key
-                    ? "bg-canvas-raised dark:bg-ink-800 text-ink-950 dark:text-white shadow-xs font-bold"
-                    : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white font-medium"
+                    ? "bg-canvas-raised dark:bg-slate-800 text-ink-950 dark:text-white font-semibold shadow-2xs"
+                    : "text-ink-600 dark:text-ink-400 font-medium"
                 }`}
               >
-                <span>{tab.label}</span>
+                {tab.label}
                 {tab.count > 0 && (
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                      activeTab === tab.key ? "bg-signal text-white" : "bg-ink-200 dark:bg-ink-700 text-ink-700 dark:text-ink-300"
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
+                  <span className="rounded-full bg-signal px-1.5 text-[10px] font-bold leading-4 text-white">{tab.count}</span>
                 )}
               </button>
             ))}
           </div>
-        </div>
 
-        {/* Search & Filter Trigger */}
-        <div className="flex items-center gap-2 w-full sm:w-auto" data-tour="notifications-filters">
-          <div className="relative flex-1 sm:w-64 min-w-0">
-            <Search className="w-4 h-4 text-ink-400 absolute left-3 top-2.5 pointer-events-none" />
-            <input
-              type="text"
-              placeholder={t("actions.search_placeholder")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-canvas-raised dark:bg-ink-900 border border-ink-200 dark:border-ink-700 text-ink-950 dark:text-white placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-signal min-h-[38px]"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                aria-label="Effacer la recherche"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-2.5 text-xs text-ink-400 hover:text-ink-700 cursor-pointer p-0.5"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowFiltersPanel((prev) => !prev)}
-            aria-label="Afficher ou masquer les filtres multi-critères"
-            className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all tap-active cursor-pointer min-h-[38px] shrink-0 ${
-              showFiltersPanel || activeFilterCount > 0
-                ? "bg-signal-soft text-signal border-signal/40 font-bold shadow-2xs"
-                : "bg-canvas-raised dark:bg-ink-900 border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-300 hover:border-ink-300 dark:hover:border-ink-600"
-            }`}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Filtres</span>
-            {activeFilterCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-signal text-white font-bold text-[10px]">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Multi-Criteria Filters Panel */}
-      {showFiltersPanel && (
-        <div className="rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800/80 p-4 shadow-xs space-y-3 animate-in fade-in-50 duration-150">
-          <div className="flex items-center justify-between border-b border-ink-100 dark:border-ink-800/80 pb-2.5">
-            <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-4 h-4 text-signal" />
-              <span className="text-xs font-bold text-ink-950 dark:text-white uppercase tracking-wider">
-                Filtres multi-critères
-              </span>
-            </div>
-            {activeFilterCount > 0 && (
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="text-xs font-medium text-ink-500 hover:text-danger inline-flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Réinitialiser</span>
-              </button>
-            )}
-          </div>
-
-          {/* Grid of 5 filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
-            {/* 1. Type */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider block">
-                Type
-              </label>
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value as FilterType)}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-canvas dark:bg-ink-950 border border-ink-200 dark:border-ink-700 text-ink-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal min-h-[36px] cursor-pointer"
-              >
-                <option value="all">Tous les types</option>
-                <option value="activity">Activités</option>
-                <option value="session">Séances</option>
-                <option value="task">Tâches</option>
-                <option value="finance">Finances</option>
-                <option value="evolution">Suggestions d&apos;évolution</option>
-                <option value="expiration">Expirations</option>
-              </select>
-            </div>
-
-            {/* 2. État */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider block">
-                État
-              </label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-canvas dark:bg-ink-950 border border-ink-200 dark:border-ink-700 text-ink-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal min-h-[36px] cursor-pointer"
-              >
-                <option value="all">Tous les états</option>
-                <option value="unread">Non lue</option>
-                <option value="read">Lue</option>
-                <option value="action_pending">En attente d&apos;action</option>
-                <option value="resolved">Résolue</option>
-                <option value="dismissed">Écartée</option>
-              </select>
-            </div>
-
-            {/* 3. Période */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider block">
-                Période
-              </label>
-              <select
-                value={filterPeriod}
-                onChange={(e) => setFilterPeriod(e.target.value as FilterPeriod)}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-canvas dark:bg-ink-950 border border-ink-200 dark:border-ink-700 text-ink-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal min-h-[36px] cursor-pointer"
-              >
-                <option value="all">Toute période</option>
-                <option value="today">Aujourd&apos;hui</option>
-                <option value="7d">7 derniers jours</option>
-                <option value="30d">30 derniers jours</option>
-                <option value="custom">Période personnalisée...</option>
-              </select>
-            </div>
-
-            {/* 4. Activité concernée */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider block">
-                Activité concernée
-              </label>
-              <select
-                value={filterActivityId}
-                onChange={(e) => setFilterActivityId(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-canvas dark:bg-ink-950 border border-ink-200 dark:border-ink-700 text-ink-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal min-h-[36px] cursor-pointer"
-              >
-                <option value="all">Toutes les activités</option>
-                {availableActivities.map((act) => (
-                  <option key={act.id} value={act.id}>
-                    {act.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* 5. Priorité */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider block">
-                Priorité
-              </label>
-              <select
-                value={filterPriority}
-                onChange={(e) => setFilterPriority(e.target.value as FilterPriority)}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-canvas dark:bg-ink-950 border border-ink-200 dark:border-ink-700 text-ink-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal min-h-[36px] cursor-pointer"
-              >
-                <option value="all">Toutes les priorités</option>
-                <option value="critical">Critique</option>
-                <option value="high">Urgente</option>
-                <option value="action_required">Action requise</option>
-                <option value="normal">Normale</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Dates personnalisées si filtre 'custom' */}
-          {filterPeriod === "custom" && (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 pt-2 border-t border-ink-100 dark:border-ink-800/80">
-              <span className="text-xs text-ink-500 font-medium shrink-0">Plage de dates :</span>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <input
-                  type="date"
-                  value={customDateFrom}
-                  onChange={(e) => setCustomDateFrom(e.target.value)}
-                  className="px-2.5 py-1.5 text-xs rounded-xl bg-canvas dark:bg-ink-950 border border-ink-200 dark:border-ink-700 text-ink-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal min-h-[36px]"
-                  placeholder="Du"
-                  aria-label="Date de début"
-                />
-                <span className="text-xs text-ink-400">à</span>
-                <input
-                  type="date"
-                  value={customDateTo}
-                  onChange={(e) => setCustomDateTo(e.target.value)}
-                  className="px-2.5 py-1.5 text-xs rounded-xl bg-canvas dark:bg-ink-950 border border-ink-200 dark:border-ink-700 text-ink-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal min-h-[36px]"
-                  placeholder="Au"
-                  aria-label="Date de fin"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Active criteria summary & Results Counter */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-ink-600 dark:text-ink-400 font-semibold">
-            {filtered.length} notification{filtered.length > 1 ? "s" : ""}
-            {activeFilterCount > 0 && " trouvée" + (filtered.length > 1 ? "s" : "")}
-          </span>
-
-          {/* Active criteria pills */}
-          {filterType !== "all" && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 font-medium">
-              Type : {filterType === "activity" ? "Activités" : filterType === "session" ? "Séances" : filterType === "task" ? "Tâches" : filterType === "finance" ? "Finances" : filterType === "evolution" ? "Évolution" : "Expirations"}
-              <button
-                type="button"
-                onClick={() => setFilterType("all")}
-                className="hover:text-danger p-0.5 cursor-pointer"
-                aria-label="Supprimer le filtre type"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-
-          {filterStatus !== "all" && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 font-medium">
-              État : {filterStatus === "unread" ? "Non lue" : filterStatus === "read" ? "Lue" : filterStatus === "action_pending" ? "En attente d'action" : filterStatus === "resolved" ? "Résolue" : "Écartée"}
-              <button
-                type="button"
-                onClick={() => setFilterStatus("all")}
-                className="hover:text-danger p-0.5 cursor-pointer"
-                aria-label="Supprimer le filtre état"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-
-          {filterPeriod !== "all" && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 font-medium">
-              Période : {filterPeriod === "today" ? "Aujourd'hui" : filterPeriod === "7d" ? "7 derniers jours" : filterPeriod === "30d" ? "30 derniers jours" : "Personnalisée"}
-              <button
-                type="button"
-                onClick={() => {
-                  setFilterPeriod("all");
-                  setCustomDateFrom("");
-                  setCustomDateTo("");
-                }}
-                className="hover:text-danger p-0.5 cursor-pointer"
-                aria-label="Supprimer le filtre période"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-
-          {filterActivityId !== "all" && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 font-medium">
-              Activité : {availableActivities.find((a) => a.id === filterActivityId)?.name || filterActivityId}
-              <button
-                type="button"
-                onClick={() => setFilterActivityId("all")}
-                className="hover:text-danger p-0.5 cursor-pointer"
-                aria-label="Supprimer le filtre activité"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-
-          {filterPriority !== "all" && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 font-medium">
-              Priorité : {filterPriority === "critical" ? "Critique" : filterPriority === "high" ? "Urgente" : filterPriority === "action_required" ? "Action requise" : "Normale"}
-              <button
-                type="button"
-                onClick={() => setFilterPriority("all")}
-                className="hover:text-danger p-0.5 cursor-pointer"
-                aria-label="Supprimer le filtre priorité"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-
-          {searchQuery.trim() && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 font-medium">
-              « {searchQuery.trim()} »
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="hover:text-danger p-0.5 cursor-pointer"
-                aria-label="Supprimer la recherche"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-        </div>
-
-        {activeFilterCount > 0 && (
-          <button
-            type="button"
-            onClick={handleResetFilters}
-            className="text-xs text-signal font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer tap-active shrink-0 ml-auto"
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span>Effacer tous les filtres</span>
-          </button>
-        )}
-      </div>
-
-      {/* Notifications List */}
-      <div data-tour="notifications-list" className="w-full">
-      {filtered.length === 0 ? (
-        activeFilterCount > 0 ? (
-          <div className="rounded-2xl border border-dashed border-ink-200 dark:border-ink-800 p-10 sm:p-14 text-center bg-canvas-raised/60 dark:bg-ink-900/60 backdrop-blur-xs flex flex-col items-center justify-center">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3 shadow-2xs">
-              <Filter className="w-6 h-6" />
-            </div>
-            <h3 className="text-sm sm:text-base font-bold text-ink-950 dark:text-white">
-              Aucun résultat correspondant
-            </h3>
-            <p className="text-xs sm:text-sm text-ink-500 max-w-sm mt-1 leading-relaxed">
-              Aucune notification ne correspond à la combinaison de vos critères de recherche actuels.
-            </p>
+          {unreadCount > 0 && (
             <button
               type="button"
-              onClick={handleResetFilters}
-              className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-signal text-white text-xs font-bold hover:bg-signal-dark active:scale-95 transition-all shadow-2xs tap-active cursor-pointer min-h-[38px]"
+              disabled={isAnyActionPending}
+              onClick={handleMarkAllRead}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-signal hover:underline disabled:opacity-50 cursor-pointer"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Réinitialiser les filtres</span>
+              {isReadingAll ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCheck className="h-3.5 w-3.5" />}
+              Tout lire
             </button>
+          )}
+        </div>
+      </div>
+
+      {/* Liste groupée par jour */}
+      <div data-tour="notifications-list" className="w-full space-y-5">
+        {dayBuckets.length === 0 ? (
+          <div className="rounded-3xl border border-ink-200/80 dark:border-ink-800 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-12 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-positive-soft text-positive">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-ink-950 dark:text-white">{t("actions.empty_title")}</h3>
+            <p className="mx-auto mt-1 max-w-sm text-xs sm:text-sm text-ink-600 dark:text-ink-400">{t("actions.empty_desc")}</p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-ink-200 dark:border-ink-800 p-12 sm:p-16 text-center bg-canvas-raised/60 dark:bg-ink-900/60 backdrop-blur-xs flex flex-col items-center justify-center">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-positive-soft text-positive flex items-center justify-center mb-3.5 shadow-2xs">
-              <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7" />
-            </div>
-            <h3 className="text-sm sm:text-base font-bold text-ink-950 dark:text-white">
-              {t("actions.empty_title")}
-            </h3>
-            <p className="text-xs sm:text-sm text-ink-500 max-w-sm mt-1 leading-relaxed">
-              {t("actions.empty_desc")}
-            </p>
-          </div>
-        )
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((item) => {
-            const isResolved = item.status === "resolved" || item.status === "dismissed" || item.status === "actioned";
-            const isUnread = !item.read_at && item.status !== "read" && !isResolved;
-            const isSnoozed = item.status === "snoozed";
-            const isThisBusy = processingId === item.id;
-            const isIncome = item.category === "payment" || item.entity_type === "income";
-            const isExpense = item.category === "expense" || item.entity_type === "expense";
-            const isTask = item.category === "task" || item.entity_type === "task";
-            const isActivityOrEvent =
-              item.category === "activity" ||
-              item.entity_type === "activity" ||
-              item.kind.includes("activity");
-            const isScheduledExpense = item.entity_type === "scheduled_expense";
-            const isDailySummary =
-              item.entity_type === "daily_summary" ||
-              item.kind === "evening_checkin" ||
-              Boolean((item as any).metadata?.is_daily_summary);
-            const isInformative =
-              Boolean((item as any).metadata?.is_informative) ||
-              item.kind.includes("activity_upcoming");
-            const isDay = isDayTime(item.scheduled_at || item.created_at, timezone);
-            const hasAction = !isResolved && (
-              item.kind === "activity_routine_suggestion" ||
-              item.kind === "activity_expired" ||
-              item.kind === "activity_expiring_soon" ||
-              isDailySummary ||
-              Boolean(isTask && item.entity_id) ||
-              Boolean(isIncome && item.entity_id) ||
-              Boolean((isExpense || isScheduledExpense) && item.entity_id) ||
-              Boolean(isActivityOrEvent && item.entity_id && item.kind !== "activity_routine_suggestion" && item.kind !== "activity_expired" && item.kind !== "activity_expiring_soon")
-            );
-
-            // Left-edge indicator for visual hierarchy without loud background fills
-            const cardBorderClass = isResolved
-              ? "border border-ink-200/50 dark:border-ink-800/50 bg-canvas-raised/40 dark:bg-ink-900/40 opacity-65"
-              : item.priority === "critical"
-              ? "border border-ink-200/90 dark:border-ink-800/90 border-l-[3.5px] border-l-danger bg-canvas-raised dark:bg-ink-900 shadow-2xs hover:border-ink-300 dark:hover:border-ink-700"
-              : item.priority === "high"
-              ? "border border-ink-200/90 dark:border-ink-800/90 border-l-[3.5px] border-l-amber-500 bg-canvas-raised dark:bg-ink-900 shadow-2xs hover:border-ink-300 dark:hover:border-ink-700"
-              : isUnread
-              ? "border border-ink-200/90 dark:border-ink-800/90 border-l-[3.5px] border-l-signal bg-canvas-raised dark:bg-ink-900 shadow-2xs hover:border-ink-300 dark:hover:border-ink-700"
-              : "border border-ink-200/80 dark:border-ink-800/80 bg-canvas-raised dark:bg-ink-900 hover:border-ink-300 dark:hover:border-ink-700";
+          dayBuckets.map((bucket) => {
+            // Regroupe les éléments du même type (≥ 2) en une ligne repliable
+            const byGroup = new Map<string, Notification[]>();
+            const order: string[] = [];
+            for (const n of bucket.items) {
+              const g = describe(n).group;
+              const key = g === "other" ? `single-${n.id}` : g;
+              if (!byGroup.has(key)) {
+                byGroup.set(key, []);
+                order.push(key);
+              }
+              byGroup.get(key)!.push(n);
+            }
 
             return (
-              <div
-                key={item.id}
-                onClick={() => {
-                  if (isUnread) {
-                    handleMarkRead(item.id);
-                  }
-                }}
-                className={`p-4 rounded-xl transition-all duration-150 w-full min-w-0 ${
-                  isUnread ? "cursor-pointer" : ""
-                } ${cardBorderClass}`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3.5 min-w-0">
-                  {/* Left: Icon & Content */}
-                  <div className="flex items-start gap-3 sm:gap-3.5 flex-1 min-w-0">
-                    {renderCategoryIcon(item.category, item.kind, isResolved)}
+              <section key={bucket.key} className="space-y-2">
+                <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
+                  {bucket.label}
+                </h2>
+                <div className="rounded-3xl border border-ink-200/80 dark:border-ink-800 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md shadow-xs divide-y divide-ink-200/70 dark:divide-ink-800">
+                  {order.map((key) => {
+                    const items = byGroup.get(key)!;
+                    if (items.length === 1 || key.startsWith("single-")) return renderRow(items[0]!);
 
-                    <div className="space-y-1.5 flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {/* Indicateur Jour / Nuit */}
-                        <span 
-                          className="inline-flex items-center text-xs text-ink-400 shrink-0 select-none" 
-                          title={isDay ? "Jour (06:00 - 17:59)" : "Nuit (18:00 - 05:59)"}
-                        >
-                          {isDay ? "☀️" : "🌙"}
-                        </span>
+                    const groupId = `${bucket.key}-${key}`;
+                    const expanded = expandedGroups.has(groupId);
+                    const [one, many] = GROUP_LABELS[key] ?? ["élément", "éléments"];
+                    const pending = items.filter((n) => !describe(n).isResolved).length;
+                    const dots = items.map((n) => describe(n).dot).filter(Boolean) as string[];
+                    const topDot = dots.find((d) => d === "bg-danger") ?? dots[0];
 
-                        {getPriorityBadge(item.priority)}
-
-                        {hasAction && (
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-signal/15 text-signal border border-signal/30 shrink-0">
-                            Action requise
-                          </span>
-                        )}
-
-                        {isUnread && (
-                          <span className="w-2 h-2 rounded-full bg-signal shrink-0 ring-4 ring-signal/15" title="Non lu" />
-                        )}
-
-                        {item.status === "resolved" && (
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-positive-soft text-positive inline-flex items-center gap-1 shrink-0">
-                            <Check className="w-3 h-3" /> Terminé
-                          </span>
-                        )}
-                        {item.status === "actioned" && (
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-signal-soft text-signal inline-flex items-center gap-1 shrink-0">
-                            <Check className="w-3 h-3" /> Traité
-                          </span>
-                        )}
-                        {item.status === "dismissed" && (
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 inline-flex items-center gap-1 shrink-0">
-                            <X className="w-3 h-3" /> Écarté
-                          </span>
-                        )}
-                        {isSnoozed && (
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-warning-soft text-warning inline-flex items-center gap-1 shrink-0">
-                            <Clock className="w-3 h-3" /> {t("actions.snooze")}
-                          </span>
-                        )}
-                      </div>
-
-                      <h4
-                        className={`text-sm sm:text-base font-bold tracking-tight break-words ${
-                          isResolved ? "line-through text-ink-400 dark:text-ink-500" : "text-ink-950 dark:text-white"
-                        }`}
-                      >
-                        {item.title}
-                      </h4>
-
-                      <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-300 leading-relaxed break-words">
-                        {item.body}
-                      </p>
-
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink-400 pt-0.5">
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {DateTime.fromISO(item.created_at, { zone: timezone })
-                            .setLocale(locale)
-                            .toRelative()}
-                        </span>
-                        {item.link && (
-                          <>
-                            <span>•</span>
-                            <Link
-                              href={item.link}
-                              onClick={() => {
-                                if (isUnread) {
-                                  handleMarkRead(item.id);
-                                }
-                              }}
-                              className="font-medium text-signal hover:underline inline-flex items-center gap-1 tap-active"
-                            >
-                              {t("actions.view_item")} <ArrowRight className="w-3 h-3" />
-                            </Link>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Actions */}
-                  <div 
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-ink-100 dark:border-ink-800/80 flex-wrap sm:flex-nowrap w-full sm:w-auto"
-                  >
-                    {/* Primary & Contextual Actions */}
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {/* Suggestion d'évolution vers une routine */}
-                      {!isResolved && item.kind === "activity_routine_suggestion" && (
-                        <>
-                          <button
-                            type="button"
-                            disabled={isThisBusy}
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (processingId) return;
-                              setProcessingId(item.id);
-                              const previous = [...notifications];
-                              const nowIso = new Date().toISOString();
-                              setNotifications((prev) =>
-                                prev.map((n) => (n.id === item.id ? { ...n, status: "actioned", actioned_at: nowIso, resolved_at: nowIso } : n))
-                              );
-                              try {
-                                let res = await acceptEvolutionAction(item.entity_id || "", item.id);
-                                if (!res?.success) {
-                                  const apiRes = await fetch("/api/notifications/quick-action", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                      action: "accept_evolution",
-                                      notificationId: item.id,
-                                      entityId: item.entity_id,
-                                    }),
-                                  });
-                                  if (!apiRes.ok) throw new Error("Échec");
-                                }
-                                showToast("Activité passée en routine avec succès !", "success");
-                                startTransition(() => {
-                                  router.refresh();
-                                });
-                              } catch {
-                                setNotifications(previous);
-                                showToast("Erreur lors du passage en routine.", "error");
-                              } finally {
-                                setProcessingId(null);
-                              }
-                            }}
-                            className="px-3.5 py-2 rounded-xl bg-signal hover:bg-signal-dark text-white text-xs font-bold active:scale-95 transition-all disabled:opacity-50 shadow-2xs tap-active flex items-center gap-1.5 cursor-pointer min-h-[38px]"
-                            title="Accepter l'évolution vers une routine"
-                            aria-label="Passer cette activité en routine"
-                          >
-                            {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                            <span>Passer en routine</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={isThisBusy}
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (processingId) return;
-                              setProcessingId(item.id);
-                              const previous = [...notifications];
-                              const nowIso = new Date().toISOString();
-                              setNotifications((prev) =>
-                                prev.map((n) => (n.id === item.id ? { ...n, status: "dismissed", resolved_at: nowIso } : n))
-                              );
-                              try {
-                                let res = await declineEvolutionAction(item.entity_id || "", item.id);
-                                if (!res?.success) {
-                                  const apiRes = await fetch("/api/notifications/quick-action", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                      action: "decline_evolution",
-                                      notificationId: item.id,
-                                      entityId: item.entity_id,
-                                    }),
-                                  });
-                                  if (!apiRes.ok) throw new Error("Échec");
-                                }
-                                showToast("Choix respecté : configuration actuelle conservée.", "success");
-                                startTransition(() => {
-                                  router.refresh();
-                                });
-                              } catch {
-                                setNotifications(previous);
-                                showToast("Erreur lors de l'enregistrement de votre choix.", "error");
-                              } finally {
-                                setProcessingId(null);
-                              }
-                            }}
-                            className="px-3 py-2 rounded-xl border border-ink-300 dark:border-ink-700 bg-canvas dark:bg-ink-800 text-ink-700 dark:text-ink-300 text-xs font-semibold hover:bg-ink-100 dark:hover:bg-ink-700 active:scale-95 transition-all disabled:opacity-50 shadow-2xs tap-active flex items-center gap-1 cursor-pointer min-h-[38px]"
-                            title="Conserver la configuration actuelle (répit 30 jours)"
-                            aria-label="Garder la configuration actuelle"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                            <span>Garder actuel</span>
-                          </button>
-                        </>
-                      )}
-
-                      {/* Actions de renouvellement d'activité expirée */}
-                      {!isResolved && (item.kind === "activity_expired" || item.kind === "activity_expiring_soon") && (
-                        <>
-                          <button
-                            type="button"
-                            disabled={isThisBusy}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const currentEnd = (item as any).metadata?.endDate;
-                              const defaultNextMonth = DateTime.now().setZone(timezone).plus({ months: 1 }).toISODate()!;
-                              setRenewEndDate(defaultNextMonth);
-                              setRenewModal({
-                                notificationId: item.id,
-                                activityId: item.entity_id || "",
-                                activityName: (item as any).metadata?.name || item.title,
-                                currentEndDate: currentEnd,
-                              });
-                            }}
-                            className="px-3.5 py-2 rounded-xl bg-signal hover:bg-signal-dark text-white text-xs font-bold active:scale-95 transition-all shadow-2xs tap-active flex items-center gap-1.5 cursor-pointer min-h-[38px]"
-                            title="Prolonger ou renouveler l'activité immédiatement"
-                            aria-label="Renouveler l'activité"
-                          >
-                            <Sparkles className="w-3.5 h-3.5" />
-                            <span>Renouveler</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={isThisBusy}
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (processingId) return;
-                              setProcessingId(item.id);
-                              const previous = [...notifications];
-                              const nowIso = new Date().toISOString();
-                              setNotifications((prev) =>
-                                prev.map((n) => (n.id === item.id ? { ...n, status: "dismissed", resolved_at: nowIso } : n))
-                              );
-                              try {
-                                let res = await keepExpiredAction(item.entity_id || "", item.id);
-                                if (!res?.success) {
-                                  const apiRes = await fetch("/api/notifications/quick-action", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                      action: "keep_expired",
-                                      notificationId: item.id,
-                                      entityId: item.entity_id,
-                                    }),
-                                  });
-                                  if (!apiRes.ok) throw new Error("Échec");
-                                }
-                                showToast("Activité maintenue expirée sans renouvellement.", "info");
-                                startTransition(() => {
-                                  router.refresh();
-                                });
-                              } catch {
-                                setNotifications(previous);
-                                showToast("Erreur lors de l'enregistrement de votre choix.", "error");
-                              } finally {
-                                setProcessingId(null);
-                              }
-                            }}
-                            className="px-3 py-2 rounded-xl border border-ink-300 dark:border-ink-700 bg-canvas dark:bg-ink-800 text-ink-700 dark:text-ink-300 text-xs font-semibold hover:bg-ink-100 dark:hover:bg-ink-700 active:scale-95 transition-all disabled:opacity-50 shadow-2xs tap-active flex items-center gap-1 cursor-pointer min-h-[38px]"
-                            title="Conserver l'activité expirée sans renouvellement"
-                            aria-label="Laisser l'activité expirée"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                            <span>Laisser expirée</span>
-                          </button>
-                        </>
-                      )}
-
-                      {/* Clôture de journée */}
-                      {!isResolved && isDailySummary && (
+                    return (
+                      <div key={groupId}>
                         <button
                           type="button"
-                          disabled={isThisBusy}
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            if (processingId) return;
-                            setProcessingId(item.id);
-                            const previous = [...notifications];
-                            const nowIso = new Date().toISOString();
-                            setNotifications((prev) =>
-                              prev.map((n) => (n.id === item.id ? { ...n, status: "resolved", resolved_at: nowIso } : n))
-                            );
-                            try {
-                              const summaryDate = (item as any).metadata?.date || nowIso.split("T")[0];
-                              const res = await validateDailySummaryAction(summaryDate, item.id);
-                              if (res && !res.success) {
-                                setNotifications(previous);
-                                showToast("Erreur lors de la validation du bilan.", "error");
-                              } else {
-                                showToast("Bilan de la journée validé avec succès !", "success");
-                                startTransition(() => {
-                                  router.refresh();
-                                });
-                              }
-                            } catch {
-                              setNotifications(previous);
-                              showToast("Erreur réseau.", "error");
-                            } finally {
-                              setProcessingId(null);
-                            }
-                          }}
-                          className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold active:scale-95 transition-all disabled:opacity-50 shadow-2xs tap-active flex items-center gap-1.5 cursor-pointer min-h-[38px]"
-                          title="Valider et clôturer le bilan de la journée"
-                          aria-label="Clôturer la journée"
-                        >
-                          {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                          <span>Clôturer la journée</span>
-                        </button>
-                      )}
-
-                      {/* Tâche */}
-                      {!isResolved && isTask && item.entity_id && (
-                        <>
-                          <button
-                            type="button"
-                            disabled={isThisBusy}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleResolve(item.id, "task", item.entity_id);
-                            }}
-                            className="px-3.5 py-2 rounded-xl bg-positive text-white text-xs font-bold hover:bg-positive/90 active:scale-95 transition-all disabled:opacity-50 shadow-2xs tap-active flex items-center gap-1.5 cursor-pointer min-h-[38px]"
-                            title={t("actions.mark_done")}
-                            aria-label={t("actions.mark_done")}
-                          >
-                            {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                            <span>{t("actions.mark_done")}</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={isThisBusy}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleTaskPostpone(item.id, item.entity_id, 1);
-                            }}
-                            className="px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-semibold border border-amber-500/30 active:scale-95 transition-all disabled:opacity-50 shadow-2xs tap-active flex items-center gap-1 cursor-pointer min-h-[38px]"
-                            title="Reporter la tâche à demain"
-                            aria-label="Reporter la tâche à demain"
-                          >
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>Reporter</span>
-                          </button>
-                        </>
-                      )}
-
-                      {/* Encaissement */}
-                      {!isResolved && isIncome && item.entity_id && (
-                        <button
-                          type="button"
-                          disabled={isThisBusy}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleResolve(item.id, "income", item.entity_id);
-                          }}
-                          className="px-3.5 py-2 rounded-xl bg-positive text-white text-xs font-bold hover:bg-positive/90 active:scale-95 transition-all disabled:opacity-50 shadow-2xs tap-active flex items-center gap-1.5 cursor-pointer min-h-[38px]"
-                          title={t("actions.mark_received")}
-                          aria-label={t("actions.mark_received")}
-                        >
-                          {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                          <span>{t("actions.mark_received")}</span>
-                        </button>
-                      )}
-
-                      {/* Dépense & Échéance financière */}
-                      {!isResolved && (isExpense || isScheduledExpense) && item.entity_id && (
-                        <button
-                          type="button"
-                          disabled={isThisBusy}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleResolve(
-                              item.id,
-                              isScheduledExpense ? "scheduled_expense" : "expense",
-                              item.entity_id
-                            );
-                          }}
-                          className="px-3.5 py-2 rounded-xl bg-signal text-white text-xs font-bold hover:bg-signal-dark active:scale-95 transition-all disabled:opacity-50 shadow-2xs tap-active flex items-center gap-1.5 cursor-pointer min-h-[38px]"
-                          title={t("actions.mark_paid")}
-                          aria-label={t("actions.mark_paid")}
-                        >
-                          {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                          <span>{t("actions.mark_paid")}</span>
-                        </button>
-                      )}
-
-                      {/* Séance d'activité */}
-                      {!isResolved && isActivityOrEvent && !isInformative && item.entity_id && (
-                        <>
-                          <button
-                            type="button"
-                            disabled={isThisBusy}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleResolve(item.id, "activity", item.entity_id);
-                            }}
-                            className="px-3.5 py-2 rounded-xl bg-positive text-white text-xs font-bold hover:bg-positive/90 active:scale-95 transition-all disabled:opacity-50 shadow-2xs tap-active flex items-center gap-1.5 cursor-pointer min-h-[38px]"
-                            title={t("actions.mark_completed")}
-                            aria-label={t("actions.mark_completed")}
-                          >
-                            {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                            <span>{t("actions.mark_completed")}</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={isThisBusy}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEventMissed(item.id, item.entity_id);
-                            }}
-                            className="px-2.5 py-2 rounded-xl bg-danger/10 hover:bg-danger/20 text-danger text-xs font-semibold border border-danger/30 active:scale-95 transition-all disabled:opacity-50 shadow-2xs tap-active flex items-center gap-1 cursor-pointer min-h-[38px]"
-                            title="Signaler la séance comme manquée"
-                            aria-label="Signaler comme manquée"
-                          >
-                            {isThisBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
-                            <span>Manquée</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={isThisBusy}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEventPostpone(item.id, item.entity_id, 2);
-                            }}
-                            className="px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-semibold border border-amber-500/30 active:scale-95 transition-all disabled:opacity-50 shadow-2xs tap-active flex items-center gap-1 cursor-pointer min-h-[38px]"
-                            title="Reporter la séance de 2 heures"
-                            aria-label="Reporter la séance de 2 heures"
-                          >
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>Reporter</span>
-                          </button>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Secondary Utility Actions */}
-                    <div className="flex items-center gap-1 ml-auto sm:ml-0">
-                      {isUnread && !isDailySummary && (
-                        <button
-                          type="button"
-                          disabled={isThisBusy}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMarkRead(item.id);
-                          }}
-                          className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active cursor-pointer min-h-[36px]"
-                          title="Marquer comme lu"
-                          aria-label="Marquer comme lu"
-                        >
-                          {locale === "fr" ? "Lu" : "Read"}
-                        </button>
-                      )}
-
-                      {!isResolved && !isSnoozed && (
-                        <button
-                          type="button"
-                          disabled={isThisBusy}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSnooze(item.id, 24);
-                          }}
-                          className="px-2 py-1.5 rounded-lg text-xs font-medium text-ink-500 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active flex items-center gap-1 cursor-pointer min-h-[36px]"
-                          title="Reporter de 24 heures"
-                          aria-label="Reporter de 24 heures"
-                        >
-                          <Clock className="w-3 h-3" /> +24h
-                        </button>
-                      )}
-
-                      {/* Bouton de lecture vocale instantanée */}
-                      <button
-                        type="button"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          if (playingId === item.id) {
-                            stopVoiceReminder();
-                            setPlayingId(null);
-                            return;
+                          onClick={() =>
+                            setExpandedGroups((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(groupId)) next.delete(groupId);
+                              else next.add(groupId);
+                              return next;
+                            })
                           }
-                          setPlayingId(item.id);
-                          const prefs = getLocalVoiceSettings();
-                          const textToSpeak = (item as any).metadata?.voice_text || `${item.title}. ${item.body}`;
-                          await playVoiceReminder({
-                            text: textToSpeak,
-                            language: prefs.voice_language,
-                            voiceType: prefs.voice_type,
-                            repeat: 0,
-                            rate: prefs.voice_playback_rate || 1.0,
-                            onEnd: () => setPlayingId(null),
-                            onError: () => setPlayingId(null),
-                          });
-                        }}
-                        className={`p-2 rounded-lg active:scale-95 transition-all cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center ${
-                          playingId === item.id
-                            ? "bg-signal text-white shadow-2xs"
-                            : "text-ink-500 dark:text-ink-400 hover:text-signal dark:hover:text-signal hover:bg-signal-soft/30"
-                        }`}
-                        title={playingId === item.id ? "Arrêter la lecture" : "Écouter ce rappel à voix haute"}
-                        aria-label={playingId === item.id ? "Arrêter la lecture vocale" : "Écouter ce rappel à voix haute"}
-                      >
-                        {playingId === item.id ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                      </button>
-
-                      <button
-                        type="button"
-                        disabled={isThisBusy}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(item.id);
-                        }}
-                        className="p-2 rounded-lg text-ink-400 hover:text-danger hover:bg-danger-soft/20 active:scale-95 transition-all tap-active inline-flex items-center justify-center cursor-pointer min-h-[36px] min-w-[36px]"
-                        title={t("actions.delete")}
-                        aria-label={t("actions.delete")}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
+                          aria-expanded={expanded}
+                          className="flex w-full items-center gap-3 px-4 py-3.5 text-left rounded-3xl hover:bg-ink-100/40 dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
+                        >
+                          <span className="relative shrink-0">
+                            {renderCategoryIcon(items[0]!.category, items[0]!.kind, pending === 0)}
+                            {topDot && (
+                              <span className={`absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-canvas-raised dark:ring-ink-900 ${topDot}`} />
+                            )}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-semibold text-ink-950 dark:text-white">
+                              {items.length} {items.length > 1 ? many : one}
+                            </span>
+                            <span className="block truncate text-xs text-ink-600 dark:text-ink-400">
+                              {items.map((n) => n.title).slice(0, 2).join(" · ")}
+                              {items.length > 2 ? "…" : ""}
+                            </span>
+                          </span>
+                          <ChevronDown className={`h-4 w-4 shrink-0 text-ink-400 transition-transform ${expanded ? "rotate-180" : ""}`} />
+                        </button>
+                        {expanded && (
+                          <div className="divide-y divide-ink-200/60 dark:divide-ink-800 border-t border-ink-200/60 dark:border-ink-800">
+                            {items.map((n) => renderRow(n, true))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
+              </section>
             );
-          })}
-        </div>
-      )}
+          })
+        )}
       </div>
 
       {/* Modal de renouvellement rapide in-place sans navigation inutile */}

@@ -42,7 +42,7 @@ export function DashboardHeader({ userName, timezone }: DashboardHeaderProps) {
 
       {/* Salutation à gauche, guide (audio + visite) à droite */}
       <div className="flex items-center justify-between gap-3">
-        <h1 className="min-w-0 text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-ink-950 dark:text-white truncate">
+        <h1 className="min-w-0 text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight leading-tight text-ink-950 dark:text-white">
           {greeting}{firstName ? `, ${firstName}` : ""} 👋
         </h1>
         <SectionGuideTrigger section="dashboard" label="Guide" variant="audio-first" className="shrink-0" />

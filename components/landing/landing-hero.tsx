@@ -22,6 +22,8 @@ export function LandingHero() {
   const [duration, setDuration] = useState(45);
   const [showControls, setShowControls] = useState(true);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Horodatage du geste qui a activé le son : évite que ce même toucher mette la vidéo en pause
+  const soundUnlockedAtRef = useRef(0);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -66,6 +68,7 @@ export function LandingHero() {
       video
         .play()
         .then(() => {
+          soundUnlockedAtRef.current = Date.now();
           setIsMuted(false);
           setIsPlaying(true);
           removeGestureListeners();
@@ -77,12 +80,35 @@ export function LandingHero() {
     }
     gestureEvents.forEach((type) => window.addEventListener(type, enableSoundOnGesture, true));
 
+    // Lecture automatique (muette) garantie : relancée dès que la vidéo est visible
+    // et au premier défilement / toucher (mode économie d'énergie iOS, onglet en arrière-plan…)
+    const ensurePlaying = () => {
+      if (video.paused && !video.ended) {
+        video.play().then(() => setIsPlaying(true)).catch(() => {});
+      }
+    };
+    const kickEvents = ["scroll", "touchstart", "pointerdown"] as const;
+    const onFirstKick = () => {
+      ensurePlaying();
+      kickEvents.forEach((type) => window.removeEventListener(type, onFirstKick));
+    };
+    kickEvents.forEach((type) => window.addEventListener(type, onFirstKick, { passive: true }));
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) ensurePlaying();
+      },
+      { threshold: 0.35 }
+    );
+    observer.observe(video);
+
     video.addEventListener("timeupdate", onTimeUpdate);
     video.addEventListener("loadedmetadata", onLoadedMetadata);
     video.addEventListener("ended", onEnded);
 
     return () => {
       removeGestureListeners();
+      kickEvents.forEach((type) => window.removeEventListener(type, onFirstKick));
+      observer.disconnect();
       video.removeEventListener("timeupdate", onTimeUpdate);
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
       video.removeEventListener("ended", onEnded);
@@ -92,6 +118,8 @@ export function LandingHero() {
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
+    // Le toucher qui vient d'activer le son ne doit pas aussi mettre en pause
+    if (Date.now() - soundUnlockedAtRef.current < 800) return;
 
     if (video.paused) {
       video.play().then(() => setIsPlaying(true)).catch(() => {});
@@ -163,7 +191,7 @@ export function LandingHero() {
         </div>
 
         {/* Titre principal centré fidèle à l'image */}
-        <div className="text-center max-w-4xl mx-auto mt-4 sm:mt-0 mb-8 sm:mb-8">
+        <div className="text-center max-w-4xl mx-auto mt-8 sm:mt-0 mb-4 sm:mb-8">
           {/* Mobile : taille fluide calée sur la ligne la plus longue (~11,75em)
               pour conserver exactement 3 lignes en pyramide inversée. */}
           <h1 className="text-[clamp(1.5rem,calc((100vw_-_2rem)/11.85),3rem)] whitespace-nowrap sm:whitespace-normal sm:text-5xl md:text-6xl lg:text-[68px] font-black tracking-tight text-ink-950 dark:text-white leading-[1.08] font-sans">
@@ -177,7 +205,7 @@ export function LandingHero() {
         <div className="flex flex-col items-center mb-8 sm:mb-10">
           {/* Accent décoratif conservé uniquement à partir de sm (retiré sur mobile) */}
           <div className="hidden sm:block w-2.5 h-2.5 bg-amber-500 mb-6 rounded-xs" />
-          <p className="text-base sm:text-lg md:text-xl text-ink-700 dark:text-ink-300 max-w-2xl sm:max-w-3xl mx-auto text-center leading-relaxed font-normal">
+          <p className="text-[17px] sm:text-lg md:text-xl text-ink-700 dark:text-ink-300 max-w-2xl sm:max-w-3xl mx-auto text-center leading-relaxed font-normal">
             Un espace intelligent pour organiser vos activités, maîtriser vos échéances,
             détecter les conflits d&apos;agenda et garder une vision limpide de vos finances.
             Sans éparpillement.
@@ -201,20 +229,21 @@ export function LandingHero() {
             ref={containerRef}
             onMouseMove={handleMouseMove}
             onMouseLeave={() => isPlaying && setShowControls(false)}
-            className="relative rounded-2xl sm:rounded-3xl border border-ink-200/90 dark:border-ink-800 bg-black shadow-2xl shadow-ink-950/15 overflow-hidden group select-none"
+            className="relative rounded-2xl sm:rounded-3xl border border-ink-200/90 dark:border-ink-800 bg-white shadow-2xl shadow-ink-950/15 overflow-hidden group select-none"
           >
             {/* Conteneur vidéo au ratio 16:9 */}
             <div
-              className="relative aspect-video w-full flex items-center justify-center bg-black cursor-pointer"
+              className="relative aspect-video w-full flex items-center justify-center bg-white cursor-pointer"
               onClick={togglePlay}
             >
               <video
                 ref={videoRef}
                 playsInline
+                autoPlay
                 muted={isMuted}
                 loop
                 preload="metadata"
-                className="w-full h-full object-contain bg-black"
+                className="w-full h-full object-contain bg-white"
                 poster="/brand/hero-reference.jpg"
               >
                 <source src="/remindme-intro.mp4" type="video/mp4" />

@@ -128,10 +128,11 @@ export async function generateElevenLabsAudio(
       body: JSON.stringify({
         text: text.trim(),
         model_id: modelId,
+        // Intonation plus vivante et chaleureuse (moins monocorde) tout en restant claire
         voice_settings: {
-          stability: 0.5,
+          stability: 0.4,
           similarity_boost: 0.8,
-          style: 0.0,
+          style: 0.3,
           use_speaker_boost: true,
         },
       }),

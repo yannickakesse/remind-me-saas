@@ -60,7 +60,11 @@ export default async function ReportsPage({
 
   const endDT = DateTime.fromISO(rangeEnd, { zone: timezone });
   const sixMonthsStart = endDT.minus({ months: 5 }).startOf("month").toISODate()!;
-  const syncStart = rangeStart < sixMonthsStart ? rangeStart : sixMonthsStart;
+  const accountStart = user?.created_at
+    ? DateTime.fromISO(user.created_at, { zone: timezone }).startOf("month").toISODate()!
+    : null;
+  const earliest = rangeStart < sixMonthsStart ? rangeStart : sixMonthsStart;
+  const syncStart = accountStart && earliest < accountStart ? accountStart : earliest;
 
   // Synchronisation paresseuse des revenus sur la période demandée et l'historique des 6 derniers mois
   await ensureIncomeEntries(supabase, user!.id, syncStart, rangeEnd);
@@ -78,7 +82,7 @@ export default async function ReportsPage({
     totalExpensesPlanned,
     realNetBalance,
     otherCurrencies,
-  } = await calculateProfitabilityReport(supabase, user!.id, rangeStart, rangeEnd, timezone, defaultCurrency);
+  } = await calculateProfitabilityReport(supabase, user!.id, rangeStart, rangeEnd, timezone, defaultCurrency, user!.created_at);
 
   const averageHourlyRate =
     totalHoursWorked > 0 ? Math.round(realNetBalance / totalHoursWorked) : null;
@@ -240,10 +244,10 @@ export default async function ReportsPage({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-ink-950">
+            <h2 className="text-xl font-bold tracking-tight text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
               Rentabilité & Revenu par Heure Investie
             </h2>
-            <p className="text-sm text-ink-500">
+            <p className="text-sm font-medium text-white/95 [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]">
               Identifiez quelles activités génèrent le plus de valeur par rapport au temps passé.
             </p>
           </div>

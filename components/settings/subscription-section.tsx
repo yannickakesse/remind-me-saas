@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { Check, X, Sparkles, ShieldCheck, Zap, ArrowRight } from "lucide-react";
-import { PLAN_ENTITLEMENTS, normalizePlan, type PlanType } from "@/lib/subscriptions/entitlements";
+import { PLAN_ENTITLEMENTS, yearlyDiscountPercent, normalizePlan, type PlanType } from "@/lib/subscriptions/entitlements";
 import { updateSubscriptionPlan, initiateBictorysCheckoutAction } from "@/app/(app)/settings/actions";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
@@ -86,7 +86,7 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
   }
 
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="w-full space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-ink-950 flex items-center gap-2">
@@ -122,7 +122,7 @@ export function SubscriptionSection({ subscription, plan, status }: Subscription
           >
             Annuelle
             <span className="rounded-full bg-positive-soft px-1.5 py-0.2 text-[9px] font-bold text-positive">
-              -20%
+              -{yearlyDiscountPercent()}%
             </span>
           </button>
         </div>

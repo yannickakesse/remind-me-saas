@@ -46,7 +46,9 @@ export async function calculateProfitabilityReport(
   startDate: string,
   endDate: string,
   timezone: string = "UTC",
-  defaultCurrency: string = "XOF"
+  defaultCurrency: string = "XOF",
+  // Date de création du compte : aucun mois antérieur n'apparaît dans l'évolution mensuelle
+  accountCreatedAt?: string | null
 ) {
   // Calcul de la borne minimale pour couvrir à la fois la période sélectionnée et les 6 derniers mois d'historique
   const endDT = DateTime.fromISO(endDate, { zone: timezone });
@@ -271,9 +273,14 @@ export async function calculateProfitabilityReport(
   // 6. Évolution mensuelle (sur les 6 derniers mois)
   const monthlySummaries: MonthlySummaryItem[] = [];
 
+  const accountStartMonth = accountCreatedAt
+    ? DateTime.fromISO(accountCreatedAt, { zone: timezone }).toFormat("yyyy-MM")
+    : null;
+
   for (let m = 5; m >= 0; m--) {
     const mDT = endDT.minus({ months: m });
     const monthKey = mDT.toFormat("yyyy-MM");
+    if (accountStartMonth && monthKey < accountStartMonth) continue;
     const monthLabel = mDT.setLocale("fr").toFormat("MMM yyyy");
 
     let monthIncRec = 0;

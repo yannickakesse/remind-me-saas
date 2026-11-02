@@ -31,7 +31,7 @@ export function DashboardKpis({
 
   return (
     <div className="space-y-3" data-tour="dashboard-kpi">
-      <div className="flex items-center justify-between px-1">
+      <div className="flex items-center justify-between gap-2 rounded-2xl bg-canvas-raised/95 dark:bg-slate-900/95 backdrop-blur-md border border-ink-200/80 dark:border-ink-800 px-3 py-2 shadow-2xs">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-xl bg-signal/10 text-signal">
             <Wallet className="w-4 h-4" />

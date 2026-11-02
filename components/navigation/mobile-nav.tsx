@@ -104,26 +104,19 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
         <div className="flex items-center gap-1.5">
           <LanguageSelector variant="pill" />
           <HelpCenterButton />
-          <Link
-            href="/notifications"
-            aria-label="Notifications"
-            className="relative flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active"
-            data-tour="mobile-notification-bell"
-          >
-            <Bell className="w-5 h-5 text-ink-700 dark:text-ink-300" strokeWidth={1.8} />
-            {unreadCount ? (
-              <span className="absolute top-1.5 right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white shadow-xs animate-pulse">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            ) : null}
-          </Link>
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            aria-label="Menu de navigation"
-            className="flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active"
+            aria-label={unreadCount ? `Menu de navigation — ${unreadCount} notification(s) non lue(s)` : "Menu de navigation"}
+            data-tour="mobile-notification-bell"
+            className="relative flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active"
           >
             <Menu className="w-5 h-5 text-ink-700 dark:text-ink-300" strokeWidth={2} />
+            {unreadCount ? (
+              <span className="absolute top-1 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold leading-none text-white ring-2 ring-canvas-raised dark:ring-ink-900">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            ) : null}
           </button>
         </div>
       </header>
@@ -521,8 +514,10 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                 strokeWidth={1.9}
               />
               {unreadCount ? (
-                <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-danger ring-2 ring-white dark:ring-slate-900" />
-              ) : null}
+              <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold leading-none text-white ring-2 ring-canvas-raised dark:ring-ink-900">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            ) : null}
             </div>
             <span className="text-[10px] tracking-tight leading-none truncate">Menu</span>
           </button>

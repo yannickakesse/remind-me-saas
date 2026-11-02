@@ -64,6 +64,12 @@ export const PLAN_ENTITLEMENTS: Record<PlanType, PlanEntitlements> = {
   },
 };
 
+/** Remise réelle de la facturation annuelle (ex. 90 € au lieu de 12 × 9 € → 17 %). */
+export function yearlyDiscountPercent(): number {
+  const pro = PLAN_ENTITLEMENTS.pro;
+  return Math.round((1 - pro.priceYearly / (pro.priceMonthly * 12)) * 100);
+}
+
 export function normalizePlan(plan: string | null | undefined): PlanType {
   const normalized = (plan || "free").toLowerCase().trim();
   if (normalized === "pro") return "pro";

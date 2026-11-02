@@ -60,7 +60,7 @@ export function SecuritySection() {
   }
 
   return (
-    <div className="max-w-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-md space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <h3 className="text-base font-extrabold text-zinc-950 dark:text-white flex items-center gap-2">
           <KeyRound className="w-4 h-4 text-signal" />

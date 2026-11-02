@@ -12,6 +12,7 @@ import {
   type VoiceLanguage,
 } from "@/lib/voice";
 import { useLanguage } from "@/components/i18n/language-provider";
+import { GuideMascot } from "@/components/onboarding/guide-mascot";
 
 const SESSION_VISITED_KEY = "remindme_voice_visited_sections";
 const ASSISTANT_PREF_KEY = "remindme_voice_assistant_auto";
@@ -299,16 +300,23 @@ export function SectionVoiceAssistant() {
       title={isSpeaking ? `Arrêter le guide vocal — ${sectionLabel}` : `Écouter le guide vocal — ${sectionLabel}`}
       aria-label={isSpeaking ? "Arrêter le guide vocal" : "Écouter le guide vocal de cette page"}
       aria-pressed={isSpeaking}
-      className={`fixed right-4 sm:right-6 bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:bottom-6 z-40 flex h-12 w-12 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-all duration-200 active:scale-90 cursor-pointer select-none print:hidden ${
-        isSpeaking
-          ? "bg-signal text-white border-signal shadow-signal/30 ring-4 ring-signal/20"
-          : "bg-canvas-raised/95 dark:bg-slate-900/95 text-signal border-signal/30 hover:bg-signal hover:text-white"
+      className={`fixed right-4 sm:right-6 bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:bottom-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-canvas-raised dark:bg-slate-900 shadow-lg transition-all duration-200 hover:-translate-y-0.5 active:scale-90 cursor-pointer select-none print:hidden ${
+        isSpeaking ? "border-signal shadow-signal/30 ring-4 ring-signal/20" : "border-signal/40 hover:border-signal"
       }`}
     >
       {isSpeaking && (
-        <span className="absolute inset-0 rounded-full bg-signal/40 animate-ping" aria-hidden="true" />
+        <span className="absolute inset-0 rounded-full bg-signal/25 animate-ping" aria-hidden="true" />
       )}
-      {isSpeaking ? <VolumeX className="relative h-5 w-5" /> : <Volume2 className="relative h-5 w-5" />}
+      {/* Petit assistant : il « parle » pendant la lecture du guide */}
+      <GuideMascot speaking={isSpeaking} className="relative h-10 w-10" />
+      <span
+        className={`absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full text-white shadow-xs ring-2 ring-canvas-raised dark:ring-slate-900 ${
+          isSpeaking ? "bg-ink-950 dark:bg-white dark:text-ink-950" : "bg-signal"
+        }`}
+        aria-hidden="true"
+      >
+        {isSpeaking ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+      </span>
     </button>
   );
 }

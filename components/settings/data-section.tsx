@@ -10,7 +10,7 @@ export function DataSection() {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
-    <div className="flex max-w-3xl flex-col gap-8 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-md">
+    <div className="flex w-full flex-col gap-8">
       {/* Section 1: Téléchargement & Exportations */}
       <div className="space-y-4">
         <div>

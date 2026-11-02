@@ -101,13 +101,13 @@ export function StatCard({
 
       <div>
         <div className="flex items-center justify-between gap-1.5 mb-2">
-          <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400 truncate">
+          <p className="min-w-0 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider leading-tight text-ink-500 dark:text-ink-400">
             {label}
           </p>
           <div className="flex items-center gap-1.5 shrink-0">
             {badge && (
               <span
-                className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shadow-2xs ${styles.badge}`}
+                className={`hidden sm:inline text-[9px] font-bold px-2 py-0.5 rounded-full border shadow-2xs ${styles.badge}`}
               >
                 {badge}
               </span>
@@ -123,7 +123,7 @@ export function StatCard({
         </div>
 
         <p
-          className={`text-lg sm:text-2xl font-mono font-bold tracking-tight truncate ${styles.text}`}
+          className={`text-[15px] leading-snug sm:text-2xl font-mono font-bold tracking-tight tabular-nums break-words ${styles.text}`}
           title={value}
         >
           {value}

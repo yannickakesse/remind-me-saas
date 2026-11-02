@@ -155,7 +155,7 @@ export function ProfileSection({ userId, countries, currencies, profile }: Profi
   }
 
   return (
-    <div className="max-w-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-md">
+    <div className="w-full">
       <div className="mb-6 flex items-center gap-4">
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

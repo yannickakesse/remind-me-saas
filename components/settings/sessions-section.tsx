@@ -23,7 +23,7 @@ export function SessionsSection({ email, lastSignInAt }: SessionsSectionProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
-    <div className="max-w-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-md space-y-5">
+    <div className="w-full space-y-5">
       <div>
         <h3 className="text-base font-extrabold text-zinc-950 dark:text-white">Session actuelle</h3>
         <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 font-medium leading-relaxed">

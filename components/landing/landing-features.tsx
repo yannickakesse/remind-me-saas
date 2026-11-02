@@ -5,6 +5,7 @@ import {
   Layers,
   Wallet,
 } from "lucide-react";
+import { LandingDashboardPreview } from "./landing-dashboard-preview";
 
 export function LandingFeatures() {
   return (
@@ -26,7 +27,7 @@ export function LandingFeatures() {
         <div className="space-y-10 sm:space-y-12">
           {/* SECTION 4 — Tableau de bord : reflète uniquement les blocs réels du dashboard
               (séances du jour, tâches urgentes, paiements en attente) */}
-          <div className="p-6 sm:p-10 rounded-3xl bg-canvas border border-ink-200/80 dark:border-ink-800 shadow-sm">
+          <div className="p-4 sm:p-10 rounded-3xl bg-canvas border border-ink-200/80 dark:border-ink-800 shadow-sm">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-5 space-y-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
@@ -41,33 +42,9 @@ export function LandingFeatures() {
                 </p>
               </div>
 
-              {/* Représentation visuelle : séances du jour, paiements en attente, tâches urgentes */}
-              <div className="lg:col-span-7 p-5 sm:p-6 rounded-2xl bg-canvas-raised border border-ink-200/80 dark:border-ink-800/80 shadow-xs space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-ink-100 dark:border-ink-800">
-                  <span className="text-xs font-bold text-ink-950 dark:text-white">
-                    Aujourd&apos;hui
-                  </span>
-                  <span className="text-[11px] font-mono text-ink-500">
-                    3 activités
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-                  <div className="p-3.5 rounded-xl bg-canvas border border-ink-100 dark:border-ink-800">
-                    <div className="text-[11px] text-ink-500 font-medium">Séances du jour</div>
-                    <div className="text-lg font-bold text-ink-950 dark:text-white mt-1">2 séances</div>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-canvas border border-ink-100 dark:border-ink-800">
-                    <div className="text-[11px] text-ink-500 font-medium">Paiements en attente</div>
-                    <div className="text-lg font-bold font-mono text-amber-600 dark:text-amber-400 mt-1">1 450 €</div>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-canvas border border-ink-100 dark:border-ink-800">
-                    <div className="text-[11px] text-ink-500 font-medium">Tâches urgentes</div>
-                    <div className="text-lg font-bold text-ink-950 dark:text-white mt-1">1 en retard</div>
-                  </div>
-                </div>
+              {/* Aperçu du vrai tableau de bord (mêmes composants que l'application) */}
+              <div className="lg:col-span-7">
+                <LandingDashboardPreview />
               </div>
             </div>
           </div>
@@ -100,34 +77,30 @@ export function LandingFeatures() {
                 </div>
 
                 <div className="space-y-3">
-                  <div className="p-4 rounded-2xl bg-canvas-raised border border-ink-100 dark:border-ink-800">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-amber-500" />
-                        <span className="text-xs font-bold text-ink-950 dark:text-white">Conseil & Stratégie</span>
-                      </div>
-                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                        Permanente • En cours
-                      </span>
+                  <div className="p-4 rounded-2xl bg-canvas-raised border border-ink-200/80 dark:border-ink-800 space-y-2.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: "#1E3A5F" }} />
+                      <span className="text-sm font-bold text-ink-950 dark:text-white mr-1">Cours particuliers</span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 border-ink-200 dark:border-ink-700">Freelance</span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">Routine</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-ink-500 font-mono">
-                      <span>Rémunération : 75 €/h</span>
+                    <div className="flex items-center justify-between gap-2 text-[11px]">
+                      <span className="font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">35 000 XOF / mois</span>
+                      <span className="text-ink-500">Permanente</span>
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-canvas-raised border border-ink-100 dark:border-ink-800">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-blue-500" />
-                        <span className="text-xs font-bold text-ink-950 dark:text-white">Formation Executive 2026</span>
-                      </div>
-                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-400">
-                        Temporaire
-                      </span>
+                  <div className="p-4 rounded-2xl bg-canvas-raised border border-ink-200/80 dark:border-ink-800 space-y-2.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: "#D97706" }} />
+                      <span className="text-sm font-bold text-ink-950 dark:text-white mr-1">Mission conseil</span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-ink-100 dark:bg-ink-800 text-ink-700 dark:text-ink-300 border-ink-200 dark:border-ink-700">Contrat</span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30">Important</span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30">Temporaire</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-ink-500 font-mono">
-                      <span>Période : 01 Sep → 15 Déc 2026</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Par projet</span>
+                    <div className="flex items-center justify-between gap-2 text-[11px]">
+                      <span className="font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">150 000 XOF / mois</span>
+                      <span className="text-ink-500">Fin : 31/05/2027</span>
                     </div>
                   </div>
                 </div>
@@ -144,29 +117,36 @@ export function LandingFeatures() {
                     Suivi clair des flux financiers
                   </h4>
                   <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-300 leading-relaxed">
-                    Revenus encaissés, paiements en attente, dépenses programmées et solde net calculé automatiquement.
+                    Total reçu, paiements en attente, dépenses payées et solde net calculés automatiquement, avec la rentabilité par heure dans les Rapports.
                   </p>
                 </div>
 
-                <div className="p-4 sm:p-5 rounded-2xl bg-canvas-raised border border-ink-100 dark:border-ink-800 space-y-3">
-                  <div className="flex items-center justify-between text-xs pb-1 border-b border-ink-100 dark:border-ink-800">
-                    <span className="text-ink-500">Flux d&apos;octobre</span>
-                    <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">+3 600 € net</span>
+                <div className="p-4 sm:p-5 rounded-2xl bg-canvas-raised border border-ink-200/80 dark:border-ink-800 space-y-3">
+                  <div className="flex items-center justify-between text-xs pb-2 border-b border-ink-200/80 dark:border-ink-800">
+                    <span className="font-semibold text-ink-700 dark:text-ink-300">Solde net · mois en cours</span>
+                    <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">178 000 XOF</span>
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-canvas text-xs">
-                      <span className="text-ink-700 dark:text-ink-300">Revenus encaissés</span>
-                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">4 850 €</span>
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-canvas text-xs">
+                      <span className="text-ink-700 dark:text-ink-300">Total reçu</span>
+                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">240 000 XOF</span>
                     </div>
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-canvas text-xs">
-                      <span className="text-ink-700 dark:text-ink-300">Factures en attente</span>
-                      <span className="font-mono font-bold text-amber-600 dark:text-amber-400">1 250 € (2)</span>
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-canvas text-xs">
+                      <span className="text-ink-700 dark:text-ink-300">Paiements en attente</span>
+                      <span className="font-mono font-bold text-amber-600 dark:text-amber-400">85 000 XOF</span>
                     </div>
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-canvas text-xs">
-                      <span className="text-ink-700 dark:text-ink-300">Dépenses & charges programmées</span>
-                      <span className="font-mono font-bold text-red-500">- 1 250 €</span>
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-canvas text-xs">
+                      <span className="text-ink-700 dark:text-ink-300">Dépenses payées</span>
+                      <span className="font-mono font-bold text-rose-600 dark:text-rose-400">62 000 XOF</span>
                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2.5 rounded-xl border border-indigo-500/20 bg-indigo-500/5 text-xs">
+                    <span className="text-ink-700 dark:text-ink-300">
+                      Rentabilité / heure <span className="ml-1 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">Pro</span>
+                    </span>
+                    <span className="font-mono font-bold text-indigo-700 dark:text-indigo-400">4 450 XOF / h</span>
                   </div>
                 </div>
               </div>
