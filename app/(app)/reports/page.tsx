@@ -1,3 +1,4 @@
+import { PageBackground } from "@/components/shared/page-background";
 import { DateTime } from "luxon";
 import {
   BarChart3,
@@ -91,6 +92,8 @@ export default async function ReportsPage({
 
   return (
     <div className="relative isolate min-h-full w-full space-y-8" data-tour="reports-container">
+      <PageBackground src="/images/backgrounds/reports-bg.jpg" />
+
       {/* En-tête de page */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-6 sm:p-8 shadow-xs">
 

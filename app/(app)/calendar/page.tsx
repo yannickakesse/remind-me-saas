@@ -1,3 +1,4 @@
+import { PageBackground } from "@/components/shared/page-background";
 import { DateTime } from "luxon";
 import { createClient } from "@/lib/supabase/server";
 import { ensureCalendarEvents } from "@/lib/calendar/sync";
@@ -87,6 +88,8 @@ export default async function CalendarPage({
 
   return (
     <div className="relative isolate min-h-full w-full space-y-5 max-w-7xl mx-auto min-w-0">
+      <PageBackground src="/images/backgrounds/calendar-bg.jpg" />
+
       <div className="relative overflow-hidden rounded-2xl bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 p-5 sm:p-6 shadow-xs" data-tour="calendar-header">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>

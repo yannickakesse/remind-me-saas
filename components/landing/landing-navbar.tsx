@@ -41,7 +41,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
     <header className="fixed top-[max(0.6rem,env(safe-area-inset-top,0px))] sm:top-4 left-0 right-0 z-50 px-3 sm:px-6 pointer-events-none transition-all duration-300">
       <div className="max-w-6xl mx-auto pointer-events-auto">
         <div
-          className={`flex items-center justify-between px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full transition-all duration-300 ${
+          className={`flex items-center justify-between gap-1.5 sm:gap-2 px-2.5 sm:px-6 py-2 sm:py-2.5 rounded-full transition-all duration-300 ${
             scrolled
               ? "bg-canvas/90 dark:bg-canvas-raised/90 backdrop-blur-xl border border-ink-200/80 dark:border-ink-800/80 shadow-lg shadow-black/5"
               : "bg-canvas/75 dark:bg-canvas-raised/75 backdrop-blur-md border border-ink-200/50 dark:border-ink-800/50 shadow-sm"
@@ -49,7 +49,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
         >
           {/* Logo & Brand */}
           <Link href="/" className="flex items-center group shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg">
-            <RemindMeLogo size="sm" showText={true} />
+            <RemindMeLogo size="responsive" showText={true} />
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -66,7 +66,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
             {/* Direct Sign in / Action Pill */}
             {user ? (
               <Link
@@ -82,14 +82,15 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                 <Link
                   href="/login"
                   prefetch={true}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold bg-[#00875A] hover:bg-emerald-700 text-white transition-colors shadow-xs shrink-0"
+                  className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold bg-[#00875A] hover:bg-emerald-700 text-white transition-colors shadow-xs shrink-0"
                 >
                   Connexion
                 </Link>
+                {/* Masqué sur mobile : le CTA « Commencer gratuitement » du hero prend le relais */}
                 <Link
                   href="/register"
                   prefetch={true}
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#F59E0B] hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
+                  className="hidden sm:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#F59E0B] hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
                 >
                   <span>Commencer</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -100,10 +101,10 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             {/* Language Selector — pastille drapeau unique (desktop & mobile) */}
             <LanguageSelector />
 
-            {/* Theme Toggle Button */}
+            {/* Theme Toggle Button — déplacé dans le menu déroulant sous md */}
             <button
               onClick={toggleTheme}
-              className="p-1.5 sm:p-2 rounded-full text-ink-500 hover:text-ink-950 dark:text-ink-400 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0 cursor-pointer"
+              className="hidden md:inline-flex p-1.5 sm:p-2 rounded-full text-ink-500 hover:text-ink-950 dark:text-ink-400 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0 cursor-pointer"
               title={theme === "dark" ? "Mode clair" : "Mode sombre"}
               aria-label="Changer le thème"
             >
@@ -117,7 +118,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             {/* Mobile Menu Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-1.5 sm:p-2 rounded-full text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0 cursor-pointer"
+              className="md:hidden p-1 sm:p-2 rounded-full text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0 cursor-pointer"
               aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
               aria-expanded={mobileMenuOpen}
             >
@@ -149,6 +150,17 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             <div className="pt-2 border-t border-ink-100 dark:border-ink-800 flex items-center justify-between px-1">
               <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">Langue :</span>
               <LanguageSelector variant="pill" />
+            </div>
+            <div className="pt-2 border-t border-ink-100 dark:border-ink-800 flex items-center justify-between px-1">
+              <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">Thème :</span>
+              <button
+                onClick={toggleTheme}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-ink-200 dark:border-ink-800 text-xs font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors cursor-pointer"
+                aria-label="Changer le thème"
+              >
+                {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+                <span>{theme === "dark" ? "Mode clair" : "Mode sombre"}</span>
+              </button>
             </div>
             <div className="pt-2 flex flex-col gap-2">
               {user ? (

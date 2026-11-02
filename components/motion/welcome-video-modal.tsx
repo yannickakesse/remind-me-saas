@@ -4,9 +4,12 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { X, Play, Pause, Volume2, VolumeX, Sparkles, ArrowRight } from "lucide-react";
 import { stopVoiceReminder } from "@/lib/voice";
 import { unlockVoiceAudio } from "@/lib/voice/tts";
+import {
+  INTRO_VIDEO_CLOSED_EVENT,
+  MOTION_MODAL_KEY as STORAGE_KEY,
+  isIntroVideoDue,
+} from "@/lib/onboarding/welcome-sequence";
 
-const STORAGE_KEY = "remindme_motion_popup_last_shown";
-const COOLDOWN_MS = 2.5 * 24 * 60 * 60 * 1000; // 2.5 jours (~60h)
 
 export function WelcomeVideoModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,20 +23,7 @@ export function WelcomeVideoModal() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const lastShownStr = localStorage.getItem(STORAGE_KEY);
-    const now = Date.now();
-
-    let shouldShow = false;
-    if (!lastShownStr) {
-      shouldShow = true;
-    } else {
-      const lastShown = parseInt(lastShownStr, 10);
-      if (isNaN(lastShown) || now - lastShown > COOLDOWN_MS) {
-        shouldShow = true;
-      }
-    }
-
-    if (shouldShow) {
+    if (isIntroVideoDue()) {
       // Pause ergonomique de 500ms avant d'afficher le pop-up centré
       const timer = setTimeout(() => {
         setIsOpen(true);
@@ -52,32 +42,43 @@ export function WelcomeVideoModal() {
     return () => window.removeEventListener("remindme:open-intro-video", handleOpenManual);
   }, []);
 
-  // Déverrouillage automatique du son au premier geste utilisateur
-  const enableSoundOnGesture = useCallback(() => {
+  // Déverrouillage automatique du son au premier geste utilisateur.
+  // Seuls click / touchend / keydown comptent comme « activation » pour les
+  // navigateurs mobiles (iOS, Android) : touchstart et pointerdown ne suffisent pas.
+  const enableSoundOnGesture = useCallback((e: Event) => {
+    // Un appui sur le bouton son est géré par toggleMute
+    if ((e.target as HTMLElement | null)?.closest?.("[data-sound-toggle]")) return;
     const video = videoRef.current;
-    if (video) {
-      try {
-        video.muted = false;
+    if (!video) return;
+    video.muted = false;
+    video
+      .play()
+      .then(() => {
         setIsMuted(false);
+        setIsPlaying(true);
         unlockVoiceAudio();
-      } catch {}
-    }
-    removeGestureListeners();
+        removeGestureListeners();
+      })
+      .catch(() => {
+        // Toujours refusé : rester en muet et réessayer au geste suivant
+        video.muted = true;
+        setIsMuted(true);
+      });
   }, []);
 
   const removeGestureListeners = useCallback(() => {
     if (typeof window === "undefined" || !gestureListenerAttachedRef.current) return;
-    window.removeEventListener("pointerdown", enableSoundOnGesture, true);
-    window.removeEventListener("touchstart", enableSoundOnGesture, true);
+    window.removeEventListener("click", enableSoundOnGesture, true);
+    window.removeEventListener("touchend", enableSoundOnGesture, true);
     window.removeEventListener("keydown", enableSoundOnGesture, true);
     gestureListenerAttachedRef.current = false;
   }, [enableSoundOnGesture]);
 
   const attachGestureListeners = useCallback(() => {
     if (typeof window === "undefined" || gestureListenerAttachedRef.current) return;
-    window.addEventListener("pointerdown", enableSoundOnGesture, { capture: true, once: true });
-    window.addEventListener("touchstart", enableSoundOnGesture, { capture: true, once: true });
-    window.addEventListener("keydown", enableSoundOnGesture, { capture: true, once: true });
+    window.addEventListener("click", enableSoundOnGesture, true);
+    window.addEventListener("touchend", enableSoundOnGesture, true);
+    window.addEventListener("keydown", enableSoundOnGesture, true);
     gestureListenerAttachedRef.current = true;
   }, [enableSoundOnGesture]);
 
@@ -90,6 +91,7 @@ export function WelcomeVideoModal() {
       localStorage.setItem(STORAGE_KEY, Date.now().toString());
       (window as any).__REMINDME_VIDEO_PLAYING = false;
       window.dispatchEvent(new CustomEvent("remindme:video-closed"));
+      window.dispatchEvent(new CustomEvent(INTRO_VIDEO_CLOSED_EVENT));
     }
 
     const video = videoRef.current;
@@ -217,18 +219,18 @@ export function WelcomeVideoModal() {
       aria-modal="true"
       aria-label="Présentation Remind Me"
     >
-      <div className="relative w-full max-w-2xl bg-zinc-950 border border-white/15 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
+      <div className="relative w-full max-w-2xl bg-canvas-raised border-2 border-signal rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
         {/* Header du Pop-up */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-white/10 bg-zinc-900/90 backdrop-blur-md">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-signal/30 bg-canvas-raised">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-signal text-white shadow-xs">
               <Sparkles className="h-4 w-4" />
             </span>
             <div>
-              <h3 className="text-xs sm:text-sm font-black text-white">
+              <h3 className="text-xs sm:text-sm font-black text-ink-950 dark:text-white">
                 Découvrez Remind Me en 45 secondes
               </h3>
-              <p className="text-[10px] text-zinc-400">Présentation officielle du SaaS</p>
+              <p className="text-[10px] text-ink-500 dark:text-ink-400">Présentation officielle du SaaS</p>
             </div>
           </div>
 
@@ -236,20 +238,20 @@ export function WelcomeVideoModal() {
             type="button"
             onClick={handleClose}
             aria-label="Fermer la vidéo"
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-ink-500 hover:text-ink-950 dark:hover:text-white hover:bg-signal/10 active:scale-95 transition-all cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Cadre vidéo 16:9 */}
-        <div className="relative aspect-video w-full bg-black cursor-pointer group" onClick={togglePlay}>
+        <div className="relative aspect-video w-full bg-canvas cursor-pointer group" onClick={togglePlay}>
           <video
             ref={videoRef}
             playsInline
             preload="auto"
             onEnded={handleVideoEnded}
-            className="w-full h-full object-contain bg-black"
+            className="w-full h-full object-contain bg-canvas"
           >
             <source src="/remindme-intro.mp4" type="video/mp4" />
           </video>
@@ -267,6 +269,7 @@ export function WelcomeVideoModal() {
           {isMuted && (
             <button
               type="button"
+              data-sound-toggle
               onClick={(e) => {
                 e.stopPropagation();
                 toggleMute();
@@ -294,6 +297,7 @@ export function WelcomeVideoModal() {
 
             <button
               type="button"
+              data-sound-toggle
               onClick={(e) => {
                 e.stopPropagation();
                 toggleMute();
@@ -307,8 +311,8 @@ export function WelcomeVideoModal() {
         </div>
 
         {/* Footer avec bouton Passer (Skip) */}
-        <div className="flex items-center justify-between p-4 bg-zinc-900/90 border-t border-white/10">
-          <p className="text-[11px] text-zinc-400 hidden sm:block">
+        <div className="flex items-center justify-between p-4 bg-canvas-raised border-t border-signal/30">
+          <p className="text-[11px] text-ink-500 dark:text-ink-400 hidden sm:block">
             Cette présentation réapparaîtra tous les 2 à 3 jours.
           </p>
 
@@ -316,9 +320,9 @@ export function WelcomeVideoModal() {
             type="button"
             onClick={handleClose}
             className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-xl bg-signal hover:bg-signal-dark active:scale-95 text-white text-xs font-black shadow-md transition-all cursor-pointer"
-            aria-label="Passer l'introduction et continuer"
+            aria-label="Passer la présentation"
           >
-            <span>Passer l&apos;intro</span>
+            <span>Passer</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

@@ -1,3 +1,4 @@
+import { PageBackground } from "@/components/shared/page-background";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
@@ -77,6 +78,8 @@ export default async function MessagesPage() {
 
   return (
     <div className="relative isolate min-h-full w-full space-y-6 max-w-7xl mx-auto min-w-0">
+      <PageBackground src="/images/backgrounds/dashboard-bg.jpg" />
+
       <MessagesInboxView
         initialItems={inboxItems}
         initialMessages={messagesList || []}

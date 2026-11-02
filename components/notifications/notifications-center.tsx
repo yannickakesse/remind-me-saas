@@ -1,5 +1,6 @@
 "use client";
 
+import { PageBackground } from "@/components/shared/page-background";
 import { useState, useEffect, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -860,6 +861,8 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
 
   return (
     <div className="relative isolate min-h-full w-full space-y-5 min-w-0 max-w-full">
+      <PageBackground src="/images/backgrounds/notifications-bg.jpg" />
+
 
       {/* Header with Title and Global Actions */}
       <div className="rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800/80 p-5 sm:p-6 shadow-xs" data-tour="notifications-header">

@@ -138,9 +138,10 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
             aria-hidden="true"
           />
 
-          {/* Drawer content — Surface en verre dépoli ultra-lisible et contrastée */}
-          <div 
-            className="relative flex flex-col w-[85%] max-w-[320px] h-full shadow-2xl z-10 border-r border-ink-200 dark:border-ink-800 overflow-y-auto bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-xl"
+          {/* Drawer content — Image de fond portefeuille (drawer-bg.jpg), liens sur cartes opaques */}
+          <div
+            className="relative flex flex-col w-[85%] max-w-[320px] h-full shadow-2xl z-10 border-r border-ink-200 dark:border-ink-800 overflow-y-auto bg-canvas-raised dark:bg-slate-900 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: "url('/images/backgrounds/drawer-bg.jpg')" }}
           >
             {/* Contenu du Drawer */}
             <div className="relative z-10 flex flex-col h-full">

@@ -9,6 +9,11 @@ import {
   getLocalVoiceSettings,
   isVoicePlaying,
 } from "@/lib/voice";
+import {
+  INTRO_VIDEO_CLOSED_EVENT,
+  isIntroVideoDue,
+  markWelcomeDone,
+} from "@/lib/onboarding/welcome-sequence";
 import { useLanguage } from "@/components/i18n/language-provider";
 
 interface DailyWelcomeBannerProps {
@@ -20,7 +25,6 @@ interface DailyWelcomeBannerProps {
 
 const SESSION_STORAGE_KEY = "remindme_session_welcome_shown";
 const VISITED_BEFORE_KEY = "remindme_visited_before";
-const MOTION_MODAL_KEY = "remindme_motion_popup_last_shown";
 
 export function DailyWelcomeBanner({
   userName,
@@ -41,30 +45,33 @@ export function DailyWelcomeBanner({
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // La vidéo de présentation passe toujours en premier : tout ce qui suit attend sa fermeture
+    const afterIntroVideo = (cb: () => void) => {
+      if (!isIntroVideoDue()) {
+        cb();
+        return () => {};
+      }
+      window.addEventListener(INTRO_VIDEO_CLOSED_EVENT, cb, { once: true });
+      return () => window.removeEventListener(INTRO_VIDEO_CLOSED_EVENT, cb);
+    };
+
     // 1. Ne pas afficher si déjà affiché pendant la même session
     try {
       const alreadyShownThisSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
       if (alreadyShownThisSession) {
-        return;
+        return afterIntroVideo(markWelcomeDone);
       }
     } catch {}
 
     // 2. Vérifier les conflits avec d'autres fenêtres d'accueil prioritaires
     // Si le tour interactif d'onboarding n'est pas terminé, laisser la priorité au tour
     if (tourCompleted === false) {
-      return;
+      return afterIntroVideo(markWelcomeDone);
     }
 
-    // Si la vidéo de bienvenue WelcomeVideoModal est sur le point de s'ouvrir, différer/supprimer
-    try {
-      const lastVideoShownStr = localStorage.getItem(MOTION_MODAL_KEY);
-      const now = Date.now();
-      const videoCooldown = 2.5 * 24 * 60 * 60 * 1000;
-      if (!lastVideoShownStr || now - parseInt(lastVideoShownStr, 10) > videoCooldown) {
-        // La vidéo de bienvenue va se lancer, on ne superpose pas l'accueil
-        return;
-      }
-    } catch {}
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    const run = () => {
 
     // 3. Calcul de la salutation textuelle selon l'heure locale et le vrai nom d'utilisateur
     const userNow = DateTime.now().setZone(timezone);
@@ -381,7 +388,7 @@ export function DailyWelcomeBanner({
     setVoiceTextState(spokenText);
 
     // 5. Afficher le composant centré après un court délai fluide (300ms)
-    const showTimer = setTimeout(() => {
+    timers.push(setTimeout(() => {
       setMounted(true);
 
       // Déclencher la voix si les paramètres de l'utilisateur l'autorisent et aucun rappel n'est en cours
@@ -409,26 +416,29 @@ export function DailyWelcomeBanner({
           setAudioPlayed(false);
         });
       }
-    }, 300);
+    }, 300));
 
     // 6. Disparition automatique fluide après environ 3.2 secondes
-    const fadeTimer = setTimeout(() => {
+    timers.push(setTimeout(() => {
       if (!dismissedRef.current) {
         setIsFadingOut(true);
       }
-    }, 3300);
+    }, 3300));
 
     // 7. Retrait complet du DOM après la fin de la transition d'effacement
-    const unmountTimer = setTimeout(() => {
+    timers.push(setTimeout(() => {
       if (!dismissedRef.current) {
         setMounted(false);
+        markWelcomeDone();
       }
-    }, 3850);
+    }, 3850));
+    };
+
+    const cancelWait = afterIntroVideo(run);
 
     return () => {
-      clearTimeout(showTimer);
-      clearTimeout(fadeTimer);
-      clearTimeout(unmountTimer);
+      cancelWait();
+      timers.forEach(clearTimeout);
     };
   }, [userName, timezone, hasActivitiesToday, tourCompleted, locale]);
 
@@ -437,6 +447,7 @@ export function DailyWelcomeBanner({
     setIsFadingOut(true);
     setTimeout(() => {
       setMounted(false);
+      markWelcomeDone();
     }, 250);
   };
 

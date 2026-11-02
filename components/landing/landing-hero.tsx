@@ -49,11 +49,40 @@ export function LandingHero() {
 
     const onEnded = () => setIsPlaying(false);
 
+    // Le navigateur impose un démarrage muet : le son s'active dès le premier
+    // toucher / clic n'importe où sur la page (click, touchend et keydown sont
+    // les seuls gestes acceptés par les navigateurs mobiles pour autoriser le son).
+    const gestureEvents = ["click", "touchend", "keydown"] as const;
+    const removeGestureListeners = () =>
+      gestureEvents.forEach((type) => window.removeEventListener(type, enableSoundOnGesture, true));
+    function enableSoundOnGesture(e: Event) {
+      // Un appui sur un bouton son est géré par toggleMute
+      if ((e.target as HTMLElement | null)?.closest?.("[data-sound-toggle]")) {
+        removeGestureListeners();
+        return;
+      }
+      if (!video) return;
+      video.muted = false;
+      video
+        .play()
+        .then(() => {
+          setIsMuted(false);
+          setIsPlaying(true);
+          removeGestureListeners();
+        })
+        .catch(() => {
+          video.muted = true;
+          setIsMuted(true);
+        });
+    }
+    gestureEvents.forEach((type) => window.addEventListener(type, enableSoundOnGesture, true));
+
     video.addEventListener("timeupdate", onTimeUpdate);
     video.addEventListener("loadedmetadata", onLoadedMetadata);
     video.addEventListener("ended", onEnded);
 
     return () => {
+      removeGestureListeners();
       video.removeEventListener("timeupdate", onTimeUpdate);
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
       video.removeEventListener("ended", onEnded);
@@ -134,10 +163,10 @@ export function LandingHero() {
         </div>
 
         {/* Titre principal centré fidèle à l'image */}
-        <div className="text-center max-w-4xl mx-auto mb-6 sm:mb-8">
+        <div className="text-center max-w-4xl mx-auto mt-4 sm:mt-0 mb-8 sm:mb-8">
           {/* Mobile : taille fluide calée sur la ligne la plus longue (~11,75em)
               pour conserver exactement 3 lignes en pyramide inversée. */}
-          <h1 className="text-[clamp(1.5rem,calc((100vw_-_2rem)/12.5),3rem)] whitespace-nowrap sm:whitespace-normal sm:text-5xl md:text-6xl lg:text-[68px] font-black tracking-tight text-ink-950 dark:text-white leading-[1.08] font-sans">
+          <h1 className="text-[clamp(1.5rem,calc((100vw_-_2rem)/11.85),3rem)] whitespace-nowrap sm:whitespace-normal sm:text-5xl md:text-6xl lg:text-[68px] font-black tracking-tight text-ink-950 dark:text-white leading-[1.08] font-sans">
             <span className="block">Gérez votre travail, votre</span>
             <span className="block">temps et votre argent.</span>
             <span className="block">En parfait contrôle.</span>
@@ -146,7 +175,8 @@ export function LandingHero() {
 
         {/* Paragraphe descriptif avec accent discret */}
         <div className="flex flex-col items-center mb-8 sm:mb-10">
-          <div className="w-2.5 h-2.5 bg-amber-500 mb-6 rounded-xs" />
+          {/* Accent décoratif conservé uniquement à partir de sm (retiré sur mobile) */}
+          <div className="hidden sm:block w-2.5 h-2.5 bg-amber-500 mb-6 rounded-xs" />
           <p className="text-base sm:text-lg md:text-xl text-ink-700 dark:text-ink-300 max-w-2xl sm:max-w-3xl mx-auto text-center leading-relaxed font-normal">
             Un espace intelligent pour organiser vos activités, maîtriser vos échéances,
             détecter les conflits d&apos;agenda et garder une vision limpide de vos finances.
@@ -214,6 +244,7 @@ export function LandingHero() {
               {/* Indicateur sonore clairement accessible */}
               <button
                 type="button"
+                data-sound-toggle
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleMute();
@@ -289,6 +320,7 @@ export function LandingHero() {
 
                   <button
                     type="button"
+                    data-sound-toggle
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleMute();

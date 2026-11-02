@@ -1,3 +1,4 @@
+import { PageBackground } from "@/components/shared/page-background";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { DateTime } from "luxon";
@@ -153,6 +154,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="relative isolate min-h-full w-full space-y-5 sm:space-y-6 max-w-7xl mx-auto min-w-0">
+      <PageBackground src="/images/backgrounds/dashboard-bg.jpg" />
+
       {/* A. EN-TÊTE COMPACT & PERSONNALISÉ */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-slate-900/95 backdrop-blur-md p-4 sm:p-6 shadow-xs">
         <DashboardHeader userName={profile?.full_name} timezone={timezone} />

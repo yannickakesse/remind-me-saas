@@ -1,5 +1,6 @@
 "use client";
 
+import { PageBackground } from "@/components/shared/page-background";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -394,6 +395,8 @@ export function ActivitiesClientView({
 
   return (
     <div className="relative isolate min-h-full w-full space-y-6">
+      <PageBackground src="/images/backgrounds/activities-bg.jpg" />
+
       {/* Auras d'ambiance en arrière-plan */}
       <div className="absolute top-0 -left-16 w-72 h-72 rounded-full bg-signal/10 dark:bg-signal/5 blur-3xl pointer-events-none" />
       <div className="absolute top-1/2 -right-16 w-80 h-80 rounded-full bg-purple-500/10 dark:bg-purple-500/5 blur-3xl pointer-events-none" />

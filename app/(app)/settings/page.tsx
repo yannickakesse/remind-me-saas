@@ -1,3 +1,4 @@
+import { PageBackground } from "@/components/shared/page-background";
 import { createClient } from "@/lib/supabase/server";
 import { requireCurrentUser } from "@/lib/supabase/auth";
 import { Tabs } from "@/components/ui/tabs";
@@ -41,6 +42,8 @@ export default async function SettingsPage() {
 
   return (
     <div className="relative isolate min-h-full w-full space-y-6">
+      <PageBackground src="/images/backgrounds/settings-bg.jpg" />
+
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-6 sm:p-8 shadow-xs" data-tour="settings-header">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

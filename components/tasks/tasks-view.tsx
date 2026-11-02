@@ -1,5 +1,6 @@
 "use client";
 
+import { PageBackground } from "@/components/shared/page-background";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Search, X, CheckCircle2, Plus, CheckSquare } from "lucide-react";
@@ -15,6 +16,16 @@ interface TasksViewProps {
   tasks: TaskItemData[];
   activities: { id: string; name: string; color: string | null }[];
 }
+
+// Fond d'écran propre à chaque onglet de la page Tâches
+const TASK_BACKGROUNDS: Record<TaskTab, string> = {
+  all: "/images/backgrounds/tasks-bg.jpg",
+  overdue: "/images/backgrounds/tasks-overdue-bg.jpg",
+  today: "/images/backgrounds/tasks-today-bg.jpg",
+  upcoming: "/images/backgrounds/tasks-upcoming-bg.jpg",
+  no_date: "/images/backgrounds/tasks-nodate-bg.jpg",
+  completed: "/images/backgrounds/tasks-completed-bg.jpg",
+};
 
 export function TasksView({ tasks, activities }: TasksViewProps) {
   const [activeTab, setActiveTab] = useState<TaskTab>("all");
@@ -124,6 +135,8 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
 
   return (
     <div className="relative isolate min-h-full w-full space-y-5 min-w-0 max-w-full">
+      <PageBackground src={TASK_BACKGROUNDS[activeTab]} />
+
       {/* En-tête principal */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-5 sm:p-6 shadow-xs" data-tour="tasks-header">
 

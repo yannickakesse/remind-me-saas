@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Volume2, BellRing, Sparkles, X, ArrowRight, Check } from "lucide-react";
 import { playVoiceReminder, getLocalVoiceSettings } from "@/lib/voice";
+import { onWelcomeDone } from "@/lib/onboarding/welcome-sequence";
 
 const STORAGE_KEY = "remindme_voice_push_prompt_dismissed";
 
@@ -15,11 +16,16 @@ export function VoicePushPrompt() {
     try {
       const dismissed = localStorage.getItem(STORAGE_KEY);
       if (!dismissed) {
-        // Afficher la notification d'information vocale après 3.5 secondes
-        const timer = setTimeout(() => {
-          setIsVisible(true);
-        }, 3500);
-        return () => clearTimeout(timer);
+        // Dernier pop-up d'accueil : attendre la vidéo puis la salutation,
+        // puis une courte pause avant d'afficher l'invitation aux rappels vocaux
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const cancelWait = onWelcomeDone(() => {
+          timer = setTimeout(() => setIsVisible(true), 1500);
+        });
+        return () => {
+          cancelWait();
+          if (timer) clearTimeout(timer);
+        };
       }
     } catch {
       // no-op

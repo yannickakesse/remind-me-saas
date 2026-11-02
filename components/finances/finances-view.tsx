@@ -1,5 +1,6 @@
 "use client";
 
+import { PageBackground } from "@/components/shared/page-background";
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -47,6 +48,14 @@ interface FinancesViewProps {
   rangeStart: string;
   rangeEnd: string;
 }
+
+// Fond d'écran propre à chaque onglet Finances (vue globale par défaut)
+const FINANCE_BACKGROUNDS: Partial<Record<FinanceTab, string>> & { overview: string } = {
+  overview: "/images/backgrounds/finances-overview-bg.jpg",
+  expenses: "/images/backgrounds/expenses-bg.jpg",
+  scheduled: "/images/backgrounds/scheduled-expenses-bg.jpg",
+  savings: "/images/backgrounds/savings-bg.jpg",
+};
 
 export function FinancesView({
   initialTab,
@@ -189,6 +198,8 @@ export function FinancesView({
 
   return (
     <div className="relative isolate min-h-full w-full space-y-5 max-w-7xl mx-auto min-w-0">
+      <PageBackground src={FINANCE_BACKGROUNDS[activeTab] ?? FINANCE_BACKGROUNDS.overview} />
+
       {/* Header avec bannière visuelle retravaillée */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-5 sm:p-7 shadow-xs" data-tour="finance-header">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
