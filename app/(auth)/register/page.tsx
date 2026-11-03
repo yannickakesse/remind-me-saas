@@ -13,7 +13,7 @@ import { LanguageSelector } from "@/components/ui/language-selector";
 
 export default function RegisterPage() {
   const supabase = createClient();
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
 
   const [lastName, setLastName] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -280,23 +280,23 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Nom *" htmlFor="lastName" error={fieldErrors.lastName}>
+              <Field label={tr("Nom *")} htmlFor="lastName" error={fieldErrors.lastName}>
                 <TextInput
                   id="lastName"
                   autoComplete="family-name"
                   value={lastName}
-                  placeholder="Ex: Kouassi"
+                  placeholder={tr("Ex: Kouassi")}
                   onChange={(e) => setLastName(e.target.value)}
                   required
                 />
               </Field>
 
-              <Field label="Prénom (facultatif)" htmlFor="firstName" error={fieldErrors.firstName}>
+              <Field label={tr("Prénom (facultatif)")} htmlFor="firstName" error={fieldErrors.firstName}>
                 <TextInput
                   id="firstName"
                   autoComplete="given-name"
                   value={firstName}
-                  placeholder="Ex: Yannick"
+                  placeholder={tr("Ex: Yannick")}
                   onChange={(e) => setFirstName(e.target.value)}
                 />
               </Field>

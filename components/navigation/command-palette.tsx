@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -57,6 +59,7 @@ const QUICK_ACTIONS: QuickActionItem[] = [
 ];
 
 export function CommandPalette() {
+  const { tr } = useLanguage();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -138,17 +141,15 @@ export function CommandPalette() {
         type="button"
         onClick={() => setIsOpen(true)}
         className="flex w-full items-center justify-between rounded-lg border border-ink-200 bg-canvas px-3 py-1.5 text-xs text-ink-500 hover:border-ink-300 hover:text-ink-700 transition-colors"
-        title="Recherche globale (Ctrl+K)"
+        title={tr("Recherche globale (Ctrl+K)")}
       >
         <span className="flex items-center gap-1.5">
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-          Rechercher...
-        </span>
+          {tr("Rechercher...")}</span>
         <kbd className="rounded border border-ink-200 bg-ink-100 px-1.5 py-0.5 text-[10px] font-semibold text-ink-600">
-          Ctrl K
-        </kbd>
+          {tr("Ctrl K")}</kbd>
       </button>
     );
   }
@@ -169,7 +170,7 @@ export function CommandPalette() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tapez un nom d'activité, tâche, contact, montant..."
+            placeholder={tr("Tapez un nom d'activité, tâche, contact, montant...")}
             className="w-full bg-transparent text-sm text-ink-950 placeholder-ink-400 focus:outline-none"
           />
           {query ? (
@@ -178,8 +179,7 @@ export function CommandPalette() {
               onClick={() => setQuery("")}
               className="text-xs text-ink-400 hover:text-ink-700 ml-2"
             >
-              Effacer
-            </button>
+              {tr("Effacer")}</button>
           ) : (
             <kbd className="rounded border border-ink-200 bg-ink-100 px-1.5 py-0.5 text-[10px] font-semibold text-ink-500">
               ESC
@@ -191,12 +191,11 @@ export function CommandPalette() {
         <div className="max-h-96 overflow-y-auto p-2 space-y-4">
           {loading ? (
             <div className="py-8 text-center text-xs text-ink-500">
-              Recherche en cours...
-            </div>
+              {tr("Recherche en cours...")}</div>
           ) : query.trim().length >= 2 ? (
             results.length === 0 ? (
               <div className="py-8 text-center text-xs text-ink-500">
-                Aucun résultat trouvé pour « {query} ».
+                {tr("Aucun résultat trouvé pour «")}{" "}{query} ».
               </div>
             ) : (
               results.map((cat) => (
@@ -231,8 +230,7 @@ export function CommandPalette() {
             /* Actions rapides par défaut */
             <div className="space-y-1">
               <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-ink-400">
-                Actions Rapides & Navigation
-              </span>
+                {tr("Actions Rapides & Navigation")}</span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 pt-1">
                 {QUICK_ACTIONS.map((action) => {
                   const Icon = action.icon;
@@ -260,8 +258,8 @@ export function CommandPalette() {
 
         {/* Pied de dialogue */}
         <div className="border-t border-ink-100 bg-canvas px-4 py-2 text-[10px] text-ink-400 flex items-center justify-between">
-          <span>Utilisez <strong>Ctrl+K</strong> pour ouvrir à tout moment</span>
-          <span><strong>ESC</strong> pour fermer</span>
+          <span>{tr("Utilisez")}{" "}<strong>{tr("Ctrl+K")}</strong> {tr("pour ouvrir à tout moment")}</span>
+          <span><strong>ESC</strong> {tr("pour fermer")}</span>
         </div>
       </div>
     </div>

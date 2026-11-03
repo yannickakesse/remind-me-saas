@@ -1,19 +1,21 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
 import type { MonthlySummaryItem } from "@/lib/reports/profitability";
 
 export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
+  const { tr } = useLanguage();
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [activeMode, setActiveMode] = useState<"all" | "expenses" | "income">("all");
 
   if (items.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-ink-300 dark:border-ink-800 bg-canvas-raised/50 p-6 text-center text-xs text-ink-500">
-        Pas assez de données pour afficher l'évolution mensuelle.
-      </div>
+        {tr("Pas assez de données pour afficher l'évolution mensuelle.")}</div>
     );
   }
 
@@ -94,14 +96,13 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
       <div className="border-b border-ink-100 dark:border-ink-800 pb-3">
         <h3 className="font-bold text-ink-950 dark:text-white text-base flex items-center gap-2">
           <Activity className="w-4 h-4 text-signal" />
-          Évolution &amp; Courbe Mensuelle
-        </h3>
+          {tr("Évolution & Courbe Mensuelle")}</h3>
         <p className="text-xs text-ink-500 mt-0.5 font-medium">
           {activeMode === "all"
-            ? "Comparaison des courbes de flux : revenus vs dépenses"
+            ? tr("Comparaison des courbes de flux : revenus vs dépenses")
             : activeMode === "income"
-            ? "Affichage isolé de la courbe des revenus encaissés"
-            : "Affichage isolé de la courbe des dépenses décaissées"}
+            ? tr("Affichage isolé de la courbe des revenus encaissés")
+            : tr("Affichage isolé de la courbe des dépenses décaissées")}
         </p>
       </div>
 
@@ -120,7 +121,7 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
             }`}
           >
             <TrendingDown className="w-4 h-4 text-danger shrink-0" />
-            <span>Dépenses</span>
+            <span>{tr("Dépenses")}</span>
           </button>
           <button
             type="button"
@@ -134,7 +135,7 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
             }`}
           >
             <TrendingUp className="w-4 h-4 text-positive shrink-0" />
-            <span>Revenus</span>
+            <span>{tr("Revenus")}</span>
           </button>
         </div>
       </div>
@@ -288,14 +289,13 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
         {activeItem && (
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-canvas-raised border border-ink-200 dark:border-ink-800 text-xs shadow-xs">
             <span className="font-bold text-ink-950 dark:text-ink-50">
-              Focus : {activeItem.monthLabel}
+              {tr("Focus :")}{" "}{activeItem.monthLabel}
             </span>
             <div className="flex flex-wrap items-center gap-4">
               <div className="text-right">
                 <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-end gap-1">
                   <TrendingUp className="w-3.5 h-3.5" />
-                  {formatAmount(activeItem.incomeReceived, activeItem.currency)} encaissés
-                </span>
+                  {formatAmount(activeItem.incomeReceived, activeItem.currency)} {tr("encaissés")}</span>
                 {activeItem.incomeExpected > 0 && (
                   <span className="text-[10.5px] text-ink-500 font-medium">
                     +{formatAmount(activeItem.incomeExpected, activeItem.currency)} attendus
@@ -305,12 +305,10 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
               <div className="text-right">
                 <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center justify-end gap-1">
                   <TrendingDown className="w-3.5 h-3.5" />
-                  {formatAmount(activeItem.expensesPaid, activeItem.currency)} payées
-                </span>
+                  {formatAmount(activeItem.expensesPaid, activeItem.currency)} {tr("payées")}</span>
                 {activeItem.expensesPlanned > 0 && (
                   <span className="text-[10.5px] text-ink-500 font-medium">
-                    +{formatAmount(activeItem.expensesPlanned, activeItem.currency)} prévues
-                  </span>
+                    +{formatAmount(activeItem.expensesPlanned, activeItem.currency)} {tr("prévues")}</span>
                 )}
               </div>
               <span
@@ -320,7 +318,7 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
                     : "bg-danger-soft text-danger border border-danger/30"
                 }`}
               >
-                Solde réel : {formatAmount(activeItem.netReal, activeItem.currency)}
+                {tr("Solde réel :")}{" "}{formatAmount(activeItem.netReal, activeItem.currency)}
               </span>
             </div>
           </div>
@@ -330,8 +328,7 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
       {/* Monthly Breakdown Table / Cards below curve */}
       <div className="space-y-2 pt-1">
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-500">
-          Détail chiffré par mois (flux réels &amp; prévisions)
-        </h4>
+          {tr("Détail chiffré par mois (flux réels & prévisions)")}</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {items.map((m, idx) => {
             const isLoss = m.netReal < 0;
@@ -349,21 +346,21 @@ export function MonthlyEvolution({ items }: { items: MonthlySummaryItem[] }) {
                 <div className="flex items-center justify-between text-xs font-bold mb-1.5">
                   <span className="text-ink-950 dark:text-ink-50">{m.monthLabel}</span>
                   <span className={`font-mono tabular-nums ${isLoss ? "text-danger font-bold" : "text-positive font-bold"}`}>
-                    {isLoss ? "Déficit réel : " : "Solde réel : "}
+                    {isLoss ? tr("Déficit réel : ") : tr("Solde réel : ")}
                     {formatAmount(m.netReal, m.currency)}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[11px] text-ink-600 dark:text-ink-400">
                   <div>
-                    Encaissé : <strong className="text-emerald-600 font-bold font-mono tabular-nums">{formatAmount(m.incomeReceived, m.currency)}</strong>
+                    {tr("Encaissé :")}{" "}<strong className="text-emerald-600 font-bold font-mono tabular-nums">{formatAmount(m.incomeReceived, m.currency)}</strong>
                     {m.incomeExpected > 0 && (
                       <span className="text-[10px] text-ink-500 font-mono block">+{formatAmount(m.incomeExpected, m.currency)} att.</span>
                     )}
                   </div>
                   <div className="text-right">
-                    Payé : <strong className="text-danger font-bold font-mono tabular-nums">{formatAmount(m.expensesPaid, m.currency)}</strong>
+                    {tr("Payé :")}{" "}<strong className="text-danger font-bold font-mono tabular-nums">{formatAmount(m.expensesPaid, m.currency)}</strong>
                     {m.expensesPlanned > 0 && (
-                      <span className="text-[10px] text-ink-500 font-mono block">+{formatAmount(m.expensesPlanned, m.currency)} prév.</span>
+                      <span className="text-[10px] text-ink-500 font-mono block">+{formatAmount(m.expensesPlanned, m.currency)} {tr("prév.")}</span>
                     )}
                   </div>
                 </div>

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
@@ -17,6 +19,7 @@ interface OrganizationFormProps {
 }
 
 export function OrganizationForm({ action, initial, submitLabel = "Créer l'organisation" }: OrganizationFormProps) {
+  const { tr } = useLanguage();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -41,24 +44,24 @@ export function OrganizationForm({ action, initial, submitLabel = "Créer l'orga
 
   return (
     <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-5">
-      <Field label="Nom de l'organisation" htmlFor="name">
-        <TextInput id="name" name="name" defaultValue={initial?.name} placeholder="Ex : Newmoney Holding" required />
+      <Field label={tr("Nom de l'organisation")} htmlFor="name">
+        <TextInput id="name" name="name" defaultValue={initial?.name} placeholder={tr("Ex : Newmoney Holding")} required />
       </Field>
 
-      <Field label="Nom du contact principal (optionnel)" htmlFor="contactName">
+      <Field label={tr("Nom du contact principal (optionnel)")} htmlFor="contactName">
         <TextInput id="contactName" name="contactName" defaultValue={initial?.contactName} />
       </Field>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Téléphone (optionnel)" htmlFor="phone">
+        <Field label={tr("Téléphone (optionnel)")} htmlFor="phone">
           <TextInput id="phone" name="phone" type="tel" defaultValue={initial?.phone} />
         </Field>
-        <Field label="Email (optionnel)" htmlFor="email">
+        <Field label={tr("Email (optionnel)")} htmlFor="email">
           <TextInput id="email" name="email" type="email" defaultValue={initial?.email} />
         </Field>
       </div>
 
-      <Field label="Adresse (optionnel)" htmlFor="address">
+      <Field label={tr("Adresse (optionnel)")} htmlFor="address">
         <textarea
           id="address"
           name="address"
@@ -81,8 +84,7 @@ export function OrganizationForm({ action, initial, submitLabel = "Créer l'orga
           disabled={submitting}
           className="rounded-md border border-ink-300 px-4 py-2.5 font-medium text-ink-700 hover:bg-ink-50 transition-colors disabled:opacity-50"
         >
-          Annuler
-        </button>
+          {tr("Annuler")}</button>
         <PrimaryButton type="submit" loading={submitting} disabled={submitting} className="w-auto px-6">
           {submitting ? "Enregistrement..." : submitLabel}
         </PrimaryButton>

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useEffect } from "react";
 import { DateTime } from "luxon";
 import {
@@ -42,6 +44,7 @@ export function PrintableCalendar({
   activities,
   initialOrientation = "landscape",
 }: PrintableCalendarProps) {
+  const { tr } = useLanguage();
   const [orientation, setOrientation] = useState<"landscape" | "portrait">(initialOrientation);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -137,8 +140,7 @@ export function PrintableCalendar({
           href={`/calendar?date=${period.anchorDate}`}
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 transition-colors cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" /> Retour au calendrier
-        </a>
+          <ArrowLeft className="w-4 h-4" /> {tr("Retour au calendrier")}</a>
 
         <div className="flex items-center gap-2.5 flex-wrap">
           {/* Orientation switch */}
@@ -152,8 +154,7 @@ export function PrintableCalendar({
                   : "text-slate-600 dark:text-slate-300 hover:text-slate-900"
               }`}
             >
-              Paysage (A4 recommandé)
-            </button>
+              {tr("Paysage (A4 recommandé)")}</button>
             <button
               type="button"
               onClick={() => setOrientation("portrait")}
@@ -163,8 +164,7 @@ export function PrintableCalendar({
                   : "text-slate-600 dark:text-slate-300 hover:text-slate-900"
               }`}
             >
-              Portrait (A4)
-            </button>
+              {tr("Portrait (A4)")}</button>
           </div>
 
           {/* Direct Binary PDF Download */}
@@ -178,7 +178,7 @@ export function PrintableCalendar({
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold shadow-sm hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
           >
             <Download className="w-4 h-4 text-amber-600" />
-            {isDownloading ? "Téléchargement..." : "Télécharger le PDF"}
+            {isDownloading ? tr("Téléchargement...") : tr("Télécharger le PDF")}
           </a>
 
           {/* Browser Print / Native PDF */}
@@ -187,8 +187,7 @@ export function PrintableCalendar({
             onClick={handlePrint}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer"
           >
-            <Printer className="w-4 h-4" /> Imprimer / Enregistrer en PDF (A4)
-          </button>
+            <Printer className="w-4 h-4" /> {tr("Imprimer / Enregistrer en PDF (A4)")}</button>
         </div>
       </div>
 
@@ -206,12 +205,10 @@ export function PrintableCalendar({
               <div className="flex items-center gap-2">
                 <h1 className="text-lg sm:text-xl font-black tracking-tight text-slate-900">REMIND ME</h1>
                 <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold uppercase tracking-wider">
-                  Calendrier &amp; Planning Officiel
-                </span>
+                  {tr("Calendrier & Planning Officiel")}</span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Planning synchronisé des activités, rendez-vous et échéances programmées
-              </p>
+                {tr("Planning synchronisé des activités, rendez-vous et échéances programmées")}</p>
             </div>
           </div>
 
@@ -220,10 +217,10 @@ export function PrintableCalendar({
               {period.monthLabel}
             </div>
             <div className="text-[10.5px] font-mono text-slate-500">
-              Réf : <strong>{period.documentRef}</strong>
+              {tr("Réf :")}{" "}<strong>{period.documentRef}</strong>
             </div>
             <div className="text-[10px] text-slate-500">
-              Émis le : {period.generatedAtFormatted}
+              {tr("Émis le :")}{" "}{period.generatedAtFormatted}
             </div>
           </div>
         </div>
@@ -231,21 +228,21 @@ export function PrintableCalendar({
         {/* Info Titulaire & Paramètres */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 py-2 border-b border-slate-200 text-xs print:py-1">
           <div>
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">Titulaire du calendrier</span>
-            <p className="font-extrabold text-slate-900 text-xs sm:text-sm">{user.fullName || "Utilisateur Remind Me"}</p>
+            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">{tr("Titulaire du calendrier")}</span>
+            <p className="font-extrabold text-slate-900 text-xs sm:text-sm">{user.fullName || tr("Utilisateur Remind Me")}</p>
             <p className="text-slate-600 text-[11px] truncate">{user.email || ""}</p>
           </div>
           <div>
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">Fuseau horaire certifié</span>
+            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">{tr("Fuseau horaire certifié")}</span>
             <p className="font-bold text-slate-900 text-xs">{period.timezone}</p>
-            <p className="text-slate-600 text-[10.5px]">Calcul UTC sans décalage</p>
+            <p className="text-slate-600 text-[10.5px]">{tr("Calcul UTC sans décalage")}</p>
           </div>
           <div className="text-right sm:text-right col-span-2 sm:col-span-1">
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">Volume planifié</span>
+            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">{tr("Volume planifié")}</span>
             <p className="font-extrabold text-amber-700 text-xs sm:text-sm">
-              {events.length} séances ({Math.round(totalHours)}h)
+              {events.length} {tr("séances (")}{Math.round(totalHours)}h)
             </p>
-            <p className="text-slate-600 text-[10.5px]">{scheduledExpensesCount} dépenses programmées</p>
+            <p className="text-slate-600 text-[10.5px]">{scheduledExpensesCount} {tr("dépenses programmées")}</p>
           </div>
         </div>
 
@@ -325,7 +322,7 @@ export function PrintableCalendar({
                             <div className="flex items-center gap-1 font-bold text-[9px] text-slate-600">
                               {timeStr && <span className="font-mono">{timeStr}</span>}
                               {ev.hasConflict && (
-                                <span className="inline-flex items-center text-rose-600 font-extrabold" title="Conflit d'horaire">
+                                <span className="inline-flex items-center text-rose-600 font-extrabold" title={tr("Conflit d'horaire")}>
                                   <AlertTriangle className="w-2.5 h-2.5 inline" />
                                 </span>
                               )}
@@ -349,8 +346,7 @@ export function PrintableCalendar({
           {/* Légende des couleurs */}
           <div className="space-y-1 max-w-xl">
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-amber-600" /> Légende des activités
-            </div>
+              <Sparkles className="w-3 h-3 text-amber-600" /> {tr("Légende des activités")}</div>
             <div className="flex flex-wrap items-center gap-2.5 text-[10px] text-slate-700">
               {activities.map((act) => (
                 <div key={act.id} className="inline-flex items-center gap-1.5">
@@ -363,7 +359,7 @@ export function PrintableCalendar({
               ))}
               <div className="inline-flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-600 shrink-0" />
-                <span className="font-medium text-amber-800">Dépense programmée</span>
+                <span className="font-medium text-amber-800">{tr("Dépense programmée")}</span>
               </div>
             </div>
           </div>
@@ -371,25 +367,20 @@ export function PrintableCalendar({
           {/* Sceau Officiel de Certification Remind Me */}
           <div className="p-2 rounded-xl border border-dashed border-amber-600/40 bg-amber-50/30 text-center min-w-[160px] shrink-0 print:py-1">
             <div className="text-[8.5px] font-bold uppercase text-amber-900">
-              Planning Officiel
-            </div>
+              {tr("Planning Officiel")}</div>
             <div className="font-serif italic text-amber-800 text-[11px] font-bold">
-              Remind Me Verified
-            </div>
+              {tr("Remind Me Verified")}</div>
             <div className="inline-flex items-center gap-1 text-[8.5px] text-emerald-700 font-bold">
-              <CheckCircle2 className="w-2.5 h-2.5" /> Conforme A4 &amp; Fuseaux
-            </div>
+              <CheckCircle2 className="w-2.5 h-2.5" /> {tr("Conforme A4 & Fuseaux")}</div>
           </div>
         </div>
 
         {/* Pied de page du document */}
         <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-500">
           <div>
-            Remind Me • Document de planification certifié • Usage personnel &amp; professionnel
-          </div>
+            {tr("Remind Me • Document de planification certifié • Usage personnel & professionnel")}</div>
           <div>
-            Page 1 / 1
-          </div>
+            {tr("Page 1 / 1")}</div>
         </div>
       </div>
     </div>

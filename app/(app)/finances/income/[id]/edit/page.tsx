@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { IncomeForm } from "@/components/shared/income-form";
@@ -5,6 +6,7 @@ import { updateIncome } from "../../../actions";
 import { requireCurrentUser } from "@/lib/supabase/auth";
 
 export default async function EditIncomePage({ params }: { params: { id: string } }) {
+  const tr = await getTr();
   const user = await requireCurrentUser();
   const supabase = createClient();
 
@@ -24,12 +26,10 @@ export default async function EditIncomePage({ params }: { params: { id: string 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-ink-950">Modifier le revenu</h1>
+        <h1 className="text-2xl font-semibold text-ink-950">{tr("Modifier le revenu")}</h1>
         {income.compensation_id ? (
           <p className="text-sm text-ink-500">
-            Échéance générée automatiquement depuis la rémunération de l&apos;activité — vous pouvez
-            ajuster le montant réellement dû, mais elle ne peut pas être supprimée.
-          </p>
+            {tr("Échéance générée automatiquement depuis la rémunération de l'activité — vous pouvez ajuster le montant réellement dû, mais elle ne peut pas être supprimée.")}</p>
         ) : null}
       </div>
       <IncomeForm

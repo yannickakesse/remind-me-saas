@@ -1,10 +1,13 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { CheckCircle2, Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 
 export default function ConfirmedPage() {
+  const { tr } = useLanguage();
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-12 bg-canvas">
       <div className="w-full max-w-md space-y-6">
@@ -25,27 +28,24 @@ export default function ConfirmedPage() {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-positive-soft text-positive text-xs font-bold">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Adresse e-mail vérifiée avec succès</span>
+              <span>{tr("Adresse e-mail vérifiée avec succès")}</span>
             </div>
 
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-ink-950">
-              Votre compte est activé !
-            </h1>
+              {tr("Votre compte est activé !")}</h1>
 
             <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 leading-relaxed">
-              Félicitations, votre inscription sur <strong>Remind Me</strong> est maintenant finalisée. Vous avez désormais un accès complet à votre centre de contrôle multi-activités, planning et finances.
-            </p>
+              {tr("Félicitations, votre inscription sur")}{" "}<strong>Remind Me</strong> {tr("est maintenant finalisée. Vous avez désormais un accès complet à votre centre de contrôle multi-activités, planning et finances.")}</p>
           </div>
 
           {/* Rappel bienveillant */}
           <div className="rounded-2xl border border-ink-100 dark:border-ink-100/10 bg-canvas/60 p-4 text-left space-y-2">
             <div className="flex items-center gap-2 text-xs font-bold text-ink-950">
               <ShieldCheck className="h-4 w-4 text-signal shrink-0" />
-              <span>Informations de connexion :</span>
+              <span>{tr("Informations de connexion :")}</span>
             </div>
             <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed pl-6">
-              Connectez-vous directement avec <strong>votre adresse e-mail</strong> et <strong>le mot de passe</strong> que vous avez défini lors de votre inscription.
-            </p>
+              {tr("Connectez-vous directement avec")}{" "}<strong>{tr("votre adresse e-mail")}</strong> et <strong>{tr("le mot de passe")}</strong> {tr("que vous avez défini lors de votre inscription.")}</p>
           </div>
 
           {/* Bouton Principal de Connexion */}
@@ -54,7 +54,7 @@ export default function ConfirmedPage() {
               href="/login?confirmed=true"
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-6 py-3.5 text-sm font-bold text-white shadow-gold hover:brightness-110 active:scale-98 transition-all tap-active"
             >
-              <span>Se connecter à Remind Me</span>
+              <span>{tr("Se connecter à Remind Me")}</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -62,8 +62,7 @@ export default function ConfirmedPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-ink-400">
-          Remind Me • Vos activités, votre temps et votre argent sous contrôle.
-        </p>
+          {tr("Remind Me • Vos activités, votre temps et votre argent sous contrôle.")}</p>
       </div>
     </main>
   );

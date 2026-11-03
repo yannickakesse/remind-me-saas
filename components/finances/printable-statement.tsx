@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { Printer, ArrowLeft, ShieldCheck, CheckCircle2, DollarSign, Wallet, Calendar } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
@@ -62,6 +64,7 @@ export function PrintableStatement({
   expenseRows,
   scheduledExpenses,
 }: PrintableStatementProps) {
+  const { tr } = useLanguage();
   function handlePrint() {
     if (typeof window !== "undefined") {
       window.print();
@@ -76,16 +79,14 @@ export function PrintableStatement({
           href="/finances"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Retour aux finances
-        </a>
+          <ArrowLeft className="w-4 h-4" /> {tr("Retour aux finances")}</a>
 
         <button
           type="button"
           onClick={handlePrint}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer"
         >
-          <Printer className="w-4 h-4" /> Imprimer / Télécharger en PDF
-        </button>
+          <Printer className="w-4 h-4" /> {tr("Imprimer / Télécharger en PDF")}</button>
       </div>
 
       {/* Main Document (A4 format ultra-compact & élégant) */}
@@ -99,22 +100,20 @@ export function PrintableStatement({
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900">REMIND ME</h1>
                 <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold uppercase tracking-wider">
-                  Relevé Financier Officiel
-                </span>
+                  {tr("Relevé Financier Officiel")}</span>
               </div>
-              <p className="text-[10.5px] text-slate-500">Relevé des flux de trésorerie &amp; encaissements multi-activités</p>
+              <p className="text-[10.5px] text-slate-500">{tr("Relevé des flux de trésorerie & encaissements multi-activités")}</p>
             </div>
           </div>
 
           <div className="text-left sm:text-right space-y-0.5 text-xs">
             <div className="text-[11px] font-bold text-slate-900 uppercase tracking-wide">
-              Relevé Mensuel
-            </div>
+              {tr("Relevé Mensuel")}</div>
             <div className="text-[10.5px] font-mono text-slate-500">
-              Réf : <strong>{period.documentRef}</strong>
+              {tr("Réf :")}{" "}<strong>{period.documentRef}</strong>
             </div>
             <div className="text-[10px] text-slate-500">
-              Émis le : {period.generatedAtFormatted}
+              {tr("Émis le :")}{" "}{period.generatedAtFormatted}
             </div>
           </div>
         </div>
@@ -122,33 +121,33 @@ export function PrintableStatement({
         {/* Info Titulaire & Période */}
         <div className="grid grid-cols-2 gap-2 py-2 border-b border-slate-200 text-xs print:py-1">
           <div>
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">Titulaire du compte</span>
-            <p className="font-extrabold text-slate-900 text-xs sm:text-sm">{user.fullName || "Utilisateur Remind Me"}</p>
+            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">{tr("Titulaire du compte")}</span>
+            <p className="font-extrabold text-slate-900 text-xs sm:text-sm">{user.fullName || tr("Utilisateur Remind Me")}</p>
             <p className="text-slate-600 text-[11px] truncate">{user.email || ""}</p>
           </div>
           <div className="text-right">
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">Période sous revue</span>
+            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">{tr("Période sous revue")}</span>
             <p className="font-extrabold text-slate-900 text-xs sm:text-sm capitalize">{period.monthLabel}</p>
-            <p className="text-slate-600 text-[11px]">Devise : <strong>{defaultCurrency}</strong></p>
+            <p className="text-slate-600 text-[11px]">{tr("Devise :")}{" "}<strong>{defaultCurrency}</strong></p>
           </div>
         </div>
 
         {/* Synthèse Balance (3 Cartes KPIs) */}
         <div className="grid grid-cols-3 gap-2 my-2 print:my-1.5">
           <div className="p-2 sm:p-2.5 rounded-xl border border-slate-200 bg-slate-50/50 print:bg-white print:p-1.5">
-            <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Total Encaissé</div>
+            <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">{tr("Total Encaissé")}</div>
             <div className="text-sm sm:text-base font-black text-amber-700 mt-0.5">
               {formatAmount(totals.totalIncomeReceived, defaultCurrency)}
             </div>
           </div>
           <div className="p-2 sm:p-2.5 rounded-xl border border-slate-200 bg-slate-50/50 print:bg-white print:p-1.5">
-            <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Dépenses Payées</div>
+            <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">{tr("Dépenses Payées")}</div>
             <div className="text-sm sm:text-base font-black text-slate-900 mt-0.5">
               {formatAmount(totals.totalExpensesPaid, defaultCurrency)}
             </div>
           </div>
           <div className="p-2 sm:p-2.5 rounded-xl border-2 border-emerald-600/30 bg-emerald-50/40 print:bg-white print:p-1.5">
-            <div className="text-[9.5px] font-bold uppercase tracking-wider text-emerald-900">Solde Net Réel</div>
+            <div className="text-[9.5px] font-bold uppercase tracking-wider text-emerald-900">{tr("Solde Net Réel")}</div>
             <div className="text-sm sm:text-base font-black text-emerald-700 mt-0.5">
               {formatAmount(totals.netRealBalance, defaultCurrency)}
             </div>
@@ -157,31 +156,31 @@ export function PrintableStatement({
 
         {/* Table: Revenus */}
         <div className="space-y-1">
-          <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-slate-700">1. Encaissements &amp; Revenus du Mois</h2>
+          <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-slate-700">{tr("1. Encaissements & Revenus du Mois")}</h2>
           <div className="overflow-x-auto w-full rounded-xl border border-slate-200">
             <table className="w-full text-left border-collapse text-[11px] print:text-[9.5px] min-w-[500px] sm:min-w-full">
               <thead>
                 <tr className="bg-slate-100 border-b border-slate-200 font-bold text-slate-700">
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">Date</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">Libellé</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">Activité</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">Montant</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-center">Statut</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">{tr("Date")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">{tr("Libellé")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">{tr("Activité")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">{tr("Montant")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-center">{tr("Statut")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {incomeRows.length === 0 ? (
-                  <tr><td colSpan={5} className="py-2 text-center text-slate-500 italic">Aucun revenu sur ce mois.</td></tr>
+                  <tr><td colSpan={5} className="py-2 text-center text-slate-500 italic">{tr("Aucun revenu sur ce mois.")}</td></tr>
                 ) : (
                   incomeRows.map((r) => (
                     <tr key={r.id}>
                       <td className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-slate-600 font-mono whitespace-nowrap">{r.due_date}</td>
                       <td className="py-1 px-2.5 print:py-0.5 print:px-1.5 font-semibold text-slate-900">{r.label}</td>
-                      <td className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-slate-600">{r.activity?.name || "Général"}</td>
+                      <td className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-slate-600">{r.activity?.name || tr("Général")}</td>
                       <td className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right font-bold text-amber-700 whitespace-nowrap">{formatAmount(r.amount, r.currency)}</td>
                       <td className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-center whitespace-nowrap">
                         <span className={`px-1.5 py-0.2 rounded text-[9.5px] font-bold ${r.received ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
-                          {r.received ? "Encaissé" : "En attente"}
+                          {r.received ? tr("Encaissé") : tr("En attente")}
                         </span>
                       </td>
                     </tr>
@@ -194,21 +193,21 @@ export function PrintableStatement({
 
         {/* Table: Dépenses */}
         <div className="space-y-1">
-          <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-slate-700">2. Dépenses &amp; Sorties de Trésorerie</h2>
+          <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-slate-700">{tr("2. Dépenses & Sorties de Trésorerie")}</h2>
           <div className="overflow-x-auto w-full rounded-xl border border-slate-200">
             <table className="w-full text-left border-collapse text-[11px] print:text-[9.5px] min-w-[500px] sm:min-w-full">
               <thead>
                 <tr className="bg-slate-100 border-b border-slate-200 font-bold text-slate-700">
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">Date</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">Libellé</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">Catégorie</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">Montant</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-center">Statut</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">{tr("Date")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">{tr("Libellé")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">{tr("Catégorie")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">{tr("Montant")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-center">{tr("Statut")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {expenseRows.length === 0 ? (
-                  <tr><td colSpan={5} className="py-2 text-center text-slate-500 italic">Aucune dépense sur ce mois.</td></tr>
+                  <tr><td colSpan={5} className="py-2 text-center text-slate-500 italic">{tr("Aucune dépense sur ce mois.")}</td></tr>
                 ) : (
                   expenseRows.map((e) => (
                     <tr key={e.id}>
@@ -218,7 +217,7 @@ export function PrintableStatement({
                       <td className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right font-bold text-slate-900 whitespace-nowrap">{formatAmount(e.amount, e.currency)}</td>
                       <td className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-center whitespace-nowrap">
                         <span className={`px-1.5 py-0.2 rounded text-[9.5px] font-bold ${e.paid ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-800"}`}>
-                          {e.paid ? "Payée" : "Prévue"}
+                          {e.paid ? tr("Payée") : tr("Prévue")}
                         </span>
                       </td>
                     </tr>
@@ -234,23 +233,18 @@ export function PrintableStatement({
           <div className="space-y-0.5 max-w-md">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
               <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-              Sceau Officiel Remind Me
-            </div>
+              {tr("Sceau Officiel Remind Me")}</div>
             <p className="text-[9.5px] text-slate-500 leading-relaxed">
-              Ce relevé est certifié conforme par les serveurs sécurisés Remind Me.
-            </p>
+              {tr("Ce relevé est certifié conforme par les serveurs sécurisés Remind Me.")}</p>
           </div>
 
           <div className="p-1.5 sm:p-2 rounded-xl border border-dashed border-amber-600/40 bg-amber-50/30 text-center min-w-[150px] print:py-1">
             <div className="text-[8.5px] font-bold uppercase text-amber-900">
-              Signature Électronique
-            </div>
+              {tr("Signature Électronique")}</div>
             <div className="font-serif italic text-amber-800 text-[11px] font-bold">
-              Remind Me Verified
-            </div>
+              {tr("Remind Me Verified")}</div>
             <div className="inline-flex items-center gap-1 text-[8.5px] text-emerald-700 font-bold">
-              <CheckCircle2 className="w-2.5 h-2.5" /> Certifié Conforme
-            </div>
+              <CheckCircle2 className="w-2.5 h-2.5" /> {tr("Certifié Conforme")}</div>
           </div>
         </div>
 

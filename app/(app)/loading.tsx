@@ -1,6 +1,8 @@
-export default function AppLoading() {
+import { getTr } from "@/lib/i18n/server";
+export default async function AppLoading() {
+  const tr = await getTr();
   return (
-    <div className="w-full space-y-6 animate-pulse" aria-label="Chargement de votre espace...">
+    <div className="w-full space-y-6 animate-pulse" aria-label={tr("Chargement de votre espace...")}>
       {/* Header Skeleton */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-ink-100 dark:border-ink-800">
         <div className="space-y-2">

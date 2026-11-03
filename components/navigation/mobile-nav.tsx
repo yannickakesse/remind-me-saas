@@ -39,10 +39,15 @@ interface MobileNavProps {
   unreadCount?: number | null;
 }
 
+const TAB =
+  "relative z-10 flex flex-1 flex-col items-center justify-center gap-1 rounded-full py-1.5 min-h-[52px] select-none transition-colors active:scale-95";
+const TAB_ACTIVE = "text-ink-950 dark:text-white";
+const TAB_IDLE = "text-ink-700 dark:text-ink-300";
+
 export function MobileNav({ unreadCount }: MobileNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isSpeedDialOpen, setIsSpeedDialOpen] = useState(false);
   const [financesOpen, setFinancesOpen] = useState(true);
@@ -93,6 +98,17 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
     { href: "/settings", labelKey: "nav.settings", icon: Settings, tourKey: "nav-settings-mobile" },
   ];
 
+  // Onglet actif de la barre du bas (0 Accueil · 1 Calendrier · 2 Ajouter · 3 Finances · 4 Menu)
+  const activeTab = isOpen
+    ? 4
+    : pathname === "/dashboard"
+    ? 0
+    : pathname.startsWith("/calendar")
+    ? 1
+    : pathname.startsWith("/finances")
+    ? 3
+    : -1;
+
   return (
     <>
       {/* Top Mobile Bar (< 768px) — Header Mobile Moderne & Épuré */}
@@ -107,7 +123,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            aria-label={unreadCount ? `Menu de navigation — ${unreadCount} notification(s) non lue(s)` : "Menu de navigation"}
+            aria-label={unreadCount ? `Menu de navigation — ${unreadCount} notification(s) non lue(s)` : tr("Menu de navigation")}
             data-tour="mobile-notification-bell"
             className="relative flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active"
           >
@@ -145,7 +161,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  aria-label="Fermer le menu"
+                  aria-label={tr("Fermer le menu")}
                   className="flex items-center justify-center h-9 w-9 rounded-xl text-black dark:text-white hover:bg-zinc-200/80 dark:hover:bg-zinc-800 active:scale-90 transition-transform cursor-pointer"
                 >
                   <X className="w-5 h-5 stroke-[2.5]" />
@@ -284,7 +300,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                   className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 text-xs font-semibold hover:bg-red-100 dark:hover:bg-red-900/80 active:scale-98 transition-all cursor-pointer shadow-2xs"
                 >
                   <LogOut className="w-4 h-4 stroke-[2.2]" />
-                  <span>Se déconnecter</span>
+                  <span>{tr("Se déconnecter")}</span>
                 </button>
               </div>
             </div>
@@ -310,11 +326,9 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
             <div className="flex items-center justify-between pb-1 border-b border-ink-100 dark:border-ink-800">
               <div>
                 <h3 className="text-sm font-extrabold text-ink-950 dark:text-white">
-                  Création Rapide
-                </h3>
+                  {tr("Création Rapide")}</h3>
                 <p className="text-[11px] text-ink-500">
-                  Que souhaitez-vous enregistrer ?
-                </p>
+                  {tr("Que souhaitez-vous enregistrer ?")}</p>
               </div>
               <button
                 type="button"
@@ -340,11 +354,9 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                   <TrendingDown className="w-5 h-5 stroke-[2.2]" />
                 </div>
                 <span className="text-xs font-bold text-ink-950 dark:text-white">
-                  + Dépense
-                </span>
+                  {tr("+ Dépense")}</span>
                 <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
-                  Ponctuelle ou comptant
-                </span>
+                  {tr("Ponctuelle ou comptant")}</span>
               </button>
 
               {/* 2. Revenu */}
@@ -360,11 +372,9 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                   <TrendingUp className="w-5 h-5 stroke-[2.2]" />
                 </div>
                 <span className="text-xs font-bold text-ink-950 dark:text-white">
-                  + Revenu
-                </span>
+                  {tr("+ Revenu")}</span>
                 <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
-                  Facture ou paiement client
-                </span>
+                  {tr("Facture ou paiement client")}</span>
               </button>
 
               {/* 3. Tâche */}
@@ -377,11 +387,9 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                   <CheckSquare className="w-5 h-5 stroke-[2.2]" />
                 </div>
                 <span className="text-xs font-bold text-ink-950 dark:text-white">
-                  + Tâche
-                </span>
+                  {tr("+ Tâche")}</span>
                 <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
-                  To-do ou priorité du jour
-                </span>
+                  {tr("To-do ou priorité du jour")}</span>
               </Link>
 
               {/* 4. Séance / Activité */}
@@ -394,11 +402,9 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
                   <Calendar className="w-5 h-5 stroke-[2.2]" />
                 </div>
                 <span className="text-xs font-bold text-ink-950 dark:text-white">
-                  + Activité / Séance
-                </span>
+                  {tr("+ Activité / Séance")}</span>
                 <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
-                  Nouvelle mission ou planning
-                </span>
+                  {tr("Nouvelle mission ou planning")}</span>
               </Link>
             </div>
 
@@ -412,114 +418,89 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
               className="w-full py-2.5 px-3 rounded-xl border border-ink-200 dark:border-ink-800 bg-canvas/70 dark:bg-ink-950/70 text-xs font-bold text-ink-700 dark:text-ink-300 hover:text-signal flex items-center justify-center gap-1.5 transition-colors"
             >
               <Clock className="w-3.5 h-3.5 text-signal" />
-              <span>Programmer une dépense récurrente (loyer, abonnement)</span>
+              <span>{tr("Programmer une dépense récurrente (loyer, abonnement)")}</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Bottom Navigation Bar (< 768px) — Centrée, équilibrée & ultra-réactive */}
+      {/* Barre du bas mobile : pilule flottante translucide (esprit iOS), indicateur qui glisse d'un onglet à l'autre */}
       <nav
-        aria-label="Navigation mobile principale"
-        data-tour="mobile-nav-bar"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-ink-200/80 dark:border-ink-800/80 bg-canvas-raised/95 dark:bg-ink-950/95 backdrop-blur-xl safe-area-bottom shadow-xl print:hidden"
+        aria-label={tr("Navigation principale")}
+        className="md:hidden fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pointer-events-none print:hidden"
       >
-        <div className="max-w-md mx-auto w-full flex items-center justify-around px-2 py-1.5">
+        <div className="pointer-events-auto relative mx-auto flex max-w-md items-center rounded-full border border-white/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 p-1.5 shadow-[0_10px_35px_-8px_rgba(15,23,42,0.28)] backdrop-blur-2xl backdrop-saturate-150">
+          {/* Fond gris de l'onglet actif, animé */}
+          {activeTab >= 0 && (
+            <span
+              aria-hidden="true"
+              className="absolute inset-y-1.5 left-1.5 rounded-full bg-ink-950/[0.07] dark:bg-white/10 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              style={{ width: "calc((100% - 0.75rem) / 5)", transform: `translateX(${activeTab * 100}%)` }}
+            />
+          )}
+
           <Link
             href="/dashboard"
             prefetch={true}
             data-tour="nav-dashboard"
-            className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all duration-150 select-none active:scale-90 active:opacity-75 ${
-              pathname === "/dashboard"
-                ? "text-signal font-bold bg-signal/10 dark:bg-signal/20"
-                : "text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium"
-            }`}
+            aria-current={pathname === "/dashboard" ? "page" : undefined}
+            className={`${TAB} ${pathname === "/dashboard" ? TAB_ACTIVE : TAB_IDLE}`}
           >
-            <LayoutDashboard
-              className={`w-5 h-5 mb-1 shrink-0 transition-transform ${
-                pathname === "/dashboard" ? "scale-110 text-signal" : ""
-              }`}
-              strokeWidth={pathname === "/dashboard" ? 2.3 : 1.8}
-            />
-            <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.home")}</span>
+            <span className="flex h-7 items-center"><LayoutDashboard className="h-[22px] w-[22px]" strokeWidth={pathname === "/dashboard" ? 2.2 : 1.8} /></span>
+            <span className={`text-[11px] leading-none ${pathname === "/dashboard" ? "font-semibold" : "font-medium"}`}>{t("nav.home")}</span>
           </Link>
 
           <Link
             href="/calendar"
             prefetch={true}
             data-tour="nav-calendar"
-            className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all duration-150 select-none active:scale-90 active:opacity-75 ${
-              pathname.startsWith("/calendar")
-                ? "text-signal font-bold bg-signal/10 dark:bg-signal/20"
-                : "text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium"
-            }`}
+            aria-current={pathname.startsWith("/calendar") ? "page" : undefined}
+            className={`${TAB} ${pathname.startsWith("/calendar") ? TAB_ACTIVE : TAB_IDLE}`}
           >
-            <Calendar
-              className={`w-5 h-5 mb-1 shrink-0 transition-transform ${
-                pathname.startsWith("/calendar") ? "scale-110 text-signal" : ""
-              }`}
-              strokeWidth={pathname.startsWith("/calendar") ? 2.3 : 1.8}
-            />
-            <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.calendar")}</span>
+            <span className="flex h-7 items-center"><Calendar className="h-[22px] w-[22px]" strokeWidth={pathname.startsWith("/calendar") ? 2.2 : 1.8} /></span>
+            <span className={`text-[11px] leading-none ${pathname.startsWith("/calendar") ? "font-semibold" : "font-medium"}`}>{tr("Calendrier")}</span>
           </Link>
 
-          {/* Bouton Central Action Rapide (+) avec halo et relief */}
           <button
             type="button"
             onClick={() => setIsSpeedDialOpen(true)}
-            aria-label="Action rapide"
+            aria-label={tr("Action rapide")}
             data-tour="mobile-quick-action"
-            className="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all select-none active:scale-90 group tap-active"
+            className={`${TAB} ${TAB_IDLE}`}
           >
-            <div className="w-10 h-10 -mt-2 rounded-full bg-gradient-to-tr from-signal to-signal-dark text-white flex items-center justify-center shadow-lg shadow-signal/30 group-active:scale-95 transition-transform border-2 border-white dark:border-slate-900">
-              <Plus className="w-5 h-5 stroke-[2.8]" />
-            </div>
-            <span className="text-[10px] font-extrabold text-signal tracking-tight mt-0.5">Ajouter</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-signal text-white shadow-sm shadow-signal/40">
+              <Plus className="h-[18px] w-[18px]" strokeWidth={2.6} />
+            </span>
+            <span className="text-[11px] font-semibold leading-none text-signal">{tr("Ajouter")}</span>
           </button>
 
           <Link
             href="/finances"
             prefetch={true}
             data-tour="nav-finances"
-            className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all duration-150 select-none active:scale-90 active:opacity-75 ${
-              pathname.startsWith("/finances")
-                ? "text-signal font-bold bg-signal/10 dark:bg-signal/20"
-                : "text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium"
-            }`}
+            aria-current={pathname.startsWith("/finances") ? "page" : undefined}
+            className={`${TAB} ${pathname.startsWith("/finances") ? TAB_ACTIVE : TAB_IDLE}`}
           >
-            <Wallet
-              className={`w-5 h-5 mb-1 shrink-0 transition-transform ${
-                pathname.startsWith("/finances") ? "scale-110 text-signal" : ""
-              }`}
-              strokeWidth={pathname.startsWith("/finances") ? 2.3 : 1.8}
-            />
-            <span className="text-[10px] tracking-tight leading-none truncate">{t("nav.finances")}</span>
+            <span className="flex h-7 items-center"><Wallet className="h-[22px] w-[22px]" strokeWidth={pathname.startsWith("/finances") ? 2.2 : 1.8} /></span>
+            <span className={`text-[11px] leading-none ${pathname.startsWith("/finances") ? "font-semibold" : "font-medium"}`}>{tr("Finances")}</span>
           </Link>
 
-          {/* Bouton Menu (Ouvre le tiroir latéral à une main avec toutes les sections) */}
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            aria-label="Menu principal et autres sections"
+            aria-label={tr("Menu principal et autres sections")}
             data-tour="nav-menu-mobile"
-            className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-2xl min-h-[50px] transition-all duration-150 select-none active:scale-90 active:opacity-75 ${
-              isOpen
-                ? "text-signal font-bold bg-signal/10 dark:bg-signal/20"
-                : "text-ink-500 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white font-medium"
-            }`}
+            className={`${TAB} ${isOpen ? TAB_ACTIVE : TAB_IDLE}`}
           >
-            <div className="relative">
-              <Menu
-                className="w-5 h-5 mb-1 shrink-0"
-                strokeWidth={1.9}
-              />
+            <span className="relative flex h-7 items-center">
+              <Menu className="h-[22px] w-[22px]" strokeWidth={1.8} />
               {unreadCount ? (
-              <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold leading-none text-white ring-2 ring-canvas-raised dark:ring-ink-900">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            ) : null}
-            </div>
-            <span className="text-[10px] tracking-tight leading-none truncate">Menu</span>
+                <span className="absolute -top-2 -right-3.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-signal px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white dark:ring-slate-900">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              ) : null}
+            </span>
+            <span className={`text-[11px] leading-none ${isOpen ? "font-semibold" : "font-medium"}`}>{tr("Menu")}</span>
           </button>
         </div>
       </nav>

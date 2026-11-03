@@ -14,7 +14,7 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ notifications: initialNotifications, unreadCount: initialCount }: NotificationBellProps) {
-  const { t, locale } = useLanguage();
+  const { t, locale , tr } = useLanguage();
   const [open, setOpen] = useState(false);
   const [soundActive, setSoundActive] = useState(true);
   const [items, setItems] = useState<Notification[]>(initialNotifications);
@@ -124,7 +124,7 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
               <span className="text-xs font-bold text-ink-950">{t("nav.notifications")}</span>
               {count > 0 && (
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-danger-soft text-danger">
-                  {count} {locale === "fr" ? (count > 1 ? "non lues" : "non lue") : t("actions.filter_unread").toLowerCase()}
+                  {count} {locale === "fr" ? (count > 1 ? tr("non lues") : tr("non lue")) : t("actions.filter_unread").toLowerCase()}
                 </span>
               )}
             </div>
@@ -229,14 +229,14 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
               className="block w-full py-1.5 rounded-lg text-xs font-medium text-ink-700 hover:bg-ink-100 hover:text-ink-950 transition-colors"
             >
               {locale === "fr"
-                ? "Voir toutes les notifications"
+                ? tr("Voir toutes les notifications")
                 : locale === "es"
-                ? "Ver todas las notificaciones"
+                ? tr("Ver todas las notificaciones")
                 : locale === "de"
-                ? "Alle Benachrichtigungen anzeigen"
+                ? tr("Alle Benachrichtigungen anzeigen")
                 : locale === "pt"
-                ? "Ver todas as notificações"
-                : "View all notifications"}
+                ? tr("Ver todas as notificações")
+                : tr("View all notifications")}
             </Link>
           </div>
         </div>

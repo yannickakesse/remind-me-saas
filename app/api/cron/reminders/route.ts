@@ -21,10 +21,10 @@ async function handleCron(request: Request) {
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
-  // 1. Validation de sécurité du déclencheur Cron
-  if (cronSecret) {
-    const expectedAuth = `Bearer ${cronSecret}`;
-    if (authHeader !== expectedAuth) {
+  // 1. Validation de sécurité du déclencheur Cron (refusé tant que CRON_SECRET n'est pas configuré)
+  {
+    const expectedAuth = cronSecret ? `Bearer ${cronSecret}` : null;
+    if (!expectedAuth || authHeader !== expectedAuth) {
       return NextResponse.json(
         { error: "Non autorisé : clé secrète Cron invalide." },
         { status: 401 }

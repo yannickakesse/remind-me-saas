@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
@@ -46,6 +48,7 @@ const VARIANT_CLASSES: Record<ToastVariant, string> = {
 const DEFAULT_DURATION_MS = 4000;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const { tr } = useLanguage();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(0);
 
@@ -101,7 +104,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <div
               className="fixed bottom-20 sm:bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-[70] flex flex-col gap-2.5 sm:max-w-md pointer-events-none"
               role="region"
-              aria-label="Notifications"
+              aria-label={tr("Notifications")}
             >
               {toasts.map((t) => (
                 <div
@@ -137,7 +140,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   <button
                     type="button"
                     onClick={() => remove(t.id)}
-                    aria-label="Fermer la notification"
+                    aria-label={tr("Fermer la notification")}
                     className="shrink-0 opacity-70 hover:opacity-100 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4" />

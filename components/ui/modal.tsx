@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
@@ -22,6 +24,7 @@ interface ModalProps {
  * tout futur formulaire en modale.
  */
 export function Modal({ open, onClose, title, description, children, maxWidthClassName = "max-w-md" }: ModalProps) {
+  const { tr } = useLanguage();
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
@@ -70,7 +73,7 @@ export function Modal({ open, onClose, title, description, children, maxWidthCla
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={tr("Fermer")}
             className="shrink-0 rounded-lg p-1 text-ink-500 hover:bg-ink-100 hover:text-ink-950 transition-colors"
           >
             <X className="w-5 h-5" />

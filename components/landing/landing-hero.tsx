@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -13,6 +15,7 @@ import {
 } from "lucide-react";
 
 export function LandingHero() {
+  const { tr } = useLanguage();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -186,7 +189,7 @@ export function LandingHero() {
         <div className="flex justify-center mb-6 sm:mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white dark:bg-canvas-raised border border-ink-200/80 dark:border-ink-800 shadow-xs text-xs font-semibold text-ink-900 dark:text-ink-100">
             <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-            <span>Votre organisation en toute clarté.</span>
+            <span>{tr("Votre organisation en toute clarté.")}</span>
           </div>
         </div>
 
@@ -195,9 +198,9 @@ export function LandingHero() {
           {/* Mobile : taille fluide calée sur la ligne la plus longue (~11,75em)
               pour conserver exactement 3 lignes en pyramide inversée. */}
           <h1 className="text-[clamp(1.5rem,calc((100vw_-_2rem)/11.85),3rem)] whitespace-nowrap sm:whitespace-normal sm:text-5xl md:text-6xl lg:text-[68px] font-black tracking-tight text-ink-950 dark:text-white leading-[1.08] font-sans">
-            <span className="block">Gérez votre travail, votre</span>
-            <span className="block">temps et votre argent.</span>
-            <span className="block">En parfait contrôle.</span>
+            <span className="block">{tr("Gérez votre travail, votre")}</span>
+            <span className="block">{tr("temps et votre argent.")}</span>
+            <span className="block">{tr("En parfait contrôle.")}</span>
           </h1>
         </div>
 
@@ -206,10 +209,7 @@ export function LandingHero() {
           {/* Accent décoratif conservé uniquement à partir de sm (retiré sur mobile) */}
           <div className="hidden sm:block w-2.5 h-2.5 bg-amber-500 mb-6 rounded-xs" />
           <p className="text-[17px] sm:text-lg md:text-xl text-ink-700 dark:text-ink-300 max-w-2xl sm:max-w-3xl mx-auto text-center leading-relaxed font-normal">
-            Un espace intelligent pour organiser vos activités, maîtriser vos échéances,
-            détecter les conflits d&apos;agenda et garder une vision limpide de vos finances.
-            Sans éparpillement.
-          </p>
+            {tr("Un espace intelligent pour organiser vos activités, maîtriser vos échéances, détecter les conflits d'agenda et garder une vision limpide de vos finances. Sans éparpillement.")}</p>
         </div>
 
         {/* Bouton d'action principal unique fidèle à l'image */}
@@ -218,7 +218,7 @@ export function LandingHero() {
             href="/register"
             className="inline-flex items-center justify-center gap-2 px-8 py-3.5 sm:px-9 sm:py-4 rounded-full bg-[#F59E0B] hover:bg-amber-400 text-slate-950 font-bold text-base sm:text-lg shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/35 transition-all duration-150 active:scale-[0.98] group cursor-pointer"
           >
-            <span>Commencer gratuitement</span>
+            <span>{tr("Commencer gratuitement")}</span>
             <span className="font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
           </Link>
         </div>
@@ -247,8 +247,7 @@ export function LandingHero() {
                 poster="/brand/hero-reference.jpg"
               >
                 <source src="/remindme-intro.mp4" type="video/mp4" />
-                Votre navigateur ne prend pas en charge la lecture de vidéos HTML5.
-              </video>
+                {tr("Votre navigateur ne prend pas en charge la lecture de vidéos HTML5.")}</video>
 
               {/* Bouton de lecture central visible si en pause */}
               {!isPlaying && (
@@ -260,13 +259,12 @@ export function LandingHero() {
                       togglePlay();
                     }}
                     className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-signal text-white flex items-center justify-center shadow-xl shadow-signal/40 hover:scale-105 active:scale-95 transition-all cursor-pointer ring-4 ring-white/30"
-                    aria-label="Lire la vidéo"
+                    aria-label={tr("Lire la vidéo")}
                   >
                     <Play className="w-8 h-8 sm:w-9 sm:h-9 ml-1 fill-white" />
                   </button>
                   <span className="mt-3.5 text-xs sm:text-sm font-medium text-white/90 drop-shadow">
-                    Découvrir Remind Me en 45 secondes
-                  </span>
+                    {tr("Découvrir Remind Me en 45 secondes")}</span>
                 </div>
               )}
 
@@ -283,17 +281,17 @@ export function LandingHero() {
                     ? "bg-slate-950/80 hover:bg-slate-950 text-white border-white/20"
                     : "bg-signal text-white border-white/30"
                 }`}
-                aria-label={isMuted ? "Activer le son" : "Couper le son"}
+                aria-label={isMuted ? tr("Activer le son") : tr("Couper le son")}
               >
                 {isMuted ? (
                   <>
                     <VolumeX className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Activer le son</span>
+                    <span>{tr("Activer le son")}</span>
                   </>
                 ) : (
                   <>
                     <Volume2 className="w-3.5 h-3.5 text-white" />
-                    <span>Son activé</span>
+                    <span>{tr("Son activé")}</span>
                   </>
                 )}
               </button>
@@ -316,7 +314,7 @@ export function LandingHero() {
                   onChange={handleSeek}
                   onClick={(e) => e.stopPropagation()}
                   className="w-full h-1 sm:h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-amber-500 hover:h-2 transition-all"
-                  aria-label="Position de lecture"
+                  aria-label={tr("Position de lecture")}
                 />
               </div>
 
@@ -342,7 +340,7 @@ export function LandingHero() {
                       restartVideo();
                     }}
                     className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-                    title="Recommencer"
+                    title={tr("Recommencer")}
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                   </button>
@@ -355,7 +353,7 @@ export function LandingHero() {
                       toggleMute();
                     }}
                     className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-                    aria-label={isMuted ? "Activer le son" : "Couper le son"}
+                    aria-label={isMuted ? tr("Activer le son") : tr("Couper le son")}
                   >
                     {isMuted ? <VolumeX className="w-4 h-4 text-amber-400" /> : <Volume2 className="w-4 h-4" />}
                   </button>
@@ -367,8 +365,7 @@ export function LandingHero() {
 
                 <div className="flex items-center gap-2">
                   <span className="hidden sm:inline text-[11px] text-white/60 font-medium">
-                    Remind Me Motion Preview
-                  </span>
+                    {tr("Remind Me Motion Preview")}</span>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -376,7 +373,7 @@ export function LandingHero() {
                       toggleFullscreen();
                     }}
                     className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-                    title="Plein écran"
+                    title={tr("Plein écran")}
                   >
                     <Maximize2 className="w-4 h-4" />
                   </button>

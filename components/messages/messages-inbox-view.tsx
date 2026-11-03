@@ -68,7 +68,7 @@ export function MessagesInboxView({
 
   const router = useRouter();
   const toast = useToast();
-  const { t, locale: contextLocale } = useLanguage();
+  const { t, locale: contextLocale , tr } = useLanguage();
   const currentLocale = (contextLocale || locale || "fr") as SupportedLocale;
 
   // Synchronisation continue lorsque les props initialItems sont rafraîchies par le serveur
@@ -174,7 +174,7 @@ export function MessagesInboxView({
               : it
           )
         );
-        toast.push("Revenu marqué comme encaissé avec succès !", "success");
+        toast.push(tr("Revenu marqué comme encaissé avec succès !"), "success");
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("remindme:finances-updated"));
           window.dispatchEvent(new CustomEvent("remindme:notifications-updated"));
@@ -183,7 +183,7 @@ export function MessagesInboxView({
         toast.push(res.error || "Erreur lors de l'encaissement.", "error");
       }
     } catch {
-      toast.push("Une erreur inattendue est survenue.", "error");
+      toast.push(tr("Une erreur inattendue est survenue."), "error");
     } finally {
       setLoadingActionId(null);
     }
@@ -208,7 +208,7 @@ export function MessagesInboxView({
               : it
           )
         );
-        toast.push("Dépense marquée comme payée !", "success");
+        toast.push(tr("Dépense marquée comme payée !"), "success");
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("remindme:finances-updated"));
           window.dispatchEvent(new CustomEvent("remindme:notifications-updated"));
@@ -217,7 +217,7 @@ export function MessagesInboxView({
         toast.push(res.error || "Erreur lors du règlement.", "error");
       }
     } catch {
-      toast.push("Une erreur inattendue est survenue.", "error");
+      toast.push(tr("Une erreur inattendue est survenue."), "error");
     } finally {
       setLoadingActionId(null);
     }
@@ -254,7 +254,7 @@ export function MessagesInboxView({
             return it;
           })
         );
-        toast.push("Échéance programmée réglée et enregistrée !", "success");
+        toast.push(tr("Échéance programmée réglée et enregistrée !"), "success");
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("remindme:finances-updated"));
           window.dispatchEvent(new CustomEvent("remindme:notifications-updated"));
@@ -263,7 +263,7 @@ export function MessagesInboxView({
         toast.push(res.error || "Erreur lors du règlement.", "error");
       }
     } catch {
-      toast.push("Une erreur inattendue est survenue.", "error");
+      toast.push(tr("Une erreur inattendue est survenue."), "error");
     } finally {
       setLoadingActionId(null);
     }
@@ -297,7 +297,7 @@ export function MessagesInboxView({
         toast.push(res.error || "Erreur lors du report.", "error");
       }
     } catch {
-      toast.push("Une erreur est survenue lors du report.", "error");
+      toast.push(tr("Une erreur est survenue lors du report."), "error");
     } finally {
       setLoadingActionId(null);
     }
@@ -331,7 +331,7 @@ export function MessagesInboxView({
         toast.push(res.error || "Erreur lors du report.", "error");
       }
     } catch {
-      toast.push("Une erreur est survenue lors du report.", "error");
+      toast.push(tr("Une erreur est survenue lors du report."), "error");
     } finally {
       setLoadingActionId(null);
     }
@@ -427,7 +427,7 @@ export function MessagesInboxView({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <SectionGuideTrigger section="messages" label="Guide de l'Inbox" />
+          <SectionGuideTrigger section="messages" label={tr("Guide de l'Inbox")} />
           <Link
             href="/finances"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-ink-200 dark:border-ink-700 bg-canvas dark:bg-ink-800 hover:bg-canvas-subtle dark:hover:bg-ink-700 text-xs font-semibold text-ink-700 dark:text-ink-200 transition-colors shadow-2xs"
@@ -508,38 +508,32 @@ export function MessagesInboxView({
           <>
             <div className="p-4 rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 shadow-2xs space-y-1">
               <span className="text-[11px] font-bold text-ink-500 uppercase tracking-wider">
-                À encaisser (Revenus)
-              </span>
+                {tr("À encaisser (Revenus)")}</span>
               <p className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">
                 {formatCurrencyLocale(totalIncomeTodo, activeCurrency, currentLocale)}
               </p>
               <p className="text-[11px] text-ink-400">
-                {items.filter((i) => i.tab === "todo" && i.kind === "income").length} paiement(s) échu(s)
-              </p>
+                {items.filter((i) => i.tab === "todo" && i.kind === "income").length} {tr("paiement(s) échu(s)")}</p>
             </div>
 
             <div className="p-4 rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 shadow-2xs space-y-1">
               <span className="text-[11px] font-bold text-ink-500 uppercase tracking-wider">
-                À régler (Dépenses)
-              </span>
+                {tr("À régler (Dépenses)")}</span>
               <p className="text-lg sm:text-xl font-black text-rose-600 dark:text-rose-400">
                 {formatCurrencyLocale(totalExpenseTodo, activeCurrency, currentLocale)}
               </p>
               <p className="text-[11px] text-ink-400">
-                {items.filter((i) => i.tab === "todo" && (i.kind === "expense" || i.kind === "scheduled_expense")).length} opération(s) à régler
-              </p>
+                {items.filter((i) => i.tab === "todo" && (i.kind === "expense" || i.kind === "scheduled_expense")).length} {tr("opération(s) à régler")}</p>
             </div>
 
             <div className="p-4 rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 shadow-2xs space-y-1">
               <span className="text-[11px] font-bold text-ink-500 uppercase tracking-wider">
-                Retards critiques
-              </span>
+                {tr("Retards critiques")}</span>
               <p className="text-lg sm:text-xl font-black text-amber-600 dark:text-amber-400">
                 {totalOverdueCount} retard{totalOverdueCount > 1 ? "s" : ""}
               </p>
               <p className="text-[11px] text-ink-400">
-                Nécessitent une action prioritaire
-              </p>
+                {tr("Nécessitent une action prioritaire")}</p>
             </div>
           </>
         )}
@@ -548,38 +542,32 @@ export function MessagesInboxView({
           <>
             <div className="p-4 rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 shadow-2xs space-y-1">
               <span className="text-[11px] font-bold text-ink-500 uppercase tracking-wider">
-                Revenus attendus
-              </span>
+                {tr("Revenus attendus")}</span>
               <p className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">
                 {formatCurrencyLocale(totalIncomePending, activeCurrency, currentLocale)}
               </p>
               <p className="text-[11px] text-ink-400">
-                Échéances futures confirmées
-              </p>
+                {tr("Échéances futures confirmées")}</p>
             </div>
 
             <div className="p-4 rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 shadow-2xs space-y-1">
               <span className="text-[11px] font-bold text-ink-500 uppercase tracking-wider">
-                Dépenses prévues
-              </span>
+                {tr("Dépenses prévues")}</span>
               <p className="text-lg sm:text-xl font-black text-rose-600 dark:text-rose-400">
                 {formatCurrencyLocale(totalExpensePending, activeCurrency, currentLocale)}
               </p>
               <p className="text-[11px] text-ink-400">
-                Charges et récurrences programmées
-              </p>
+                {tr("Charges et récurrences programmées")}</p>
             </div>
 
             <div className="p-4 rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 shadow-2xs space-y-1">
               <span className="text-[11px] font-bold text-ink-500 uppercase tracking-wider">
-                Volume en attente
-              </span>
+                {tr("Volume en attente")}</span>
               <p className="text-lg sm:text-xl font-black text-signal">
-                {pendingCount} échéance{pendingCount > 1 ? "s" : ""}
+                {pendingCount} {tr("échéance")}{pendingCount > 1 ? "s" : ""}
               </p>
               <p className="text-[11px] text-ink-400">
-                Prêtes pour traitement anticipé
-              </p>
+                {tr("Prêtes pour traitement anticipé")}</p>
             </div>
           </>
         )}
@@ -588,38 +576,32 @@ export function MessagesInboxView({
           <>
             <div className="p-4 rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 shadow-2xs space-y-1">
               <span className="text-[11px] font-bold text-ink-500 uppercase tracking-wider">
-                Total encaissé
-              </span>
+                {tr("Total encaissé")}</span>
               <p className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">
                 {formatCurrencyLocale(totalIncomeHistory, activeCurrency, currentLocale)}
               </p>
               <p className="text-[11px] text-ink-400">
-                Paiements reçus et validés
-              </p>
+                {tr("Paiements reçus et validés")}</p>
             </div>
 
             <div className="p-4 rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 shadow-2xs space-y-1">
               <span className="text-[11px] font-bold text-ink-500 uppercase tracking-wider">
-                Total réglé
-              </span>
+                {tr("Total réglé")}</span>
               <p className="text-lg sm:text-xl font-black text-ink-800 dark:text-ink-200">
                 {formatCurrencyLocale(totalExpenseHistory, activeCurrency, currentLocale)}
               </p>
               <p className="text-[11px] text-ink-400">
-                Dépenses et échéances réglées
-              </p>
+                {tr("Dépenses et échéances réglées")}</p>
             </div>
 
             <div className="p-4 rounded-2xl bg-canvas-raised dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 shadow-2xs space-y-1">
               <span className="text-[11px] font-bold text-ink-500 uppercase tracking-wider">
-                Opérations traitées
-              </span>
+                {tr("Opérations traitées")}</span>
               <p className="text-lg sm:text-xl font-black text-ink-900 dark:text-white">
                 {historyCount}
               </p>
               <p className="text-[11px] text-ink-400">
-                Historique hermétique et archivé
-              </p>
+                {tr("Historique hermétique et archivé")}</p>
             </div>
           </>
         )}
@@ -641,8 +623,7 @@ export function MessagesInboxView({
                 : "bg-canvas dark:bg-ink-800 text-ink-600 dark:text-ink-300 hover:bg-canvas-subtle"
             }`}
           >
-            Tous
-          </button>
+            {tr("Tous")}</button>
           <button
             type="button"
             onClick={() => setTypeFilter("income")}
@@ -653,7 +634,7 @@ export function MessagesInboxView({
             }`}
           >
             <TrendingUp className="w-3.5 h-3.5" />
-            <span>Revenus</span>
+            <span>{tr("Revenus")}</span>
           </button>
           <button
             type="button"
@@ -665,7 +646,7 @@ export function MessagesInboxView({
             }`}
           >
             <TrendingDown className="w-3.5 h-3.5" />
-            <span>Dépenses</span>
+            <span>{tr("Dépenses")}</span>
           </button>
           <button
             type="button"
@@ -677,7 +658,7 @@ export function MessagesInboxView({
             }`}
           >
             <Repeat className="w-3.5 h-3.5" />
-            <span>Programmées</span>
+            <span>{tr("Programmées")}</span>
           </button>
           <button
             type="button"
@@ -689,7 +670,7 @@ export function MessagesInboxView({
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
-            <span>Messages & Bilans</span>
+            <span>{tr("Messages & Bilans")}</span>
           </button>
         </div>
 
@@ -698,7 +679,7 @@ export function MessagesInboxView({
           <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-ink-400" />
           <input
             type="text"
-            placeholder="Rechercher par titre, libellé..."
+            placeholder={tr("Rechercher par titre, libellé...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-canvas dark:bg-ink-950 border border-ink-200 dark:border-ink-800 text-ink-950 dark:text-white placeholder:text-ink-400 focus:outline-none focus:border-signal"
@@ -719,19 +700,19 @@ export function MessagesInboxView({
             </div>
             <h3 className="text-base font-bold text-ink-900 dark:text-white">
               {search.trim()
-                ? "Aucun élément ne correspond à votre recherche"
+                ? tr("Aucun élément ne correspond à votre recherche")
                 : activeTab === "todo"
-                ? "Tout est à jour dans votre Inbox !"
+                ? tr("Tout est à jour dans votre Inbox !")
                 : activeTab === "pending"
-                ? "Aucune échéance future en attente"
-                : "Votre historique est vide pour le moment"}
+                ? tr("Aucune échéance future en attente")
+                : tr("Votre historique est vide pour le moment")}
             </h3>
             <p className="text-xs text-ink-500 max-w-md mx-auto leading-relaxed">
               {activeTab === "todo"
-                ? "Vous n'avez aucun paiement en retard, aucune dépense échue non réglée ni alerte urgente nécessitant votre intervention."
+                ? tr("Vous n'avez aucun paiement en retard, aucune dépense échue non réglée ni alerte urgente nécessitant votre intervention.")
                 : activeTab === "pending"
-                ? "Les futurs revenus attendus et les prochaines échéances de dépenses apparaîtront ici."
-                : "Toutes les opérations encaissées, dépenses réglées et communications archivées seront consultables ici."}
+                ? tr("Les futurs revenus attendus et les prochaines échéances de dépenses apparaîtront ici.")
+                : tr("Toutes les opérations encaissées, dépenses réglées et communications archivées seront consultables ici.")}
             </p>
           </div>
         ) : (
@@ -811,8 +792,8 @@ export function MessagesInboxView({
                         {item.kind === "income"
                           ? "Revenu"
                           : item.kind === "scheduled_expense"
-                          ? "Programmée"
-                          : "Dépense"}
+                          ? tr("Programmée")
+                          : tr("Dépense")}
                       </span>
                     </div>
                   )}
@@ -833,14 +814,14 @@ export function MessagesInboxView({
                           ) : (
                             <CheckCheck className="w-3.5 h-3.5" />
                           )}
-                          <span>Encaisser</span>
+                          <span>{tr("Encaisser")}</span>
                         </button>
 
                         <button
                           type="button"
                           disabled={isAnyLoading}
                           onClick={() => handlePostponeIncome(item.id, 7)}
-                          title="Reporter de 7 jours"
+                          title={tr("Reporter de 7 jours")}
                           className="px-2.5 py-2 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-canvas-subtle dark:hover:bg-ink-800 text-xs font-semibold text-ink-600 dark:text-ink-300 transition-colors cursor-pointer disabled:opacity-50"
                         >
                           +7j
@@ -861,7 +842,7 @@ export function MessagesInboxView({
                         ) : (
                           <CheckCircle2 className="w-3.5 h-3.5" />
                         )}
-                        <span>Régler</span>
+                        <span>{tr("Régler")}</span>
                       </button>
                     )}
 
@@ -881,14 +862,14 @@ export function MessagesInboxView({
                             ) : (
                               <Repeat className="w-3.5 h-3.5" />
                             )}
-                            <span>Régler l'échéance</span>
+                            <span>{tr("Régler l'échéance")}</span>
                           </button>
 
                           <button
                             type="button"
                             disabled={isAnyLoading}
                             onClick={() => handlePostponeScheduledExpense(item.id, 7)}
-                            title="Reporter de 7 jours"
+                            title={tr("Reporter de 7 jours")}
                             className="px-2.5 py-2 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-canvas-subtle dark:hover:bg-ink-800 text-xs font-semibold text-ink-600 dark:text-ink-300 transition-colors cursor-pointer disabled:opacity-50"
                           >
                             +7j
@@ -903,7 +884,7 @@ export function MessagesInboxView({
                         onClick={() => setSelectedMessage(item)}
                         className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-ink-200 dark:border-ink-700 hover:bg-canvas-subtle dark:hover:bg-ink-800 text-xs font-bold text-ink-800 dark:text-ink-200 transition-colors cursor-pointer"
                       >
-                        <span>Consulter</span>
+                        <span>{tr("Consulter")}</span>
                         <ChevronRight className="w-3.5 h-3.5 text-ink-400" />
                       </button>
                     )}
@@ -912,7 +893,7 @@ export function MessagesInboxView({
                     {item.status === "completed" && (
                       <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
                         <CheckCheck className="w-3.5 h-3.5" />
-                        <span>Enregistré</span>
+                        <span>{tr("Enregistré")}</span>
                       </span>
                     )}
                   </div>
@@ -937,7 +918,7 @@ export function MessagesInboxView({
                     {selectedMessage.sender || "Remind Me"}
                   </h3>
                   <span className="text-[11px] text-ink-400">
-                    Reçu le {selectedMessage.createdAt ? new Date(selectedMessage.createdAt).toLocaleDateString(currentLocale, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}
+                    {tr("Reçu le")}{" "}{selectedMessage.createdAt ? new Date(selectedMessage.createdAt).toLocaleDateString(currentLocale, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}
                   </span>
                 </div>
               </div>
@@ -956,22 +937,21 @@ export function MessagesInboxView({
                 {selectedMessage.title}
               </h2>
               <div className="p-4 rounded-2xl bg-canvas dark:bg-ink-950 border border-ink-100 dark:border-ink-800/80 text-sm text-ink-800 dark:text-ink-200 whitespace-pre-line leading-relaxed">
-                {selectedMessage.body || "Aucun contenu textuel disponible."}
+                {selectedMessage.body || tr("Aucun contenu textuel disponible.")}
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-ink-100 dark:border-ink-800 text-xs text-ink-400">
               <span className="inline-flex items-center gap-1 text-[11px]">
                 <ShieldCheck className="w-3.5 h-3.5 text-signal" />
-                <span>Communication certifiée Remind Me</span>
+                <span>{tr("Communication certifiée Remind Me")}</span>
               </span>
               <button
                 type="button"
                 onClick={() => setSelectedMessage(null)}
                 className="px-4 py-1.5 rounded-xl bg-ink-900 dark:bg-white text-white dark:text-ink-950 font-bold hover:bg-ink-800 dark:hover:bg-ink-100 transition-colors cursor-pointer"
               >
-                Fermer
-              </button>
+                {tr("Fermer")}</button>
             </div>
           </div>
         </div>

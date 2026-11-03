@@ -21,7 +21,7 @@ export function DashboardKpis({
   net,
   currency,
 }: DashboardKpisProps) {
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
 
   const totalIncomeForecast = incomeReceived + incomeExpected;
   const collectionRate =
@@ -38,11 +38,9 @@ export function DashboardKpis({
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300">
-              {t("nav.finances")} • Mois en cours
-            </h2>
+              {t("nav.finances")} {tr("• Mois en cours")}</h2>
             <p className="text-[10px] text-ink-500">
-              {collectionRate}% encaissé sur l&apos;objectif
-            </p>
+              {collectionRate}{tr("% encaissé sur l'objectif")}</p>
           </div>
         </div>
         <Link
@@ -58,7 +56,7 @@ export function DashboardKpis({
       {/* Mini jauge de complétion du mois */}
       <div className="p-3 rounded-2xl border border-ink-200/80 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-900/80 backdrop-blur-md shadow-2xs space-y-1.5">
         <div className="flex items-center justify-between text-[11px] font-semibold">
-          <span className="text-ink-600 dark:text-ink-400">Progression des encaissements</span>
+          <span className="text-ink-600 dark:text-ink-400">{tr("Progression des encaissements")}</span>
           <span className="text-signal font-mono font-bold">{collectionRate}%</span>
         </div>
         <div className="w-full h-2 rounded-full bg-ink-100 dark:bg-ink-800 overflow-hidden relative">
@@ -74,8 +72,8 @@ export function DashboardKpis({
         <StatCard
           label={t("dashboard.total_received")}
           value={formatAmount(incomeReceived, currency)}
-          helper="Argent déjà perçu"
-          badge="Réalisé"
+          helper={tr("Argent déjà perçu")}
+          badge={tr("Réalisé")}
           tone="positive"
           icon={TrendingUp}
         />
@@ -84,8 +82,8 @@ export function DashboardKpis({
         <StatCard
           label={t("dashboard.expenses_paid")}
           value={formatAmount(expensesPaid, currency)}
-          helper="Charges réglées"
-          badge="Réalisé"
+          helper={tr("Charges réglées")}
+          badge={tr("Réalisé")}
           tone="danger"
           icon={TrendingDown}
         />
@@ -94,8 +92,8 @@ export function DashboardKpis({
         <StatCard
           label={t("dashboard.net_balance")}
           value={formatAmount(net, currency)}
-          helper="Encaissé - Réglé"
-          badge={net >= 0 ? "Bénéfice" : "Déficit"}
+          helper={tr("Encaissé - Réglé")}
+          badge={net >= 0 ? tr("Bénéfice") : tr("Déficit")}
           tone={net >= 0 ? "positive" : "danger"}
           icon={Wallet}
         />
@@ -104,8 +102,8 @@ export function DashboardKpis({
         <StatCard
           label={t("dashboard.pending_payments")}
           value={formatAmount(incomeExpected, currency)}
-          helper="Factures à encaisser"
-          badge="En attente"
+          helper={tr("Factures à encaisser")}
+          badge={tr("En attente")}
           tone="warning"
           icon={Clock}
         />

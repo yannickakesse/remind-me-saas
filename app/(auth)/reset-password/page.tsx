@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -16,6 +18,7 @@ import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
  * une page sans session de récupération valide.
  */
 export default function ResetPasswordPage() {
+  const { tr } = useLanguage();
   const router = useRouter();
   const supabase = createClient();
 
@@ -81,13 +84,11 @@ export default function ResetPasswordPage() {
     return (
       <main className="flex min-h-screen items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
-          <h1 className="mb-2 text-2xl font-semibold text-ink-950">Lien invalide ou expiré</h1>
+          <h1 className="mb-2 text-2xl font-semibold text-ink-950">{tr("Lien invalide ou expiré")}</h1>
           <p className="mb-4 text-sm text-ink-500">
-            Ce lien de réinitialisation n'est plus valide. Demandez-en un nouveau.
-          </p>
+            {tr("Ce lien de réinitialisation n'est plus valide. Demandez-en un nouveau.")}</p>
           <Link href="/forgot-password" className="text-sm font-medium text-signal hover:underline">
-            Redemander un lien
-          </Link>
+            {tr("Redemander un lien")}</Link>
         </div>
       </main>
     );
@@ -97,8 +98,8 @@ export default function ResetPasswordPage() {
     return (
       <main className="flex min-h-screen items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
-          <h1 className="mb-2 text-2xl font-semibold text-ink-950">Mot de passe mis à jour</h1>
-          <p className="text-sm text-ink-500">Redirection vers votre tableau de bord...</p>
+          <h1 className="mb-2 text-2xl font-semibold text-ink-950">{tr("Mot de passe mis à jour")}</h1>
+          <p className="text-sm text-ink-500">{tr("Redirection vers votre tableau de bord...")}</p>
         </div>
       </main>
     );
@@ -107,7 +108,7 @@ export default function ResetPasswordPage() {
   if (!ready) {
     return (
       <main className="flex min-h-screen items-center justify-center px-4">
-        <p className="text-sm text-ink-500">Vérification du lien...</p>
+        <p className="text-sm text-ink-500">{tr("Vérification du lien...")}</p>
       </main>
     );
   }
@@ -115,11 +116,11 @@ export default function ResetPasswordPage() {
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <h1 className="mb-1 text-2xl font-semibold text-ink-950">Nouveau mot de passe</h1>
-        <p className="mb-6 text-sm text-ink-500">Choisissez un nouveau mot de passe pour votre compte.</p>
+        <h1 className="mb-1 text-2xl font-semibold text-ink-950">{tr("Nouveau mot de passe")}</h1>
+        <p className="mb-6 text-sm text-ink-500">{tr("Choisissez un nouveau mot de passe pour votre compte.")}</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-          <Field label="Nouveau mot de passe" htmlFor="newPassword" error={fieldErrors.newPassword}>
+          <Field label={tr("Nouveau mot de passe")} htmlFor="newPassword" error={fieldErrors.newPassword}>
             <TextInput
               id="newPassword"
               type="password"
@@ -129,7 +130,7 @@ export default function ResetPasswordPage() {
             />
           </Field>
 
-          <Field label="Confirmer le mot de passe" htmlFor="confirmPassword" error={fieldErrors.confirmPassword}>
+          <Field label={tr("Confirmer le mot de passe")} htmlFor="confirmPassword" error={fieldErrors.confirmPassword}>
             <TextInput
               id="confirmPassword"
               type="password"
@@ -146,7 +147,7 @@ export default function ResetPasswordPage() {
           ) : null}
 
           <PrimaryButton type="submit" disabled={loading}>
-            {loading ? "Enregistrement..." : "Enregistrer le mot de passe"}
+            {loading ? "Enregistrement..." : tr("Enregistrer le mot de passe")}
           </PrimaryButton>
         </form>
       </div>

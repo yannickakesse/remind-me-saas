@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
@@ -32,6 +34,7 @@ export function ExpenseForm({
   initial,
   submitLabel = "Enregistrer la dépense",
 }: ExpenseFormProps) {
+  const { tr } = useLanguage();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -61,18 +64,18 @@ export function ExpenseForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-5">
-      <Field label="Libellé de la dépense *" htmlFor="label">
+      <Field label={tr("Libellé de la dépense *")} htmlFor="label">
         <TextInput
           id="label"
           name="label"
           defaultValue={initial?.label}
-          placeholder="Ex : Loyer, Abonnement, Matériel, Transport, Déjeuner..."
+          placeholder={tr("Ex : Loyer, Abonnement, Matériel, Transport, Déjeuner...")}
           required
         />
       </Field>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Catégorie *" htmlFor="category">
+        <Field label={tr("Catégorie *")} htmlFor="category">
           <select
             id="category"
             name="category"
@@ -87,14 +90,14 @@ export function ExpenseForm({
           </select>
         </Field>
 
-        <Field label="Activité liée (optionnel)" htmlFor="activityId">
+        <Field label={tr("Activité liée (optionnel)")} htmlFor="activityId">
           <select
             id="activityId"
             name="activityId"
             defaultValue={initial?.activityId ?? ""}
             className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
           >
-            <option value="">Aucune — dépense générale</option>
+            <option value="">{tr("Aucune — dépense générale")}</option>
             {activities.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
@@ -106,7 +109,7 @@ export function ExpenseForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="sm:col-span-2">
-          <Field label="Montant *" htmlFor="amount">
+          <Field label={tr("Montant *")} htmlFor="amount">
             <TextInput
               id="amount"
               name="amount"
@@ -121,7 +124,7 @@ export function ExpenseForm({
           </Field>
         </div>
         <div>
-          <Field label="Devise *" htmlFor="currency">
+          <Field label={tr("Devise *")} htmlFor="currency">
             <select
               id="currency"
               name="currency"
@@ -149,16 +152,14 @@ export function ExpenseForm({
           className="w-4 h-4 rounded text-signal focus:ring-signal"
         />
         <label htmlFor="paid" className="text-xs font-semibold text-ink-900 dark:text-ink-100 cursor-pointer">
-          Dépense déjà payée / réglée au comptant
-          <span className="block text-[11px] font-normal text-ink-500">
-            Décocher si la facture est en attente de règlement à l'échéance.
-          </span>
+          {tr("Dépense déjà payée / réglée au comptant")}<span className="block text-[11px] font-normal text-ink-500">
+            {tr("Décocher si la facture est en attente de règlement à l'échéance.")}</span>
         </label>
       </div>
 
       {/* Date et Moyen de paiement */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Date d'échéance ou de paiement" htmlFor="dueDate">
+        <Field label={tr("Date d'échéance ou de paiement")} htmlFor="dueDate">
           <TextInput
             id="dueDate"
             name="dueDate"
@@ -167,7 +168,7 @@ export function ExpenseForm({
           />
         </Field>
 
-        <Field label="Moyen de paiement" htmlFor="paymentMethod">
+        <Field label={tr("Moyen de paiement")} htmlFor="paymentMethod">
           <select
             id="paymentMethod"
             name="paymentMethod"
@@ -186,8 +187,7 @@ export function ExpenseForm({
       {/* Qualification Pro / Perso / Mixte */}
       <div className="rounded-xl border border-ink-200 bg-canvas/40 p-4 space-y-3">
         <label className="block text-xs font-semibold text-ink-900 uppercase tracking-wide">
-          Affectation de la dépense
-        </label>
+          {tr("Affectation de la dépense")}</label>
         <div className="grid grid-cols-3 gap-2">
           {[
             { value: "personal", label: "Personnelle (100% perso)" },
@@ -223,8 +223,8 @@ export function ExpenseForm({
         {expenseType === "mixed" ? (
           <div className="pt-2">
             <div className="flex justify-between text-xs text-ink-700 mb-1">
-              <span>Part professionnelle déductible</span>
-              <strong>{businessPercentage}% pro</strong>
+              <span>{tr("Part professionnelle déductible")}</span>
+              <strong>{businessPercentage}{tr("% pro")}</strong>
             </div>
             <input
               type="range"
@@ -255,8 +255,7 @@ export function ExpenseForm({
           disabled={submitting}
           className="rounded-lg border border-ink-300 px-4 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50 transition-colors disabled:opacity-50"
         >
-          Annuler
-        </button>
+          {tr("Annuler")}</button>
         <PrimaryButton type="submit" loading={submitting} disabled={submitting} className="w-auto px-6">
           {submitting ? "Enregistrement..." : submitLabel}
         </PrimaryButton>

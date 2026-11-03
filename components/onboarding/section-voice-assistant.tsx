@@ -74,7 +74,7 @@ const SECTION_LABELS: Record<string, Record<string, string>> = {
  */
 export function SectionVoiceAssistant() {
   const pathname = usePathname();
-  const { locale } = useLanguage();
+  const { locale , tr } = useLanguage();
   const [currentNarratingSection, setCurrentNarratingSection] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const assistantTokenRef = useRef(0);
@@ -298,7 +298,7 @@ export function SectionVoiceAssistant() {
       type="button"
       onClick={() => (isSpeaking ? handleStop() : speakSection(pageSection, true))}
       title={isSpeaking ? `Arrêter le guide vocal — ${sectionLabel}` : `Écouter le guide vocal — ${sectionLabel}`}
-      aria-label={isSpeaking ? "Arrêter le guide vocal" : "Écouter le guide vocal de cette page"}
+      aria-label={isSpeaking ? tr("Arrêter le guide vocal") : tr("Écouter le guide vocal de cette page")}
       aria-pressed={isSpeaking}
       className={`fixed right-4 sm:right-6 bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:bottom-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-canvas-raised dark:bg-slate-900 shadow-lg transition-all duration-200 hover:-translate-y-0.5 active:scale-90 cursor-pointer select-none print:hidden ${
         isSpeaking ? "border-signal shadow-signal/30 ring-4 ring-signal/20" : "border-signal/40 hover:border-signal"

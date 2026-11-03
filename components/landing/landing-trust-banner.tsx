@@ -4,7 +4,7 @@ import { Layers, CalendarCheck2, Wallet, BellRing } from "lucide-react";
 import { useLanguage } from "@/components/i18n/language-provider";
 
 export function LandingTrustBanner() {
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
 
   const pillars = [
     {
@@ -39,8 +39,7 @@ export function LandingTrustBanner() {
         {/* Subtle section label */}
         <div className="text-center mb-8 sm:mb-10">
           <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 font-mono">
-            Conçu pour les professionnels qui refusent le compromis entre rigueur et sérénité
-          </p>
+            {tr("Conçu pour les professionnels qui refusent le compromis entre rigueur et sérénité")}</p>
         </div>
 
         {/* 4 Pillars Grid */}

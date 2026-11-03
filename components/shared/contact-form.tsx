@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
@@ -23,6 +25,7 @@ export function ContactForm({
   initial,
   submitLabel = "Créer le contact",
 }: ContactFormProps) {
+  const { tr } = useLanguage();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -47,18 +50,18 @@ export function ContactForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-5">
-      <Field label="Nom du contact" htmlFor="name">
+      <Field label={tr("Nom du contact")} htmlFor="name">
         <TextInput id="name" name="name" defaultValue={initial?.name} required />
       </Field>
 
-      <Field label="Organisation (optionnel)" htmlFor="organizationId">
+      <Field label={tr("Organisation (optionnel)")} htmlFor="organizationId">
         <select
           id="organizationId"
           name="organizationId"
           defaultValue={initial?.organizationId ?? ""}
           className="w-full rounded-md border border-ink-300 bg-canvas-raised px-3 py-2 text-ink-950"
         >
-          <option value="">Aucune — contact indépendant</option>
+          <option value="">{tr("Aucune — contact indépendant")}</option>
           {organizations.map((o) => (
             <option key={o.id} value={o.id}>
               {o.name}
@@ -68,15 +71,15 @@ export function ContactForm({
       </Field>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Téléphone (optionnel)" htmlFor="phone">
+        <Field label={tr("Téléphone (optionnel)")} htmlFor="phone">
           <TextInput id="phone" name="phone" type="tel" defaultValue={initial?.phone} />
         </Field>
-        <Field label="Email (optionnel)" htmlFor="email">
+        <Field label={tr("Email (optionnel)")} htmlFor="email">
           <TextInput id="email" name="email" type="email" defaultValue={initial?.email} />
         </Field>
       </div>
 
-      <Field label="Notes (optionnel)" htmlFor="notes">
+      <Field label={tr("Notes (optionnel)")} htmlFor="notes">
         <textarea
           id="notes"
           name="notes"
@@ -99,8 +102,7 @@ export function ContactForm({
           disabled={submitting}
           className="rounded-md border border-ink-300 px-4 py-2.5 font-medium text-ink-700 hover:bg-ink-50 transition-colors disabled:opacity-50"
         >
-          Annuler
-        </button>
+          {tr("Annuler")}</button>
         <PrimaryButton type="submit" loading={submitting} disabled={submitting} className="w-auto px-6">
           {submitting ? "Enregistrement..." : submitLabel}
         </PrimaryButton>

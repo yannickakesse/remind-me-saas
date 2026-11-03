@@ -1,15 +1,17 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { Trophy, AlertTriangle, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
 import type { ActivityProfitability } from "@/lib/reports/profitability";
 
 export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }) {
+  const { tr } = useLanguage();
   if (items.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-ink-300 dark:border-ink-800 bg-canvas-raised/50 p-8 text-center text-sm text-ink-500">
-        Aucune donnée d'activité disponible sur la période sélectionnée.
-      </div>
+        {tr("Aucune donnée d'activité disponible sur la période sélectionnée.")}</div>
     );
   }
 
@@ -42,12 +44,10 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
 
                 {row.isTopPerformer ? (
                   <span className="rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 text-[10px] font-bold px-2.5 py-0.5 shrink-0 inline-flex items-center gap-1 border border-amber-300 dark:border-amber-800 shadow-2xs">
-                    <Trophy className="w-3 h-3 text-amber-600" /> Top Rentabilité
-                  </span>
+                    <Trophy className="w-3 h-3 text-amber-600" /> {tr("Top Rentabilité")}</span>
                 ) : !isProfit ? (
                   <span className="rounded-full bg-danger-soft text-danger text-[10px] font-bold px-2 py-0.5 shrink-0 inline-flex items-center gap-1 border border-danger/30">
-                    <AlertTriangle className="w-3 h-3" /> En Perte
-                  </span>
+                    <AlertTriangle className="w-3 h-3" /> {tr("En Perte")}</span>
                 ) : null}
               </div>
 
@@ -55,8 +55,7 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
               <div className="grid grid-cols-2 gap-3 text-xs pt-2 border-t border-ink-100 dark:border-ink-800">
                 <div className="space-y-0.5">
                   <span className="text-[10px] uppercase font-bold text-ink-500 flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3 text-positive" /> Encaissés
-                  </span>
+                    <TrendingUp className="w-3 h-3 text-positive" /> {tr("Encaissés")}</span>
                   <div className="font-bold font-mono tabular-nums text-ink-950 dark:text-white text-sm">
                     {formatAmount(row.incomeReceived, row.currency)}
                   </div>
@@ -69,22 +68,19 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
 
                 <div className="space-y-0.5 text-right">
                   <span className="text-[10px] uppercase font-bold text-ink-500 flex items-center justify-end gap-1">
-                    <TrendingDown className="w-3 h-3 text-danger" /> Dépenses
-                  </span>
+                    <TrendingDown className="w-3 h-3 text-danger" /> {tr("Dépenses")}</span>
                   <div className="font-bold font-mono tabular-nums text-ink-950 dark:text-white text-sm">
                     {formatAmount(row.expensesPaid, row.currency)}
                   </div>
                   {row.expensesPlanned > 0 ? (
                     <span className="text-[10px] font-medium text-ink-500">
-                      +{formatAmount(row.expensesPlanned, row.currency)} prévues
-                    </span>
+                      +{formatAmount(row.expensesPlanned, row.currency)} {tr("prévues")}</span>
                   ) : null}
                 </div>
 
                 <div className="space-y-0.5 pt-1">
                   <span className="text-[10px] uppercase font-bold text-ink-500">
-                    Solde Réel (Net)
-                  </span>
+                    {tr("Solde Réel (Net)")}</span>
                   <div
                     className={`font-bold font-mono tabular-nums text-sm ${
                       isProfit ? "text-emerald-600 dark:text-emerald-400" : "text-danger"
@@ -96,8 +92,7 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
 
                 <div className="space-y-0.5 text-right pt-1">
                   <span className="text-[10px] uppercase font-bold text-ink-500 flex items-center justify-end gap-1">
-                    <Clock className="w-3 h-3 text-signal" /> Rentabilité / h
-                  </span>
+                    <Clock className="w-3 h-3 text-signal" /> {tr("Rentabilité / h")}</span>
                   <div>
                     {row.hourlyRate !== null ? (
                       <span

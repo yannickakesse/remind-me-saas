@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
+import { useLanguage } from "@/components/i18n/language-provider";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardKpis } from "@/components/dashboard/dashboard-kpis";
 import { TodayFocus } from "@/components/dashboard/today-focus";
@@ -9,6 +10,7 @@ import { TodayFocus } from "@/components/dashboard/today-focus";
 // Aperçu du VRAI tableau de bord Remind Me : mêmes composants que dans l'application,
 // alimentés par un jeu de données de démonstration (non cliquable).
 export function LandingDashboardPreview() {
+  const { locale } = useLanguage();
   // Rendu après montage : les créneaux de démo dépendent de l'heure locale du visiteur
   const [demo, setDemo] = useState<ReturnType<typeof buildDemo> | null>(null);
   useEffect(() => setDemo(buildDemo()), []);
@@ -39,7 +41,7 @@ export function LandingDashboardPreview() {
               todayEvents={demo.events}
               urgentTasks={demo.tasks}
               timezone={demo.timezone}
-              locale="fr"
+              locale={locale}
               todayIso={demo.todayIso}
             />
           </>

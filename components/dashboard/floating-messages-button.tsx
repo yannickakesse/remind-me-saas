@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useEffect } from "react";
 import { Inbox, Sparkles } from "lucide-react";
 import { InternalMessenger } from "@/components/messages/internal-messenger";
@@ -15,6 +17,7 @@ export function FloatingMessagesButton({
   timezone = "UTC",
   locale = "fr",
 }: FloatingMessagesButtonProps) {
+  const { tr } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
 
@@ -52,7 +55,7 @@ export function FloatingMessagesButton({
           type="button"
           onClick={() => setIsOpen(true)}
           className="group relative flex items-center gap-2.5 px-4 py-3.5 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-bold shadow-xl shadow-amber-500/25 hover:shadow-amber-500/40 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer border border-amber-300/40"
-          aria-label="Ouvrir l'Inbox Remind Me"
+          aria-label={tr("Ouvrir l'Inbox Remind Me")}
         >
           <div className="relative">
             <Inbox className="w-5 h-5 text-slate-950 transition-transform group-hover:rotate-6" />
@@ -64,8 +67,7 @@ export function FloatingMessagesButton({
           </div>
 
           <span className="text-xs sm:text-sm font-extrabold tracking-tight hidden sm:inline">
-            Inbox
-          </span>
+            {tr("Inbox")}</span>
 
           {unreadCount > 0 && (
             <span className="sm:hidden text-xs font-black bg-slate-950 text-amber-400 px-1.5 py-0.5 rounded-full">

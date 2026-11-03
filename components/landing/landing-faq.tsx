@@ -1,9 +1,12 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { ChevronDown, HelpCircle } from "lucide-react";
 
 export function LandingFAQ() {
+  const { tr } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const faqs = [
@@ -39,14 +42,11 @@ export function LandingFAQ() {
         {/* Section Header */}
         <div className="text-center mb-14 sm:mb-18">
           <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3.5 py-1.5 rounded-full border border-amber-500/20">
-            Questions Fréquentes
-          </span>
+            {tr("Questions Fréquentes")}</span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-ink-950 dark:text-white mt-4 tracking-tight font-sans">
-            Tout ce que vous devez savoir.
-          </h2>
+            {tr("Tout ce que vous devez savoir.")}</h2>
           <p className="text-base sm:text-lg text-ink-600 dark:text-ink-300 mt-4 leading-relaxed">
-            Des réponses claires basées sur le fonctionnement réel de Remind Me.
-          </p>
+            {tr("Des réponses claires basées sur le fonctionnement réel de Remind Me.")}</p>
         </div>
 
         {/* Accordion */}

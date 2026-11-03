@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -53,6 +55,7 @@ export function QuickTransactionModal({
   ],
   defaultCurrency = "XOF",
 }: QuickTransactionModalProps) {
+  const { tr } = useLanguage();
   const router = useRouter();
   const toast = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -137,12 +140,12 @@ export function QuickTransactionModal({
 
     const numAmount = parseFloat(amount.replace(",", "."));
     if (isNaN(numAmount) || numAmount <= 0) {
-      setError("Veuillez renseigner un montant valide supérieur à 0.");
+      setError(tr("Veuillez renseigner un montant valide supérieur à 0."));
       return;
     }
 
     if (!label.trim()) {
-      setError("Veuillez indiquer un libellé ou une description.");
+      setError(tr("Veuillez indiquer un libellé ou une description."));
       return;
     }
 
@@ -268,7 +271,7 @@ export function QuickTransactionModal({
               }`}
             >
               <TrendingDown className="w-3.5 h-3.5" />
-              <span>Dépense</span>
+              <span>{tr("Dépense")}</span>
             </button>
 
             <button
@@ -284,7 +287,7 @@ export function QuickTransactionModal({
               }`}
             >
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>Revenu</span>
+              <span>{tr("Revenu")}</span>
             </button>
 
             <button
@@ -300,14 +303,14 @@ export function QuickTransactionModal({
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
-              <span>Récurrente</span>
+              <span>{tr("Récurrente")}</span>
             </button>
           </div>
 
           <button
             type="button"
             onClick={() => !submitting && setIsOpen(false)}
-            aria-label="Fermer"
+            aria-label={tr("Fermer")}
             className="p-2 rounded-xl text-ink-400 hover:text-ink-700 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0"
           >
             <X className="w-5 h-5" />
@@ -326,8 +329,7 @@ export function QuickTransactionModal({
           {/* CHAMP 1 : MONTANT & DEVISE (Hero Input) */}
           <div className="bg-canvas/80 dark:bg-ink-950/60 p-4 rounded-2xl border border-ink-200/80 dark:border-ink-800/80 space-y-2">
             <label htmlFor="quick-amount" className="block text-[11px] font-bold uppercase tracking-wider text-ink-500">
-              Montant de la transaction *
-            </label>
+              {tr("Montant de la transaction *")}</label>
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <input
@@ -345,7 +347,7 @@ export function QuickTransactionModal({
               </div>
 
               <select
-                aria-label="Devise de la transaction"
+                aria-label={tr("Devise de la transaction")}
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
                 className="px-2.5 py-1.5 rounded-xl border border-ink-300 dark:border-ink-700 bg-canvas-raised dark:bg-ink-900 text-xs font-extrabold text-ink-900 dark:text-ink-100 focus:outline-none focus:border-signal shrink-0 shadow-2xs"
@@ -362,8 +364,7 @@ export function QuickTransactionModal({
           {/* CHAMP 2 : LIBELLÉ / DESCRIPTION */}
           <div>
             <label htmlFor="quick-label" className="block text-xs font-bold text-ink-700 dark:text-ink-300 mb-1">
-              Libellé ou description *
-            </label>
+              {tr("Libellé ou description *")}</label>
             <input
               id="quick-label"
               type="text"
@@ -371,10 +372,10 @@ export function QuickTransactionModal({
               onChange={(e) => setLabel(e.target.value)}
               placeholder={
                 activeTab === "expense"
-                  ? "Ex : Déjeuner d'affaires, Fournitures, Taxi, Carburant..."
+                  ? tr("Ex : Déjeuner d'affaires, Fournitures, Taxi, Carburant...")
                   : activeTab === "income"
-                  ? "Ex : Acompte mission, Facture client, Coaching..."
-                  : "Ex : Loyer bureau, Abonnement Figma, Électricité..."
+                  ? tr("Ex : Acompte mission, Facture client, Coaching...")
+                  : tr("Ex : Loyer bureau, Abonnement Figma, Électricité...")
               }
               required
               className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-300 dark:border-ink-700 bg-canvas dark:bg-ink-950 text-ink-950 dark:text-white focus:outline-none focus:border-signal transition-colors min-h-[44px]"
@@ -385,8 +386,7 @@ export function QuickTransactionModal({
           {activeTab !== "income" && (
             <div>
               <label htmlFor="quick-category" className="block text-xs font-bold text-ink-700 dark:text-ink-300 mb-1">
-                Catégorie *
-              </label>
+                {tr("Catégorie *")}</label>
               <select
                 id="quick-category"
                 value={category}
@@ -406,20 +406,19 @@ export function QuickTransactionModal({
           {activeTab === "scheduled" && (
             <div>
               <label htmlFor="quick-frequency" className="block text-xs font-bold text-ink-700 dark:text-ink-300 mb-1">
-                Fréquence de répétition *
-              </label>
+                {tr("Fréquence de répétition *")}</label>
               <select
                 id="quick-frequency"
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-300 dark:border-ink-700 bg-canvas dark:bg-ink-950 text-ink-950 dark:text-white focus:outline-none focus:border-signal font-semibold min-h-[44px]"
               >
-                <option value="monthly">Mensuelle (tous les mois)</option>
-                <option value="weekly">Hebdomadaire (chaque semaine)</option>
-                <option value="quarterly">Trimestrielle (tous les 3 mois)</option>
-                <option value="yearly">Annuelle (une fois par an)</option>
-                <option value="daily">Quotidienne (tous les jours)</option>
-                <option value="once">Ponctuelle programmée</option>
+                <option value="monthly">{tr("Mensuelle (tous les mois)")}</option>
+                <option value="weekly">{tr("Hebdomadaire (chaque semaine)")}</option>
+                <option value="quarterly">{tr("Trimestrielle (tous les 3 mois)")}</option>
+                <option value="yearly">{tr("Annuelle (une fois par an)")}</option>
+                <option value="daily">{tr("Quotidienne (tous les jours)")}</option>
+                <option value="once">{tr("Ponctuelle programmée")}</option>
               </select>
             </div>
           )}
@@ -428,7 +427,7 @@ export function QuickTransactionModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label htmlFor="quick-due-date" className="block text-xs font-bold text-ink-700 dark:text-ink-300 mb-1">
-                {activeTab === "scheduled" ? "Première échéance *" : "Date *"}
+                {activeTab === "scheduled" ? tr("Première échéance *") : tr("Date *")}
               </label>
               <input
                 id="quick-due-date"
@@ -443,8 +442,7 @@ export function QuickTransactionModal({
             {activeTab !== "scheduled" && (
               <div>
                 <label className="block text-xs font-bold text-ink-700 dark:text-ink-300 mb-1">
-                  Statut immédiat
-                </label>
+                  {tr("Statut immédiat")}</label>
                 <button
                   type="button"
                   onClick={() => setIsPaid(!isPaid)}
@@ -457,11 +455,11 @@ export function QuickTransactionModal({
                   <span>
                     {activeTab === "expense"
                       ? isPaid
-                        ? "✓ Payée (comptant)"
-                        : "⏳ À régler plus tard"
+                        ? tr("✓ Payée (comptant)")
+                        : tr("⏳ À régler plus tard")
                       : isPaid
-                      ? "✓ Déjà encaissé"
-                      : "⏳ En attente de paiement"}
+                      ? tr("✓ Déjà encaissé")
+                      : tr("⏳ En attente de paiement")}
                   </span>
                   <span className="text-[10px] underline uppercase tracking-wider">
                     {isPaid ? "Modifier" : "Modifier"}
@@ -474,15 +472,14 @@ export function QuickTransactionModal({
           {/* CHAMP 6 : ACTIVITÉ LIÉE (Optionnel) */}
           <div>
             <label htmlFor="quick-activity" className="block text-xs font-bold text-ink-700 dark:text-ink-300 mb-1">
-              Activité liée (optionnel)
-            </label>
+              {tr("Activité liée (optionnel)")}</label>
             <select
               id="quick-activity"
               value={activityId}
               onChange={(e) => setActivityId(e.target.value)}
               className="w-full px-3.5 py-2 text-sm rounded-xl border border-ink-300 dark:border-ink-700 bg-canvas dark:bg-ink-950 text-ink-950 dark:text-white focus:outline-none focus:border-signal min-h-[44px]"
             >
-              <option value="">Aucune — générale</option>
+              <option value="">{tr("Aucune — générale")}</option>
               {activities.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
@@ -499,8 +496,7 @@ export function QuickTransactionModal({
               onClick={() => setIsOpen(false)}
               className="flex-1 py-3 px-4 rounded-xl border border-ink-300 dark:border-ink-700 text-xs font-semibold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors min-h-[46px]"
             >
-              Annuler
-            </button>
+              {tr("Annuler")}</button>
 
             <button
               type="submit"
@@ -516,15 +512,15 @@ export function QuickTransactionModal({
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Enregistrement...</span>
+                  <span>{tr("Enregistrement...")}</span>
                 </>
               ) : (
                 <span>
                   {activeTab === "expense"
-                    ? "Enregistrer la dépense"
+                    ? tr("Enregistrer la dépense")
                     : activeTab === "income"
-                    ? "Enregistrer le revenu"
-                    : "Programmer la dépense"}
+                    ? tr("Enregistrer le revenu")
+                    : tr("Programmer la dépense")}
                 </span>
               )}
             </button>

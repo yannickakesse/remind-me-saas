@@ -16,7 +16,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,7 +74,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                 prefetch={true}
                 className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-950/20 hover:shadow transition-all duration-150 tap-active shrink-0"
               >
-                <span>Mon Cockpit</span>
+                <span>{tr("Mon Cockpit")}</span>
                 <ArrowRight className="w-3.5 h-3.5 shrink-0" />
               </Link>
             ) : (
@@ -84,15 +84,14 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                   prefetch={true}
                   className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold bg-[#00875A] hover:bg-emerald-700 text-white transition-colors shadow-xs shrink-0"
                 >
-                  Connexion
-                </Link>
+                  {tr("Connexion")}</Link>
                 {/* Masqué sur mobile : le CTA « Commencer gratuitement » du hero prend le relais */}
                 <Link
                   href="/register"
                   prefetch={true}
                   className="hidden sm:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#F59E0B] hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
                 >
-                  <span>Commencer</span>
+                  <span>{tr("Commencer")}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </>
@@ -105,8 +104,8 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             <button
               onClick={toggleTheme}
               className="hidden md:inline-flex p-1.5 sm:p-2 rounded-full text-ink-500 hover:text-ink-950 dark:text-ink-400 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0 cursor-pointer"
-              title={theme === "dark" ? "Mode clair" : "Mode sombre"}
-              aria-label="Changer le thème"
+              title={theme === "dark" ? tr("Mode clair") : tr("Mode sombre")}
+              aria-label={tr("Changer le thème")}
             >
               {theme === "dark" ? (
                 <Sun className="w-4 h-4" />
@@ -119,7 +118,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-1 sm:p-2 rounded-full text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0 cursor-pointer"
-              aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-label={mobileMenuOpen ? tr("Fermer le menu") : tr("Ouvrir le menu")}
               aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? (
@@ -148,18 +147,18 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
               ))}
             </nav>
             <div className="pt-2 border-t border-ink-100 dark:border-ink-800 flex items-center justify-between px-1">
-              <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">Langue :</span>
+              <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">{tr("Langue :")}</span>
               <LanguageSelector variant="pill" />
             </div>
             <div className="pt-2 border-t border-ink-100 dark:border-ink-800 flex items-center justify-between px-1">
-              <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">Thème :</span>
+              <span className="text-xs font-semibold text-ink-700 dark:text-ink-300">{tr("Thème :")}</span>
               <button
                 onClick={toggleTheme}
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-ink-200 dark:border-ink-800 text-xs font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors cursor-pointer"
-                aria-label="Changer le thème"
+                aria-label={tr("Changer le thème")}
               >
                 {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-                <span>{theme === "dark" ? "Mode clair" : "Mode sombre"}</span>
+                <span>{theme === "dark" ? tr("Mode clair") : tr("Mode sombre")}</span>
               </button>
             </div>
             <div className="pt-2 flex flex-col gap-2">
@@ -170,8 +169,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full text-center py-2.5 rounded-full bg-emerald-600 text-white font-semibold text-xs shadow-sm transition-colors"
                 >
-                  Mon Cockpit →
-                </Link>
+                  {tr("Mon Cockpit →")}</Link>
               ) : (
                 <>
                   <Link
@@ -180,16 +178,14 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="w-full text-center py-2.5 rounded-full border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold text-xs hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
                   >
-                    Connexion
-                  </Link>
+                    {tr("Connexion")}</Link>
                   <Link
                     href="/register"
                     prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
                     className="w-full text-center py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow shadow-amber-500/20 transition-colors"
                   >
-                    Commencer gratuitement
-                  </Link>
+                    {tr("Commencer gratuitement")}</Link>
                 </>
               )}
             </div>

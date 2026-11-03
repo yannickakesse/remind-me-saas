@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -9,6 +11,7 @@ import { changePassword } from "@/app/(app)/settings/actions";
 import { KeyRound, ShieldCheck } from "lucide-react";
 
 export function SecuritySection() {
+  const { tr } = useLanguage();
   const { push } = useToast();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -46,7 +49,7 @@ export function SecuritySection() {
       formData.set("confirmPassword", result.data.confirmPassword);
 
       await changePassword(formData);
-      push("Votre mot de passe a été modifié avec succès.", "success");
+      push(tr("Votre mot de passe a été modifié avec succès."), "success");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -64,11 +67,9 @@ export function SecuritySection() {
       <div>
         <h3 className="text-base font-extrabold text-zinc-950 dark:text-white flex items-center gap-2">
           <KeyRound className="w-4 h-4 text-signal" />
-          Sécurité &amp; Mot de passe
-        </h3>
+          {tr("Sécurité & Mot de passe")}</h3>
         <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 font-medium">
-          Mettez à jour votre mot de passe pour garantir la protection de vos données d'activités et financières.
-        </p>
+          {tr("Mettez à jour votre mot de passe pour garantir la protection de vos données d'activités et financières.")}</p>
       </div>
 
       {globalError && (
@@ -79,7 +80,7 @@ export function SecuritySection() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         <Field
-          label="Mot de passe actuel (optionnel)"
+          label={tr("Mot de passe actuel (optionnel)")}
           htmlFor="currentPassword"
           error={fieldErrors.currentPassword}
         >
@@ -94,7 +95,7 @@ export function SecuritySection() {
         </Field>
 
         <Field
-          label="Nouveau mot de passe"
+          label={tr("Nouveau mot de passe")}
           htmlFor="newPassword"
           error={fieldErrors.newPassword}
         >
@@ -102,14 +103,14 @@ export function SecuritySection() {
             id="newPassword"
             type="password"
             autoComplete="new-password"
-            placeholder="8 caractères minimum"
+            placeholder={tr("8 caractères minimum")}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
           />
         </Field>
 
         <Field
-          label="Confirmer le nouveau mot de passe"
+          label={tr("Confirmer le nouveau mot de passe")}
           htmlFor="confirmPassword"
           error={fieldErrors.confirmPassword}
         >
@@ -117,7 +118,7 @@ export function SecuritySection() {
             id="confirmPassword"
             type="password"
             autoComplete="new-password"
-            placeholder="Retapez le nouveau mot de passe"
+            placeholder={tr("Retapez le nouveau mot de passe")}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
@@ -126,8 +127,7 @@ export function SecuritySection() {
         <div className="pt-2">
           <Button type="submit" loading={saving} className="w-full sm:w-auto font-bold">
             <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
-            Mettre à jour le mot de passe
-          </Button>
+            {tr("Mettre à jour le mot de passe")}</Button>
         </div>
       </form>
     </div>

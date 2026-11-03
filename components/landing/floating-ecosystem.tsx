@@ -7,7 +7,7 @@ import { useLanguage } from "@/components/i18n/language-provider";
 export function FloatingEcosystem() {
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
 
   useEffect(() => {
     // Only enable mouse parallax on desktop / non-touch devices
@@ -122,13 +122,11 @@ export function FloatingEcosystem() {
         <div className="min-w-0 flex-1 text-left">
           <div className="flex items-center gap-1">
             <span className="text-xs font-bold text-ink-950 truncate">
-              FinTech Alpha
-            </span>
+              {tr("FinTech Alpha")}</span>
             <span className="w-1.5 h-1.5 rounded-full bg-signal shrink-0" />
           </div>
           <span className="text-[10px] text-ink-500 block truncate">
-            Consulting • 650 €/j
-          </span>
+            {tr("Consulting • 650 €/j")}</span>
         </div>
       </div>
 
@@ -149,15 +147,15 @@ export function FloatingEcosystem() {
         <div className="space-y-1 text-[10px] text-ink-700">
           <div className="flex items-center gap-1.5 text-positive font-medium">
             <Check className="w-3 h-3 text-positive" strokeWidth={3} />
-            <span className="line-through text-ink-400 truncate">Audit Cloud Alpha</span>
+            <span className="line-through text-ink-400 truncate">{tr("Audit Cloud Alpha")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Circle className="w-2.5 h-2.5 text-warning fill-warning/30" />
-            <span className="truncate">Préparer examen M2</span>
+            <span className="truncate">{tr("Préparer examen M2")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Circle className="w-2.5 h-2.5 text-ink-300" />
-            <span className="truncate">Envoyer facture #104</span>
+            <span className="truncate">{tr("Envoyer facture #104")}</span>
           </div>
         </div>
       </div>

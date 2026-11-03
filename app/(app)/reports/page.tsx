@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import { PageBackground } from "@/components/shared/page-background";
 import { DateTime } from "luxon";
 import {
@@ -32,6 +33,7 @@ export default async function ReportsPage({
 }: {
   searchParams?: { from?: string; to?: string };
 }) {
+  const tr = await getTr();
   const [user, profile] = await Promise.all([
     requireCurrentUser(),
     getCurrentProfile(),
@@ -107,15 +109,13 @@ export default async function ReportsPage({
               <span className="bg-gradient-to-r from-gold to-gold-dark text-white p-2 rounded-xl shadow-gold-subtle inline-flex">
                 <BarChart3 className="w-5 h-5" />
               </span>
-              Rapports &amp; Rentabilité
-            </h1>
+              {tr("Rapports & Rentabilité")}</h1>
             <p className="text-sm text-ink-500 mt-1 max-w-xl">
-              Analysez la profitabilité réelle de vos activités, vos heures investies et vos flux de trésorerie.
-            </p>
+              {tr("Analysez la profitabilité réelle de vos activités, vos heures investies et vos flux de trésorerie.")}</p>
           </div>
 
           <div className="flex items-center justify-center sm:justify-end gap-3 w-full sm:w-auto shrink-0 flex-wrap sm:flex-nowrap">
-            <SectionGuideTrigger section="reports" label="Guide rentabilité" />
+            <SectionGuideTrigger section="reports" label={tr("Guide rentabilité")} />
             <Link
               href={`/reports/print?from=${rangeStart}&to=${rangeEnd}`}
               target="_blank"
@@ -123,7 +123,7 @@ export default async function ReportsPage({
               data-tour="reports-pdf-btn"
             >
               <Printer className="w-4 h-4 shrink-0" />
-              <span>Imprimer en PDF</span>
+              <span>{tr("Imprimer en PDF")}</span>
             </Link>
             <a
               href={`/api/finances/export?from=${rangeStart}&to=${rangeEnd}`}
@@ -131,7 +131,7 @@ export default async function ReportsPage({
               data-tour="reports-export-btn"
             >
               <Download className="w-4 h-4 shrink-0" />
-              <span>Exporter en CSV</span>
+              <span>{tr("Exporter en CSV")}</span>
             </a>
           </div>
         </div>
@@ -148,11 +148,9 @@ export default async function ReportsPage({
           </div>
           <div className="space-y-1">
             <h3 className="font-extrabold text-danger text-sm sm:text-base flex items-center gap-2">
-              Attention : Situation de Déficit Détectée
-            </h3>
+              {tr("Attention : Situation de Déficit Détectée")}</h3>
             <p className="text-xs sm:text-sm text-ink-700 dark:text-ink-300 leading-relaxed">
-              Vos dépenses payées (<strong>{formatAmount(totalExpensesPaid, defaultCurrency)}</strong>) dépassent vos revenus encaissés (<strong>{formatAmount(totalIncomeReceived, defaultCurrency)}</strong>) avec un solde net de <span className="font-extrabold text-danger">{formatAmount(realNetBalance, defaultCurrency)}</span> sur la période sélectionnée.
-            </p>
+              {tr("Vos dépenses payées (")}<strong>{formatAmount(totalExpensesPaid, defaultCurrency)}</strong>{tr(") dépassent vos revenus encaissés (")}<strong>{formatAmount(totalIncomeReceived, defaultCurrency)}</strong>{tr(") avec un solde net de")}{" "}<span className="font-extrabold text-danger">{formatAmount(realNetBalance, defaultCurrency)}</span> {tr("sur la période sélectionnée.")}</p>
           </div>
         </div>
       )}
@@ -162,8 +160,7 @@ export default async function ReportsPage({
         <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-slate-900/95 p-5 shadow-xs hover:border-signal/40 transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-ink-500">
-              Revenus Reçus (Encaissés)
-            </span>
+              {tr("Revenus Reçus (Encaissés)")}</span>
             <TrendingUp className="w-4 h-4 text-positive" />
           </div>
           <p className="mt-2 text-2xl font-black font-mono tabular-nums text-amber-600 dark:text-amber-400">
@@ -171,30 +168,28 @@ export default async function ReportsPage({
           </p>
           <p className="mt-1 text-xs font-medium text-ink-500">
             {extraReceivedStr ? `(${extraReceivedStr}) · ` : ""}
-            {totalIncomeExpected > 0 ? `+${formatAmount(totalIncomeExpected, defaultCurrency)} attendus` : "Aucun revenu en attente"}
+            {totalIncomeExpected > 0 ? `+${formatAmount(totalIncomeExpected, defaultCurrency)} attendus` : tr("Aucun revenu en attente")}
           </p>
         </div>
 
         <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-slate-900/95 p-5 shadow-xs hover:border-signal/40 transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-ink-500">
-              Dépenses Payées
-            </span>
+              {tr("Dépenses Payées")}</span>
             <TrendingDown className="w-4 h-4 text-danger" />
           </div>
           <p className="mt-2 text-2xl font-black font-mono tabular-nums text-ink-950 dark:text-white">
             {formatAmount(totalExpensesPaid, defaultCurrency)}
           </p>
           <p className="mt-1 text-xs font-medium text-ink-500">
-            {totalExpensesPlanned > 0 ? `${formatAmount(totalExpensesPlanned, defaultCurrency)} prévues` : "Toutes payées"}
+            {totalExpensesPlanned > 0 ? `${formatAmount(totalExpensesPlanned, defaultCurrency)} prévues` : tr("Toutes payées")}
           </p>
         </div>
 
         <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-slate-900/95 p-5 shadow-xs hover:border-signal/40 transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-ink-500">
-              Solde Réel (Net)
-            </span>
+              {tr("Solde Réel (Net)")}</span>
             <Wallet className="w-4 h-4 text-emerald-500" />
           </div>
           <p
@@ -204,14 +199,13 @@ export default async function ReportsPage({
           >
             {formatAmount(realNetBalance, defaultCurrency)}
           </p>
-          <p className="mt-1 text-xs font-medium text-ink-500">Reçus − Dépenses Payées</p>
+          <p className="mt-1 text-xs font-medium text-ink-500">{tr("Reçus − Dépenses Payées")}</p>
         </div>
 
         <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-slate-900/95 p-5 shadow-xs hover:border-signal/40 transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-ink-500">
-              Rentabilité Horaire
-            </span>
+              {tr("Rentabilité Horaire")}</span>
             <Clock className="w-4 h-4 text-signal" />
           </div>
           {hasHourlyProfitability ? (
@@ -219,22 +213,20 @@ export default async function ReportsPage({
               <p className="mt-2 text-xl sm:text-2xl font-black font-mono tabular-nums text-ink-950 dark:text-white">
                 {averageHourlyRate !== null
                   ? `${formatAmount(averageHourlyRate, defaultCurrency)}/h`
-                  : "Données insuffisantes"}
+                  : tr("Données insuffisantes")}
               </p>
               <p className="mt-1 text-xs font-medium text-ink-500">
                 {totalHoursWorked > 0
                   ? `Pour ${totalHoursWorked} h travaillées au total`
-                  : "Planifiez des séances dans le calendrier"}
+                  : tr("Planifiez des séances dans le calendrier")}
               </p>
             </>
           ) : (
             <div className="mt-2">
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-bold bg-signal-soft text-signal">
-                <Lock className="w-3 h-3" /> Forfait Pro requis
-              </span>
+                <Lock className="w-3 h-3" /> {tr("Forfait Pro requis")}</span>
               <p className="mt-1 text-xs font-medium text-ink-500">
-                Calcul automatique de votre taux horaire net.
-              </p>
+                {tr("Calcul automatique de votre taux horaire net.")}</p>
             </div>
           )}
         </div>
@@ -245,11 +237,9 @@ export default async function ReportsPage({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold tracking-tight text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
-              Rentabilité & Revenu par Heure Investie
-            </h2>
+              {tr("Rentabilité & Revenu par Heure Investie")}</h2>
             <p className="text-sm font-medium text-white/95 [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]">
-              Identifiez quelles activités génèrent le plus de valeur par rapport au temps passé.
-            </p>
+              {tr("Identifiez quelles activités génèrent le plus de valeur par rapport au temps passé.")}</p>
           </div>
         </div>
 
@@ -262,10 +252,9 @@ export default async function ReportsPage({
             </div>
             <div className="max-w-md mx-auto space-y-1">
               <h3 className="text-base font-bold text-ink-950">
-                Débloquez l'analyse de rentabilité horaire
-              </h3>
+                {tr("Débloquez l'analyse de rentabilité horaire")}</h3>
               <p className="text-xs text-ink-500 leading-relaxed">
-                Le calcul automatique de la rentabilité par activité et de votre taux horaire réel est inclus à partir du forfait <strong>Pro</strong>.
+                {tr("Le calcul automatique de la rentabilité par activité et de votre taux horaire réel est inclus à partir du forfait")}{" "}<strong>{tr("Pro")}</strong>.
               </p>
             </div>
             <div>
@@ -274,8 +263,7 @@ export default async function ReportsPage({
                 className="inline-flex items-center gap-1.5 rounded-xl bg-signal px-4 py-2 text-xs font-bold text-white hover:bg-signal/90 transition-colors shadow-xs"
               >
                 <Zap className="w-3.5 h-3.5" />
-                Passer en Pro pour débloquer
-                <ArrowRight className="w-3.5 h-3.5" />
+                {tr("Passer en Pro pour débloquer")}<ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>

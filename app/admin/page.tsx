@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -78,6 +80,7 @@ interface EnvConfig {
 type AdminTab = "kpis" | "timeline" | "users" | "alerts";
 
 export default function DedicatedAdminPage() {
+  const { tr } = useLanguage();
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [adminPassword, setAdminPassword] = useState("");
   const [authError, setAuthError] = useState("");
@@ -206,24 +209,22 @@ export default function DedicatedAdminPage() {
 
             <div className="space-y-1.5">
               <h1 className="text-xl font-black tracking-tight text-ink-950">
-                Espace Propriétaire
-              </h1>
+                {tr("Espace Propriétaire")}</h1>
               <p className="text-xs text-ink-500 leading-relaxed">
-                Accès direct au centre de contrôle et aux alertes smartphone en temps réel.
-              </p>
+                {tr("Accès direct au centre de contrôle et aux alertes smartphone en temps réel.")}</p>
             </div>
 
             <form onSubmit={handleUnlock} className="space-y-3 text-left">
               <div>
                 <label className="text-xs font-bold text-ink-950 flex items-center gap-1.5 mb-1.5">
                   <KeyRound className="h-3.5 w-3.5 text-gold" />
-                  <span>Code d&apos;accès Administrateur</span>
+                  <span>{tr("Code d'accès Administrateur")}</span>
                 </label>
                 <input
                   type="password"
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
-                  placeholder="Entrez votre mot de passe"
+                  placeholder={tr("Entrez votre mot de passe")}
                   className="w-full rounded-xl border border-ink-200 dark:border-ink-100/20 bg-canvas px-3.5 py-2.5 text-sm text-ink-950 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-gold"
                   autoFocus
                 />
@@ -239,14 +240,13 @@ export default function DedicatedAdminPage() {
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-4 py-3 text-xs font-bold text-white shadow-gold hover:brightness-110 active:scale-98 transition-all"
               >
                 <Lock className="h-3.5 w-3.5" />
-                <span>{loading ? "Vérification..." : "Déverrouiller l'Admin"}</span>
+                <span>{loading ? tr("Vérification...") : tr("Déverrouiller l'Admin")}</span>
               </button>
             </form>
 
             <div className="pt-2 border-t border-ink-100 dark:border-ink-100/10">
               <Link href="/" className="text-xs text-ink-400 hover:text-ink-600">
-                ← Retour au site
-              </Link>
+                {tr("← Retour au site")}</Link>
             </div>
           </div>
         </div>
@@ -282,15 +282,12 @@ export default function DedicatedAdminPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-sm sm:text-base font-black tracking-tight text-ink-950">
-                  Remind Me • Admin
-                </h1>
+                  {tr("Remind Me • Admin")}</h1>
                 <span className="rounded-full bg-positive-soft px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-positive">
-                  Live
-                </span>
+                  {tr("Live")}</span>
               </div>
               <p className="text-[11px] text-ink-500">
-                Surveillance smartphone en temps réel
-              </p>
+                {tr("Surveillance smartphone en temps réel")}</p>
             </div>
           </div>
 
@@ -298,17 +295,17 @@ export default function DedicatedAdminPage() {
             <button
               onClick={() => setShowPwaGuide(true)}
               className="inline-flex items-center gap-1.5 rounded-xl border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-bold text-gold-dark dark:text-gold hover:bg-gold/20 transition-all"
-              title="Ajouter à l'écran d'accueil iPhone"
+              title={tr("Ajouter à l'écran d'accueil iPhone")}
             >
               <Smartphone className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Sur mon iPhone</span>
+              <span className="hidden sm:inline">{tr("Sur mon iPhone")}</span>
             </button>
 
             <button
               onClick={() => fetchAdminData()}
               disabled={loading}
               className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-ink-200 dark:border-ink-100/20 bg-canvas-raised text-ink-700 hover:text-ink-950 transition-all"
-              title="Actualiser"
+              title={tr("Actualiser")}
             >
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
@@ -316,7 +313,7 @@ export default function DedicatedAdminPage() {
             <button
               onClick={handleLogout}
               className="inline-flex items-center justify-center h-8 w-8 rounded-xl text-ink-400 hover:text-danger transition-colors"
-              title="Verrouiller"
+              title={tr("Verrouiller")}
             >
               <LogOut className="h-3.5 w-3.5" />
             </button>
@@ -331,35 +328,32 @@ export default function DedicatedAdminPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-bold text-sm text-ink-950">
                 <Smartphone className="h-4 w-4 text-gold" />
-                <span>Installer sur votre iPhone</span>
+                <span>{tr("Installer sur votre iPhone")}</span>
               </div>
               <button
                 onClick={() => setShowPwaGuide(false)}
                 className="text-xs text-ink-400 hover:text-ink-600 font-bold"
               >
-                Fermer
-              </button>
+                {tr("Fermer")}</button>
             </div>
 
             <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed">
-              Pour ouvrir cette page en 1 clic comme une véritable application sur votre iPhone :
-            </p>
+              {tr("Pour ouvrir cette page en 1 clic comme une véritable application sur votre iPhone :")}</p>
 
             <div className="space-y-2.5 text-xs text-ink-700 dark:text-ink-300">
               <div className="flex items-start gap-2 rounded-xl bg-canvas p-2.5 border border-ink-100 dark:border-ink-100/10">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-white font-bold text-[10px]">1</span>
-                <span>Ouvrez cette page dans <strong>Safari</strong> sur votre iPhone.</span>
+                <span>{tr("Ouvrez cette page dans")}{" "}<strong>{tr("Safari")}</strong> {tr("sur votre iPhone.")}</span>
               </div>
               <div className="flex items-start gap-2 rounded-xl bg-canvas p-2.5 border border-ink-100 dark:border-ink-100/10">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-white font-bold text-[10px]">2</span>
                 <span className="flex items-center gap-1.5 flex-wrap">
-                  Appuyez sur le bouton <strong>Partager</strong> <Share className="h-3.5 w-3.5 inline text-signal" /> en bas de l&apos;écran.
-                </span>
+                  {tr("Appuyez sur le bouton")}{" "}<strong>{tr("Partager")}</strong> <Share className="h-3.5 w-3.5 inline text-signal" /> {tr("en bas de l'écran.")}</span>
               </div>
               <div className="flex items-start gap-2 rounded-xl bg-canvas p-2.5 border border-ink-100 dark:border-ink-100/10">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-white font-bold text-[10px]">3</span>
                 <span className="flex items-center gap-1.5 flex-wrap">
-                  Sélectionnez <strong>« Sur l&apos;écran d&apos;accueil »</strong> <PlusSquare className="h-3.5 w-3.5 inline text-signal" />.
+                  {tr("Sélectionnez")}{" "}<strong>{tr("« Sur l'écran d'accueil »")}</strong> <PlusSquare className="h-3.5 w-3.5 inline text-signal" />.
                 </span>
               </div>
             </div>
@@ -368,8 +362,7 @@ export default function DedicatedAdminPage() {
               onClick={() => setShowPwaGuide(false)}
               className="w-full rounded-xl bg-gradient-to-r from-gold to-gold-dark py-2.5 text-xs font-bold text-white"
             >
-              Compris !
-            </button>
+              {tr("Compris !")}</button>
           </div>
         </div>
       )}
@@ -384,7 +377,7 @@ export default function DedicatedAdminPage() {
               <div className="flex items-center justify-between">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gold/20 text-gold-dark dark:text-gold text-[11px] font-bold">
                   <Zap className="h-3.5 w-3.5" />
-                  <span>Bot Telegram Actif : @{envConfig?.telegramBotName || "RemindMeAlertsbot"}</span>
+                  <span>{tr("Bot Telegram Actif : @")}{envConfig?.telegramBotName || "RemindMeAlertsbot"}</span>
                 </div>
                 <button
                   onClick={handleSendTestAlert}
@@ -392,32 +385,32 @@ export default function DedicatedAdminPage() {
                   className="inline-flex items-center gap-1.5 rounded-xl bg-gold px-3 py-1 text-[11px] font-bold text-white hover:brightness-110 active:scale-98 transition-all"
                 >
                   <Send className="h-3 w-3" />
-                  <span>{testSending ? "Envoi..." : "Tester le ping"}</span>
+                  <span>{testSending ? "Envoi..." : tr("Tester le ping")}</span>
                 </button>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                 <div className="rounded-2xl bg-canvas/60 p-3 border border-ink-100 dark:border-ink-100/10">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">Aujourd&apos;hui</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">{tr("Aujourd'hui")}</p>
                   <p className="text-xl font-black text-ink-950">+{stats?.newUsersToday ?? 0}</p>
-                  <p className="text-[10px] text-positive font-medium">Nouveaux inscrits</p>
+                  <p className="text-[10px] text-positive font-medium">{tr("Nouveaux inscrits")}</p>
                 </div>
                 <div className="rounded-2xl bg-canvas/60 p-3 border border-ink-100 dark:border-ink-100/10">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">7 Derniers jours</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">{tr("7 Derniers jours")}</p>
                   <p className="text-xl font-black text-ink-950">+{stats?.newUsers7d ?? 0}</p>
-                  <p className="text-[10px] text-signal font-medium">Inscriptions hebdo</p>
+                  <p className="text-[10px] text-signal font-medium">{tr("Inscriptions hebdo")}</p>
                 </div>
                 <div className="rounded-2xl bg-canvas/60 p-3 border border-ink-100 dark:border-ink-100/10">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">Abonnements</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">{tr("Abonnements")}</p>
                   <p className="text-xl font-black text-gold">
                     {stats?.subscriptions?.active ?? 0}
                   </p>
-                  <p className="text-[10px] text-ink-500">Comptes payants</p>
+                  <p className="text-[10px] text-ink-500">{tr("Comptes payants")}</p>
                 </div>
                 <div className="rounded-2xl bg-canvas/60 p-3 border border-ink-100 dark:border-ink-100/10">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">Total Comptes</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-500">{tr("Total Comptes")}</p>
                   <p className="text-xl font-black text-ink-950">{stats?.totalUsers ?? 0}</p>
-                  <p className="text-[10px] text-ink-500">Inscrits global</p>
+                  <p className="text-[10px] text-ink-500">{tr("Inscrits global")}</p>
                 </div>
               </div>
 
@@ -433,22 +426,21 @@ export default function DedicatedAdminPage() {
             <div className="rounded-3xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-ink-500 flex items-center gap-1.5">
-                  <TrendingUp className="h-4 w-4 text-gold" /> Plans & Abonnements
-                </h3>
-                <span className="text-xs text-ink-400">Total : {stats?.totalUsers ?? 0}</span>
+                  <TrendingUp className="h-4 w-4 text-gold" /> {tr("Plans & Abonnements")}</h3>
+                <span className="text-xs text-ink-400">{tr("Total :")}{" "}{stats?.totalUsers ?? 0}</span>
               </div>
 
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-2xl bg-canvas p-3 border border-ink-100 dark:border-ink-100/10">
-                  <p className="text-[11px] font-semibold text-ink-500">Plan Gratuit</p>
+                  <p className="text-[11px] font-semibold text-ink-500">{tr("Plan Gratuit")}</p>
                   <p className="text-lg font-black text-ink-950">{stats?.subscriptions?.free ?? 0}</p>
                 </div>
                 <div className="rounded-2xl bg-canvas p-3 border border-gold/30 bg-gold/5">
-                  <p className="text-[11px] font-bold text-gold-dark dark:text-gold">Plan Pro</p>
+                  <p className="text-[11px] font-bold text-gold-dark dark:text-gold">{tr("Plan Pro")}</p>
                   <p className="text-lg font-black text-gold-dark dark:text-gold">{stats?.subscriptions?.pro ?? 0}</p>
                 </div>
                 <div className="rounded-2xl bg-canvas p-3 border border-purple-500/30 bg-purple-500/5">
-                  <p className="text-[11px] font-bold text-purple-600 dark:text-purple-400">Premium</p>
+                  <p className="text-[11px] font-bold text-purple-600 dark:text-purple-400">{tr("Premium")}</p>
                   <p className="text-lg font-black text-purple-600 dark:text-purple-400">{stats?.subscriptions?.premium ?? 0}</p>
                 </div>
               </div>
@@ -458,38 +450,38 @@ export default function DedicatedAdminPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="rounded-2xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised p-4 space-y-1">
                 <div className="flex items-center justify-between text-ink-500">
-                  <span className="text-xs font-semibold">Activités</span>
+                  <span className="text-xs font-semibold">{tr("Activités")}</span>
                   <Briefcase className="h-4 w-4 text-positive" />
                 </div>
                 <p className="text-xl font-black text-ink-950">{stats?.totalActivities ?? 0}</p>
-                <p className="text-[10px] text-ink-400">Pôles créés</p>
+                <p className="text-[10px] text-ink-400">{tr("Pôles créés")}</p>
               </div>
 
               <div className="rounded-2xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised p-4 space-y-1">
                 <div className="flex items-center justify-between text-ink-500">
-                  <span className="text-xs font-semibold">Tâches</span>
+                  <span className="text-xs font-semibold">{tr("Tâches")}</span>
                   <CheckSquare className="h-4 w-4 text-sky-500" />
                 </div>
                 <p className="text-xl font-black text-ink-950">{stats?.totalTasks ?? 0}</p>
-                <p className="text-[10px] text-ink-400">Missions</p>
+                <p className="text-[10px] text-ink-400">{tr("Missions")}</p>
               </div>
 
               <div className="rounded-2xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised p-4 space-y-1">
                 <div className="flex items-center justify-between text-ink-500">
-                  <span className="text-xs font-semibold">Revenus</span>
+                  <span className="text-xs font-semibold">{tr("Revenus")}</span>
                   <TrendingUp className="h-4 w-4 text-gold" />
                 </div>
                 <p className="text-xl font-black text-ink-950">{stats?.totalIncome ?? 0}</p>
-                <p className="text-[10px] text-ink-400">Lignes suivies</p>
+                <p className="text-[10px] text-ink-400">{tr("Lignes suivies")}</p>
               </div>
 
               <div className="rounded-2xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised p-4 space-y-1">
                 <div className="flex items-center justify-between text-ink-500">
-                  <span className="text-xs font-semibold">Rappels</span>
+                  <span className="text-xs font-semibold">{tr("Rappels")}</span>
                   <Bell className="h-4 w-4 text-violet-500" />
                 </div>
                 <p className="text-xl font-black text-ink-950">{stats?.totalNotifications ?? 0}</p>
-                <p className="text-[10px] text-ink-400">Envoyés</p>
+                <p className="text-[10px] text-ink-400">{tr("Envoyés")}</p>
               </div>
             </div>
           </div>
@@ -508,7 +500,7 @@ export default function DedicatedAdminPage() {
                     : "bg-canvas-raised text-ink-600 border border-ink-200 dark:border-ink-100/15"
                 }`}
               >
-                Tout ({timeline.length})
+                {tr("Tout (")}{timeline.length})
               </button>
               <button
                 onClick={() => setTimelineFilter("signup")}
@@ -518,8 +510,7 @@ export default function DedicatedAdminPage() {
                     : "bg-canvas-raised text-ink-600 border border-ink-200 dark:border-ink-100/15"
                 }`}
               >
-                Inscriptions
-              </button>
+                {tr("Inscriptions")}</button>
               <button
                 onClick={() => setTimelineFilter("activity")}
                 className={`px-3 py-1.5 rounded-full font-bold transition-all ${
@@ -528,8 +519,7 @@ export default function DedicatedAdminPage() {
                     : "bg-canvas-raised text-ink-600 border border-ink-200 dark:border-ink-100/15"
                 }`}
               >
-                Activités
-              </button>
+                {tr("Activités")}</button>
               <button
                 onClick={() => setTimelineFilter("notification")}
                 className={`px-3 py-1.5 rounded-full font-bold transition-all ${
@@ -538,14 +528,13 @@ export default function DedicatedAdminPage() {
                     : "bg-canvas-raised text-ink-600 border border-ink-200 dark:border-ink-100/15"
                 }`}
               >
-                Rappels envoyés
-              </button>
+                {tr("Rappels envoyés")}</button>
             </div>
 
             {/* Liste chronologique */}
             <div className="rounded-3xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised p-4 sm:p-5 space-y-3">
               {filteredTimeline.length === 0 ? (
-                <p className="text-xs text-ink-500 py-6 text-center">Aucune action enregistrée pour le moment.</p>
+                <p className="text-xs text-ink-500 py-6 text-center">{tr("Aucune action enregistrée pour le moment.")}</p>
               ) : (
                 <div className="divide-y divide-ink-100 dark:divide-ink-100/10 space-y-1">
                   {filteredTimeline.map((item) => (
@@ -609,7 +598,7 @@ export default function DedicatedAdminPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher par nom ou identifiant..."
+                placeholder={tr("Rechercher par nom ou identifiant...")}
                 className="w-full rounded-2xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised pl-10 pr-4 py-2.5 text-xs text-ink-950 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-gold"
               />
             </div>
@@ -617,13 +606,13 @@ export default function DedicatedAdminPage() {
             <div className="rounded-3xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised p-4 sm:p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-ink-500">
-                  Membres Remind Me ({filteredUsers.length})
+                  {tr("Membres Remind Me (")}{filteredUsers.length})
                 </h3>
               </div>
 
               <div className="divide-y divide-ink-100 dark:divide-ink-100/10 space-y-1">
                 {filteredUsers.length === 0 ? (
-                  <p className="text-xs text-ink-500 py-6 text-center">Aucun utilisateur trouvé.</p>
+                  <p className="text-xs text-ink-500 py-6 text-center">{tr("Aucun utilisateur trouvé.")}</p>
                 ) : (
                   filteredUsers.map((u) => (
                     <div key={u.id} className="py-2.5 flex items-center justify-between text-xs">
@@ -632,8 +621,8 @@ export default function DedicatedAdminPage() {
                           {u.full_name ? u.full_name.charAt(0).toUpperCase() : "U"}
                         </div>
                         <div className="space-y-0.5">
-                          <p className="font-bold text-ink-950">{u.full_name || "Sans nom renseigné"}</p>
-                          <p className="text-[10px] text-ink-400">ID: {u.id.slice(0, 8)}... • {u.timezone || "Europe/Paris"}</p>
+                          <p className="font-bold text-ink-950">{u.full_name || tr("Sans nom renseigné")}</p>
+                          <p className="text-[10px] text-ink-400">{tr("ID:")}{" "}{u.id.slice(0, 8)}... • {u.timezone || "Europe/Paris"}</p>
                         </div>
                       </div>
 
@@ -664,8 +653,7 @@ export default function DedicatedAdminPage() {
             {/* État des Canaux */}
             <div className="rounded-3xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised p-5 space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-ink-500">
-                État des Canaux Connectés
-              </h3>
+                {tr("État des Canaux Connectés")}</h3>
 
               <div className="space-y-2.5">
                 {/* Telegram */}
@@ -675,13 +663,12 @@ export default function DedicatedAdminPage() {
                       TG
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-ink-950">Bot Telegram</p>
+                      <p className="text-xs font-bold text-ink-950">{tr("Bot Telegram")}</p>
                       <p className="text-[11px] text-ink-500">@{envConfig?.telegramBotName || "RemindMeAlertsbot"}</p>
                     </div>
                   </div>
                   <span className="rounded-full bg-positive-soft text-positive px-2.5 py-0.5 text-[10px] font-bold">
-                    Opérationnel
-                  </span>
+                    {tr("Opérationnel")}</span>
                 </div>
 
                 {/* Vercel Analytics */}
@@ -691,13 +678,12 @@ export default function DedicatedAdminPage() {
                       VA
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-ink-950">Vercel Analytics</p>
-                      <p className="text-[11px] text-ink-500">Trafic & Visiteurs réels</p>
+                      <p className="text-xs font-bold text-ink-950">{tr("Vercel Analytics")}</p>
+                      <p className="text-[11px] text-ink-500">{tr("Trafic & Visiteurs réels")}</p>
                     </div>
                   </div>
                   <span className="rounded-full bg-positive-soft text-positive px-2.5 py-0.5 text-[10px] font-bold">
-                    Actif
-                  </span>
+                    {tr("Actif")}</span>
                 </div>
 
                 {/* E-mails Resend */}
@@ -707,30 +693,28 @@ export default function DedicatedAdminPage() {
                       EM
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-ink-950">Notifications E-mail</p>
-                      <p className="text-[11px] text-ink-500">Moteur de rappels automatisés</p>
+                      <p className="text-xs font-bold text-ink-950">{tr("Notifications E-mail")}</p>
+                      <p className="text-[11px] text-ink-500">{tr("Moteur de rappels automatisés")}</p>
                     </div>
                   </div>
                   <span className="rounded-full bg-positive-soft text-positive px-2.5 py-0.5 text-[10px] font-bold">
-                    Connecté
-                  </span>
+                    {tr("Connecté")}</span>
                 </div>
               </div>
             </div>
 
             {/* Test de notification manuelle */}
             <div className="rounded-3xl border border-ink-200 dark:border-ink-100/15 bg-canvas-raised p-5 space-y-3">
-              <h3 className="text-xs font-bold text-ink-950">Déclencher un ping test smartphone</h3>
+              <h3 className="text-xs font-bold text-ink-950">{tr("Déclencher un ping test smartphone")}</h3>
               <p className="text-xs text-ink-500">
-                Envoie immédiatement un message de test sur votre compte Telegram pour vérifier la réception de notifications push.
-              </p>
+                {tr("Envoie immédiatement un message de test sur votre compte Telegram pour vérifier la réception de notifications push.")}</p>
               <button
                 onClick={handleSendTestAlert}
                 disabled={testSending}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-4 py-3 text-xs font-bold text-white shadow-gold hover:brightness-110 active:scale-98 transition-all"
               >
                 <Send className="h-3.5 w-3.5" />
-                <span>{testSending ? "Envoi en cours..." : "Faire sonner mon smartphone"}</span>
+                <span>{testSending ? tr("Envoi en cours...") : tr("Faire sonner mon smartphone")}</span>
               </button>
             </div>
           </div>
@@ -748,7 +732,7 @@ export default function DedicatedAdminPage() {
           }`}
         >
           <Activity className="h-5 w-5 mb-0.5" strokeWidth={activeTab === "kpis" ? 2.4 : 1.8} />
-          <span className="text-[10px]">KPIs</span>
+          <span className="text-[10px]">{tr("KPIs")}</span>
         </button>
 
         <button
@@ -760,7 +744,7 @@ export default function DedicatedAdminPage() {
           }`}
         >
           <Clock className="h-5 w-5 mb-0.5" strokeWidth={activeTab === "timeline" ? 2.4 : 1.8} />
-          <span className="text-[10px]">En Direct</span>
+          <span className="text-[10px]">{tr("En Direct")}</span>
         </button>
 
         <button
@@ -772,7 +756,7 @@ export default function DedicatedAdminPage() {
           }`}
         >
           <Users className="h-5 w-5 mb-0.5" strokeWidth={activeTab === "users" ? 2.4 : 1.8} />
-          <span className="text-[10px]">Membres</span>
+          <span className="text-[10px]">{tr("Membres")}</span>
         </button>
 
         <button
@@ -784,7 +768,7 @@ export default function DedicatedAdminPage() {
           }`}
         >
           <Bell className="h-5 w-5 mb-0.5" strokeWidth={activeTab === "alerts" ? 2.4 : 1.8} />
-          <span className="text-[10px]">Alertes</span>
+          <span className="text-[10px]">{tr("Alertes")}</span>
         </button>
       </nav>
     </main>

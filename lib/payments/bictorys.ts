@@ -1,8 +1,10 @@
+import { timingSafeEqual } from "crypto";
 import { PLAN_ENTITLEMENTS, type PlanType } from "@/lib/subscriptions/entitlements";
 
 const BICTORYS_API_URL = process.env.BICTORYS_API_URL || "https://api.test.bictorys.com";
 const BICTORYS_API_KEY = process.env.BICTORYS_API_KEY || "";
-const BICTORYS_WEBHOOK_SECRET = process.env.BICTORYS_WEBHOOK_SECRET || "remind_me_bictorys_secret_7f8e9a2b1c4d5e6f8a9b";
+// Aucun secret par défaut : sans BICTORYS_WEBHOOK_SECRET configuré, tous les webhooks sont refusés.
+const BICTORYS_WEBHOOK_SECRET = process.env.BICTORYS_WEBHOOK_SECRET || "";
 
 // Tarification en FCFA (XOF) adaptée au marché ivoirien / UEMOA
 export const PLAN_PRICES_XOF: Record<PlanType, { monthly: number; yearly: number }> = {
@@ -129,7 +131,16 @@ export async function createBictorysCheckoutSession(
  * Valide le secret du webhook Bictorys
  */
 export function verifyBictorysWebhookSecret(receivedSecret: string | null): boolean {
-  if (!BICTORYS_WEBHOOK_SECRET) return true;
-  if (!receivedSecret) return false;
-  return receivedSecret === BICTORYS_WEBHOOK_SECRET;
+  if (!BICTORYS_WEBHOOK_SECRET || !receivedSecret) return false;
+  const expected = Buffer.from(BICTORYS_WEBHOOK_SECRET);
+  const received = Buffer.from(receivedSecret);
+  // Comparaison à temps constant (évite de deviner le secret caractère par caractère)
+  return expected.length === received.length && timingSafeEqual(expected, received);
+}
+
+/** Montant attendu (XOF) pour un forfait et une périodicité, ou null si invalide. */
+export function expectedAmountXof(plan: PlanType, billingCycle: string): number | null {
+  if (billingCycle !== "monthly" && billingCycle !== "yearly") return null;
+  const amount = PLAN_PRICES_XOF[plan]?.[billingCycle];
+  return amount && amount > 0 ? amount : null;
 }

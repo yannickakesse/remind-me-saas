@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ExpenseForm } from "@/components/shared/expense-form";
@@ -5,6 +6,7 @@ import { updateExpense } from "../../../actions";
 import { requireCurrentUser } from "@/lib/supabase/auth";
 
 export default async function EditExpensePage({ params }: { params: { id: string } }) {
+  const tr = await getTr();
   const user = await requireCurrentUser();
   const supabase = createClient();
 
@@ -24,7 +26,7 @@ export default async function EditExpensePage({ params }: { params: { id: string
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-ink-950">Modifier la dépense</h1>
+        <h1 className="text-2xl font-semibold text-ink-950">{tr("Modifier la dépense")}</h1>
       </div>
       <ExpenseForm
         activities={activities ?? []}

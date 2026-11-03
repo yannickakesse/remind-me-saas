@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, Clock, Plus, Trash2, AlertTriangle, Volume2 } from "lucide-react";
@@ -79,6 +81,7 @@ export function ActivityForm({
   initial,
   submitLabel = "Créer l'activité",
 }: ActivityFormProps) {
+  const { tr } = useLanguage();
   const router = useRouter();
 
   const [color, setColor] = useState(initial?.color ?? COLORS[0]!);
@@ -224,14 +227,13 @@ export function ActivityForm({
       {/* ---- Informations Essentielles ---- */}
       <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-5">
         <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
-          Informations principales
-        </h2>
+          {tr("Informations principales")}</h2>
 
-        <Field label="Nom de l'activité *" htmlFor="name">
+        <Field label={tr("Nom de l'activité *")} htmlFor="name">
           <TextInput
             id="name"
             name="name"
-            placeholder="Ex : Développeur Freelance, Cours de Math, Consultante..."
+            placeholder={tr("Ex : Développeur Freelance, Cours de Math, Consultante...")}
             defaultValue={initial?.name}
             required
             autoFocus
@@ -239,7 +241,7 @@ export function ActivityForm({
         </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Type d'activité *" htmlFor="type">
+          <Field label={tr("Type d'activité *")} htmlFor="type">
             <select
               id="type"
               name="type"
@@ -256,8 +258,7 @@ export function ActivityForm({
 
           <div>
             <label className="mb-1.5 block text-xs sm:text-sm font-bold text-zinc-950 dark:text-white transition-colors">
-              Couleur visuelle
-            </label>
+              {tr("Couleur visuelle")}</label>
             <div className="flex flex-wrap gap-2 pt-1">
               {COLORS.map((c) => (
                 <button
@@ -283,18 +284,15 @@ export function ActivityForm({
       <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-5">
         <div>
           <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
-            Validité & Nature de l'engagement
-          </h2>
+            {tr("Validité & Nature de l'engagement")}</h2>
           <p className="text-xs text-ink-500 mt-0.5">
-            Définissez la durée et le niveau de suivi pour adapter les rappels et les séances.
-          </p>
+            {tr("Définissez la durée et le niveau de suivi pour adapter les rappels et les séances.")}</p>
         </div>
 
         {/* 1. Type de validité : Permanent vs Temporaire */}
         <div className="flex flex-col gap-2">
           <label className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">
-            Durée de validité de l'activité *
-          </label>
+            {tr("Durée de validité de l'activité *")}</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label
               className={`flex items-start gap-3.5 p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${
@@ -312,10 +310,9 @@ export function ActivityForm({
                 className="mt-1 text-signal focus:ring-signal"
               />
               <div>
-                <span className="font-bold text-sm block text-ink-950 dark:text-white">Permanent</span>
+                <span className="font-bold text-sm block text-ink-950 dark:text-white">{tr("Permanent")}</span>
                 <span className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed block mt-0.5">
-                  Durée indéfinie (emploi, routine, activité stable). Pas de date de fin obligatoire.
-                </span>
+                  {tr("Durée indéfinie (emploi, routine, activité stable). Pas de date de fin obligatoire.")}</span>
               </div>
             </label>
 
@@ -335,10 +332,9 @@ export function ActivityForm({
                 className="mt-1 text-signal focus:ring-signal"
               />
               <div>
-                <span className="font-bold text-sm block text-ink-950 dark:text-white">Engagement temporaire</span>
+                <span className="font-bold text-sm block text-ink-950 dark:text-white">{tr("Engagement temporaire")}</span>
                 <span className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed block mt-0.5">
-                  Mission bornée dans le temps (date de fin obligatoire). Arrête les créneaux futurs à l'échéance.
-                </span>
+                  {tr("Mission bornée dans le temps (date de fin obligatoire). Arrête les créneaux futurs à l'échéance.")}</span>
               </div>
             </label>
           </div>
@@ -346,7 +342,7 @@ export function ActivityForm({
 
         {/* Dates début et fin */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-          <Field label="Date de début" htmlFor="startDate">
+          <Field label={tr("Date de début")} htmlFor="startDate">
             <TextInput
               id="startDate"
               name="startDate"
@@ -357,7 +353,7 @@ export function ActivityForm({
           </Field>
 
           {validityType === "temporary" ? (
-            <Field label="Date de fin * (obligatoire)" htmlFor="endDate">
+            <Field label={tr("Date de fin * (obligatoire)")} htmlFor="endDate">
               <TextInput
                 id="endDate"
                 name="endDate"
@@ -370,15 +366,14 @@ export function ActivityForm({
           ) : (
             <div className="flex flex-col justify-end pb-2">
               <p className="text-xs text-ink-400 italic">
-                Activité permanente : les séances se poursuivent sans interruption.
-              </p>
+                {tr("Activité permanente : les séances se poursuivent sans interruption.")}</p>
             </div>
           )}
         </div>
 
         {/* 2. Nature de l'engagement & 3. Préférences de rappel */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-          <Field label="Nature de l'engagement *" htmlFor="engagementNature">
+          <Field label={tr("Nature de l'engagement *")} htmlFor="engagementNature">
             <select
               id="engagementNature"
               name="engagementNature"
@@ -394,7 +389,7 @@ export function ActivityForm({
             </select>
           </Field>
 
-          <Field label="Préférence de rappel *" htmlFor="reminderPreference">
+          <Field label={tr("Préférence de rappel *")} htmlFor="reminderPreference">
             <select
               id="reminderPreference"
               name="reminderPreference"
@@ -415,11 +410,10 @@ export function ActivityForm({
       {/* ---- Rémunération Principale ---- */}
       <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-5">
         <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
-          Rémunération
-        </h2>
+          {tr("Rémunération")}</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Field label="Montant *" htmlFor="amount">
+          <Field label={tr("Montant *")} htmlFor="amount">
             <TextInput
               id="amount"
               name="amount"
@@ -432,7 +426,7 @@ export function ActivityForm({
             />
           </Field>
 
-          <Field label="Devise *" htmlFor="currency">
+          <Field label={tr("Devise *")} htmlFor="currency">
             <select
               id="currency"
               name="currency"
@@ -447,7 +441,7 @@ export function ActivityForm({
             </select>
           </Field>
 
-          <Field label="Fréquence *" htmlFor="frequency">
+          <Field label={tr("Fréquence *")} htmlFor="frequency">
             <select
               id="frequency"
               name="frequency"
@@ -468,8 +462,7 @@ export function ActivityForm({
       <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-signal" /> Horaires & Planning (optionnel)
-          </h2>
+            <Clock className="w-4 h-4 text-signal" /> {tr("Horaires & Planning (optionnel)")}</h2>
         </div>
 
         <label className="flex items-center gap-2 text-sm text-ink-700 cursor-pointer">
@@ -480,8 +473,7 @@ export function ActivityForm({
             onChange={(e) => setVariableHours(e.target.checked)}
             className="rounded border-ink-300 text-signal focus:ring-signal"
           />
-          Mes horaires varient d'une semaine à l'autre (pas de créneau fixe)
-        </label>
+          {tr("Mes horaires varient d'une semaine à l'autre (pas de créneau fixe)")}</label>
 
         {!variableHours && (
           <div className="flex flex-col gap-3 pt-1">
@@ -491,7 +483,7 @@ export function ActivityForm({
                 className="flex flex-col sm:flex-row sm:items-end gap-3.5 rounded-2xl border border-ink-200/90 dark:border-white/10 bg-canvas-subtle/60 dark:bg-slate-800/40 p-4 shadow-2xs hover:border-signal/30 transition-all"
               >
                 <div className="flex-1 min-w-[120px]">
-                  <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">Jour</label>
+                  <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Jour")}</label>
                   <select
                     value={row.weekday}
                     onChange={(e) => updateSchedule(i, { weekday: Number(e.target.value) })}
@@ -506,7 +498,7 @@ export function ActivityForm({
                 </div>
                 <div className="flex gap-2.5 flex-1">
                   <div className="flex-1">
-                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">Début</label>
+                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Début")}</label>
                     <input
                       type="time"
                       value={row.startTime}
@@ -515,7 +507,7 @@ export function ActivityForm({
                     />
                   </div>
                   <div className="flex-1">
-                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">Fin</label>
+                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Fin")}</label>
                     <input
                       type="time"
                       value={row.endTime}
@@ -526,7 +518,7 @@ export function ActivityForm({
                 </div>
                 <div className="w-full sm:w-28 flex items-center justify-between sm:justify-start gap-2">
                   <div className="flex-1 sm:w-20">
-                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">Pause (min)</label>
+                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Pause (min)")}</label>
                     <input
                       type="number"
                       min={0}
@@ -538,7 +530,7 @@ export function ActivityForm({
                   <button
                     type="button"
                     onClick={() => removeSchedule(i)}
-                    aria-label="Supprimer ce créneau"
+                    aria-label={tr("Supprimer ce créneau")}
                     className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors sm:mt-5 cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -561,8 +553,7 @@ export function ActivityForm({
               onClick={addSchedule}
               className="self-start"
             >
-              <Plus className="w-4 h-4 mr-1" /> Ajouter un créneau
-            </Button>
+              <Plus className="w-4 h-4 mr-1" /> {tr("Ajouter un créneau")}</Button>
           </div>
         )}
       </section>
@@ -576,14 +567,11 @@ export function ActivityForm({
             </div>
             <div>
               <label htmlFor="voiceReminderEnabled" className="text-sm font-bold text-ink-950 flex items-center gap-2 cursor-pointer">
-                Lire ce rappel à voix haute
-                <span className="px-2 py-0.2 rounded text-[10px] font-bold bg-signal-soft text-signal border border-signal/20">
-                  Synthèse vocale
-                </span>
+                {tr("Lire ce rappel à voix haute")}<span className="px-2 py-0.2 rounded text-[10px] font-bold bg-signal-soft text-signal border border-signal/20">
+                  {tr("Synthèse vocale")}</span>
               </label>
               <p className="text-xs text-ink-600 mt-1 leading-relaxed">
-                Annoncer automatiquement cette activité par synthèse vocale sur votre appareil au moment du rappel (ex. : « Bonjour Yannick. Vous avez une réunion à 15 heures »).
-              </p>
+                {tr("Annoncer automatiquement cette activité par synthèse vocale sur votre appareil au moment du rappel (ex. : « Bonjour Yannick. Vous avez une réunion à 15 heures »).")}</p>
             </div>
           </div>
           <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
@@ -609,11 +597,9 @@ export function ActivityForm({
         >
           <div>
             <h3 className="text-sm font-bold text-ink-950 dark:text-white">
-              Détails complémentaires (optionnel)
-            </h3>
+              {tr("Détails complémentaires (optionnel)")}</h3>
             <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">
-              Description, client, contact, lieu de travail et conditions de règlement
-            </p>
+              {tr("Description, client, contact, lieu de travail et conditions de règlement")}</p>
           </div>
           <div className="p-1 rounded-xl bg-ink-100 dark:bg-white/10 text-ink-600 dark:text-ink-300">
             {showAdvanced ? (
@@ -626,11 +612,11 @@ export function ActivityForm({
 
         {showAdvanced && (
           <div className="p-4 sm:p-6 border-t border-ink-100 flex flex-col gap-5 bg-canvas-subtle/30">
-            <Field label="Description de l'activité (optionnel)" htmlFor="description">
+            <Field label={tr("Description de l'activité (optionnel)")} htmlFor="description">
               <textarea
                 id="description"
                 name="description"
-                placeholder="Notes ou détails sur vos missions..."
+                placeholder={tr("Notes ou détails sur vos missions...")}
                 defaultValue={initial?.description}
                 rows={2}
                 className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3.5 py-2.5 text-sm text-ink-950 dark:text-white placeholder:text-ink-400 focus:border-signal focus:outline-none transition-colors shadow-2xs"
@@ -638,33 +624,33 @@ export function ActivityForm({
             </Field>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Entreprise / Client" htmlFor="organizationName">
+              <Field label={tr("Entreprise / Client")} htmlFor="organizationName">
                 <TextInput
                   id="organizationName"
                   name="organizationName"
                   defaultValue={initial?.organizationName}
-                  placeholder="Ex : Acme SARL"
+                  placeholder={tr("Ex : Acme SARL")}
                 />
               </Field>
 
-              <Field label="Catégorie métier" htmlFor="category">
+              <Field label={tr("Catégorie métier")} htmlFor="category">
                 <TextInput
                   id="category"
                   name="category"
                   defaultValue={initial?.category}
-                  placeholder="Ex : Tech, Conseil, Formation"
+                  placeholder={tr("Ex : Tech, Conseil, Formation")}
                 />
               </Field>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Field label="Nom du contact" htmlFor="contactName">
+              <Field label={tr("Nom du contact")} htmlFor="contactName">
                 <TextInput id="contactName" name="contactName" defaultValue={initial?.contactName} />
               </Field>
-              <Field label="Téléphone contact" htmlFor="contactPhone">
+              <Field label={tr("Téléphone contact")} htmlFor="contactPhone">
                 <TextInput id="contactPhone" name="contactPhone" defaultValue={initial?.contactPhone} />
               </Field>
-              <Field label="Email contact" htmlFor="contactEmail">
+              <Field label={tr("Email contact")} htmlFor="contactEmail">
                 <TextInput
                   id="contactEmail"
                   name="contactEmail"
@@ -675,46 +661,46 @@ export function ActivityForm({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Mode de travail" htmlFor="workMode">
+              <Field label={tr("Mode de travail")} htmlFor="workMode">
                 <select
                   id="workMode"
                   name="workMode"
                   defaultValue={initial?.workMode ?? "onsite"}
                   className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal text-sm shadow-2xs cursor-pointer"
                 >
-                  <option value="onsite">Présentiel</option>
-                  <option value="remote">Télétravail</option>
-                  <option value="hybrid">Hybride</option>
+                  <option value="onsite">{tr("Présentiel")}</option>
+                  <option value="remote">{tr("Télétravail")}</option>
+                  <option value="hybrid">{tr("Hybride")}</option>
                 </select>
               </Field>
-              <Field label="Lieu / Ville" htmlFor="location">
+              <Field label={tr("Lieu / Ville")} htmlFor="location">
                 <TextInput id="location" name="location" defaultValue={initial?.location} />
               </Field>
             </div>
 
-            <Field label="Adresse physique" htmlFor="address">
+            <Field label={tr("Adresse physique")} htmlFor="address">
               <TextInput id="address" name="address" defaultValue={initial?.address} />
             </Field>
 
 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Jour habituel de paiement (1-31)" htmlFor="paymentDay">
+              <Field label={tr("Jour habituel de paiement (1-31)")} htmlFor="paymentDay">
                 <TextInput
                   id="paymentDay"
                   name="paymentDay"
                   type="number"
                   min="1"
                   max="31"
-                  placeholder="Ex : 30"
+                  placeholder={tr("Ex : 30")}
                   defaultValue={initial?.paymentDay}
                 />
               </Field>
-              <Field label="Conditions de règlement" htmlFor="paymentTerms">
+              <Field label={tr("Conditions de règlement")} htmlFor="paymentTerms">
                 <TextInput
                   id="paymentTerms"
                   name="paymentTerms"
-                  placeholder="Ex : Virement à 30 jours"
+                  placeholder={tr("Ex : Virement à 30 jours")}
                   defaultValue={initial?.paymentTerms}
                 />
               </Field>
@@ -741,11 +727,10 @@ export function ActivityForm({
                   disabled={submitting || deleting}
                   className="text-danger hover:bg-danger/10 border-danger/20 w-full sm:w-auto"
                 >
-                  <Trash2 className="w-4 h-4 mr-1.5" /> Supprimer cette activité
-                </Button>
+                  <Trash2 className="w-4 h-4 mr-1.5" /> {tr("Supprimer cette activité")}</Button>
               ) : (
                 <div className="flex items-center gap-2 bg-danger/5 border border-danger/20 p-2 rounded-xl">
-                  <span className="text-xs text-danger font-medium">Confirmer la suppression ?</span>
+                  <span className="text-xs text-danger font-medium">{tr("Confirmer la suppression ?")}</span>
                   <Button
                     type="button"
                     variant="danger"
@@ -774,8 +759,7 @@ export function ActivityForm({
                       }
                     }}
                   >
-                    Oui, supprimer
-                  </Button>
+                    {tr("Oui, supprimer")}</Button>
                   <Button
                     type="button"
                     variant="secondary"
@@ -783,8 +767,7 @@ export function ActivityForm({
                     disabled={deleting}
                     onClick={() => setShowDeleteConfirm(false)}
                   >
-                    Annuler
-                  </Button>
+                    {tr("Annuler")}</Button>
                 </div>
               )}
             </div>
@@ -799,8 +782,7 @@ export function ActivityForm({
             disabled={submitting || deleting}
             className="w-full sm:w-auto rounded-2xl border border-ink-200/90 dark:border-white/10 dark:bg-slate-800/80 text-ink-700 dark:text-ink-200 hover:bg-canvas dark:hover:bg-slate-700/80 py-2.5 cursor-pointer"
           >
-            Annuler
-          </Button>
+            {tr("Annuler")}</Button>
           <Button
             type="submit"
             variant="primary"
@@ -811,8 +793,8 @@ export function ActivityForm({
           >
             {submitting
               ? currentActivityId
-                ? "Mise à jour en cours..."
-                : "Création en cours..."
+                ? tr("Mise à jour en cours...")
+                : tr("Création en cours...")
               : submitLabel}
           </Button>
         </div>

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useEffect } from "react";
 import { Printer, ArrowLeft, ShieldCheck, Sparkles, CheckCircle2, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
@@ -44,6 +46,7 @@ export function PrintableReport({
   categoryBreakdown,
   monthlyEvolution,
 }: PrintableReportProps) {
+  const { tr } = useLanguage();
   function handlePrint() {
     if (typeof window !== "undefined") {
       window.print();
@@ -58,16 +61,14 @@ export function PrintableReport({
           href="/reports"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Retour aux rapports
-        </a>
+          <ArrowLeft className="w-4 h-4" /> {tr("Retour aux rapports")}</a>
 
         <button
           type="button"
           onClick={handlePrint}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer"
         >
-          <Printer className="w-4 h-4" /> Imprimer / Télécharger en PDF
-        </button>
+          <Printer className="w-4 h-4" /> {tr("Imprimer / Télécharger en PDF")}</button>
       </div>
 
       {/* Structured Document Container (A4 Pro Layout — Compact & Parfaitement calibré 1 page) */}
@@ -81,22 +82,20 @@ export function PrintableReport({
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900">REMIND ME</h1>
                 <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold uppercase tracking-wider">
-                  Rapport Officiel Certifié
-                </span>
+                  {tr("Rapport Officiel Certifié")}</span>
               </div>
-              <p className="text-[10.5px] text-slate-500">Bilan financier multi-activités, suivi de trésorerie &amp; rentabilité</p>
+              <p className="text-[10.5px] text-slate-500">{tr("Bilan financier multi-activités, suivi de trésorerie & rentabilité")}</p>
             </div>
           </div>
 
           <div className="text-left sm:text-right space-y-0.5 text-xs">
             <div className="text-[11px] font-bold text-slate-900 uppercase tracking-wide">
-              Bilan d&apos;Activité
-            </div>
+              {tr("Bilan d'Activité")}</div>
             <div className="text-[10.5px] font-mono text-slate-500">
-              Réf : <strong>{period.documentRef}</strong>
+              {tr("Réf :")}{" "}<strong>{period.documentRef}</strong>
             </div>
             <div className="text-[10px] text-slate-500">
-              Émis le : {period.generatedAtFormatted}
+              {tr("Émis le :")}{" "}{period.generatedAtFormatted}
             </div>
           </div>
         </div>
@@ -104,48 +103,48 @@ export function PrintableReport({
         {/* User & Period Info Block */}
         <div className="grid grid-cols-2 gap-2 py-2 border-b border-slate-200 text-xs print:py-1">
           <div>
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">Titulaire du compte</span>
-            <p className="font-extrabold text-slate-900 text-xs sm:text-sm">{user.fullName || "Utilisateur Remind Me"}</p>
+            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">{tr("Titulaire du compte")}</span>
+            <p className="font-extrabold text-slate-900 text-xs sm:text-sm">{user.fullName || tr("Utilisateur Remind Me")}</p>
             <p className="text-slate-600 text-[11px] truncate">{user.email || ""}</p>
           </div>
 
           <div className="text-right">
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">Période sous revue</span>
+            <span className="font-bold text-slate-500 uppercase tracking-wider text-[9.5px]">{tr("Période sous revue")}</span>
             <p className="font-extrabold text-slate-900 text-xs sm:text-sm">
               {period.fromLabel} ➔ {period.toLabel}
             </p>
-            <p className="text-slate-600 text-[11px]">Devise : <strong>{metrics.defaultCurrency}</strong></p>
+            <p className="text-slate-600 text-[11px]">{tr("Devise :")}{" "}<strong>{metrics.defaultCurrency}</strong></p>
           </div>
         </div>
 
         {/* Executive Summary (KPIs Cards) */}
         <div className="space-y-1">
-          <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-slate-600">Synthèse Exécutive</h2>
+          <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-slate-600">{tr("Synthèse Exécutive")}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             
             <div className="p-2 sm:p-2.5 rounded-xl border border-slate-200 bg-slate-50/50 print:bg-white print:border-slate-300">
-              <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Revenus Reçus</div>
+              <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">{tr("Revenus Reçus")}</div>
               <div className="text-sm sm:text-base font-black text-amber-700 mt-0.5">
                 {formatAmount(metrics.totalIncomeReceived, metrics.defaultCurrency)}
               </div>
             </div>
 
             <div className="p-2 sm:p-2.5 rounded-xl border border-slate-200 bg-slate-50/50 print:bg-white print:border-slate-300">
-              <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Dépenses Payées</div>
+              <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">{tr("Dépenses Payées")}</div>
               <div className="text-sm sm:text-base font-black text-slate-900 mt-0.5">
                 {formatAmount(metrics.totalExpensesPaid, metrics.defaultCurrency)}
               </div>
             </div>
 
             <div className="p-2 sm:p-2.5 rounded-xl border-2 border-emerald-600/30 bg-emerald-50/40 print:bg-white print:border-emerald-700">
-              <div className="text-[9.5px] font-bold uppercase tracking-wider text-emerald-900">Solde Réel Net</div>
+              <div className="text-[9.5px] font-bold uppercase tracking-wider text-emerald-900">{tr("Solde Réel Net")}</div>
               <div className="text-sm sm:text-base font-black text-emerald-700 mt-0.5">
                 {formatAmount(metrics.realNetBalance, metrics.defaultCurrency)}
               </div>
             </div>
 
             <div className="p-2 sm:p-2.5 rounded-xl border border-slate-200 bg-slate-50/50 print:bg-white print:border-slate-300">
-              <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Rentabilité / Heure</div>
+              <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">{tr("Rentabilité / Heure")}</div>
               <div className="text-sm sm:text-base font-black text-indigo-700 mt-0.5">
                 {metrics.averageHourlyRate
                   ? `${formatAmount(metrics.averageHourlyRate, metrics.defaultCurrency)}/h`
@@ -159,26 +158,24 @@ export function PrintableReport({
         {/* Detailed Profitability Table by Activity */}
         <div className="space-y-1">
           <h2 className="text-[10.5px] font-bold uppercase tracking-wider text-slate-600">
-            Tableau de Profitabilité par Activité &amp; Contrat
-          </h2>
+            {tr("Tableau de Profitabilité par Activité & Contrat")}</h2>
           <div className="overflow-x-auto w-full rounded-xl border border-slate-200">
             <table className="w-full text-left border-collapse text-[11px] print:text-[9.5px] min-w-[540px] sm:min-w-full">
               <thead>
                 <tr className="bg-slate-100 border-b border-slate-200 font-bold text-slate-700">
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">Activité / Mission</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">Revenus Reçus</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">Dépenses</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">Solde Net</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">Heures</th>
-                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">Taux Net</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5">{tr("Activité / Mission")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">{tr("Revenus Reçus")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">{tr("Dépenses")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">{tr("Solde Net")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">{tr("Heures")}</th>
+                  <th className="py-1 px-2.5 print:py-0.5 print:px-1.5 text-right">{tr("Taux Net")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {profitabilityList.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-2 text-center text-slate-500 italic">
-                      Aucune activité enregistrée sur cette période.
-                    </td>
+                      {tr("Aucune activité enregistrée sur cette période.")}</td>
                   </tr>
                 ) : (
                   profitabilityList.map((item, index) => {
@@ -221,11 +218,10 @@ export function PrintableReport({
           {/* Category Breakdown */}
           <div>
             <h2 className="text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-              Répartition des Dépenses
-            </h2>
+              {tr("Répartition des Dépenses")}</h2>
             <div className="rounded-xl border border-slate-200 p-2 space-y-1 text-[11px] print:text-[9.5px] bg-slate-50/30">
               {categoryBreakdown.length === 0 ? (
-                <p className="text-slate-500 italic py-1">Aucune dépense sur la période.</p>
+                <p className="text-slate-500 italic py-1">{tr("Aucune dépense sur la période.")}</p>
               ) : (
                 categoryBreakdown.slice(0, 3).map((cat, idx) => (
                   <div key={idx} className="flex items-center justify-between py-0.5 border-b border-slate-100 last:border-0">
@@ -243,23 +239,22 @@ export function PrintableReport({
           {/* Monthly Evolution */}
           <div>
             <h2 className="text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-              Évolution Mensuelle des Flux
-            </h2>
+              {tr("Évolution Mensuelle des Flux")}</h2>
             <div className="rounded-xl border border-slate-200 p-2 space-y-1 text-[11px] print:text-[9.5px] bg-slate-50/30">
               {monthlyEvolution.length === 0 ? (
-                <p className="text-slate-500 italic py-1">Aucune donnée mensuelle disponible.</p>
+                <p className="text-slate-500 italic py-1">{tr("Aucune donnée mensuelle disponible.")}</p>
               ) : (
                 monthlyEvolution.slice(-3).map((m, idx) => (
                   <div key={idx} className="flex items-center justify-between py-0.5 border-b border-slate-100 last:border-0">
                     <span className="text-slate-800 font-bold">{m.monthLabel}</span>
                     <div className="flex items-center gap-2 whitespace-nowrap">
-                      <span className="text-amber-700 font-semibold" title="Revenus">
+                      <span className="text-amber-700 font-semibold" title={tr("Revenus")}>
                         +{formatAmount(m.incomeReceived, m.currency)}
                       </span>
-                      <span className="text-slate-500 text-[10px]" title="Dépenses">
+                      <span className="text-slate-500 text-[10px]" title={tr("Dépenses")}>
                         -{formatAmount(m.expensesPaid, m.currency)}
                       </span>
-                      <span className="font-extrabold text-emerald-700" title="Solde Net">
+                      <span className="font-extrabold text-emerald-700" title={tr("Solde Net")}>
                         ={formatAmount(m.netReal, m.currency)}
                       </span>
                     </div>
@@ -275,23 +270,18 @@ export function PrintableReport({
           <div className="space-y-0.5 max-w-md">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
               <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-              Certification &amp; Authenticité Remind Me
-            </div>
+              {tr("Certification & Authenticité Remind Me")}</div>
             <p className="text-[9.5px] text-slate-500 leading-relaxed">
-              Ce document officiel est extrait en temps réel depuis Remind Me et certifié conforme.
-            </p>
+              {tr("Ce document officiel est extrait en temps réel depuis Remind Me et certifié conforme.")}</p>
           </div>
 
           <div className="p-1.5 sm:p-2 rounded-xl border border-dashed border-amber-600/40 bg-amber-50/30 text-center min-w-[150px] shrink-0 print:py-1">
             <div className="text-[8.5px] font-extrabold uppercase tracking-wider text-amber-900">
-              Signature &amp; Cachet Numérique
-            </div>
+              {tr("Signature & Cachet Numérique")}</div>
             <div className="font-serif italic text-amber-800 text-[11px] font-bold">
-              Remind Me Engine v2.4
-            </div>
+              {tr("Remind Me Engine v2.4")}</div>
             <div className="inline-flex items-center gap-1 text-[8.5px] text-emerald-700 font-bold">
-              <CheckCircle2 className="w-2.5 h-2.5" /> Validé électroniquement
-            </div>
+              <CheckCircle2 className="w-2.5 h-2.5" /> {tr("Validé électroniquement")}</div>
           </div>
         </div>
 

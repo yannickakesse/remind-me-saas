@@ -1,3 +1,4 @@
+import { msg } from "@/lib/i18n/catalog";
 export type PlanType = "free" | "pro" | "premium";
 
 export interface PlanEntitlements {
@@ -18,7 +19,7 @@ export interface PlanEntitlements {
 
 export const PLAN_ENTITLEMENTS: Record<PlanType, PlanEntitlements> = {
   free: {
-    planName: "Gratuit",
+    planName: msg("Gratuit"),
     priceMonthly: 0,
     priceYearly: 0,
     maxActivities: 3,

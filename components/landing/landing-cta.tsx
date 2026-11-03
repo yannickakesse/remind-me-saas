@@ -1,9 +1,12 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 export function LandingCTA() {
+  const { tr } = useLanguage();
   return (
     <section className="py-20 sm:py-28 bg-canvas">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,24 +18,21 @@ export function LandingCTA() {
           <div className="relative z-10 max-w-2xl mx-auto space-y-6">
             <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-white text-xs font-semibold backdrop-blur-sm border border-white/15">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Prêt en 2 minutes</span>
+              <span>{tr("Prêt en 2 minutes")}</span>
             </span>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-sans text-white leading-tight">
-              Une organisation plus claire commence ici.
-            </h2>
+              {tr("Une organisation plus claire commence ici.")}</h2>
 
             <p className="text-base sm:text-lg text-white/80 leading-relaxed font-normal">
-              Rejoignez les professionnels et pluriactifs qui ont fait le choix d’un centre de contrôle unique
-              pour leurs activités, leurs échéances et leurs finances.
-            </p>
+              {tr("Rejoignez les professionnels et pluriactifs qui ont fait le choix d’un centre de contrôle unique pour leurs activités, leurs échéances et leurs finances.")}</p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4">
               <Link
                 href="/register"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-base shadow-xl hover:shadow-2xl hover:scale-[1.01] transition-all duration-150 group cursor-pointer"
               >
-                <span>Commencer gratuitement</span>
+                <span>{tr("Commencer gratuitement")}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
 
@@ -40,13 +40,11 @@ export function LandingCTA() {
                 href="/login"
                 className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-4 rounded-full bg-white/10 hover:bg-white/15 text-white font-semibold text-base border border-white/20 backdrop-blur-sm transition-colors cursor-pointer"
               >
-                Se connecter
-              </Link>
+                {tr("Se connecter")}</Link>
             </div>
 
             <p className="text-xs text-white/60 pt-2 font-mono">
-              Forfait gratuit disponible immédiatement • Sans carte bancaire requise
-            </p>
+              {tr("Forfait gratuit disponible immédiatement • Sans carte bancaire requise")}</p>
           </div>
         </div>
       </div>

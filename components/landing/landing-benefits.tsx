@@ -1,8 +1,11 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { Layers, CalendarCheck2, Wallet, Smartphone } from "lucide-react";
 
 export function LandingBenefits() {
+  const { tr } = useLanguage();
   const benefits = [
     {
       icon: Layers,
@@ -37,16 +40,14 @@ export function LandingBenefits() {
         <div className="text-center max-w-2xl mx-auto mb-14 sm:mb-18">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#17211D] border border-[#17211D]/10 dark:border-white/10 text-xs font-semibold text-[#17211D] dark:text-[#F7F6F2] mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-[#214E3B]" />
-            <span>Pourquoi Remind Me</span>
+            <span>{tr("Pourquoi Remind Me")}</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#17211D] dark:text-white tracking-tight font-sans">
-            La sérénité d’un pilotage maîtrisé.
-          </h2>
+            {tr("La sérénité d’un pilotage maîtrisé.")}</h2>
 
           <p className="text-base sm:text-lg text-[#17211D]/75 dark:text-ink-300 mt-3 leading-relaxed">
-            Quatre principes fondamentaux pour remplacer le désordre des fichiers et applications fragmentés.
-          </p>
+            {tr("Quatre principes fondamentaux pour remplacer le désordre des fichiers et applications fragmentés.")}</p>
         </div>
 
         {/* Grille 4 bénéfices */}

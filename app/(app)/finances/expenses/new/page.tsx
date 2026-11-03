@@ -1,9 +1,11 @@
+import { getTr } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { ExpenseForm } from "@/components/shared/expense-form";
 import { createExpense } from "../../actions";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 
 export default async function NewExpensePage() {
+  const tr = await getTr();
   const [user, profile] = await Promise.all([
     requireCurrentUser(),
     getCurrentProfile(),
@@ -24,11 +26,9 @@ export default async function NewExpensePage() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight text-ink-950 dark:text-white">
-          Nouvelle dépense
-        </h1>
+          {tr("Nouvelle dépense")}</h1>
         <p className="text-xs text-ink-500 mt-1">
-          Enregistrez un décaissement ponctuel ou une charge à régler. Pour un abonnement ou un loyer récurrent, vous pouvez aussi le programmer dans les dépenses prévisionnelles.
-        </p>
+          {tr("Enregistrez un décaissement ponctuel ou une charge à régler. Pour un abonnement ou un loyer récurrent, vous pouvez aussi le programmer dans les dépenses prévisionnelles.")}</p>
       </div>
 
       <div className="rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md p-5 sm:p-7 shadow-xs">

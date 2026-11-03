@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: Ping Remind Me Cron Endpoint
         run: |
-          curl -s -X POST "https://remind-me-saas.vercel.app/api/cron/reminders" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET || 'remind_me_cron_secret_prod_9a8b7c6d5e4f3a2b1c' }}" \
+          # Secret obligatoire : GitHub → Settings → Secrets and variables → Actions → CRON_SECRET
+          curl -sf -X POST "https://remind-me-saas-ybkc.vercel.app/api/cron/reminders" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"

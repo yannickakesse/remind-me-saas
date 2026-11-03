@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Copy, ArrowLeft, Pencil } from "lucide-react";
@@ -11,6 +12,7 @@ export default async function EditActivityPage({
 }: {
   params: { id: string };
 }) {
+  const tr = await getTr();
   const user = await requireCurrentUser();
   const supabase = createClient();
 
@@ -81,7 +83,7 @@ export default async function EditActivityPage({
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white bg-canvas-raised/80 dark:bg-slate-900/80 border border-ink-200/80 dark:border-white/10 hover:border-signal/40 transition-all shadow-2xs group"
         >
           <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
-          <span>Retour au portefeuille d&apos;activités</span>
+          <span>{tr("Retour au portefeuille d'activités")}</span>
         </Link>
       </div>
 
@@ -98,8 +100,7 @@ export default async function EditActivityPage({
             <div className="flex items-center gap-2 mb-2">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-signal/10 dark:bg-signal/20 text-signal border border-signal/20 shadow-2xs">
                 <Pencil className="w-3 h-3" />
-                Édition d&apos;activité
-              </span>
+                {tr("Édition d'activité")}</span>
               <span
                 className="h-3.5 w-3.5 rounded-full ring-2 ring-white/20 shadow-2xs"
                 style={{ backgroundColor: activityColor }}
@@ -108,21 +109,20 @@ export default async function EditActivityPage({
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink-950 dark:text-white">
-              Modifier « {activity.name} »
+              {tr("Modifier «")}{" "}{activity.name} »
             </h1>
 
             <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 mt-1 max-w-2xl">
-              Mettez à jour les horaires, la rémunération, le mode de travail ou les coordonnées du contact.
-            </p>
+              {tr("Mettez à jour les horaires, la rémunération, le mode de travail ou les coordonnées du contact.")}</p>
           </div>
 
           <Link
             href={`/activities/new?duplicate_from=${activity.id}`}
-            title="Dupliquer cette activité pour créer une nouvelle occurrence"
+            title={tr("Dupliquer cette activité pour créer une nouvelle occurrence")}
             className="inline-flex items-center gap-1.5 rounded-2xl border border-ink-200/90 dark:border-white/10 bg-canvas-subtle/80 dark:bg-slate-800/80 px-3.5 py-2 text-xs font-bold text-ink-800 dark:text-ink-200 hover:bg-canvas dark:hover:bg-slate-700/80 hover:border-signal/40 transition-all self-start sm:self-auto shadow-2xs hover:-translate-y-0.5"
           >
             <Copy className="w-3.5 h-3.5 text-signal" />
-            <span>Dupliquer pour modifier</span>
+            <span>{tr("Dupliquer pour modifier")}</span>
           </Link>
         </div>
       </div>

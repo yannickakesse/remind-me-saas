@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import { PageBackground } from "@/components/shared/page-background";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -25,6 +26,7 @@ import type { SupportedLocale } from "@/lib/i18n/types";
 import type { Notification } from "@/types/database";
 
 export default async function DashboardPage() {
+  const tr = await getTr();
   const [user, profile] = await Promise.all([
     requireCurrentUser(),
     getCurrentProfile(),
@@ -213,7 +215,7 @@ export default async function DashboardPage() {
                     {t("dashboard.scheduled_expenses_title", locale)}
                   </h3>
                   <span className="text-[11px] text-ink-500">
-                    {scheduledExpenses?.length ?? 0} charge{scheduledExpenses && scheduledExpenses.length > 1 ? "s" : ""} prévue{scheduledExpenses && scheduledExpenses.length > 1 ? "s" : ""}
+                    {scheduledExpenses?.length ?? 0} charge{scheduledExpenses && scheduledExpenses.length > 1 ? "s" : ""} {tr("prévue")}{scheduledExpenses && scheduledExpenses.length > 1 ? "s" : ""}
                   </span>
                 </div>
               </div>
@@ -270,7 +272,7 @@ export default async function DashboardPage() {
                           <div className="text-[11px] text-ink-500 mt-0.5 flex items-center gap-1.5">
                             <span className="capitalize">{exp.category}</span>
                             <span>•</span>
-                            <span>Échéance : {exp.next_due_date}</span>
+                            <span>{tr("Échéance :")}{" "}{exp.next_due_date}</span>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
@@ -308,11 +310,9 @@ export default async function DashboardPage() {
                 </div>
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
-                    Encaissements attendus
-                  </h3>
+                    {tr("Encaissements attendus")}</h3>
                   <span className="text-[11px] text-ink-500">
-                    {lateIncome?.length ?? 0} facture{lateIncome && lateIncome.length > 1 ? "s" : ""} en attente
-                  </span>
+                    {lateIncome?.length ?? 0} facture{lateIncome && lateIncome.length > 1 ? "s" : ""} {tr("en attente")}</span>
                 </div>
               </div>
               <Link
@@ -326,7 +326,7 @@ export default async function DashboardPage() {
 
             {(lateIncome?.length ?? 0) === 0 ? (
               <div className="p-6 text-center text-xs text-ink-500 bg-canvas/60 dark:bg-slate-950/40 rounded-2xl border border-dashed border-ink-200 dark:border-ink-800 space-y-2">
-                <p>Tous vos encaissements sont à jour pour l&apos;instant.</p>
+                <p>{tr("Tous vos encaissements sont à jour pour l'instant.")}</p>
                 <Link
                   href="/finances?tab=income"
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-signal/10 hover:bg-signal/20 text-signal font-bold transition-colors"
@@ -366,7 +366,7 @@ export default async function DashboardPage() {
                             {inc.label}
                           </div>
                           <div className="text-[11px] text-ink-500 mt-0.5">
-                            Échéance : {inc.due_date}
+                            {tr("Échéance :")}{" "}{inc.due_date}
                           </div>
                         </div>
                         <div className="text-right shrink-0">

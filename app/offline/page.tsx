@@ -7,7 +7,7 @@ import { useLanguage } from "@/components/i18n/language-provider";
 import Link from "next/link";
 
 export default function OfflinePage() {
-  const { locale, t } = useLanguage();
+  const { locale, t , tr } = useLanguage();
   const [isChecking, setIsChecking] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -91,18 +91,18 @@ export default function OfflinePage() {
         {/* Offline Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-semibold mb-4">
           <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-          <span>{locale === "fr" ? "Mode Hors-ligne" : "Offline Mode"}</span>
+          <span>{locale === "fr" ? tr("Mode Hors-ligne") : tr("Offline Mode")}</span>
         </div>
 
         {/* Main Headings */}
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-2 text-ink-900 dark:text-ink-50">
-          {locale === "fr" ? "Pas de connexion Internet" : "No Internet Connection"}
+          {locale === "fr" ? tr("Pas de connexion Internet") : tr("No Internet Connection")}
         </h1>
 
         <p className="text-sm text-ink-600 dark:text-ink-400 mb-6 leading-relaxed">
           {locale === "fr"
-            ? "Veuillez vous connecter au Wi-Fi ou aux données cellulaires pour accéder aux fonctionnalités de Remind Me et synchroniser vos rappels."
-            : "Please connect to Wi-Fi or mobile cellular data to access Remind Me services and sync your reminders."}
+            ? tr("Veuillez vous connecter au Wi-Fi ou aux données cellulaires pour accéder aux fonctionnalités de Remind Me et synchroniser vos rappels.")
+            : tr("Please connect to Wi-Fi or mobile cellular data to access Remind Me services and sync your reminders.")}
         </p>
 
         {/* Action button */}
@@ -117,11 +117,11 @@ export default function OfflinePage() {
           <span>
             {isChecking
               ? locale === "fr"
-                ? "Vérification en cours..."
-                : "Checking connection..."
+                ? tr("Vérification en cours...")
+                : tr("Checking connection...")
               : locale === "fr"
-              ? "Réessayer la connexion"
-              : "Retry Connection"}
+              ? tr("Réessayer la connexion")
+              : tr("Retry Connection")}
           </span>
         </button>
 
@@ -143,24 +143,24 @@ export default function OfflinePage() {
           <div className="font-semibold text-ink-800 dark:text-ink-200 mb-2 flex items-center gap-1.5">
             <Smartphone className="w-4 h-4 text-brand-primary" />
             <span>
-              {locale === "fr" ? "Astuces rapides :" : "Quick tips:"}
+              {locale === "fr" ? tr("Astuces rapides :") : tr("Quick tips:")}
             </span>
           </div>
           <ul className="space-y-1.5 list-disc list-inside">
             <li>
               {locale === "fr"
-                ? "Vérifiez que le Wi-Fi ou la 4G/5G sont activés."
-                : "Ensure Wi-Fi or mobile data is turned on."}
+                ? tr("Vérifiez que le Wi-Fi ou la 4G/5G sont activés.")
+                : tr("Ensure Wi-Fi or mobile data is turned on.")}
             </li>
             <li>
               {locale === "fr"
-                ? "Basculez le Mode Avion (Activer puis Désactiver)."
-                : "Toggle Airplane mode on and off."}
+                ? tr("Basculez le Mode Avion (Activer puis Désactiver).")
+                : tr("Toggle Airplane mode on and off.")}
             </li>
             <li>
               {locale === "fr"
-                ? "L'application se rechargera automatiquement dès le retour du réseau."
-                : "The app will auto-reload as soon as internet is restored."}
+                ? tr("L'application se rechargera automatiquement dès le retour du réseau.")
+                : tr("The app will auto-reload as soon as internet is restored.")}
             </li>
           </ul>
         </div>
@@ -172,7 +172,7 @@ export default function OfflinePage() {
             className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-500 hover:text-brand-primary transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>{locale === "fr" ? "Retour à l'accueil" : "Back to Home"}</span>
+            <span>{locale === "fr" ? tr("Retour à l'accueil") : tr("Back to Home")}</span>
           </Link>
         </div>
       </div>

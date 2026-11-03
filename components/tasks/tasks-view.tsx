@@ -123,7 +123,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
     });
   }, [tasks, activeTab, selectedActivity, selectedPriority, searchQuery, todayStr]);
 
-  const { t, locale } = useLanguage();
+  const { t, locale , tr } = useLanguage();
   const tabs: { id: TaskTab; label: string; count: number; alert?: boolean }[] = [
     { id: "all", label: t("tasks.tab_all"), count: counts.all },
     { id: "overdue", label: t("tasks.tab_overdue"), count: counts.overdue, alert: counts.overdue > 0 },
@@ -164,7 +164,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0">
-            <SectionGuideTrigger section="tasks" label="Guide des tâches" />
+            <SectionGuideTrigger section="tasks" label={tr("Guide des tâches")} />
             <Link href="/tasks/new" data-tour="task-create" className={buttonClasses("primary", "sm")}>
               <Plus className="mr-1 h-3.5 w-3.5" />
               {t("tasks.new_task")}
@@ -175,7 +175,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
 
       {/* Onglets de navigation temporelle défilables sans scrollbar */}
       <div className="w-full max-w-full overflow-x-auto no-scrollbar border-b border-ink-200 pb-1" data-tour="task-tabs">
-        <nav className="flex space-x-1.5 min-w-max py-0.5" aria-label="Tabs">
+        <nav className="flex space-x-1.5 min-w-max py-0.5" aria-label={tr("Tabs")}>
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -241,24 +241,24 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
           >
             <option value="all">
               {locale === "fr"
-                ? "Toutes les activités"
+                ? tr("Toutes les activités")
                 : locale === "es"
-                ? "Todas las actividades"
+                ? tr("Todas las actividades")
                 : locale === "de"
-                ? "Alle Aktivitäten"
+                ? tr("Alle Aktivitäten")
                 : locale === "pt"
-                ? "Todas as atividades"
-                : "All activities"}
+                ? tr("Todas as atividades")
+                : tr("All activities")}
             </option>
             <option value="unassigned">
               {locale === "fr"
-                ? "Sans activité"
+                ? tr("Sans activité")
                 : locale === "es"
-                ? "Sin actividad"
+                ? tr("Sin actividad")
                 : locale === "de"
-                ? "Ohne Aktivität"
+                ? tr("Ohne Aktivität")
                 : locale === "pt"
-                ? "Sem atividade"
+                ? tr("Sem atividade")
                 : "Unassigned"}
             </option>
             {activities.map((a) => (
@@ -275,14 +275,14 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
           >
             <option value="all">
               {locale === "fr"
-                ? "Priorités : toutes"
+                ? tr("Priorités : toutes")
                 : locale === "es"
-                ? "Prioridades: todas"
+                ? tr("Prioridades: todas")
                 : locale === "de"
-                ? "Prioritäten: alle"
+                ? tr("Prioritäten: alle")
                 : locale === "pt"
-                ? "Prioridades: todas"
-                : "Priorities: all"}
+                ? tr("Prioridades: todas")
+                : tr("Priorities: all")}
             </option>
             <option value="urgent">{t("tasks.priority_urgent")}</option>
             <option value="high">{t("tasks.priority_high")}</option>
@@ -311,10 +311,10 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
           </h3>
           <p className="mt-1 text-sm text-ink-500 max-w-sm mx-auto">
             {activeTab === "overdue"
-              ? "Toutes vos tâches sont à jour. Continuez comme ça !"
+              ? tr("Toutes vos tâches sont à jour. Continuez comme ça !")
               : activeTab === "today"
-              ? "Vous pouvez vous concentrer sur vos activités ou planifier une tâche."
-              : "Ajoutez une tâche pour organiser votre emploi du temps et vos livrables."}
+              ? tr("Vous pouvez vous concentrer sur vos activités ou planifier une tâche.")
+              : tr("Ajoutez une tâche pour organiser votre emploi du temps et vos livrables.")}
           </p>
           <div className="mt-5">
             <Link href="/tasks/new" className={buttonClasses("primary", "sm")}>

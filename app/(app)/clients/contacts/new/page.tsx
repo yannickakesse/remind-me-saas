@@ -1,9 +1,11 @@
+import { getTr } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { ContactForm } from "@/components/shared/contact-form";
 import { createContact } from "../../actions";
 import { requireCurrentUser } from "@/lib/supabase/auth";
 
 export default async function NewContactPage() {
+  const tr = await getTr();
   const user = await requireCurrentUser();
   const supabase = createClient();
 
@@ -15,8 +17,8 @@ export default async function NewContactPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-2xl font-semibold text-ink-950">Nouveau contact</h1>
-      <p className="mb-8 text-ink-500">Une personne, rattachée ou non à une organisation.</p>
+      <h1 className="mb-1 text-2xl font-semibold text-ink-950">{tr("Nouveau contact")}</h1>
+      <p className="mb-8 text-ink-500">{tr("Une personne, rattachée ou non à une organisation.")}</p>
       <ContactForm organizations={organizations ?? []} action={createContact} />
     </div>
   );

@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { TaskForm } from "@/components/shared/task-form";
@@ -5,6 +6,7 @@ import { updateTask } from "../../actions";
 import { requireCurrentUser } from "@/lib/supabase/auth";
 
 export default async function EditTaskPage({ params }: { params: { id: string } }) {
+  const tr = await getTr();
   const user = await requireCurrentUser();
   const supabase = createClient();
 
@@ -23,8 +25,8 @@ export default async function EditTaskPage({ params }: { params: { id: string } 
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-ink-950">Modifier la tâche</h1>
-        <p className="text-sm text-ink-500">Mettez à jour les informations ou le statut de votre tâche.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-ink-950">{tr("Modifier la tâche")}</h1>
+        <p className="text-sm text-ink-500">{tr("Mettez à jour les informations ou le statut de votre tâche.")}</p>
       </div>
       <TaskForm
         activities={activities ?? []}

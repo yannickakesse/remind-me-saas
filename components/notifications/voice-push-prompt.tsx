@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Volume2, BellRing, Sparkles, X, ArrowRight, Check } from "lucide-react";
@@ -9,6 +11,7 @@ import { onWelcomeDone } from "@/lib/onboarding/welcome-sequence";
 const STORAGE_KEY = "remindme_voice_push_prompt_dismissed";
 
 export function VoicePushPrompt() {
+  const { tr } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [tested, setTested] = useState(false);
 
@@ -69,17 +72,14 @@ export function VoicePushPrompt() {
           <div className="flex-1 min-w-0 pr-5">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-signal/15 text-signal">
-                Nouveau • Rappels Vocaux
-              </span>
+                {tr("Nouveau • Rappels Vocaux")}</span>
             </div>
 
             <h4 className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white mt-1">
-              Activez vos notifications qui parlent ! 🔊
-            </h4>
+              {tr("Activez vos notifications qui parlent ! 🔊")}</h4>
 
             <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed">
-              Pour entendre vos rappels oraux à chaque tâche ou activité, activez le bouton <strong>Push &amp; Synthèse Vocale</strong> dans vos Paramètres.
-            </p>
+              {tr("Pour entendre vos rappels oraux à chaque tâche ou activité, activez le bouton")}{" "}<strong>{tr("Push & Synthèse Vocale")}</strong> {tr("dans vos Paramètres.")}</p>
 
             <div className="flex items-center gap-2 mt-3 flex-wrap">
               <button
@@ -88,7 +88,7 @@ export function VoicePushPrompt() {
                 className="px-3 py-1.5 rounded-xl bg-signal/15 hover:bg-signal/25 text-signal text-xs font-bold transition-all flex items-center gap-1 cursor-pointer tap-active"
               >
                 {tested ? <Check className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                <span>{tested ? "Voix testée !" : "Tester la voix"}</span>
+                <span>{tested ? tr("Voix testée !") : tr("Tester la voix")}</span>
               </button>
 
               <Link
@@ -96,7 +96,7 @@ export function VoicePushPrompt() {
                 onClick={handleDismiss}
                 className="px-3 py-1.5 rounded-xl bg-signal hover:bg-signal-dark text-white text-xs font-bold transition-all flex items-center gap-1 shadow-xs cursor-pointer tap-active"
               >
-                <span>Paramètres</span>
+                <span>{tr("Paramètres")}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -106,7 +106,7 @@ export function VoicePushPrompt() {
           <button
             type="button"
             onClick={handleDismiss}
-            aria-label="Fermer cette note"
+            aria-label={tr("Fermer cette note")}
             className="absolute top-2 right-2 p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />

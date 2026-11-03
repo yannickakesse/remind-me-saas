@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useTransition, useEffect } from "react";
 import {
   Target,
@@ -36,6 +38,7 @@ export function SavingsGoalsSection({
   currencies,
   defaultCurrency,
 }: SavingsGoalsSectionProps) {
+  const { tr } = useLanguage();
   const toast = useToast();
   const [localGoals, setLocalGoals] = useState<SavingsGoal[]>(goals);
   const [isPending, startTransition] = useTransition();
@@ -113,7 +116,7 @@ export function SavingsGoalsSection({
             toast.push(res.error || "Impossible de modifier l'objectif.", "error");
             return;
           }
-          toast.push("Objectif d'épargne mis à jour.", "success");
+          toast.push(tr("Objectif d'épargne mis à jour."), "success");
         } else {
           const res = await createSavingsGoal(formData);
           if (res && !res.success) {
@@ -122,7 +125,7 @@ export function SavingsGoalsSection({
             toast.push(res.error || "Impossible de créer l'objectif d'épargne.", "error");
             return;
           }
-          toast.push("Objectif d'épargne créé avec succès.", "success");
+          toast.push(tr("Objectif d'épargne créé avec succès."), "success");
         }
         resetForm();
       } catch (err: any) {
@@ -158,21 +161,21 @@ export function SavingsGoalsSection({
         );
       } catch (err) {
         setLocalGoals(goals);
-        toast.push("Erreur lors de l'ajustement du solde.", "error");
+        toast.push(tr("Erreur lors de l'ajustement du solde."), "error");
       }
     });
   }
 
   function handleDelete(id: string) {
-    if (confirm("Supprimer cette poche d'épargne ?")) {
+    if (confirm(tr("Supprimer cette poche d'épargne ?"))) {
       setLocalGoals((prev) => prev.filter((g) => g.id !== id));
       startTransition(async () => {
         try {
           await deleteSavingsGoal(id);
-          toast.push("Poche d'épargne supprimée.", "info");
+          toast.push(tr("Poche d'épargne supprimée."), "info");
         } catch (err) {
           setLocalGoals(goals);
-          toast.push("Erreur lors de la suppression.", "error");
+          toast.push(tr("Erreur lors de la suppression."), "error");
         }
       });
     }
@@ -188,11 +191,9 @@ export function SavingsGoalsSection({
               <span className="p-1.5 rounded-xl bg-signal text-white shadow-xs">
                 <Target className="w-4 h-4" />
               </span>
-              Objectifs &amp; Poches d'Épargne
-            </h2>
+              {tr("Objectifs & Poches d'Épargne")}</h2>
             <p className="text-xs text-ink-500 mt-1">
-              Constituez votre fonds d'urgence, préparez vos investissements ou financez vos projets futurs.
-            </p>
+              {tr("Constituez votre fonds d'urgence, préparez vos investissements ou financez vos projets futurs.")}</p>
           </div>
 
           {!isAdding && !editingId ? (
@@ -204,8 +205,7 @@ export function SavingsGoalsSection({
               }}
               className="inline-flex items-center gap-1.5 rounded-xl bg-signal px-4 py-2 text-xs font-bold text-white hover:bg-signal/90 active:scale-95 transition-all shadow-xs"
             >
-              <Plus className="w-4 h-4" /> Créer un objectif
-            </button>
+              <Plus className="w-4 h-4" /> {tr("Créer un objectif")}</button>
           ) : null}
         </div>
       </div>
@@ -214,24 +214,24 @@ export function SavingsGoalsSection({
       {isAdding || editingId ? (
         <form onSubmit={handleSave} className="rounded-xl border border-ink-200 bg-canvas-raised p-5 shadow-sm space-y-4 max-w-xl">
           <h3 className="font-semibold text-ink-950">
-            {editingId ? "Modifier l'objectif" : "Nouvel objectif d'épargne"}
+            {editingId ? tr("Modifier l'objectif") : tr("Nouvel objectif d'épargne")}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-ink-700 mb-1">Nom du projet / poche</label>
+              <label className="block text-xs font-medium text-ink-700 mb-1">{tr("Nom du projet / poche")}</label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ex : Fonds de sécurité 6 mois"
+                placeholder={tr("Ex : Fonds de sécurité 6 mois")}
                 className="w-full rounded-lg border border-ink-300 bg-canvas px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-ink-700 mb-1">Type de projet</label>
+              <label className="block text-xs font-medium text-ink-700 mb-1">{tr("Type de projet")}</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as SavingsCategory)}
@@ -248,7 +248,7 @@ export function SavingsGoalsSection({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-ink-700 mb-1">Montant Cible</label>
+              <label className="block text-xs font-medium text-ink-700 mb-1">{tr("Montant Cible")}</label>
               <input
                 type="number"
                 step="0.01"
@@ -256,13 +256,13 @@ export function SavingsGoalsSection({
                 required
                 value={targetAmount}
                 onChange={(e) => setTargetAmount(e.target.value)}
-                placeholder="Ex : 2000000"
+                placeholder={tr("Ex : 2000000")}
                 className="w-full rounded-lg border border-ink-300 bg-canvas px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-ink-700 mb-1">Montant Actuel</label>
+              <label className="block text-xs font-medium text-ink-700 mb-1">{tr("Montant Actuel")}</label>
               <input
                 type="number"
                 step="0.01"
@@ -275,7 +275,7 @@ export function SavingsGoalsSection({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-ink-700 mb-1">Devise</label>
+              <label className="block text-xs font-medium text-ink-700 mb-1">{tr("Devise")}</label>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
@@ -293,7 +293,7 @@ export function SavingsGoalsSection({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-ink-700 mb-1">Date butoir (optionnel)</label>
+              <label className="block text-xs font-medium text-ink-700 mb-1">{tr("Date butoir (optionnel)")}</label>
               <input
                 type="date"
                 value={deadline}
@@ -303,14 +303,14 @@ export function SavingsGoalsSection({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-ink-700 mb-1">Épargne mensuelle prévue</label>
+              <label className="block text-xs font-medium text-ink-700 mb-1">{tr("Épargne mensuelle prévue")}</label>
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 value={monthlyContribution}
                 onChange={(e) => setMonthlyContribution(e.target.value)}
-                placeholder="Ex : 100000"
+                placeholder={tr("Ex : 100000")}
                 className="w-full rounded-lg border border-ink-300 bg-canvas px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
               />
             </div>
@@ -326,15 +326,14 @@ export function SavingsGoalsSection({
               disabled={isPending}
               className="rounded-lg bg-signal px-4 py-2 text-sm font-medium text-white hover:bg-signal/90 disabled:opacity-50"
             >
-              {isPending ? "Enregistrement..." : editingId ? "Mettre à jour" : "Créer l'objectif"}
+              {isPending ? "Enregistrement..." : editingId ? tr("Mettre à jour") : tr("Créer l'objectif")}
             </button>
             <button
               type="button"
               onClick={resetForm}
               className="rounded-lg border border-ink-300 px-4 py-2 text-sm font-medium text-ink-700 hover:bg-ink-50"
             >
-              Annuler
-            </button>
+              {tr("Annuler")}</button>
           </div>
         </form>
       ) : null}
@@ -345,18 +344,16 @@ export function SavingsGoalsSection({
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gold-soft text-gold-dark mb-3">
             <Coins className="h-6 w-6" />
           </div>
-          <p className="font-semibold text-ink-950">Aucun objectif d'épargne pour l'instant</p>
+          <p className="font-semibold text-ink-950">{tr("Aucun objectif d'épargne pour l'instant")}</p>
           <p className="text-sm text-ink-700 dark:text-ink-300 mt-1 max-w-md mx-auto leading-relaxed">
-            Créez des poches d'épargne dédiées pour visualiser votre progression et anticiper la réalisation de vos projets.
-          </p>
+            {tr("Créez des poches d'épargne dédiées pour visualiser votre progression et anticiper la réalisation de vos projets.")}</p>
           <button
             type="button"
             onClick={() => setIsAdding(true)}
             className="mt-4 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-gold to-gold-dark px-4 py-2 text-sm font-semibold text-white shadow-gold-subtle hover:brightness-105"
           >
             <Plus className="h-4 w-4" />
-            Définir un premier objectif
-          </button>
+            {tr("Définir un premier objectif")}</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -375,7 +372,7 @@ export function SavingsGoalsSection({
                   <div>
                     <h3 className="font-bold text-ink-950 text-base">{g.name}</h3>
                     <p className="text-xs text-ink-500">
-                      Cible : {formatAmount(g.target_amount, g.currency)}
+                      {tr("Cible :")}{" "}{formatAmount(g.target_amount, g.currency)}
                       {g.deadline ? ` • Échéance : ${g.deadline}` : ""}
                     </p>
                   </div>
@@ -395,7 +392,7 @@ export function SavingsGoalsSection({
                         setIsAdding(false);
                       }}
                       className="rounded p-1.5 text-ink-500 hover:text-gold-dark hover:bg-gold-soft transition-colors"
-                      title="Modifier"
+                      title={tr("Modifier")}
                     >
                       <Edit3 className="h-4 w-4" />
                     </button>
@@ -403,7 +400,7 @@ export function SavingsGoalsSection({
                       type="button"
                       onClick={() => handleDelete(g.id)}
                       className="rounded p-1.5 text-ink-400 hover:text-danger hover:bg-danger-soft/50 transition-colors"
-                      title="Supprimer"
+                      title={tr("Supprimer")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -417,7 +414,7 @@ export function SavingsGoalsSection({
                       <span className="text-2xl font-extrabold text-ink-950">
                         {formatAmount(g.current_amount, g.currency)}
                       </span>
-                      <span className="text-xs text-ink-500 ml-1.5">épargnés</span>
+                      <span className="text-xs text-ink-500 ml-1.5">{tr("épargnés")}</span>
                     </div>
                     <span className="font-bold text-sm text-gold-dark">
                       {proj.progressPercentage}%
@@ -439,20 +436,19 @@ export function SavingsGoalsSection({
                   {isCompleted ? (
                     <span className="inline-flex items-center gap-1.5 font-semibold text-positive">
                       <CheckCircle2 className="h-4 w-4 text-positive" />
-                      Objectif 100% atteint !
-                    </span>
+                      {tr("Objectif 100% atteint !")}</span>
                   ) : proj.estimatedCompletionDate ? (
                     <div className="flex items-center justify-between">
                       <span>
-                        Rythme : <strong>{formatAmount(g.monthly_contribution!, g.currency)}/mois</strong>
+                        {tr("Rythme :")}{" "}<strong>{formatAmount(g.monthly_contribution!, g.currency)}/mois</strong>
                       </span>
                       <span>
-                        Atteinte estimée : <strong>{proj.estimatedCompletionDate}</strong>
+                        {tr("Atteinte estimée :")}{" "}<strong>{proj.estimatedCompletionDate}</strong>
                       </span>
                     </div>
                   ) : (
                     <span>
-                      Reste à épargner : <strong>{formatAmount(proj.remainingAmount, g.currency)}</strong>
+                      {tr("Reste à épargner :")}{" "}<strong>{formatAmount(proj.remainingAmount, g.currency)}</strong>
                     </span>
                   )}
                 </div>
@@ -466,14 +462,14 @@ export function SavingsGoalsSection({
                         onChange={(e) => setAdjustMode(e.target.value as "add" | "withdraw")}
                         className="rounded-lg border border-ink-300 bg-canvas px-2.5 py-1.5 text-xs text-ink-950"
                       >
-                        <option value="add">+ Ajouter</option>
-                        <option value="withdraw">- Retirer</option>
+                        <option value="add">{tr("+ Ajouter")}</option>
+                        <option value="withdraw">{tr("- Retirer")}</option>
                       </select>
                       <input
                         type="number"
                         step="0.01"
                         min="1"
-                        placeholder="Montant"
+                        placeholder={tr("Montant")}
                         value={adjustAmount}
                         onChange={(e) => setAdjustAmount(e.target.value)}
                         className="w-28 rounded-lg border border-ink-300 bg-canvas px-2.5 py-1.5 text-xs text-ink-950"
@@ -483,15 +479,13 @@ export function SavingsGoalsSection({
                         onClick={() => handleAdjustSubmit(g.id, Number(g.current_amount))}
                         className="rounded-lg bg-signal px-3 py-1.5 text-xs font-semibold text-white hover:bg-signal/90"
                       >
-                        Valider
-                      </button>
+                        {tr("Valider")}</button>
                       <button
                         type="button"
                         onClick={() => setAdjustingId(null)}
                         className="text-xs text-ink-400 hover:text-ink-700"
                       >
-                        Fermer
-                      </button>
+                        {tr("Fermer")}</button>
                     </div>
                   ) : (
                     <button
@@ -502,8 +496,7 @@ export function SavingsGoalsSection({
                       }}
                       className="text-xs font-medium text-signal hover:underline"
                     >
-                      + / - Ajuster le solde de cette poche
-                    </button>
+                      {tr("+ / - Ajuster le solde de cette poche")}</button>
                   )}
                 </div>
               </div>

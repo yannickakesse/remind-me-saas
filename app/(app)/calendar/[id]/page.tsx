@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DateTime } from "luxon";
@@ -12,6 +13,7 @@ import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { getUserTimezone } from "@/lib/time/timezones";
 
 export default async function EventDetailPage({ params }: { params: { id: string } }) {
+  const tr = await getTr();
   const [user, profile] = await Promise.all([
     requireCurrentUser(),
     getCurrentProfile(),
@@ -65,13 +67,13 @@ export default async function EventDetailPage({ params }: { params: { id: string
           className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-600 hover:text-signal transition-colors py-1.5 px-3 rounded-full bg-canvas-raised border border-ink-200/80 shadow-xs tap-active"
         >
           <span>←</span>
-          <span>Retour au calendrier</span>
+          <span>{tr("Retour au calendrier")}</span>
         </Link>
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-1.5 text-xs font-bold text-signal hover:text-signal-dark transition-colors py-1.5 px-3.5 rounded-full bg-signal-soft/60 border border-signal/30 shadow-xs tap-active"
         >
-          <span>Tableau de bord</span>
+          <span>{tr("Tableau de bord")}</span>
           <span>→</span>
         </Link>
       </div>
@@ -89,7 +91,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
             </div>
           </div>
           <span className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${EVENT_STATUS_STYLES[event.status]}`}>
-            {eventStatusLabel(event.status)}
+            {tr(eventStatusLabel(event.status))}
           </span>
         </div>
 
@@ -101,12 +103,12 @@ export default async function EventDetailPage({ params }: { params: { id: string
           {activity?.location ? <p>{activity.location}</p> : null}
           {workMode ? (
             <p className="text-ink-500">
-              {workMode === "remote" ? "À distance" : workMode === "onsite" ? "Sur site" : "Hybride"}
+              {workMode === "remote" ? tr("À distance") : workMode === "onsite" ? tr("Sur site") : "Hybride"}
             </p>
           ) : null}
           {event.is_exception ? (
             <p className="text-xs text-warning">
-              Occurrence reportée — horaire d'origine :{" "}
+              {tr("Occurrence reportée — horaire d'origine :")}{" "}
               {event.original_starts_at
                 ? DateTime.fromISO(event.original_starts_at, { zone: timezone }).toFormat("d MMM 'à' HH:mm")
                 : "inconnu"}
@@ -125,14 +127,11 @@ export default async function EventDetailPage({ params }: { params: { id: string
         {!event.schedule_id ? (
           <form action={deleteManualEvent.bind(null, event.id)} className="mt-6 border-t border-ink-100 pt-4">
             <button type="submit" className="text-sm text-ink-500 hover:text-danger hover:underline">
-              Supprimer cet événement ponctuel
-            </button>
+              {tr("Supprimer cet événement ponctuel")}</button>
           </form>
         ) : (
           <p className="mt-6 border-t border-ink-100 pt-4 text-xs text-ink-500">
-            Généré depuis les horaires de l'activité — annulez-le plutôt que de le supprimer pour ne pas le voir
-            regénéré automatiquement.
-          </p>
+            {tr("Généré depuis les horaires de l'activité — annulez-le plutôt que de le supprimer pour ne pas le voir regénéré automatiquement.")}</p>
         )}
       </div>
     </div>

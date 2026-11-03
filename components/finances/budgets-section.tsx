@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useTransition, useEffect } from "react";
 import { EXPENSE_CATEGORIES, expenseCategoryLabel } from "@/lib/validation/finances";
 import { formatAmount } from "@/lib/finances/format";
@@ -22,6 +24,7 @@ export function BudgetsSection({
   currencies,
   defaultCurrency,
 }: BudgetsSectionProps) {
+  const { tr } = useLanguage();
   const toast = useToast();
   const [localBudgets, setLocalBudgets] = useState<BudgetWithSpent[]>(budgets);
   const [isPending, startTransition] = useTransition();
@@ -72,7 +75,7 @@ export function BudgetsSection({
             toast.push(res.error || "Impossible de modifier le budget.", "error");
             return;
           }
-          toast.push("Budget mis à jour.", "success");
+          toast.push(tr("Budget mis à jour."), "success");
         } else {
           const res = await createBudget(formData);
           if (res && !res.success) {
@@ -81,7 +84,7 @@ export function BudgetsSection({
             toast.push(res.error || "Impossible de créer le budget.", "error");
             return;
           }
-          toast.push("Budget créé avec succès.", "success");
+          toast.push(tr("Budget créé avec succès."), "success");
         }
         resetForm();
       } catch (err: any) {
@@ -94,15 +97,15 @@ export function BudgetsSection({
   }
 
   function handleDelete(id: string) {
-    if (confirm("Supprimer ce budget mensuel ?")) {
+    if (confirm(tr("Supprimer ce budget mensuel ?"))) {
       setLocalBudgets((prev) => prev.filter((b) => b.id !== id));
       startTransition(async () => {
         try {
           await deleteBudget(id);
-          toast.push("Budget supprimé.", "info");
+          toast.push(tr("Budget supprimé."), "info");
         } catch (err) {
           setLocalBudgets(budgets);
-          toast.push("Erreur lors de la suppression.", "error");
+          toast.push(tr("Erreur lors de la suppression."), "error");
         }
       });
     }
@@ -112,10 +115,9 @@ export function BudgetsSection({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-ink-950">Budgets Mensuels</h2>
+          <h2 className="text-xl font-bold tracking-tight text-ink-950">{tr("Budgets Mensuels")}</h2>
           <p className="text-sm text-ink-700 dark:text-ink-300 mt-1 leading-relaxed">
-            Définissez des plafonds de dépenses par catégorie pour garder le contrôle de vos coûts.
-          </p>
+            {tr("Définissez des plafonds de dépenses par catégorie pour garder le contrôle de vos coûts.")}</p>
         </div>
 
         {!isAdding && !editingId ? (
@@ -127,8 +129,7 @@ export function BudgetsSection({
             }}
             className="inline-flex items-center gap-1.5 rounded-lg bg-signal px-4 py-2 text-sm font-medium text-white hover:bg-signal/90 transition-colors"
           >
-            + Définir un budget
-          </button>
+            {tr("+ Définir un budget")}</button>
         ) : null}
       </div>
 
@@ -136,12 +137,12 @@ export function BudgetsSection({
       {isAdding || editingId ? (
         <form onSubmit={handleSave} className="rounded-2xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas dark:bg-ink-950 p-5 shadow-sm space-y-4 max-w-xl">
           <h3 className="font-bold text-ink-950 dark:text-white">
-            {editingId ? "Modifier le budget" : "Nouveau budget mensuel"}
+            {editingId ? tr("Modifier le budget") : tr("Nouveau budget mensuel")}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">Catégorie</label>
+              <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">{tr("Catégorie")}</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -157,7 +158,7 @@ export function BudgetsSection({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">Devise</label>
+              <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">{tr("Devise")}</label>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
@@ -174,7 +175,7 @@ export function BudgetsSection({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">Plafond mensuel</label>
+            <label className="block text-xs font-semibold text-ink-700 dark:text-ink-300 mb-1">{tr("Plafond mensuel")}</label>
             <input
               type="number"
               step="0.01"
@@ -182,7 +183,7 @@ export function BudgetsSection({
               required
               value={monthlyLimit}
               onChange={(e) => setMonthlyLimit(e.target.value)}
-              placeholder="Ex : 150000"
+              placeholder={tr("Ex : 150000")}
               className="w-full rounded-xl border border-ink-300 dark:border-ink-700 bg-canvas-raised dark:bg-ink-900 px-3 py-2 text-sm text-ink-950 dark:text-white focus:border-signal focus:outline-none"
             />
           </div>
@@ -197,15 +198,14 @@ export function BudgetsSection({
               disabled={isPending}
               className="rounded-xl bg-signal px-4 py-2 text-sm font-semibold text-white hover:bg-signal/90 disabled:opacity-50 cursor-pointer"
             >
-              {isPending ? "Enregistrement..." : editingId ? "Mettre à jour" : "Créer le budget"}
+              {isPending ? "Enregistrement..." : editingId ? tr("Mettre à jour") : tr("Créer le budget")}
             </button>
             <button
               type="button"
               onClick={resetForm}
               className="rounded-xl border border-ink-300 dark:border-ink-700 px-4 py-2 text-sm font-semibold text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 cursor-pointer"
             >
-              Annuler
-            </button>
+              {tr("Annuler")}</button>
           </div>
         </form>
       ) : null}
@@ -213,17 +213,15 @@ export function BudgetsSection({
       {/* Liste des budgets */}
       {localBudgets.length === 0 && !isAdding ? (
         <div className="rounded-2xl border border-dashed border-ink-300 dark:border-ink-700 bg-canvas dark:bg-ink-950 p-8 text-center">
-          <p className="font-bold text-ink-950 dark:text-white text-base">Aucun budget défini</p>
+          <p className="font-bold text-ink-950 dark:text-white text-base">{tr("Aucun budget défini")}</p>
           <p className="text-sm text-ink-500 mt-1 max-w-md mx-auto">
-            Définissez des limites de dépenses mensuelles par catégorie (Logement, Déplacements, Logiciels, etc.) pour suivre votre consommation en direct.
-          </p>
+            {tr("Définissez des limites de dépenses mensuelles par catégorie (Logement, Déplacements, Logiciels, etc.) pour suivre votre consommation en direct.")}</p>
           <button
             type="button"
             onClick={() => setIsAdding(true)}
             className="mt-4 rounded-xl bg-signal px-4 py-2 text-sm font-semibold text-white hover:bg-signal/90 cursor-pointer shadow-xs"
           >
-            + Créer mon premier budget
-          </button>
+            {tr("+ Créer mon premier budget")}</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
@@ -253,8 +251,7 @@ export function BudgetsSection({
                       {expenseCategoryLabel(b.category)}
                     </span>
                     <p className="text-xs text-ink-500 mt-0.5">
-                      Plafond : {formatAmount(limit, b.currency)} / mois
-                    </p>
+                      {tr("Plafond :")}{" "}{formatAmount(limit, b.currency)} {tr("/ mois")}</p>
                   </div>
 
                   <div className="flex items-center gap-1.5">
@@ -269,15 +266,13 @@ export function BudgetsSection({
                       }}
                       className="rounded-lg px-2.5 py-1 text-xs font-semibold text-signal hover:bg-signal-soft cursor-pointer"
                     >
-                      Modifier
-                    </button>
+                      {tr("Modifier")}</button>
                     <button
                       type="button"
                       onClick={() => handleDelete(b.id)}
                       className="rounded-lg px-2.5 py-1 text-xs font-semibold text-ink-400 hover:text-danger hover:bg-danger-soft/50 cursor-pointer"
                     >
-                      Supprimer
-                    </button>
+                      {tr("Supprimer")}</button>
                   </div>
                 </div>
 
@@ -285,7 +280,7 @@ export function BudgetsSection({
                 <div className="mt-4 space-y-1.5">
                   <div className="flex justify-between text-xs">
                     <span className="font-semibold text-ink-900 dark:text-ink-100">
-                      Dépensé : {formatAmount(spent, b.currency)}
+                      {tr("Dépensé :")}{" "}{formatAmount(spent, b.currency)}
                     </span>
                     <span
                       className={`font-bold ${

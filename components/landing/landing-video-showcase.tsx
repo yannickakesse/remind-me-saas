@@ -50,7 +50,7 @@ const CHAPTERS: VideoChapter[] = [
 ];
 
 export function LandingVideoShowcase() {
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -280,8 +280,7 @@ export function LandingVideoShowcase() {
                 <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
               </div>
               <span className="text-[11px] font-mono text-ink-400 ml-2 hidden sm:inline-block">
-                remindme.io • motion-design-officiel.mp4
-              </span>
+                {tr("remindme.io • motion-design-officiel.mp4")}</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -291,12 +290,11 @@ export function LandingVideoShowcase() {
                   : "bg-ink-800 text-ink-300 border-white/10"
               }`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? "bg-positive animate-pulse" : "bg-ink-400"}`} />
-                <span>{isPlaying ? (isMuted ? "En lecture (Muet)" : "En lecture (Son activé)") : "En pause"}</span>
+                <span>{isPlaying ? (isMuted ? tr("En lecture (Muet)") : tr("En lecture (Son activé)")) : tr("En pause")}</span>
               </span>
 
               <span className="hidden md:inline-flex px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-white/10 text-white">
-                45 SECONDES • 16:9
-              </span>
+                {tr("45 SECONDES • 16:9")}</span>
             </div>
           </div>
 
@@ -312,8 +310,7 @@ export function LandingVideoShowcase() {
               className="w-full h-full object-contain bg-black"
             >
               <source src="/remindme-intro.mp4" type="video/mp4" />
-              Votre navigateur ne prend pas en charge la lecture de vidéos HTML5.
-            </video>
+              {tr("Votre navigateur ne prend pas en charge la lecture de vidéos HTML5.")}</video>
 
             {/* Bouton Play central si la vidéo est en pause */}
             {!isPlaying && (
@@ -325,7 +322,7 @@ export function LandingVideoShowcase() {
                     togglePlay();
                   }}
                   className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-signal text-white flex items-center justify-center shadow-xl shadow-signal/40 hover:scale-105 active:scale-95 transition-transform cursor-pointer ring-4 ring-white/30"
-                  aria-label="Lire la vidéo"
+                  aria-label={tr("Lire la vidéo")}
                 >
                   <Play className="w-9 h-9 sm:w-11 sm:h-11 ml-1 fill-white" />
                 </button>
@@ -343,7 +340,7 @@ export function LandingVideoShowcase() {
                 className="absolute top-4 right-4 z-25 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-signal hover:bg-signal-dark text-white text-xs font-bold backdrop-blur-md border border-white/20 shadow-xl cursor-pointer transition-all hover:scale-105 animate-bounce"
               >
                 <VolumeX className="w-4 h-4" />
-                <span>Activer le son 🔊</span>
+                <span>{tr("Activer le son 🔊")}</span>
               </button>
             )}
           </div>
@@ -379,7 +376,7 @@ export function LandingVideoShowcase() {
                   type="button"
                   onClick={togglePlay}
                   className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                  title={isPlaying ? "Mettre en pause" : "Lire"}
+                  title={isPlaying ? tr("Mettre en pause") : "Lire"}
                 >
                   {isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-white" />}
                 </button>
@@ -389,7 +386,7 @@ export function LandingVideoShowcase() {
                   type="button"
                   onClick={restartVideo}
                   className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                  title="Recommencer"
+                  title={tr("Recommencer")}
                 >
                   <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
@@ -399,7 +396,7 @@ export function LandingVideoShowcase() {
                   type="button"
                   onClick={toggleMute}
                   className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                  title={isMuted ? "Activer le son" : "Couper le son"}
+                  title={isMuted ? tr("Activer le son") : tr("Couper le son")}
                 >
                   {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-signal" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </button>
@@ -423,7 +420,7 @@ export function LandingVideoShowcase() {
                   type="button"
                   onClick={toggleFullscreen}
                   className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                  title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+                  title={isFullscreen ? tr("Quitter le plein écran") : tr("Plein écran")}
                 >
                   <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>

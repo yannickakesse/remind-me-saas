@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useEffect, useRef, useTransition } from "react";
 import Link from "next/link";
 import { Trash2, Loader2 } from "lucide-react";
@@ -46,6 +48,7 @@ const STATUS_CONFIG: Record<TaskStatus, { label: string; badgeTone: BadgeTone }>
 };
 
 export function TaskCard({ task }: TaskCardProps) {
+  const { tr } = useLanguage();
   const toast = useToast();
   const [isPending, startTransition] = useTransition();
   const [currentStatus, setCurrentStatus] = useState<TaskStatus>(task.status);
@@ -80,7 +83,7 @@ export function TaskCard({ task }: TaskCardProps) {
       } catch (err) {
         // Rollback en cas d'erreur
         setCurrentStatus(previousStatus);
-        toast.push("Erreur lors de la mise à jour de la tâche.", "error");
+        toast.push(tr("Erreur lors de la mise à jour de la tâche."), "error");
       } finally {
         isMutatingRef.current = false;
       }
@@ -104,7 +107,7 @@ export function TaskCard({ task }: TaskCardProps) {
         await cycleTaskStatus(task.id, previousStatus);
       } catch (err) {
         setCurrentStatus(previousStatus);
-        toast.push("Erreur de mise à jour du statut.", "error");
+        toast.push(tr("Erreur de mise à jour du statut."), "error");
       } finally {
         isMutatingRef.current = false;
       }
@@ -113,14 +116,14 @@ export function TaskCard({ task }: TaskCardProps) {
 
   function handleDelete() {
     if (isMutatingRef.current) return;
-    if (confirm("Supprimer définitivement cette tâche ?")) {
+    if (confirm(tr("Supprimer définitivement cette tâche ?"))) {
       isMutatingRef.current = true;
       startTransition(async () => {
         try {
           await deleteTask(task.id);
-          toast.push("Tâche supprimée.", "info");
+          toast.push(tr("Tâche supprimée."), "info");
         } catch (err) {
-          toast.push("Erreur lors de la suppression.", "error");
+          toast.push(tr("Erreur lors de la suppression."), "error");
         } finally {
           isMutatingRef.current = false;
         }
@@ -135,21 +138,20 @@ export function TaskCard({ task }: TaskCardProps) {
       dueDisplay = (
         <span className="inline-flex items-center gap-1 font-medium text-danger">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-danger animate-pulse" />
-          En retard : {task.due_date}
+          {tr("En retard :")}{" "}{task.due_date}
           {task.due_time ? ` à ${task.due_time.slice(0, 5)}` : ""}
         </span>
       );
     } else if (isToday) {
       dueDisplay = (
         <span className="inline-flex items-center gap-1 font-medium text-warning">
-          Aujourd'hui
-          {task.due_time ? ` à ${task.due_time.slice(0, 5)}` : ""}
+          {tr("Aujourd'hui")}{task.due_time ? ` à ${task.due_time.slice(0, 5)}` : ""}
         </span>
       );
     } else {
       dueDisplay = (
         <span className="text-ink-500">
-          Échéance : {task.due_date}
+          {tr("Échéance :")}{" "}{task.due_date}
           {task.due_time ? ` à ${task.due_time.slice(0, 5)}` : ""}
         </span>
       );
@@ -168,7 +170,7 @@ export function TaskCard({ task }: TaskCardProps) {
         await setTaskStatus(task.id, newStatus);
       } catch (err) {
         setCurrentStatus(previousStatus);
-        toast.push("Erreur lors du changement de statut.", "error");
+        toast.push(tr("Erreur lors du changement de statut."), "error");
       } finally {
         isMutatingRef.current = false;
       }
@@ -187,7 +189,7 @@ export function TaskCard({ task }: TaskCardProps) {
         await postponeTask(task.id, newDateStr);
         toast.push(`Tâche reportée de ${days} jour(s).`, "info");
       } catch (err) {
-        toast.push("Erreur lors du report.", "error");
+        toast.push(tr("Erreur lors du report."), "error");
       } finally {
         isMutatingRef.current = false;
       }
@@ -209,7 +211,7 @@ export function TaskCard({ task }: TaskCardProps) {
         <button
           type="button"
           onClick={handleToggleCheck}
-          aria-label={isDone ? "Marquer comme non terminée" : "Marquer comme terminée"}
+          aria-label={isDone ? tr("Marquer comme non terminée") : tr("Marquer comme terminée")}
           className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-all tap-active cursor-pointer ${
             isDone
               ? "border-positive bg-positive text-white"
@@ -249,9 +251,9 @@ export function TaskCard({ task }: TaskCardProps) {
 
             {/* Badge Statut si En cours ou Annulée */}
             {isInProgress ? (
-              <Badge tone="info">En cours</Badge>
+              <Badge tone="info">{tr("En cours")}</Badge>
             ) : isCancelled ? (
-              <Badge tone="neutral">Annulée</Badge>
+              <Badge tone="neutral">{tr("Annulée")}</Badge>
             ) : null}
           </div>
 
@@ -270,7 +272,7 @@ export function TaskCard({ task }: TaskCardProps) {
                 <span className="truncate">{task.activity.name}</span>
               </span>
             ) : (
-              <span className="text-ink-400">Tâche libre</span>
+              <span className="text-ink-400">{tr("Tâche libre")}</span>
             )}
 
             {dueDisplay ? (
@@ -292,10 +294,9 @@ export function TaskCard({ task }: TaskCardProps) {
                 type="button"
                 onClick={() => handleSetStatus("in_progress")}
                 className="rounded-lg border border-ink-200 bg-canvas-raised px-2.5 py-1 text-xs font-semibold text-signal hover:bg-signal-soft active:scale-95 transition-all tap-active"
-                title="Commencer cette tâche"
+                title={tr("Commencer cette tâche")}
               >
-                Commencer
-              </button>
+                {tr("Commencer")}</button>
             )}
 
             {task.status === "in_progress" && (
@@ -303,10 +304,9 @@ export function TaskCard({ task }: TaskCardProps) {
                 type="button"
                 onClick={() => handleSetStatus("done")}
                 className="rounded-lg bg-positive/10 border border-positive/30 px-2.5 py-1 text-xs font-semibold text-positive hover:bg-positive/20 active:scale-95 transition-all tap-active"
-                title="Terminer cette tâche"
+                title={tr("Terminer cette tâche")}
               >
-                ✓ Terminer
-              </button>
+                {tr("✓ Terminer")}</button>
             )}
 
             {/* Reporter rapide (+1 jour ou +7 jours) */}
@@ -314,7 +314,7 @@ export function TaskCard({ task }: TaskCardProps) {
               type="button"
               onClick={() => handlePostpone(1)}
               className="rounded-lg border border-ink-200 dark:border-ink-700 bg-canvas-raised dark:bg-ink-950 px-2 py-1 text-xs font-medium text-ink-600 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active cursor-pointer"
-              title="Reporter à demain (+1 jour)"
+              title={tr("Reporter à demain (+1 jour)")}
             >
               +1j
             </button>
@@ -322,7 +322,7 @@ export function TaskCard({ task }: TaskCardProps) {
               type="button"
               onClick={() => handlePostpone(7)}
               className="rounded-lg border border-ink-200 dark:border-ink-700 bg-canvas-raised dark:bg-ink-950 px-2 py-1 text-xs font-medium text-ink-600 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active cursor-pointer"
-              title="Reporter de 7 jours (+1 semaine)"
+              title={tr("Reporter de 7 jours (+1 semaine)")}
             >
               +7j
             </button>
@@ -332,34 +332,31 @@ export function TaskCard({ task }: TaskCardProps) {
               type="button"
               onClick={() => handleSetStatus("cancelled")}
               className="rounded-lg px-2 py-1 text-xs font-medium text-ink-400 hover:text-ink-700 hover:bg-ink-100 active:scale-95 transition-all tap-active"
-              title="Annuler cette tâche"
+              title={tr("Annuler cette tâche")}
             >
-              Annuler
-            </button>
+              {tr("Annuler")}</button>
           </>
         ) : isCancelled ? (
           <button
             type="button"
             onClick={() => handleSetStatus("todo")}
             className="rounded-lg border border-ink-200 bg-canvas-raised px-2.5 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-100 active:scale-95 transition-all tap-active"
-            title="Rétablir la tâche en À faire"
+            title={tr("Rétablir la tâche en À faire")}
           >
-            Rétablir
-          </button>
+            {tr("Rétablir")}</button>
         ) : null}
 
         <Link
           href={`/tasks/${task.id}/edit`}
           className="rounded-lg px-2.5 py-1 text-xs font-semibold text-signal hover:bg-signal-soft active:scale-95 transition-all tap-active"
         >
-          Modifier
-        </Link>
+          {tr("Modifier")}</Link>
 
         <button
           type="button"
           onClick={handleDelete}
           className="rounded-lg p-1.5 text-ink-400 hover:text-danger hover:bg-danger-soft/50 active:scale-95 transition-all tap-active inline-flex items-center justify-center"
-          title="Supprimer la tâche"
+          title={tr("Supprimer la tâche")}
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>

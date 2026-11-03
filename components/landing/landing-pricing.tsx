@@ -1,18 +1,21 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import Link from "next/link";
 import { Check, X, Sparkles } from "lucide-react";
 import { PLAN_ENTITLEMENTS, yearlyDiscountPercent, type PlanType } from "@/lib/subscriptions/entitlements";
+import { msg } from "@/lib/i18n/catalog";
 
 // Mêmes forfaits, prix et droits que dans l'application (Paramètres → Abonnement) :
 // tout est lu depuis PLAN_ENTITLEMENTS, la source unique des forfaits.
 const PLANS: PlanType[] = ["free", "pro", "premium"];
 
 const PLAN_TAGLINES: Record<PlanType, string> = {
-  free: "Pour découvrir et démarrer",
-  pro: "Pour consultants et pluriactifs",
-  premium: "Pour aller plus loin, sans limite",
+  free: msg("Pour découvrir et démarrer"),
+  pro: msg("Pour consultants et pluriactifs"),
+  premium: msg("Pour aller plus loin, sans limite"),
 };
 
 function quota(max: number, unlimited: string, limited: (n: number) => React.ReactNode) {
@@ -20,6 +23,7 @@ function quota(max: number, unlimited: string, limited: (n: number) => React.Rea
 }
 
 export function LandingPricing() {
+  const { tr } = useLanguage();
   const [yearly, setYearly] = useState(false);
   const discount = yearlyDiscountPercent();
 
@@ -29,14 +33,11 @@ export function LandingPricing() {
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-14 sm:mb-18">
           <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3.5 py-1.5 rounded-full border border-amber-500/20">
-            Tarifs Transparents
-          </span>
+            {tr("Tarifs Transparents")}</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-ink-950 dark:text-white mt-4 tracking-tight font-sans">
-            Des forfaits clairs, sans surprise.
-          </h2>
+            {tr("Des forfaits clairs, sans surprise.")}</h2>
           <p className="text-base sm:text-lg text-ink-600 dark:text-ink-300 mt-3 leading-relaxed">
-            Commencez gratuitement, puis évoluez selon l&apos;ampleur de vos activités.
-          </p>
+            {tr("Commencez gratuitement, puis évoluez selon l'ampleur de vos activités.")}</p>
 
           {/* Toggle Mensuel / Annuel */}
           <div className="mt-8 inline-flex items-center gap-1.5 bg-canvas-raised p-1.5 rounded-full border border-ink-200 dark:border-ink-800 shadow-xs">
@@ -49,8 +50,7 @@ export function LandingPricing() {
                   : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
               }`}
             >
-              Facturation mensuelle
-            </button>
+              {tr("Facturation mensuelle")}</button>
             <button
               type="button"
               onClick={() => setYearly(true)}
@@ -60,7 +60,7 @@ export function LandingPricing() {
                   : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
               }`}
             >
-              <span>Annuelle</span>
+              <span>{tr("Annuelle")}</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">
                 -{discount}%
               </span>
@@ -81,10 +81,10 @@ export function LandingPricing() {
                 : `${p.priceMonthly} €`;
 
             const features: { ok: boolean; label: React.ReactNode }[] = [
-              { ok: true, label: quota(p.maxActivities, "Activités illimitées", (n) => <>Jusqu&apos;à <strong>{n}</strong> activités</>) },
-              { ok: true, label: quota(p.maxClients, "Contacts & clients illimités", (n) => <>Jusqu&apos;à <strong>{n}</strong> contacts &amp; clients</>) },
-              { ok: true, label: quota(p.maxGoals, "Objectifs d'épargne illimités", (n) => <>Jusqu&apos;à <strong>{n}</strong> objectifs d&apos;épargne</>) },
-              { ok: true, label: quota(p.maxBudgets, "Budgets mensuels illimités", (n) => <>Jusqu&apos;à <strong>{n}</strong> budgets mensuels</>) },
+              { ok: true, label: quota(p.maxActivities, "Activités illimitées", (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("activités")}</>) },
+              { ok: true, label: quota(p.maxClients, "Contacts & clients illimités", (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("contacts & clients")}</>) },
+              { ok: true, label: quota(p.maxGoals, "Objectifs d'épargne illimités", (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("objectifs d'épargne")}</>) },
+              { ok: true, label: quota(p.maxBudgets, "Budgets mensuels illimités", (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("budgets mensuels")}</>) },
               { ok: p.hourlyProfitability, label: "Rapports de rentabilité horaire" },
               { ok: p.multiCurrency, label: "Gestion multi-devises unifiée" },
               { ok: p.aiAssistant, label: "Assistant IA & Insights prédictifs" },
@@ -102,25 +102,24 @@ export function LandingPricing() {
                 {featured && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500 text-slate-950 text-[11px] font-bold tracking-wide uppercase shadow-sm">
                     <Sparkles className="w-3 h-3 text-slate-950" />
-                    Recommandé
-                  </div>
+                    {tr("Recommandé")}</div>
                 )}
 
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-bold text-ink-950 dark:text-white">{p.planName}</h3>
-                    <p className="text-xs text-ink-500 mt-0.5">{PLAN_TAGLINES[key]}</p>
+                    <h3 className="text-xl font-bold text-ink-950 dark:text-white">{tr(p.planName)}</h3>
+                    <p className="text-xs text-ink-500 mt-0.5">{tr(PLAN_TAGLINES[key])}</p>
                   </div>
 
                   <div>
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl sm:text-5xl font-extrabold font-mono text-ink-950 dark:text-white">{price}</span>
-                      <span className="text-xs text-ink-500">/ mois</span>
+                      <span className="text-xs text-ink-500">{tr("/ mois")}</span>
                     </div>
                     {yearly && p.priceYearly > 0 ? (
-                      <p className="text-[11px] text-ink-500 font-medium mt-1">Facturé {p.priceYearly} € par an</p>
+                      <p className="text-[11px] text-ink-500 font-medium mt-1">{tr("Facturé")}{" "}{p.priceYearly} {tr("€ par an")}</p>
                     ) : p.priceMonthly === 0 ? (
-                      <p className="text-[11px] text-ink-500 font-medium mt-1">Sans engagement</p>
+                      <p className="text-[11px] text-ink-500 font-medium mt-1">{tr("Sans engagement")}</p>
                     ) : null}
                   </div>
 
@@ -132,7 +131,7 @@ export function LandingPricing() {
                         ) : (
                           <X className="w-4 h-4 text-ink-300 shrink-0" />
                         )}
-                        <span className={f.ok ? "text-ink-900 dark:text-ink-100" : "text-ink-400"}>{f.label}</span>
+                        <span className={f.ok ? tr("text-ink-900 dark:text-ink-100") : "text-ink-400"}>{f.label}</span>
                       </li>
                     ))}
                   </ul>
@@ -146,7 +145,7 @@ export function LandingPricing() {
                       : "border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold hover:bg-ink-100 dark:hover:bg-ink-800"
                   }`}
                 >
-                  {key === "free" ? "Commencer gratuitement" : `Choisir le forfait ${p.planName}`}
+                  {key === "free" ? tr("Commencer gratuitement") : `Choisir le forfait ${tr(p.planName)}`}
                 </Link>
               </div>
             );

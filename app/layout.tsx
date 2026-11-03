@@ -11,6 +11,8 @@ import { PWARegister } from "@/components/pwa/pwa-register";
 import { PwaInstallPrompt } from "@/components/pwa/pwa-install-prompt";
 import { NavigationProgressBar } from "@/components/ui/navigation-progress";
 import { NetworkStatus } from "@/components/ui/network-status";
+import { getServerLocale } from "@/lib/i18n/server";
+import { loadCatalog } from "@/lib/i18n/catalog";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -52,13 +54,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Langue choisie par le visiteur (cookie) : la page arrive directement traduite
+  const locale = getServerLocale();
+  const catalog = await loadCatalog(locale);
+
   return (
-    <html lang="fr">
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <head>
         {/* Apple Touch Icon explicit links for iOS Safari Home Screen */}
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -77,7 +83,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body>
-        <LanguageProvider>
+        <LanguageProvider initialLocale={locale} initialCatalog={catalog}>
           <ThemeProvider>
             <ToastProvider>
               <Suspense fallback={null}>

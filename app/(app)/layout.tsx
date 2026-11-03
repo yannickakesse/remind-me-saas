@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -34,6 +35,7 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const tr = await getTr();
   const user = await requireCurrentUser();
   const supabase = createClient();
   const profile = await getCurrentProfile();
@@ -149,7 +151,7 @@ export default async function AppLayout({
         {/* Profil utilisateur & Sélecteur de Langue en bas */}
         <div className="border-t border-ink-200/80 dark:border-ink-800/80 pt-3 px-2 space-y-1.5 shrink-0">
           <div className="flex items-center justify-between px-2">
-            <span className="text-[11px] font-medium text-ink-500">Langue</span>
+            <span className="text-[11px] font-medium text-ink-500">{tr("Langue")}</span>
             <LanguageSelector variant="pill" />
           </div>
           <Link
@@ -170,7 +172,7 @@ export default async function AppLayout({
             )}
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold text-ink-950 dark:text-ink-50 group-hover:text-signal transition-colors truncate">
-                {profile.full_name || "Mon Compte"}
+                {profile.full_name || tr("Mon Compte")}
               </p>
               <p className="text-[10px] text-ink-500 dark:text-ink-400 truncate">{user.email}</p>
             </div>

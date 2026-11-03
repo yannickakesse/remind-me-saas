@@ -1,9 +1,12 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { UserPlus, Sliders, LayoutDashboard, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export function LandingWorkflow() {
+  const { tr } = useLanguage();
   const steps = [
     {
       num: "01",
@@ -37,14 +40,11 @@ export function LandingWorkflow() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
           <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3.5 py-1.5 rounded-full border border-amber-500/20">
-            Comment ça marche
-          </span>
+            {tr("Comment ça marche")}</span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-ink-950 dark:text-white mt-4 tracking-tight font-sans">
-            Trois étapes simples vers la sérénité.
-          </h2>
+            {tr("Trois étapes simples vers la sérénité.")}</h2>
           <p className="text-base sm:text-lg text-ink-600 dark:text-ink-300 mt-4 leading-relaxed">
-            Pas de configuration fastidieuse de plusieurs semaines. Remind Me est opérationnel dès votre première session.
-          </p>
+            {tr("Pas de configuration fastidieuse de plusieurs semaines. Remind Me est opérationnel dès votre première session.")}</p>
         </div>
 
         {/* 3 Step Cards Grid */}
@@ -84,7 +84,7 @@ export function LandingWorkflow() {
                   <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                     ✓ {step.highlight}
                   </span>
-                  <span className="text-ink-400">Étape {idx + 1} / 3</span>
+                  <span className="text-ink-400">{tr("Étape")}{" "}{idx + 1} / 3</span>
                 </div>
               </div>
             );
@@ -97,7 +97,7 @@ export function LandingWorkflow() {
             href="/register"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-ink-950 dark:bg-white text-white dark:text-slate-950 font-semibold text-xs sm:text-sm hover:opacity-90 transition-opacity shadow-sm"
           >
-            <span>Démarrer dès maintenant</span>
+            <span>{tr("Démarrer dès maintenant")}</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

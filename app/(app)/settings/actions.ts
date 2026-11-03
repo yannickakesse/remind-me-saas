@@ -231,58 +231,34 @@ export async function deleteAccount() {
   redirect("/login");
 }
 
+/**
+ * Changement de forfait SANS paiement.
+ * - Retour au forfait gratuit : toujours autorisé (résiliation).
+ * - Forfait payant : uniquement si le mode démo est explicitement activé côté serveur
+ *   (ENABLE_PLAN_DEMO=true). En production, seul le webhook Bictorys active un forfait payant.
+ */
 export async function updateSubscriptionPlan(newPlan: "free" | "pro" | "premium") {
   try {
-    const { supabase, user } = await requireUser();
+    const { user } = await requireUser();
 
-    // 1. Mise à jour persistante dans user_metadata (garantie sans restriction RLS)
-    await supabase.auth.updateUser({
-      data: { subscription_plan: newPlan },
-    });
-
-    // 2. Mise à jour de la table subscriptions (uniquement les colonnes existantes en base : plan, status)
-    try {
-      const { error: updateErr } = await supabase
-        .from("subscriptions")
-        .update({
-          plan: newPlan,
-          status: "active",
-        })
-        .eq("user_id", user.id);
-
-      if (updateErr) {
-        // Essai via upsert si la ligne n'existait pas encore
-        await supabase
-          .from("subscriptions")
-          .upsert(
-            {
-              user_id: user.id,
-              plan: newPlan,
-              status: "active",
-            },
-            { onConflict: "user_id" }
-          );
-      }
-    } catch {
-      // Ignorer si RLS bloque la mise à jour directe
+    if (newPlan !== "free" && process.env.ENABLE_PLAN_DEMO !== "true") {
+      return { success: false, error: "Ce forfait s'active uniquement après paiement." };
     }
 
-    // 3. Essai via le client d'administration si disponible
-    try {
-      const adminSupabase = createAdminClient();
-      await adminSupabase
-        .from("subscriptions")
-        .upsert(
-          {
-            user_id: user.id,
-            plan: newPlan,
-            status: "active",
-          },
-          { onConflict: "user_id" }
-        );
-    } catch {
-      // Ignorer
-    }
+    // Écriture côté serveur uniquement (les utilisateurs n'ont plus le droit d'écrire cette table)
+    const adminSupabase = createAdminClient();
+    const { error } = await adminSupabase.from("subscriptions").upsert(
+      {
+        user_id: user.id,
+        plan: newPlan,
+        status: "active",
+        current_period_end: null,
+        provider: newPlan === "free" ? "manual" : "demo",
+        updated_at: new Date().toISOString(),
+      } as any,
+      { onConflict: "user_id" }
+    );
+    if (error) throw new Error("Impossible de mettre à jour le forfait.");
 
     revalidatePath("/settings");
     revalidatePath("/dashboard");
@@ -292,7 +268,7 @@ export async function updateSubscriptionPlan(newPlan: "free" | "pro" | "premium"
 
     return { success: true, plan: newPlan };
   } catch (err: any) {
-    console.error("[updateSubscriptionPlan] Erreur:", err);
+    console.error("[updateSubscriptionPlan] Erreur:", err?.message);
     return { success: false, error: err?.message || "Impossible de mettre à jour le forfait." };
   }
 }

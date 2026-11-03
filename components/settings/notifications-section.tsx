@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useEffect } from "react";
 import {
   Bell,
@@ -68,6 +70,7 @@ export type PushState =
   | "error";
 
 export function NotificationsSection({ notifPrefs, notificationPreferences }: NotificationsSectionProps) {
+  const { tr } = useLanguage();
   const { push } = useToast();
 
   const [emailEnabled, setEmailEnabled] = useState(
@@ -216,7 +219,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
 
   async function handleTestChime() {
     await testChimeSound();
-    push("🔔 Le carillon audio Remind Me a été joué avec succès !", "success");
+    push(tr("🔔 Le carillon audio Remind Me a été joué avec succès !"), "success");
   }
 
   function handleToggleVoiceReminders(enabled: boolean) {
@@ -262,9 +265,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         repeat: repeatVoice,
         rate: voicePlaybackRate,
       });
-      push("🔊 Synthèse vocale exécutée avec succès !", "success");
+      push(tr("🔊 Synthèse vocale exécutée avec succès !"), "success");
     } catch {
-      push("Impossible d'exécuter la synthèse vocale sur ce navigateur.", "error");
+      push(tr("Impossible d'exécuter la synthèse vocale sur ce navigateur."), "error");
     } finally {
       setTestingVoice(false);
     }
@@ -272,7 +275,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
 
   async function handleTestCustomVoice() {
     if (!customVoiceReminderText || !customVoiceReminderText.trim()) {
-      push("Veuillez saisir un texte vocal personnalisé avant d'écouter.", "info");
+      push(tr("Veuillez saisir un texte vocal personnalisé avant d'écouter."), "info");
       return;
     }
     stopVoiceReminder();
@@ -294,9 +297,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         repeat: 0,
         rate: voicePlaybackRate,
       });
-      push("🔊 Message personnalisé joué avec succès !", "success");
+      push(tr("🔊 Message personnalisé joué avec succès !"), "success");
     } catch {
-      push("Impossible de lire le message vocal.", "error");
+      push(tr("Impossible de lire le message vocal."), "error");
     } finally {
       setTestingCustomVoice(false);
     }
@@ -357,12 +360,12 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       const res = await fetch("/api/notifications/test-inapp", { method: "POST" });
       const data = await res.json();
       if (data.success) {
-        push("Notification In-App créée avec succès ! Vérifiez la cloche ou le centre de notifications.", "success");
+        push(tr("Notification In-App créée avec succès ! Vérifiez la cloche ou le centre de notifications."), "success");
       } else {
         push(data.error || "Impossible de créer la notification in-app.", "error");
       }
     } catch {
-      push("Erreur réseau lors du test in-app.", "error");
+      push(tr("Erreur réseau lors du test in-app."), "error");
     } finally {
       setTestingInApp(false);
     }
@@ -387,7 +390,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           type: "info",
           text: "Canal e-mail en attente de configuration : ajoutez votre clé RESEND_API_KEY dans vos variables d'environnement.",
         });
-        push("Fournisseur e-mail non configuré (RESEND_API_KEY manquante).", "info");
+        push(tr("Fournisseur e-mail non configuré (RESEND_API_KEY manquante)."), "info");
       } else {
         setEmailStatusMsg({
           type: "error",
@@ -400,7 +403,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         type: "error",
         text: "Erreur réseau lors du déclenchement de l'e-mail.",
       });
-      push("Erreur réseau lors du test d'e-mail.", "error");
+      push(tr("Erreur réseau lors du test d'e-mail."), "error");
     } finally {
       setTestingEmail(false);
     }
@@ -421,7 +424,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
 
     if (!pushSupported) {
       setPushState("unsupported");
-      push("Ce navigateur ne prend pas en charge le Web Push.", "info");
+      push(tr("Ce navigateur ne prend pas en charge le Web Push."), "info");
       return;
     }
 
@@ -431,7 +434,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         setPushState("permission_denied");
-        push("Autorisation refusée pour les notifications dans votre navigateur.", "info");
+        push(tr("Autorisation refusée pour les notifications dans votre navigateur."), "info");
         return;
       }
 
@@ -476,7 +479,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
 
       setPushState("active");
       setPushEnabled(true);
-      push("Notifications push activées avec succès sur cet appareil !", "success");
+      push(tr("Notifications push activées avec succès sur cet appareil !"), "success");
     } catch (err: any) {
       console.error("[Push] Erreur activation:", err);
       setPushState("error");
@@ -502,9 +505,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       }
       setPushState("disabled");
       setPushEnabled(false);
-      push("Notifications push désactivées sur cet appareil.", "info");
+      push(tr("Notifications push désactivées sur cet appareil."), "info");
     } catch {
-      push("Impossible de désactiver le push.", "error");
+      push(tr("Impossible de désactiver le push."), "error");
     }
   }
 
@@ -519,12 +522,12 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       const data = await response.json();
 
       if (data.success) {
-        push("Notification push de test envoyée avec succès sur votre appareil !", "success");
+        push(tr("Notification push de test envoyée avec succès sur votre appareil !"), "success");
       } else {
         push(data.error || "Impossible d'envoyer la notification de test.", "error");
       }
     } catch {
-      push("Erreur réseau lors du test de notification.", "error");
+      push(tr("Erreur réseau lors du test de notification."), "error");
     } finally {
       setTestingPush(false);
     }
@@ -585,9 +588,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       });
 
       await updateNotificationPrefs(formData);
-      push("Préférences de notifications enregistrées avec succès.", "success");
+      push(tr("Préférences de notifications enregistrées avec succès."), "success");
     } catch {
-      push("Impossible d'enregistrer vos préférences.", "error");
+      push(tr("Impossible d'enregistrer vos préférences."), "error");
     } finally {
       setSaving(false);
     }
@@ -596,10 +599,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-8">
       <div>
-        <h3 className="text-base font-bold text-ink-950">Centre de notifications & Alertes réelles</h3>
+        <h3 className="text-base font-bold text-ink-950">{tr("Centre de notifications & Alertes réelles")}</h3>
         <p className="text-xs text-ink-500 mt-1">
-          Gérez vos canaux de réception réels (In-App, E-mail, Push Mobile), testez leur fonctionnement en direct et configurez vos règles de rappel.
-        </p>
+          {tr("Gérez vos canaux de réception réels (In-App, E-mail, Push Mobile), testez leur fonctionnement en direct et configurez vos règles de rappel.")}</p>
       </div>
 
       {/* Modal / Bandeau d'installation iPhone PWA pour Push */}
@@ -608,7 +610,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2 text-signal font-bold text-sm">
               <Smartphone className="w-4 h-4" />
-              <span>Activation requise sur iPhone (iOS PWA)</span>
+              <span>{tr("Activation requise sur iPhone (iOS PWA)")}</span>
             </div>
             <button
               type="button"
@@ -620,18 +622,17 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           </div>
 
           <p className="text-xs text-ink-700 font-medium leading-relaxed">
-            Pour recevoir les alertes push instantanées sur votre iPhone, Apple exige d'ajouter l'application à votre écran d'accueil :
-          </p>
+            {tr("Pour recevoir les alertes push instantanées sur votre iPhone, Apple exige d'ajouter l'application à votre écran d'accueil :")}</p>
 
           <ol className="text-xs text-ink-600 space-y-1.5 pl-4 list-decimal">
             <li className="flex items-center gap-1.5">
-              <span>Appuyez sur le bouton Partager</span> <Share className="w-3.5 h-3.5 text-signal inline" /> <span>en bas de Safari</span>
+              <span>{tr("Appuyez sur le bouton Partager")}</span> <Share className="w-3.5 h-3.5 text-signal inline" /> <span>{tr("en bas de Safari")}</span>
             </li>
             <li className="flex items-center gap-1.5">
-              <span>Sélectionnez</span> <span className="font-semibold text-ink-950">« Sur l'écran d'accueil »</span> <PlusSquare className="w-3.5 h-3.5 text-signal inline" />
+              <span>{tr("Sélectionnez")}</span> <span className="font-semibold text-ink-950">{tr("« Sur l'écran d'accueil »")}</span> <PlusSquare className="w-3.5 h-3.5 text-signal inline" />
             </li>
-            <li>Ouvrez ensuite l'application depuis la nouvelle icône <strong>Remind Me</strong></li>
-            <li>Revenez dans Paramètres &gt; Notifications et activez les alertes push.</li>
+            <li>{tr("Ouvrez ensuite l'application depuis la nouvelle icône")}{" "}<strong>Remind Me</strong></li>
+            <li>{tr("Revenez dans Paramètres > Notifications et activez les alertes push.")}</li>
           </ol>
         </div>
       )}
@@ -639,8 +640,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       {/* Section 1: Canaux de diffusion */}
       <div className="space-y-3">
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-600">
-          Canaux de réception (Multi-Channels)
-        </h4>
+          {tr("Canaux de réception (Multi-Channels)")}</h4>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {/* 1. In-App */}
@@ -655,14 +655,13 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 />
                 <div className="flex items-center gap-1.5">
                   <Bell className="w-4 h-4 text-signal" />
-                  <span className="text-xs font-bold text-ink-950">In-App</span>
+                  <span className="text-xs font-bold text-ink-950">{tr("In-App")}</span>
                 </div>
               </label>
-              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-positive-soft text-positive">Opérationnel</span>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-positive-soft text-positive">{tr("Opérationnel")}</span>
             </div>
             <p className="text-[11px] text-ink-500 leading-relaxed">
-              Cloche d'alertes, badges de non-lus et panneau d'attention quotidienne.
-            </p>
+              {tr("Cloche d'alertes, badges de non-lus et panneau d'attention quotidienne.")}</p>
             <div className="pt-1">
               <Button
                 type="button"
@@ -672,8 +671,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 onClick={handleTestInApp}
                 className="w-full text-xs py-1.5"
               >
-                <Send className="w-3 h-3 mr-1.5" /> Tester la notification In-App
-              </Button>
+                <Send className="w-3 h-3 mr-1.5" /> {tr("Tester la notification In-App")}</Button>
             </div>
           </div>
 
@@ -689,14 +687,13 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 />
                 <div className="flex items-center gap-1.5">
                   <Mail className="w-4 h-4 text-signal" />
-                  <span className="text-xs font-bold text-ink-950">E-mail Transactionnel</span>
+                  <span className="text-xs font-bold text-ink-950">{tr("E-mail Transactionnel")}</span>
                 </div>
               </label>
-              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-signal-soft text-signal">Resend API</span>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-signal-soft text-signal">{tr("Resend API")}</span>
             </div>
             <p className="text-[11px] text-ink-500 leading-relaxed">
-              Véritables e-mails envoyés dans votre boîte mail pour les échéances et impayés.
-            </p>
+              {tr("Véritables e-mails envoyés dans votre boîte mail pour les échéances et impayés.")}</p>
             <div className="pt-1">
               <Button
                 type="button"
@@ -706,8 +703,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 onClick={handleTestEmail}
                 className="w-full text-xs py-1.5"
               >
-                <Send className="w-3 h-3 mr-1.5" /> Tester l'envoi d'e-mail
-              </Button>
+                <Send className="w-3 h-3 mr-1.5" /> {tr("Tester l'envoi d'e-mail")}</Button>
             </div>
             {emailStatusMsg && (
               <p
@@ -735,45 +731,39 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-1.5">
                 <Smartphone className="w-4 h-4 text-signal" />
-                <span className="text-xs font-bold text-ink-950">Push Mobile & Notifications Système</span>
+                <span className="text-xs font-bold text-ink-950">{tr("Push Mobile & Notifications Système")}</span>
               </div>
 
               {pushState === "active" && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-positive-soft text-positive flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Push actif
-                </span>
+                  <CheckCircle2 className="w-3 h-3" /> {tr("Push actif")}</span>
               )}
               {pushState === "activating" && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-signal-soft text-signal animate-pulse">
-                  Activation...
-                </span>
+                  {tr("Activation...")}</span>
               )}
               {pushState === "disabled" && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-ink-100 text-ink-700">
-                  Désactivé
-                </span>
+                  {tr("Désactivé")}</span>
               )}
               {pushState === "permission_denied" && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-danger-soft text-danger flex items-center gap-1">
-                  <ShieldAlert className="w-3 h-3" /> Permission refusée
-                </span>
+                  <ShieldAlert className="w-3 h-3" /> {tr("Permission refusée")}</span>
               )}
               {pushState === "unsupported" && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-ink-100 text-ink-500">
-                  Non supporté
-                </span>
+                  {tr("Non supporté")}</span>
               )}
               {pushState === "ios_needs_pwa" && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-warning-soft text-warning">
-                  PWA requise (iOS)
-                </span>
+                  {tr("PWA requise (iOS)")}</span>
               )}
             </div>
 
             <p className="text-[11px] text-ink-500 leading-relaxed">
               {pushState === "permission_denied"
-                ? "Autorisation bloquée dans votre navigateur. Cliquez sur l'icône de cadenas pour autoriser."
-                : "Recevez les alertes directement sur votre écran même lorsque l'application est fermée."}
+                ? tr("Autorisation bloquée dans votre navigateur. Cliquez sur l'icône de cadenas pour autoriser.")
+                : tr("Recevez les alertes directement sur votre écran même lorsque l'application est fermée.")}
             </p>
 
             {pushErrorMessage && (
@@ -791,8 +781,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     onClick={handleTestPush}
                     className="w-full sm:w-auto text-xs py-1.5"
                   >
-                    <Send className="w-3 h-3 mr-1.5" /> Tester la notification push
-                  </Button>
+                    <Send className="w-3 h-3 mr-1.5" /> {tr("Tester la notification push")}</Button>
                   <Button
                     type="button"
                     size="sm"
@@ -800,19 +789,17 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     onClick={handleDisablePush}
                     className="w-full sm:w-auto text-xs py-1.5 text-danger hover:text-danger"
                   >
-                    Désactiver sur cet appareil
-                  </Button>
+                    {tr("Désactiver sur cet appareil")}</Button>
                 </>
               ) : pushState === "permission_denied" ? (
                 <Button
                   type="button"
                   size="sm"
                   variant="secondary"
-                  onClick={() => alert("Pour réactiver : cliquez sur l'icône de cadenas à gauche de l'adresse du site et autorisez les notifications.")}
+                  onClick={() => alert(tr("Pour réactiver : cliquez sur l'icône de cadenas à gauche de l'adresse du site et autorisez les notifications."))}
                   className="w-full text-xs py-1.5"
                 >
-                  <AlertCircle className="w-3.5 h-3.5 mr-1.5 text-warning" /> Guide d'autorisation navigateur
-                </Button>
+                  <AlertCircle className="w-3.5 h-3.5 mr-1.5 text-warning" /> {tr("Guide d'autorisation navigateur")}</Button>
               ) : pushState === "ios_needs_pwa" ? (
                 <Button
                   type="button"
@@ -826,10 +813,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                   }}
                   className="w-full text-xs py-1.5"
                 >
-                  <Smartphone className="w-3.5 h-3.5 mr-1.5" /> Ajouter à l'écran d'accueil iPhone
-                </Button>
+                  <Smartphone className="w-3.5 h-3.5 mr-1.5" /> {tr("Ajouter à l'écran d'accueil iPhone")}</Button>
               ) : pushState === "unsupported" ? (
-                <div className="text-[10px] text-ink-500 italic">Navigateur non compatible Web Push</div>
+                <div className="text-[10px] text-ink-500 italic">{tr("Navigateur non compatible Web Push")}</div>
               ) : (
                 <Button
                   type="button"
@@ -839,8 +825,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                   onClick={handleEnablePush}
                   className="w-full sm:w-auto text-xs py-1.5"
                 >
-                  <Smartphone className="w-3.5 h-3.5 mr-1.5" /> Activer les notifications push
-                </Button>
+                  <Smartphone className="w-3.5 h-3.5 mr-1.5" /> {tr("Activer les notifications push")}</Button>
               )}
             </div>
           </div>
@@ -850,15 +835,13 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-1.5">
                 <MessageSquare className="w-4 h-4 text-signal" />
-                <span className="text-xs font-black text-zinc-950 dark:text-white">WhatsApp Business</span>
+                <span className="text-xs font-black text-zinc-950 dark:text-white">{tr("WhatsApp Business")}</span>
               </div>
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
-                Non configuré (En attente d'API)
-              </span>
+                {tr("Non configuré (En attente d'API)")}</span>
             </div>
             <p className="text-[11px] text-zinc-600 dark:text-zinc-300 leading-relaxed font-medium">
-              L'architecture technique pour l'API officielle (Twilio / Meta Cloud API) est intégrée. Aucun envoi n'est simulé tant que vos identifiants d'API officiels ne sont pas renseignés.
-            </p>
+              {tr("L'architecture technique pour l'API officielle (Twilio / Meta Cloud API) est intégrée. Aucun envoi n'est simulé tant que vos identifiants d'API officiels ne sont pas renseignés.")}</p>
           </div>
         </div>
       </div>
@@ -874,16 +857,15 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-black text-zinc-950 dark:text-white">Carillon sonore officiel Remind Me</span>
+                  <span className="text-sm font-black text-zinc-950 dark:text-white">{tr("Carillon sonore officiel Remind Me")}</span>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
                     soundEnabled ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                   }`}>
-                    {soundEnabled ? "Son activé" : "Son coupé"}
+                    {soundEnabled ? tr("Son activé") : tr("Son coupé")}
                   </span>
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium mt-1">
-                  Joue un carillon agréable au moment exact des échéances de tâches et alertes urgentes.
-                </p>
+                  {tr("Joue un carillon agréable au moment exact des échéances de tâches et alertes urgentes.")}</p>
               </div>
             </div>
 
@@ -895,8 +877,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 onClick={handleTestChime}
                 className="text-xs font-bold"
               >
-                <Play className="w-3.5 h-3.5 mr-1.5 fill-current text-signal" /> Écouter
-              </Button>
+                <Play className="w-3.5 h-3.5 mr-1.5 fill-current text-signal" /> {tr("Écouter")}</Button>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
@@ -919,16 +900,15 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-black text-zinc-950 dark:text-white">🔊 Rappels vocaux intelligents (Text-to-Speech)</span>
+                  <span className="text-sm font-black text-zinc-950 dark:text-white">{tr("🔊 Rappels vocaux intelligents (Text-to-Speech)")}</span>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
                     voiceReminders ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                   }`}>
-                    {voiceReminders ? "Lecture vocale active" : "Désactivé"}
+                    {voiceReminders ? tr("Lecture vocale active") : tr("Désactivé")}
                   </span>
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium mt-1 leading-relaxed">
-                  Lit automatiquement vos rappels à voix haute sur votre téléphone avec le moteur natif (sans coût IA), lorsque l'application est ouverte ou consultée.
-                </p>
+                  {tr("Lit automatiquement vos rappels à voix haute sur votre téléphone avec le moteur natif (sans coût IA), lorsque l'application est ouverte ou consultée.")}</p>
               </div>
             </div>
 
@@ -953,8 +933,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <div>
                   <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
                     <Globe className="w-3.5 h-3.5 text-signal" />
-                    🌍 Langue de la voix
-                  </label>
+                    {tr("🌍 Langue de la voix")}</label>
                   <select
                     value={voiceLanguage}
                     onChange={(e) => {
@@ -965,11 +944,11 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     }}
                     className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal"
                   >
-                    <option value="fr">🇫🇷 Français (Par défaut)</option>
-                    <option value="en">🇬🇧 English</option>
-                    <option value="es">🇪🇸 Español</option>
-                    <option value="de">🇩🇪 Deutsch</option>
-                    <option value="pt">🇵🇹 Português</option>
+                    <option value="fr">{tr("🇫🇷 Français (Par défaut)")}</option>
+                    <option value="en">{tr("🇬🇧 English")}</option>
+                    <option value="es">{tr("🇪🇸 Español")}</option>
+                    <option value="de">{tr("🇩🇪 Deutsch")}</option>
+                    <option value="pt">{tr("🇵🇹 Português")}</option>
                   </select>
                 </div>
 
@@ -977,8 +956,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <div>
                   <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-signal" />
-                    👤 Voix &amp; Interprète
-                  </label>
+                    {tr("👤 Voix & Interprète")}</label>
                   <select
                     value={voiceType}
                     onChange={(e) => {
@@ -988,9 +966,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     }}
                     className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal"
                   >
-                    <option value="system">⚙️ Voix système par défaut</option>
-                    <option value="female">👩 Voix féminine (ElevenLabs / HD)</option>
-                    <option value="male">👨 Voix masculine (ElevenLabs / HD)</option>
+                    <option value="system">{tr("⚙️ Voix système par défaut")}</option>
+                    <option value="female">{tr("👩 Voix féminine (ElevenLabs / HD)")}</option>
+                    <option value="male">{tr("👨 Voix masculine (ElevenLabs / HD)")}</option>
                   </select>
                 </div>
 
@@ -998,8 +976,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <div>
                   <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-signal" />
-                    ⚡ Vitesse de diction
-                  </label>
+                    {tr("⚡ Vitesse de diction")}</label>
                   <select
                     value={voicePlaybackRate}
                     onChange={(e) => {
@@ -1009,9 +986,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     }}
                     className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal"
                   >
-                    <option value={0.85}>🐢 Posée &amp; Calme (0.85x)</option>
-                    <option value={1.0}>👌 Standard &amp; Naturelle (1.0x)</option>
-                    <option value={1.15}>⚡ Dynamique &amp; Rapide (1.15x)</option>
+                    <option value={0.85}>{tr("🐢 Posée & Calme (0.85x)")}</option>
+                    <option value={1.0}>{tr("👌 Standard & Naturelle (1.0x)")}</option>
+                    <option value={1.15}>{tr("⚡ Dynamique & Rapide (1.15x)")}</option>
                   </select>
                 </div>
 
@@ -1019,8 +996,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <div>
                   <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
                     <RefreshCw className="w-3.5 h-3.5 text-signal" />
-                    🔁 Répétition
-                  </label>
+                    {tr("🔁 Répétition")}</label>
                   <select
                     value={repeatVoice}
                     onChange={(e) => {
@@ -1030,9 +1006,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     }}
                     className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal"
                   >
-                    <option value={0}>1 seule fois (sans répétition)</option>
-                    <option value={1}>Répéter 1 fois (2 lectures)</option>
-                    <option value={2}>Répéter 2 fois (3 lectures)</option>
+                    <option value={0}>{tr("1 seule fois (sans répétition)")}</option>
+                    <option value={1}>{tr("Répéter 1 fois (2 lectures)")}</option>
+                    <option value={2}>{tr("Répéter 2 fois (3 lectures)")}</option>
                   </select>
                 </div>
               </div>
@@ -1043,16 +1019,13 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                   <div className="flex items-center gap-2">
                     <Volume2 className="w-4 h-4 text-signal" />
                     <span className="text-xs font-black text-zinc-950 dark:text-white">
-                      Catégories d&apos;alertes prononcées à voix haute
-                    </span>
+                      {tr("Catégories d'alertes prononcées à voix haute")}</span>
                   </div>
                   <span className="text-[10px] text-ink-500 font-medium">
-                    Notifications écrites toujours préservées
-                  </span>
+                    {tr("Notifications écrites toujours préservées")}</span>
                 </div>
                 <p className="text-[11px] text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
-                  Activez ou coupez la voix selon vos préférences par domaine. Désactiver la voix d&apos;une catégorie n&apos;affecte en rien vos rappels et notifications écrits.
-                </p>
+                  {tr("Activez ou coupez la voix selon vos préférences par domaine. Désactiver la voix d'une catégorie n'affecte en rien vos rappels et notifications écrits.")}</p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                   <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-canvas cursor-pointer hover:border-signal/40 transition-colors">
@@ -1067,8 +1040,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     />
                     <Briefcase className="w-3.5 h-3.5 text-signal shrink-0" />
                     <div className="text-xs">
-                      <span className="font-bold text-zinc-950 dark:text-white block">Séances &amp; Activités</span>
-                      <span className="text-[10px] text-ink-500">Rappels avant séance et séances à confirmer</span>
+                      <span className="font-bold text-zinc-950 dark:text-white block">{tr("Séances & Activités")}</span>
+                      <span className="text-[10px] text-ink-500">{tr("Rappels avant séance et séances à confirmer")}</span>
                     </div>
                   </label>
 
@@ -1084,8 +1057,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     />
                     <CheckSquare className="w-3.5 h-3.5 text-signal shrink-0" />
                     <div className="text-xs">
-                      <span className="font-bold text-zinc-950 dark:text-white block">Tâches &amp; Échéances</span>
-                      <span className="text-[10px] text-ink-500">Tâches du jour et échéances imminentes</span>
+                      <span className="font-bold text-zinc-950 dark:text-white block">{tr("Tâches & Échéances")}</span>
+                      <span className="text-[10px] text-ink-500">{tr("Tâches du jour et échéances imminentes")}</span>
                     </div>
                   </label>
 
@@ -1101,8 +1074,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     />
                     <Wallet className="w-3.5 h-3.5 text-gold-dark shrink-0" />
                     <div className="text-xs">
-                      <span className="font-bold text-zinc-950 dark:text-white block">Événements financiers &amp; Paiements</span>
-                      <span className="text-[10px] text-ink-500">Paiements attendus et échéances de factures</span>
+                      <span className="font-bold text-zinc-950 dark:text-white block">{tr("Événements financiers & Paiements")}</span>
+                      <span className="text-[10px] text-ink-500">{tr("Paiements attendus et échéances de factures")}</span>
                     </div>
                   </label>
 
@@ -1118,8 +1091,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     />
                     <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                     <div className="text-xs">
-                      <span className="font-bold text-zinc-950 dark:text-white block">Briefings &amp; Bilans quotidiens</span>
-                      <span className="text-[10px] text-ink-500">Matin, point de mi-journée et résumé du soir</span>
+                      <span className="font-bold text-zinc-950 dark:text-white block">{tr("Briefings & Bilans quotidiens")}</span>
+                      <span className="text-[10px] text-ink-500">{tr("Matin, point de mi-journée et résumé du soir")}</span>
                     </div>
                   </label>
                 </div>
@@ -1130,8 +1103,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <div className="flex items-center gap-2">
                   <ShieldAlert className="w-4 h-4 text-signal" />
                   <span className="text-xs font-black text-zinc-950 dark:text-white">
-                    Confidentialité &amp; Personnalisation vocale
-                  </span>
+                    {tr("Confidentialité & Personnalisation vocale")}</span>
                 </div>
 
                 <div className="space-y-2">
@@ -1148,11 +1120,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     />
                     <div className="text-xs">
                       <span className="font-bold text-zinc-950 dark:text-white block">
-                        🔒 Masquer les montants financiers sensibles (Recommandé en public / bureau)
-                      </span>
+                        {tr("🔒 Masquer les montants financiers sensibles (Recommandé en public / bureau)")}</span>
                       <span className="text-[11px] text-ink-500 leading-relaxed block mt-0.5">
-                        Remind Me annonce la présence d&apos;un paiement attendu sans citer le montant exact à haute voix.
-                      </span>
+                        {tr("Remind Me annonce la présence d'un paiement attendu sans citer le montant exact à haute voix.")}</span>
                     </div>
                   </label>
 
@@ -1169,11 +1139,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     />
                     <div className="text-xs">
                       <span className="font-bold text-zinc-950 dark:text-white block">
-                        👤 Inclure mon prénom dans les salutations vocales
-                      </span>
+                        {tr("👤 Inclure mon prénom dans les salutations vocales")}</span>
                       <span className="text-[11px] text-ink-500 leading-relaxed block mt-0.5">
-                        Exemple : « Bonjour Monsieur Yannick » selon votre profil, ou salutation naturelle « Bonjour » si désactivé ou absent.
-                      </span>
+                        {tr("Exemple : « Bonjour Monsieur Yannick » selon votre profil, ou salutation naturelle « Bonjour » si désactivé ou absent.")}</span>
                     </div>
                   </label>
                 </div>
@@ -1185,16 +1153,13 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-signal" />
                     <span className="text-xs font-black text-zinc-950 dark:text-white">
-                      Message vocal personnalisé par l&apos;utilisateur
-                    </span>
+                      {tr("Message vocal personnalisé par l'utilisateur")}</span>
                   </div>
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-signal-soft text-signal">
-                    Optionnel
-                  </span>
+                    {tr("Optionnel")}</span>
                 </div>
                 <p className="text-[11px] text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
-                  Définissez un texte personnalisé libre. Cette note vocale reste clairement distincte des messages automatiques générés à partir des données de Remind Me (séances et paiements réels).
-                </p>
+                  {tr("Définissez un texte personnalisé libre. Cette note vocale reste clairement distincte des messages automatiques générés à partir des données de Remind Me (séances et paiements réels).")}</p>
 
                 <div className="space-y-2">
                   <input
@@ -1204,7 +1169,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                       setCustomVoiceReminderText(e.target.value);
                       saveLocalVoiceSettings({ custom_voice_reminder_text: e.target.value });
                     }}
-                    placeholder="Ex: Pense à vérifier les dépenses de la semaine avant 18 heures."
+                    placeholder={tr("Ex: Pense à vérifier les dépenses de la semaine avant 18 heures.")}
                     className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-canvas text-ink-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal font-medium"
                     maxLength={250}
                   />
@@ -1225,8 +1190,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                           }}
                           className="text-xs text-danger py-1"
                         >
-                          Arrêter
-                        </Button>
+                          {tr("Arrêter")}</Button>
                       )}
                       <Button
                         type="button"
@@ -1236,8 +1200,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                         onClick={handleTestCustomVoice}
                         className="text-xs py-1"
                       >
-                        <Play className="w-3 h-3 mr-1.5 fill-current text-signal" /> Écouter mon texte personnalisé
-                      </Button>
+                        <Play className="w-3 h-3 mr-1.5 fill-current text-signal" /> {tr("Écouter mon texte personnalisé")}</Button>
                     </div>
                   </div>
                 </div>
@@ -1248,51 +1211,47 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-signal" />
                   <span className="text-xs font-black text-zinc-950 dark:text-white">
-                    Délais des rappels d&apos;activités &amp; Heure du bilan
-                  </span>
+                    {tr("Délais des rappels d'activités & Heure du bilan")}</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                   {/* 1er Rappel */}
                   <div>
                     <label className="block text-[11px] font-bold text-ink-900 mb-1">
-                      1er rappel vocal (standard)
-                    </label>
+                      {tr("1er rappel vocal (standard)")}</label>
                     <select
                       value={firstReminderMinutes}
                       onChange={(e) => setFirstReminderMinutes(Number(e.target.value))}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal font-semibold"
                     >
-                      <option value={30}>30 minutes avant</option>
-                      <option value={45}>45 minutes avant</option>
-                      <option value={60}>60 minutes avant (Recommandé)</option>
-                      <option value={90}>90 minutes avant</option>
-                      <option value={120}>2 heures avant</option>
+                      <option value={30}>{tr("30 minutes avant")}</option>
+                      <option value={45}>{tr("45 minutes avant")}</option>
+                      <option value={60}>{tr("60 minutes avant (Recommandé)")}</option>
+                      <option value={90}>{tr("90 minutes avant")}</option>
+                      <option value={120}>{tr("2 heures avant")}</option>
                     </select>
                   </div>
 
                   {/* 2nd Rappel */}
                   <div>
                     <label className="block text-[11px] font-bold text-ink-900 mb-1">
-                      2nd rappel vocal (imminent)
-                    </label>
+                      {tr("2nd rappel vocal (imminent)")}</label>
                     <select
                       value={secondReminderMinutes}
                       onChange={(e) => setSecondReminderMinutes(Number(e.target.value))}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal font-semibold"
                     >
-                      <option value={5}>5 minutes avant</option>
-                      <option value={10}>10 minutes avant (Recommandé)</option>
-                      <option value={15}>15 minutes avant</option>
-                      <option value={20}>20 minutes avant</option>
+                      <option value={5}>{tr("5 minutes avant")}</option>
+                      <option value={10}>{tr("10 minutes avant (Recommandé)")}</option>
+                      <option value={15}>{tr("15 minutes avant")}</option>
+                      <option value={20}>{tr("20 minutes avant")}</option>
                     </select>
                   </div>
 
                   {/* Heure du bilan quotidien */}
                   <div>
                     <label className="block text-[11px] font-bold text-ink-900 mb-1">
-                      Heure du résumé vocal quotidien
-                    </label>
+                      {tr("Heure du résumé vocal quotidien")}</label>
                     <input
                       type="time"
                       value={dailySummaryTime}
@@ -1307,7 +1266,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
               <div className="p-3 rounded-xl bg-canvas border border-ink-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] font-bold text-ink-800 flex items-center gap-1.5">
-                    <span>Aperçu du rappel vocal généré :</span>
+                    <span>{tr("Aperçu du rappel vocal généré :")}</span>
                   </div>
                   <p className="text-xs text-ink-600 italic truncate mt-0.5 font-medium">
                     {voiceSampleText || generateVoiceMessage({
@@ -1334,8 +1293,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                       }}
                       className="text-xs text-danger"
                     >
-                      Arrêter
-                    </Button>
+                      {tr("Arrêter")}</Button>
                   )}
                   <Button
                     type="button"
@@ -1345,8 +1303,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                     onClick={handleTestVoice}
                     className="text-xs py-1.5"
                   >
-                    <Play className="w-3.5 h-3.5 mr-1.5 fill-current" /> Tester la voix
-                  </Button>
+                    <Play className="w-3.5 h-3.5 mr-1.5 fill-current" /> {tr("Tester la voix")}</Button>
                 </div>
               </div>
             </div>
@@ -1357,8 +1314,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
       {/* Section 2: Types d'alertes & Règles déterministes */}
       <div className="space-y-3">
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-600">
-          Règles de rappels & Alertes automatiques
-        </h4>
+          {tr("Règles de rappels & Alertes automatiques")}</h4>
 
         <div className="space-y-2.5">
           <label className="flex items-start gap-3 p-3 rounded-xl border border-ink-100 bg-canvas-raised cursor-pointer hover:border-ink-200 transition-colors">
@@ -1371,11 +1327,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <Wallet className="w-3.5 h-3.5 text-gold-dark" />
-                <span className="block text-xs font-bold text-ink-950">Paiements attendus (J-7, J-3, J-1, Jour J, Impayés)</span>
+                <span className="block text-xs font-bold text-ink-950">{tr("Paiements attendus (J-7, J-3, J-1, Jour J, Impayés)")}</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Rappels progressifs avant échéance et alertes si non encaissé. S'arrête immédiatement dès que le paiement est marqué comme reçu.
-              </span>
+                {tr("Rappels progressifs avant échéance et alertes si non encaissé. S'arrête immédiatement dès que le paiement est marqué comme reçu.")}</span>
             </div>
           </label>
 
@@ -1389,11 +1344,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <Briefcase className="w-3.5 h-3.5 text-signal" />
-                <span className="block text-xs font-bold text-ink-950">Activités & Séances du calendrier</span>
+                <span className="block text-xs font-bold text-ink-950">{tr("Activités & Séances du calendrier")}</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Rappels programmés (J-1, H-3, H-1, 30m, 15m) et alertes pour les séances passées non encore confirmées.
-              </span>
+                {tr("Rappels programmés (J-1, H-3, H-1, 30m, 15m) et alertes pour les séances passées non encore confirmées.")}</span>
             </div>
           </label>
 
@@ -1407,11 +1361,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <CheckSquare className="w-3.5 h-3.5 text-signal" />
-                <span className="block text-xs font-bold text-ink-950">Tâches & Échéances</span>
+                <span className="block text-xs font-bold text-ink-950">{tr("Tâches & Échéances")}</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Rappels des tâches du jour, imminentes et en retard. S'arrête automatiquement dès que la tâche est terminée.
-              </span>
+                {tr("Rappels des tâches du jour, imminentes et en retard. S'arrête automatiquement dès que la tâche est terminée.")}</span>
             </div>
           </label>
 
@@ -1425,11 +1378,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-warning" />
-                <span className="block text-xs font-bold text-ink-950">Dépenses & Factures à régler</span>
+                <span className="block text-xs font-bold text-ink-950">{tr("Dépenses & Factures à régler")}</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Alertes pour anticiper les paiements et charges dues. S'arrête dès que la facture est payée.
-              </span>
+                {tr("Alertes pour anticiper les paiements et charges dues. S'arrête dès que la facture est payée.")}</span>
             </div>
           </label>
 
@@ -1443,11 +1395,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-gold" />
-                <span className="block text-xs font-bold text-ink-950">Rappel du début de mois (Perspectives mensuelles)</span>
+                <span className="block text-xs font-bold text-ink-950">{tr("Rappel du début de mois (Perspectives mensuelles)")}</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Notification le 1er, 2e ou 3e jour du mois avec synthèse des encaissements prévus et charges programmées du mois.
-              </span>
+                {tr("Notification le 1er, 2e ou 3e jour du mois avec synthèse des encaissements prévus et charges programmées du mois.")}</span>
             </div>
           </label>
 
@@ -1461,11 +1412,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <BarChart3 className="w-3.5 h-3.5 text-signal" />
-                <span className="block text-xs font-bold text-ink-950">Résumé hebdomadaire (Le lundi)</span>
+                <span className="block text-xs font-bold text-ink-950">{tr("Résumé hebdomadaire (Le lundi)")}</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Synthèse le lundi matin de votre planning de la semaine, priorités et échéances financières.
-              </span>
+                {tr("Synthèse le lundi matin de votre planning de la semaine, priorités et échéances financières.")}</span>
             </div>
           </label>
 
@@ -1479,11 +1429,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5 text-warning" />
-                <span className="block text-xs font-bold text-ink-950">Détection de conflits d'agenda</span>
+                <span className="block text-xs font-bold text-ink-950">{tr("Détection de conflits d'agenda")}</span>
               </div>
               <span className="block text-[11px] text-ink-500 mt-0.5">
-                Alerte instantanée en cas de chevauchement d'activités.
-              </span>
+                {tr("Alerte instantanée en cas de chevauchement d'activités.")}</span>
             </div>
           </label>
         </div>
@@ -1495,11 +1444,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           <div>
             <div className="flex items-center gap-1.5">
               <Moon className="w-3.5 h-3.5 text-ink-700" />
-              <span className="block text-xs font-bold text-ink-950">Heures silencieuses (Quiet Hours)</span>
+              <span className="block text-xs font-bold text-ink-950">{tr("Heures silencieuses (Quiet Hours)")}</span>
             </div>
             <span className="block text-[11px] text-ink-500 mt-0.5">
-              Suspendre l'envoi d'alertes sonores et push durant votre période de repos nocturne (les alertes critiques restent visibles In-App).
-            </span>
+              {tr("Suspendre l'envoi d'alertes sonores et push durant votre période de repos nocturne (les alertes critiques restent visibles In-App).")}</span>
           </div>
           <input
             type="checkbox"
@@ -1513,8 +1461,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           <div className="grid grid-cols-2 gap-4 pt-2 border-t border-ink-100">
             <div>
               <label className="block text-[11px] font-medium text-ink-700 mb-1">
-                Début du repos
-              </label>
+                {tr("Début du repos")}</label>
               <input
                 type="time"
                 value={quietHoursStart}
@@ -1524,8 +1471,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
             </div>
             <div>
               <label className="block text-[11px] font-medium text-ink-700 mb-1">
-                Fin du repos
-              </label>
+                {tr("Fin du repos")}</label>
               <input
                 type="time"
                 value={quietHoursEnd}
@@ -1542,19 +1488,18 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         <div className="flex items-center gap-1.5">
           <Globe className="w-3.5 h-3.5 text-ink-700" />
           <label className="block text-xs font-bold text-ink-950">
-            Langue des alertes & messages (i18n)
-          </label>
+            {tr("Langue des alertes & messages (i18n)")}</label>
         </div>
         <select
           value={preferredLocale}
           onChange={(e) => setPreferredLocale(e.target.value)}
           className="w-full sm:w-64 px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas-raised text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal"
         >
-          <option value="fr">Français (Par défaut)</option>
-          <option value="en">English</option>
-          <option value="es">Español</option>
-          <option value="de">Deutsch</option>
-          <option value="pt">Português</option>
+          <option value="fr">{tr("Français (Par défaut)")}</option>
+          <option value="en">{tr("English")}</option>
+          <option value="es">{tr("Español")}</option>
+          <option value="de">{tr("Deutsch")}</option>
+          <option value="pt">{tr("Português")}</option>
         </select>
       </div>
 
@@ -1563,15 +1508,13 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Smartphone className="w-4 h-4 text-signal" />
-            <h4 className="text-xs font-bold text-ink-950">Application Mobile (PWA)</h4>
+            <h4 className="text-xs font-bold text-ink-950">{tr("Application Mobile (PWA)")}</h4>
           </div>
           <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-signal-soft text-signal">
-            Recommandé
-          </span>
+            {tr("Recommandé")}</span>
         </div>
         <p className="text-xs text-ink-600 leading-relaxed">
-          Installez Remind Me sur l'écran d'accueil de votre iPhone, iPad ou Android pour profiter du mode plein écran fluide et de rappels fiables en temps réel.
-        </p>
+          {tr("Installez Remind Me sur l'écran d'accueil de votre iPhone, iPad ou Android pour profiter du mode plein écran fluide et de rappels fiables en temps réel.")}</p>
         <Button
           type="button"
           variant="secondary"
@@ -1583,14 +1526,12 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           }}
           className="text-xs"
         >
-          <Smartphone className="w-3.5 h-3.5 mr-1.5 text-signal" /> Guide d'installation sur écran d'accueil
-        </Button>
+          <Smartphone className="w-3.5 h-3.5 mr-1.5 text-signal" /> {tr("Guide d'installation sur écran d'accueil")}</Button>
       </div>
 
       <div>
         <Button type="submit" loading={saving} className="w-full sm:w-auto">
-          Enregistrer les préférences
-        </Button>
+          {tr("Enregistrer les préférences")}</Button>
       </div>
     </form>
   );

@@ -269,7 +269,7 @@ const ROUTE_TO_SECTION: Record<string, string> = {
 const DEFAULT_GUIDE: PageGuideInfo = PAGE_GUIDES["/dashboard"]!;
 
 export function HelpCenterButton() {
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"page" | "concepts" | "faq">("page");
@@ -351,14 +351,14 @@ export function HelpCenterButton() {
         aria-haspopup="dialog"
         aria-controls="help-center-modal"
         className="group flex items-center gap-1.5 rounded-lg border border-ink-200 bg-canvas-raised px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:border-gold/60 hover:bg-gold/10 hover:text-gold-dark dark:hover:text-gold-light transition-all shadow-2xs active:scale-95 tap-active"
-        title="Centre d'aide & Guide d'utilisation"
-        aria-label="Ouvrir le centre d'aide"
+        title={tr("Centre d'aide & Guide d'utilisation")}
+        aria-label={tr("Ouvrir le centre d'aide")}
         data-tour="help-center-btn"
       >
         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gold/20 text-gold-dark dark:text-gold-light font-extrabold text-xs group-hover:scale-110 transition-transform">
           ?
         </span>
-        <span className="hidden sm:inline">Aide</span>
+        <span className="hidden sm:inline">{tr("Aide")}</span>
       </button>
 
       {/* Rendu du Modal / Drawer via Portal vers document.body pour échapper aux stacking contexts */}
@@ -415,7 +415,7 @@ export function HelpCenterButton() {
                   type="button"
                   onClick={() => setIsOpen(false)}
                   className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-100/10 hover:text-ink-950 transition-colors shrink-0"
-                  aria-label="Fermer"
+                  aria-label={tr("Fermer")}
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -516,54 +516,49 @@ export function HelpCenterButton() {
                 {activeTab === "concepts" && (
                   <div className="space-y-3.5 animate-in fade-in-50 duration-150">
                     <p className="text-xs text-ink-600 dark:text-ink-400">
-                      Remind Me applique des règles de gestion financière strictes et transparentes pour vous éviter les approximations :
-                    </p>
+                      {tr("Remind Me applique des règles de gestion financière strictes et transparentes pour vous éviter les approximations :")}</p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="rounded-xl border border-ink-200 dark:border-ink-100/10 bg-canvas/60 dark:bg-canvas/40 p-3.5 space-y-1.5">
                         <div className="flex items-center gap-1.5 text-gold-dark dark:text-gold-light font-bold text-xs">
                           <TrendingUp className="h-4 w-4 shrink-0" />
-                          <span>Revenu Attendu vs Encaissé</span>
+                          <span>{tr("Revenu Attendu vs Encaissé")}</span>
                         </div>
                         <p className="text-[11px] text-ink-600 dark:text-ink-400 leading-relaxed">
-                          <strong>Attendu :</strong> Montant théorique calculé selon vos fréquences d'activité.<br />
-                          <strong>Encaissé :</strong> Argent réellement reçu sur votre compte bancaire.
-                        </p>
+                          <strong>{tr("Attendu :")}</strong> {tr("Montant théorique calculé selon vos fréquences d'activité.")}<br />
+                          <strong>{tr("Encaissé :")}</strong> {tr("Argent réellement reçu sur votre compte bancaire.")}</p>
                       </div>
 
                       <div className="rounded-xl border border-ink-200 dark:border-ink-100/10 bg-canvas/60 dark:bg-canvas/40 p-3.5 space-y-1.5">
                         <div className="flex items-center gap-1.5 text-danger font-bold text-xs">
                           <TrendingDown className="h-4 w-4 shrink-0" />
-                          <span>Dépense Programmée vs Payée</span>
+                          <span>{tr("Dépense Programmée vs Payée")}</span>
                         </div>
                         <p className="text-[11px] text-ink-600 dark:text-ink-400 leading-relaxed">
-                          <strong>Programmée :</strong> Échéance future ou abonnement récurrent à anticiper.<br />
-                          <strong>Payée :</strong> Facture décaissée et enregistrée en trésorerie.
-                        </p>
+                          <strong>{tr("Programmée :")}</strong> {tr("Échéance future ou abonnement récurrent à anticiper.")}<br />
+                          <strong>{tr("Payée :")}</strong> {tr("Facture décaissée et enregistrée en trésorerie.")}</p>
                       </div>
 
                       <div className="rounded-xl border border-ink-200 dark:border-ink-100/10 bg-canvas/60 dark:bg-canvas/40 p-3.5 space-y-1.5">
                         <div className="flex items-center gap-1.5 text-positive font-bold text-xs">
                           <Wallet className="h-4 w-4 shrink-0" />
-                          <span>Solde Net Réel</span>
+                          <span>{tr("Solde Net Réel")}</span>
                         </div>
                         <p className="text-[11px] text-ink-600 dark:text-ink-400 leading-relaxed">
-                          Calculé par la formule exacte :<br />
+                          {tr("Calculé par la formule exacte :")}<br />
                           <span className="inline-block font-mono text-[10px] bg-canvas px-1.5 py-0.5 rounded border border-ink-200 dark:border-ink-100/20 my-0.5">
-                            Revenus Encaissés − Dépenses Payées
-                          </span>
+                            {tr("Revenus Encaissés − Dépenses Payées")}</span>
                         </p>
                       </div>
 
                       <div className="rounded-xl border border-ink-200 dark:border-ink-100/10 bg-canvas/60 dark:bg-canvas/40 p-3.5 space-y-1.5">
                         <div className="flex items-center gap-1.5 text-signal font-bold text-xs">
                           <PiggyBank className="h-4 w-4 shrink-0" />
-                          <span>Budgets & Épargne</span>
+                          <span>{tr("Budgets & Épargne")}</span>
                         </div>
                         <p className="text-[11px] text-ink-600 dark:text-ink-400 leading-relaxed">
-                          <strong>Budget :</strong> Plafond mensuel par catégorie.<br />
-                          <strong>Épargne :</strong> Cagnottes et objectifs financiers progressifs.
-                        </p>
+                          <strong>{tr("Budget :")}</strong> {tr("Plafond mensuel par catégorie.")}<br />
+                          <strong>{tr("Épargne :")}</strong> {tr("Cagnottes et objectifs financiers progressifs.")}</p>
                       </div>
                     </div>
                   </div>
@@ -576,11 +571,10 @@ export function HelpCenterButton() {
                       <div>
                         <h4 className="text-xs font-bold text-ink-950 flex items-center gap-1.5">
                           <Sparkles className="h-4 w-4 text-gold shrink-0" />
-                          <span>Visite Guidée Interactive Complète</span>
+                          <span>{tr("Visite Guidée Interactive Complète")}</span>
                         </h4>
                         <p className="text-xs text-ink-500 mt-0.5">
-                          Découvrez les fonctionnalités de Remind Me étape par étape.
-                        </p>
+                          {tr("Découvrez les fonctionnalités de Remind Me étape par étape.")}</p>
                       </div>
                       <button
                         type="button"
@@ -588,7 +582,7 @@ export function HelpCenterButton() {
                         className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-3.5 py-2 text-xs font-bold text-white shadow-gold-subtle hover:brightness-110 active:scale-95 transition-all shrink-0 tap-active cursor-pointer"
                       >
                         <Sparkles className="h-3.5 w-3.5" />
-                        <span>Lancer la visite</span>
+                        <span>{tr("Lancer la visite")}</span>
                       </button>
                     </div>
 
@@ -596,11 +590,10 @@ export function HelpCenterButton() {
                       <div>
                         <h4 className="text-xs font-bold text-ink-950 dark:text-white flex items-center gap-1.5">
                           <Play className="h-4 w-4 text-signal shrink-0 fill-signal" />
-                          <span>Vidéo Motion Design Officielle</span>
+                          <span>{tr("Vidéo Motion Design Officielle")}</span>
                         </h4>
                         <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">
-                          Présentation animée et sonore de Remind Me en 45 secondes.
-                        </p>
+                          {tr("Présentation animée et sonore de Remind Me en 45 secondes.")}</p>
                       </div>
                       <button
                         type="button"
@@ -608,40 +601,33 @@ export function HelpCenterButton() {
                         className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-signal hover:bg-signal-dark text-white px-3.5 py-2 text-xs font-bold shadow-xs active:scale-95 transition-all shrink-0 tap-active cursor-pointer"
                       >
                         <Play className="h-3.5 w-3.5 fill-white" />
-                        <span>Revoir la vidéo</span>
+                        <span>{tr("Revoir la vidéo")}</span>
                       </button>
                     </div>
 
                     <div className="space-y-2">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-ink-500">
-                        Questions Fréquentes :
-                      </h4>
+                        {tr("Questions Fréquentes :")}</h4>
                       <div className="space-y-2">
                         <div className="rounded-xl border border-ink-200 dark:border-ink-100/10 bg-canvas/40 p-3 text-xs space-y-1">
                           <p className="font-bold text-ink-900 dark:text-ink-100">
-                            Comment fonctionnent les rappels sonores de tâches ?
-                          </p>
+                            {tr("Comment fonctionnent les rappels sonores de tâches ?")}</p>
                           <p className="text-ink-600 dark:text-ink-400 text-[11px]">
-                            Rendez-vous dans <strong>Paramètres → Notifications</strong> pour activer la sonnerie. Le carillon retentira automatiquement à l'heure programmée de vos tâches et rendez-vous.
-                          </p>
+                            {tr("Rendez-vous dans")}{" "}<strong>{tr("Paramètres → Notifications")}</strong> {tr("pour activer la sonnerie. Le carillon retentira automatiquement à l'heure programmée de vos tâches et rendez-vous.")}</p>
                         </div>
 
                         <div className="rounded-xl border border-ink-200 dark:border-ink-100/10 bg-canvas/40 p-3 text-xs space-y-1">
                           <p className="font-bold text-ink-900 dark:text-ink-100">
-                            Comment exporter mes finances au format Excel / CSV ?
-                          </p>
+                            {tr("Comment exporter mes finances au format Excel / CSV ?")}</p>
                           <p className="text-ink-600 dark:text-ink-400 text-[11px]">
-                            Sur la page <strong>Finances</strong> ou <strong>Rapports</strong>, cliquez sur le bouton <strong>"Exporter CSV"</strong>. Le fichier généré intègre un formatage compatible Excel en français (séparateur point-virgule).
-                          </p>
+                            {tr("Sur la page")}{" "}<strong>{tr("Finances")}</strong> ou <strong>{tr("Rapports")}</strong>{tr(", cliquez sur le bouton")}{" "}<strong>{tr("\"Exporter CSV\"")}</strong>{tr(". Le fichier généré intègre un formatage compatible Excel en français (séparateur point-virgule).")}</p>
                         </div>
 
                         <div className="rounded-xl border border-ink-200 dark:border-ink-100/10 bg-canvas/40 p-3 text-xs space-y-1">
                           <p className="font-bold text-ink-900 dark:text-ink-100">
-                            Mes données d'activités et financières sont-elles sécurisées ?
-                          </p>
+                            {tr("Mes données d'activités et financières sont-elles sécurisées ?")}</p>
                           <p className="text-ink-600 dark:text-ink-400 text-[11px]">
-                            Oui, chaque compte utilisateur est strictement isolé grâce à la sécurité Row-Level Security (RLS) de PostgreSQL. Seul votre compte peut lire et modifier vos données.
-                          </p>
+                            {tr("Oui, chaque compte utilisateur est strictement isolé grâce à la sécurité Row-Level Security (RLS) de PostgreSQL. Seul votre compte peut lire et modifier vos données.")}</p>
                         </div>
                       </div>
                     </div>
@@ -652,15 +638,13 @@ export function HelpCenterButton() {
               {/* Footer avec action de fermeture */}
               <div className="flex items-center justify-between border-t border-ink-100 dark:border-ink-100/10 bg-canvas/80 px-4 py-3 sm:px-6 sm:py-3.5 pb-safe">
                 <span className="text-[11px] text-ink-500 hidden sm:inline">
-                  Remind Me • Multi-activités, planning et rentabilité
-                </span>
+                  {tr("Remind Me • Multi-activités, planning et rentabilité")}</span>
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
                   className="w-full sm:w-auto rounded-xl bg-ink-950 dark:bg-ink-100 text-canvas dark:text-ink-950 px-4 py-2 text-xs font-bold hover:opacity-90 active:scale-95 transition-all text-center"
                 >
-                  Fermer
-                </button>
+                  {tr("Fermer")}</button>
               </div>
             </div>
           </div>,

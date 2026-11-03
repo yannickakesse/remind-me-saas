@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import { PageBackground } from "@/components/shared/page-background";
 import Link from "next/link";
 import { Users, Building2, User, Mail, Phone, FileText, Plus } from "lucide-react";
@@ -8,6 +9,7 @@ import { buttonClasses } from "@/components/ui/button";
 import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
 
 export default async function ClientsPage() {
+  const tr = await getTr();
   const user = await requireCurrentUser();
   const supabase = createClient();
 
@@ -48,21 +50,17 @@ export default async function ClientsPage() {
               <span className="p-2 rounded-xl bg-signal text-white shadow-xs">
                 <Users className="w-5 h-5" />
               </span>
-              Clients &amp; Contacts
-            </h1>
+              {tr("Clients & Contacts")}</h1>
             <p className="text-sm text-ink-500 mt-1">
-              Répertoire centralisé de vos organisations partenaires, écoles, clients et contacts.
-            </p>
+              {tr("Répertoire centralisé de vos organisations partenaires, écoles, clients et contacts.")}</p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2.5">
-            <SectionGuideTrigger section="clients" label="Guide clients" />
+            <SectionGuideTrigger section="clients" label={tr("Guide clients")} />
             <Link href="/clients/organizations/new" className={buttonClasses("secondary", "sm")}>
-              <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle organisation
-            </Link>
+              <Plus className="w-3.5 h-3.5 mr-1" /> {tr("Nouvelle organisation")}</Link>
             <Link href="/clients/contacts/new" data-tour="client-create" className={buttonClasses("primary", "sm")}>
-              <Plus className="w-3.5 h-3.5 mr-1" /> Nouveau contact
-            </Link>
+              <Plus className="w-3.5 h-3.5 mr-1" /> {tr("Nouveau contact")}</Link>
           </div>
         </div>
       </div>
@@ -71,17 +69,15 @@ export default async function ClientsPage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between rounded-2xl bg-canvas-raised/95 dark:bg-slate-900/95 backdrop-blur-md border border-ink-200/80 dark:border-ink-800 px-4 py-2.5 shadow-2xs">
           <h2 className="text-base font-bold text-ink-950 dark:text-white flex items-center gap-1.5">
-            <Building2 className="w-4 h-4 text-signal" /> Organisations ({(organizations ?? []).length})
+            <Building2 className="w-4 h-4 text-signal" /> {tr("Organisations (")}{(organizations ?? []).length})
           </h2>
           <Link href="/clients/organizations/new" className="text-xs font-semibold text-signal hover:underline">
-            + Ajouter
-          </Link>
+            {tr("+ Ajouter")}</Link>
         </div>
 
         {(organizations ?? []).length === 0 ? (
           <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised/95 dark:bg-slate-900/95 backdrop-blur-md p-6 text-center text-sm text-ink-700 dark:text-ink-300">
-            Aucune organisation enregistrée pour l'instant.
-          </div>
+            {tr("Aucune organisation enregistrée pour l'instant.")}</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {(organizations ?? []).map((org) => {
@@ -96,7 +92,7 @@ export default async function ClientsPage() {
                       <h3 className="font-bold text-ink-950 text-base">{org.name}</h3>
                       {actCount > 0 ? (
                         <span className="rounded-full bg-signal-soft px-2 py-0.5 text-[10px] font-bold text-signal">
-                          {actCount} activité{actCount > 1 ? "s" : ""}
+                          {actCount} {tr("activité")}{actCount > 1 ? "s" : ""}
                         </span>
                       ) : null}
                     </div>
@@ -128,15 +124,13 @@ export default async function ClientsPage() {
                       href={`/clients/organizations/${org.id}/edit`}
                       className="text-xs font-semibold text-signal hover:underline px-2 py-1 min-h-[32px] inline-flex items-center"
                     >
-                      Modifier
-                    </Link>
+                      {tr("Modifier")}</Link>
                     <form action={deleteOrganization.bind(null, org.id)}>
                       <button
                         type="submit"
                         className="text-xs text-ink-400 hover:text-danger px-2 py-1 min-h-[32px] inline-flex items-center cursor-pointer"
                       >
-                        Supprimer
-                      </button>
+                        {tr("Supprimer")}</button>
                     </form>
                   </div>
                 </div>
@@ -150,17 +144,15 @@ export default async function ClientsPage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between rounded-2xl bg-canvas-raised/95 dark:bg-slate-900/95 backdrop-blur-md border border-ink-200/80 dark:border-ink-800 px-4 py-2.5 shadow-2xs">
           <h2 className="text-base font-bold text-ink-950 dark:text-white flex items-center gap-1.5">
-            <User className="w-4 h-4 text-signal" /> Contacts ({(contacts ?? []).length})
+            <User className="w-4 h-4 text-signal" /> {tr("Contacts (")}{(contacts ?? []).length})
           </h2>
           <Link href="/clients/contacts/new" className="text-xs font-semibold text-signal hover:underline">
-            + Ajouter
-          </Link>
+            {tr("+ Ajouter")}</Link>
         </div>
 
         {(contacts ?? []).length === 0 ? (
           <div className="rounded-xl border border-dashed border-ink-300 bg-canvas-raised/95 dark:bg-slate-900/95 backdrop-blur-md p-6 text-center text-sm text-ink-700 dark:text-ink-300">
-            Aucun contact enregistré pour l'instant.
-          </div>
+            {tr("Aucun contact enregistré pour l'instant.")}</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {(contacts ?? []).map((contact) => {
@@ -177,7 +169,7 @@ export default async function ClientsPage() {
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-bold text-ink-950 text-base">{contact.name}</h3>
                       <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-medium text-ink-600">
-                        {org?.name ?? "Indépendant"}
+                        {org?.name ?? tr("Indépendant")}
                       </span>
                     </div>
 
@@ -208,15 +200,13 @@ export default async function ClientsPage() {
                       href={`/clients/contacts/${contact.id}/edit`}
                       className="text-xs font-semibold text-signal hover:underline px-2 py-1 min-h-[32px] inline-flex items-center"
                     >
-                      Modifier
-                    </Link>
+                      {tr("Modifier")}</Link>
                     <form action={deleteContact.bind(null, contact.id)}>
                       <button
                         type="submit"
                         className="text-xs text-ink-400 hover:text-danger px-2 py-1 min-h-[32px] inline-flex items-center cursor-pointer"
                       >
-                        Supprimer
-                      </button>
+                        {tr("Supprimer")}</button>
                     </form>
                   </div>
                 </div>

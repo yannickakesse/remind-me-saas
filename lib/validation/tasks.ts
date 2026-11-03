@@ -1,18 +1,19 @@
+import { msg } from "@/lib/i18n/catalog";
 import { z } from "zod";
 import type { TaskPriority, TaskStatus } from "@/types/database";
 
 export const TASK_STATUSES: { value: TaskStatus; label: string }[] = [
-  { value: "todo", label: "À faire" },
-  { value: "in_progress", label: "En cours" },
-  { value: "done", label: "Terminée" },
-  { value: "cancelled", label: "Annulée" },
+  { value: "todo", label: msg("À faire") },
+  { value: "in_progress", label: msg("En cours") },
+  { value: "done", label: msg("Terminée") },
+  { value: "cancelled", label: msg("Annulée") },
 ];
 
 export const TASK_PRIORITIES: { value: TaskPriority; label: string }[] = [
-  { value: "low", label: "Basse" },
-  { value: "medium", label: "Moyenne" },
-  { value: "high", label: "Haute" },
-  { value: "urgent", label: "Urgente" },
+  { value: "low", label: msg("Basse") },
+  { value: "medium", label: msg("Moyenne") },
+  { value: "high", label: msg("Haute") },
+  { value: "urgent", label: msg("Urgente") },
 ];
 
 export function taskStatusLabel(status: string): string {

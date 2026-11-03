@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,6 +22,7 @@ export function ActivityItemActions({
   isArchived = false,
   isSuspended = false,
 }: ActivityItemActionsProps) {
+  const { tr } = useLanguage();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -116,7 +119,7 @@ export function ActivityItemActions({
     return (
       <div className="flex flex-col sm:flex-row items-center gap-2 bg-danger/10 border border-danger/20 p-2.5 rounded-xl text-xs">
         <span className="text-danger font-semibold">
-          Supprimer définitivement « {activityName} » ?
+          {tr("Supprimer définitivement «")}{" "}{activityName} » ?
         </span>
         <div className="flex items-center gap-2">
           <Button
@@ -127,8 +130,7 @@ export function ActivityItemActions({
             disabled={loading}
             onClick={handleDelete}
           >
-            Oui, supprimer
-          </Button>
+            {tr("Oui, supprimer")}</Button>
           <Button
             type="button"
             variant="secondary"
@@ -136,8 +138,7 @@ export function ActivityItemActions({
             disabled={loading}
             onClick={() => setShowDeleteConfirm(false)}
           >
-            Annuler
-          </Button>
+            {tr("Annuler")}</Button>
         </div>
         {error && <span className="text-danger text-xs">{error}</span>}
       </div>
@@ -150,12 +151,11 @@ export function ActivityItemActions({
         {error && <span className="text-danger text-xs mr-2">{error}</span>}
         <Link
           href={`/activities/new?duplicate_from=${activityId}`}
-          title="Dupliquer cette activité archivée"
+          title={tr("Dupliquer cette activité archivée")}
           className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
         >
           <Copy className="w-3.5 h-3.5" />
-          Dupliquer
-        </Link>
+          {tr("Dupliquer")}</Link>
         <button
           type="button"
           onClick={handleRestore}
@@ -163,8 +163,7 @@ export function ActivityItemActions({
           className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal-soft transition-colors min-h-[32px] inline-flex items-center gap-1"
         >
           <RotateCcw className="w-3.5 h-3.5" />
-          Restaurer
-        </button>
+          {tr("Restaurer")}</button>
         <button
           type="button"
           onClick={() => setShowDeleteConfirm(true)}
@@ -172,8 +171,7 @@ export function ActivityItemActions({
           className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
         >
           <Trash2 className="w-3.5 h-3.5" />
-          Supprimer
-        </button>
+          {tr("Supprimer")}</button>
       </div>
     );
   }
@@ -189,16 +187,14 @@ export function ActivityItemActions({
           className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-100/80 hover:bg-emerald-200 transition-colors min-h-[32px] inline-flex items-center gap-1"
         >
           <Play className="w-3.5 h-3.5 fill-emerald-800" />
-          Reprendre / Activer
-        </button>
+          {tr("Reprendre / Activer")}</button>
         <Link
           href={`/activities/new?duplicate_from=${activityId}`}
-          title="Dupliquer cette activité"
+          title={tr("Dupliquer cette activité")}
           className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
         >
           <Copy className="w-3.5 h-3.5" />
-          Dupliquer
-        </Link>
+          {tr("Dupliquer")}</Link>
         <button
           type="button"
           onClick={() => setShowDeleteConfirm(true)}
@@ -206,8 +202,7 @@ export function ActivityItemActions({
           className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
         >
           <Trash2 className="w-3.5 h-3.5" />
-          Supprimer
-        </button>
+          {tr("Supprimer")}</button>
       </div>
     );
   }
@@ -221,26 +216,23 @@ export function ActivityItemActions({
           className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-signal hover:bg-signal-soft transition-colors min-h-[32px] inline-flex items-center gap-1"
         >
           <Edit3 className="w-3.5 h-3.5" />
-          Modifier
-        </Link>
+          {tr("Modifier")}</Link>
         <Link
           href={`/activities/new?duplicate_from=${activityId}`}
-          title="Dupliquer cette activité pour créer une nouvelle occurrence"
+          title={tr("Dupliquer cette activité pour créer une nouvelle occurrence")}
           className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:text-ink-950 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
         >
           <Copy className="w-3.5 h-3.5 text-ink-500" />
-          Dupliquer
-        </Link>
+          {tr("Dupliquer")}</Link>
         <button
           type="button"
           onClick={handleSuspend}
           disabled={loading}
-          title="Mettre en pause temporairement (non comptabilisé dans les finances)"
+          title={tr("Mettre en pause temporairement (non comptabilisé dans les finances)")}
           className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100/60 bg-amber-50 transition-colors min-h-[32px] inline-flex items-center gap-1"
         >
           <Pause className="w-3.5 h-3.5 text-amber-600" />
-          Suspendre
-        </button>
+          {tr("Suspendre")}</button>
         <button
           type="button"
           onClick={handleArchive}
@@ -248,8 +240,7 @@ export function ActivityItemActions({
           className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-500 hover:text-ink-800 hover:bg-ink-100 transition-colors min-h-[32px] inline-flex items-center gap-1"
         >
           <Archive className="w-3.5 h-3.5" />
-          Archiver
-        </button>
+          {tr("Archiver")}</button>
         <button
           type="button"
           onClick={() => setShowDeleteConfirm(true)}
@@ -257,8 +248,7 @@ export function ActivityItemActions({
           className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors min-h-[32px] inline-flex items-center gap-1"
         >
           <Trash2 className="w-3.5 h-3.5" />
-          Supprimer
-        </button>
+          {tr("Supprimer")}</button>
       </div>
     </div>
   );

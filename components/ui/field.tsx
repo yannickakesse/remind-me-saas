@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
@@ -43,6 +45,7 @@ export function TextInput(
 export function PasswordInput(
   props: React.InputHTMLAttributes<HTMLInputElement>
 ) {
+  const { tr } = useLanguage();
   const [show, setShow] = useState(false);
   return (
     <div className="relative flex items-center w-full">
@@ -58,7 +61,7 @@ export function PasswordInput(
         onClick={() => setShow(!show)}
         tabIndex={-1}
         className="absolute right-3 p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors cursor-pointer"
-        aria-label={show ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+        aria-label={show ? tr("Masquer le mot de passe") : tr("Afficher le mot de passe")}
       >
         {show ? (
           <EyeOff className="w-4 h-4" />

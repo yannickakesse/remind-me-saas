@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { TrendingDown, TrendingUp, PieChart } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
@@ -17,6 +19,7 @@ export function CategoryBreakdown({
   expenseItems,
   incomeItems = [],
 }: CategoryBreakdownProps) {
+  const { tr } = useLanguage();
   const [activeMode, setActiveMode] = useState<"expenses" | "income">("expenses");
 
   const effectiveExpenseItems = expenseItems ?? items;
@@ -28,12 +31,11 @@ export function CategoryBreakdown({
       <div className="border-b border-ink-100 dark:border-ink-800 pb-3">
         <h3 className="font-bold text-ink-950 dark:text-white text-base flex items-center gap-2">
           <PieChart className="w-4 h-4 text-signal" />
-          Répartition par Catégorie
-        </h3>
+          {tr("Répartition par Catégorie")}</h3>
         <p className="text-xs text-ink-500 mt-0.5 font-medium">
           {activeMode === "expenses"
-            ? "Identifiez les postes qui consomment le plus de trésorerie"
-            : "Identifiez les activités & sources qui génèrent le plus de revenus"}
+            ? tr("Identifiez les postes qui consomment le plus de trésorerie")
+            : tr("Identifiez les activités & sources qui génèrent le plus de revenus")}
         </p>
       </div>
 
@@ -50,7 +52,7 @@ export function CategoryBreakdown({
             }`}
           >
             <TrendingDown className="w-4 h-4 text-danger shrink-0" />
-            <span>Dépenses ({effectiveExpenseItems.length})</span>
+            <span>{tr("Dépenses (")}{effectiveExpenseItems.length})</span>
           </button>
           <button
             type="button"
@@ -62,7 +64,7 @@ export function CategoryBreakdown({
             }`}
           >
             <TrendingUp className="w-4 h-4 text-positive shrink-0" />
-            <span>Revenus ({incomeItems.length})</span>
+            <span>{tr("Revenus (")}{incomeItems.length})</span>
           </button>
         </div>
       </div>
@@ -71,8 +73,8 @@ export function CategoryBreakdown({
       {currentItems.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-ink-300 dark:border-ink-800 bg-canvas/50 p-6 text-center text-xs text-ink-500">
           {activeMode === "expenses"
-            ? "Aucune dépense enregistrée sur cette période."
-            : "Aucun revenu enregistré sur cette période."}
+            ? tr("Aucune dépense enregistrée sur cette période.")
+            : tr("Aucun revenu enregistré sur cette période.")}
         </div>
       ) : (
         <div className="space-y-3.5 pt-1">

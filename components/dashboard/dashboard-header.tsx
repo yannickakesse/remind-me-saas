@@ -12,7 +12,7 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ userName, timezone }: DashboardHeaderProps) {
-  const { locale, t } = useLanguage();
+  const { locale, t , tr } = useLanguage();
   const now = DateTime.now().setZone(timezone);
 
   // Salutation contextuelle selon l'heure locale
@@ -45,7 +45,7 @@ export function DashboardHeader({ userName, timezone }: DashboardHeaderProps) {
         <h1 className="min-w-0 text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight leading-tight text-ink-950 dark:text-white">
           {greeting}{firstName ? `, ${firstName}` : ""} 👋
         </h1>
-        <SectionGuideTrigger section="dashboard" label="Guide" variant="audio-first" className="shrink-0" />
+        <SectionGuideTrigger section="dashboard" label={tr("Guide")} variant="audio-first" className="shrink-0" />
       </div>
     </div>
   );

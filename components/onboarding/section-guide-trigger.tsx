@@ -95,7 +95,7 @@ export function SectionGuideTrigger({
   variant = "pill",
   className = "",
 }: SectionGuideTriggerProps) {
-  const { t, locale } = useLanguage();
+  const { t, locale , tr } = useLanguage();
   const [isVoiceActive, setIsVoiceActive] = useState(false);
 
   useEffect(() => {
@@ -160,8 +160,8 @@ export function SectionGuideTrigger({
         <button
           type="button"
           onClick={handleVoiceClick}
-          title={isVoiceActive ? "Arrêter la voix" : "Écouter le guide vocal"}
-          aria-label={isVoiceActive ? "Arrêter la voix" : "Écouter le guide vocal de cette section"}
+          title={isVoiceActive ? tr("Arrêter la voix") : tr("Écouter le guide vocal")}
+          aria-label={isVoiceActive ? tr("Arrêter la voix") : tr("Écouter le guide vocal de cette section")}
           className={`inline-flex items-center justify-center h-8 w-8 rounded-xl border transition-all cursor-pointer ${
             isVoiceActive
               ? "border-amber-500 bg-amber-500/20 text-amber-500 animate-pulse ring-2 ring-amber-500/30"
@@ -183,8 +183,8 @@ export function SectionGuideTrigger({
         <button
           type="button"
           onClick={handleVoiceClick}
-          title={isVoiceActive ? "Arrêter la voix" : "Écouter le guide vocal"}
-          aria-label={isVoiceActive ? "Arrêter la voix" : "Écouter le guide vocal de cette section"}
+          title={isVoiceActive ? tr("Arrêter la voix") : tr("Écouter le guide vocal")}
+          aria-label={isVoiceActive ? tr("Arrêter la voix") : tr("Écouter le guide vocal de cette section")}
           className={`p-1.5 pl-2.5 transition-all cursor-pointer ${
             isVoiceActive ? "animate-pulse scale-110" : "hover:scale-110"
           }`}
@@ -225,8 +225,8 @@ export function SectionGuideTrigger({
         <button
           type="button"
           onClick={handleVoiceClick}
-          title={isVoiceActive ? "Arrêter la voix" : "Écouter le guide vocal"}
-          aria-label={isVoiceActive ? "Arrêter la voix" : "Écouter le guide vocal de cette section"}
+          title={isVoiceActive ? tr("Arrêter la voix") : tr("Écouter le guide vocal")}
+          aria-label={isVoiceActive ? tr("Arrêter la voix") : tr("Écouter le guide vocal de cette section")}
           className={`p-1.5 pr-2.5 transition-all cursor-pointer ${
             isVoiceActive
               ? "text-amber-500 animate-pulse scale-110"
@@ -252,7 +252,7 @@ export function SectionGuideTrigger({
       >
         <Sparkles className="w-3 h-3 text-gold-dark dark:text-gold-light" />
         <span className="hidden sm:inline">{displayLabel}</span>
-        <span className="sm:hidden">Guide</span>
+        <span className="sm:hidden">{tr("Guide")}</span>
       </button>
 
       <span className="h-3 w-px bg-ink-200 dark:bg-ink-700 mx-0.5" />
@@ -260,8 +260,8 @@ export function SectionGuideTrigger({
       <button
         type="button"
         onClick={handleVoiceClick}
-        title={isVoiceActive ? "Arrêter la voix" : "Écouter le guide vocal"}
-        aria-label={isVoiceActive ? "Arrêter la voix" : "Écouter le guide vocal de cette section"}
+        title={isVoiceActive ? tr("Arrêter la voix") : tr("Écouter le guide vocal")}
+        aria-label={isVoiceActive ? tr("Arrêter la voix") : tr("Écouter le guide vocal de cette section")}
         className={`p-1 pr-2 transition-all cursor-pointer ${
           isVoiceActive
             ? "text-amber-500 animate-pulse scale-110"

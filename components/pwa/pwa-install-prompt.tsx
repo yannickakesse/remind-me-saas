@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -31,6 +33,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function PwaInstallPrompt() {
+  const { tr } = useLanguage();
   const pathname = usePathname();
   const { push } = useToast();
 
@@ -133,7 +136,7 @@ export function PwaInstallPrompt() {
         await deferredPrompt.prompt();
         const choice = await deferredPrompt.userChoice;
         if (choice.outcome === "accepted") {
-          push("Remind Me est en cours d'installation sur votre écran d'accueil !", "success");
+          push(tr("Remind Me est en cours d'installation sur votre écran d'accueil !"), "success");
           handleDismiss();
         }
         setDeferredPrompt(null);
@@ -170,7 +173,7 @@ export function PwaInstallPrompt() {
       {/* 1. Bannière Flottante Discrète en Bas d'Écran */}
       {isVisible && (
         <aside
-          aria-label="Invitation d'installation de l'application"
+          aria-label={tr("Invitation d'installation de l'application")}
           className={`fixed z-40 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md transition-all duration-500 ease-out ${
             isAppDashboard ? "bottom-20 md:bottom-6" : "bottom-4 md:bottom-6"
           }`}
@@ -184,7 +187,7 @@ export function PwaInstallPrompt() {
             <button
               type="button"
               onClick={handleDismiss}
-              aria-label="Fermer la notification d'installation"
+              aria-label={tr("Fermer la notification d'installation")}
               className="absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full text-ink-400 hover:bg-ink-100 hover:text-ink-700 active:scale-90 transition-all"
             >
               <X className="h-4 w-4" />
@@ -209,16 +212,14 @@ export function PwaInstallPrompt() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <h4 className="text-xs font-bold text-ink-950 truncate tracking-tight">
-                    Installer Remind Me
-                  </h4>
+                    {tr("Installer Remind Me")}</h4>
                   <span className="rounded-full bg-signal-soft px-1.5 py-0.5 text-[9px] font-semibold text-signal uppercase tracking-wider">
-                    Gratuit
-                  </span>
+                    {tr("Gratuit")}</span>
                 </div>
                 <p className="mt-0.5 text-[11px] leading-snug text-ink-600">
                   {isIOS
-                    ? "Ajoutez Remind Me sur votre écran d'accueil iPhone/iPad pour un accès direct en 1 clic."
-                    : "Installez l'application sur votre écran d'accueil pour une expérience rapide et fluide."}
+                    ? tr("Ajoutez Remind Me sur votre écran d'accueil iPhone/iPad pour un accès direct en 1 clic.")
+                    : tr("Installez l'application sur votre écran d'accueil pour une expérience rapide et fluide.")}
                 </p>
 
                 {/* Boutons d'action */}
@@ -231,12 +232,12 @@ export function PwaInstallPrompt() {
                     {isIOS ? (
                       <>
                         <Share className="h-3.5 w-3.5" />
-                        <span>Ajouter à l'écran</span>
+                        <span>{tr("Ajouter à l'écran")}</span>
                       </>
                     ) : (
                       <>
                         <Download className="h-3.5 w-3.5" />
-                        <span>Installer l'app</span>
+                        <span>{tr("Installer l'app")}</span>
                       </>
                     )}
                   </button>
@@ -246,8 +247,7 @@ export function PwaInstallPrompt() {
                     onClick={handleDismiss}
                     className="rounded-xl px-2.5 py-1.5 text-xs font-medium text-ink-500 hover:bg-ink-100 hover:text-ink-800 transition-colors"
                   >
-                    Plus tard
-                  </button>
+                    {tr("Plus tard")}</button>
                 </div>
               </div>
             </div>
@@ -273,11 +273,9 @@ export function PwaInstallPrompt() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-ink-950">
-                    Installer sur votre écran d'accueil
-                  </h3>
+                    {tr("Installer sur votre écran d'accueil")}</h3>
                   <p className="text-xs text-ink-500">
-                    Accès rapide, affichage plein écran et alertes instantanées
-                  </p>
+                    {tr("Accès rapide, affichage plein écran et alertes instantanées")}</p>
                 </div>
               </div>
 
@@ -302,8 +300,7 @@ export function PwaInstallPrompt() {
                 }`}
               >
                 <Smartphone className="h-3.5 w-3.5" />
-                iPhone / iPad
-              </button>
+                {tr("iPhone / iPad")}</button>
 
               <button
                 type="button"
@@ -315,8 +312,7 @@ export function PwaInstallPrompt() {
                 }`}
               >
                 <Smartphone className="h-3.5 w-3.5" />
-                Android
-              </button>
+                {tr("Android")}</button>
 
               <button
                 type="button"
@@ -328,8 +324,7 @@ export function PwaInstallPrompt() {
                 }`}
               >
                 <Laptop className="h-3.5 w-3.5" />
-                PC / Mac
-              </button>
+                {tr("PC / Mac")}</button>
             </div>
 
             {/* Contenu étape par étape selon l'onglet actif */}
@@ -337,8 +332,7 @@ export function PwaInstallPrompt() {
               {activeGuideTab === "ios" && (
                 <div className="space-y-3.5">
                   <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-800 dark:text-amber-300">
-                    💡 <strong>Astuce Safari :</strong> Sur iPhone et iPad, l'installation se fait directement depuis le navigateur Safari en 3 petites étapes.
-                  </div>
+                    💡 <strong>{tr("Astuce Safari :")}</strong> {tr("Sur iPhone et iPad, l'installation se fait directement depuis le navigateur Safari en 3 petites étapes.")}</div>
 
                   {/* Étape 1 iOS */}
                   <div className="flex items-start gap-3 rounded-2xl border border-ink-100 bg-canvas p-3.5">
@@ -347,14 +341,13 @@ export function PwaInstallPrompt() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs font-semibold text-ink-950 flex items-center gap-1.5">
-                        Appuyez sur le bouton <strong>Partager</strong>{" "}
+                        {tr("Appuyez sur le bouton")}{" "}<strong>{tr("Partager")}</strong>{" "}
                         <span className="inline-flex items-center justify-center h-5 w-5 rounded bg-ink-100 text-ink-700">
                           <Share className="h-3.5 w-3.5" />
                         </span>
                       </p>
                       <p className="text-[11px] text-ink-600 leading-relaxed">
-                        L'icône de partage se situe en bas au centre de votre écran Safari sur iPhone (ou en haut à droite sur iPad).
-                      </p>
+                        {tr("L'icône de partage se situe en bas au centre de votre écran Safari sur iPhone (ou en haut à droite sur iPad).")}</p>
                     </div>
                   </div>
 
@@ -365,14 +358,13 @@ export function PwaInstallPrompt() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs font-semibold text-ink-950 flex items-center gap-1.5">
-                        Sélectionnez <strong>« Sur l'écran d'accueil »</strong>{" "}
+                        {tr("Sélectionnez")}{" "}<strong>{tr("« Sur l'écran d'accueil »")}</strong>{" "}
                         <span className="inline-flex items-center justify-center h-5 w-5 rounded bg-ink-100 text-ink-700">
                           <PlusSquare className="h-3.5 w-3.5" />
                         </span>
                       </p>
                       <p className="text-[11px] text-ink-600 leading-relaxed">
-                        Faites défiler le menu d'actions vers le bas jusqu'à trouver l'option avec un carré et un « + ».
-                      </p>
+                        {tr("Faites défiler le menu d'actions vers le bas jusqu'à trouver l'option avec un carré et un « + ».")}</p>
                     </div>
                   </div>
 
@@ -383,11 +375,9 @@ export function PwaInstallPrompt() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs font-semibold text-ink-950">
-                        Touchez <strong>« Ajouter »</strong> en haut à droite
-                      </p>
+                        {tr("Touchez")}{" "}<strong>{tr("« Ajouter »")}</strong> {tr("en haut à droite")}</p>
                       <p className="text-[11px] text-ink-600 leading-relaxed">
-                        L'icône Remind Me s'affiche désormais sur votre écran d'accueil comme une application native.
-                      </p>
+                        {tr("L'icône Remind Me s'affiche désormais sur votre écran d'accueil comme une application native.")}</p>
                     </div>
                   </div>
                 </div>
@@ -398,16 +388,14 @@ export function PwaInstallPrompt() {
                   {deferredPrompt ? (
                     <div className="rounded-2xl border border-signal/20 bg-signal-soft/30 p-4 text-center space-y-3">
                       <p className="text-xs font-semibold text-ink-950">
-                        Votre navigateur prend en charge l'installation directe en un clic !
-                      </p>
+                        {tr("Votre navigateur prend en charge l'installation directe en un clic !")}</p>
                       <button
                         type="button"
                         onClick={handleInstallClick}
                         className="inline-flex items-center justify-center gap-2 rounded-xl bg-signal px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-signal-hover active:scale-95 transition-all"
                       >
                         <Download className="h-4 w-4" />
-                        Installer directement l'application
-                      </button>
+                        {tr("Installer directement l'application")}</button>
                     </div>
                   ) : (
                     <>
@@ -417,11 +405,9 @@ export function PwaInstallPrompt() {
                         </div>
                         <div className="space-y-1">
                           <p className="text-xs font-semibold text-ink-950">
-                            Ouvrez le menu <strong>⋮</strong> (3 points)
-                          </p>
+                            {tr("Ouvrez le menu")}{" "}<strong>⋮</strong> {tr("(3 points)")}</p>
                           <p className="text-[11px] text-ink-600">
-                            Situé en haut à droite de Google Chrome, Brave ou Samsung Internet.
-                          </p>
+                            {tr("Situé en haut à droite de Google Chrome, Brave ou Samsung Internet.")}</p>
                         </div>
                       </div>
 
@@ -431,11 +417,10 @@ export function PwaInstallPrompt() {
                         </div>
                         <div className="space-y-1">
                           <p className="text-xs font-semibold text-ink-950">
-                            Appuyez sur <strong>« Installer l'application »</strong> ou <strong>« Ajouter à l'écran d'accueil »</strong>
+                            {tr("Appuyez sur")}{" "}<strong>{tr("« Installer l'application »")}</strong> ou <strong>{tr("« Ajouter à l'écran d'accueil »")}</strong>
                           </p>
                           <p className="text-[11px] text-ink-600">
-                            Validez la boîte de dialogue pour créer le raccourci sur votre téléphone.
-                          </p>
+                            {tr("Validez la boîte de dialogue pour créer le raccourci sur votre téléphone.")}</p>
                         </div>
                       </div>
                     </>
@@ -451,11 +436,9 @@ export function PwaInstallPrompt() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs font-semibold text-ink-950">
-                        Dans la barre d'adresse de Chrome ou Edge
-                      </p>
+                        {tr("Dans la barre d'adresse de Chrome ou Edge")}</p>
                       <p className="text-[11px] text-ink-600">
-                        Cliquez sur la petite icône d'écran ou de flèche d'installation située tout à droite de l'URL.
-                      </p>
+                        {tr("Cliquez sur la petite icône d'écran ou de flèche d'installation située tout à droite de l'URL.")}</p>
                     </div>
                   </div>
 
@@ -465,11 +448,10 @@ export function PwaInstallPrompt() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs font-semibold text-ink-950">
-                        Cliquez sur <strong>« Installer »</strong>
+                        {tr("Cliquez sur")}{" "}<strong>{tr("« Installer »")}</strong>
                       </p>
                       <p className="text-[11px] text-ink-600">
-                        Remind Me s'ouvrira dans sa propre fenêtre indépendante sur votre bureau.
-                      </p>
+                        {tr("Remind Me s'ouvrira dans sa propre fenêtre indépendante sur votre bureau.")}</p>
                     </div>
                   </div>
                 </div>
@@ -478,24 +460,23 @@ export function PwaInstallPrompt() {
               {/* Avantages de l'application installée */}
               <div className="border-t border-ink-100 pt-3">
                 <p className="text-[11px] font-bold text-ink-500 uppercase tracking-wider mb-2">
-                  Pourquoi installer Remind Me ?
-                </p>
+                  {tr("Pourquoi installer Remind Me ?")}</p>
                 <div className="grid grid-cols-2 gap-2 text-[11px] text-ink-700">
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-                    <span>Lancement instantané</span>
+                    <span>{tr("Lancement instantané")}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-                    <span>Mode plein écran</span>
+                    <span>{tr("Mode plein écran")}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-                    <span>Notifications push fiables</span>
+                    <span>{tr("Notifications push fiables")}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-                    <span>0 Mo d'espace requis</span>
+                    <span>{tr("0 Mo d'espace requis")}</span>
                   </div>
                 </div>
               </div>
@@ -511,8 +492,7 @@ export function PwaInstallPrompt() {
                 }}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-signal text-white text-xs font-bold hover:bg-signal-hover active:scale-95 transition-all text-center"
               >
-                C'est compris !
-              </button>
+                {tr("C'est compris !")}</button>
             </div>
           </div>
         </div>

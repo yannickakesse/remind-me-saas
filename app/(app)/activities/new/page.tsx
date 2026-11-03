@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ActivityForm } from "@/components/shared/activity-form";
@@ -10,6 +11,7 @@ export default async function NewActivityPage({
 }: {
   searchParams: { onboarding?: string; duplicate_from?: string };
 }) {
+  const tr = await getTr();
   const [user, profile] = await Promise.all([
     requireCurrentUser(),
     getCurrentProfile(),
@@ -130,7 +132,7 @@ export default async function NewActivityPage({
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white bg-canvas-raised/80 dark:bg-slate-900/80 border border-ink-200/80 dark:border-white/10 hover:border-signal/40 transition-all shadow-2xs group"
         >
           <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
-          <span>Retour au portefeuille d&apos;activités</span>
+          <span>{tr("Retour au portefeuille d'activités")}</span>
         </Link>
       </div>
 
@@ -144,18 +146,15 @@ export default async function NewActivityPage({
               {isDuplicating ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-signal/15 text-signal border border-signal/25 shadow-2xs">
                   <Copy className="w-3 h-3" />
-                  Duplication rapide & modification
-                </span>
+                  {tr("Duplication rapide & modification")}</span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-signal/10 dark:bg-signal/20 text-signal border border-signal/20 shadow-2xs">
                   <Plus className="w-3 h-3" />
-                  Configuration de mission
-                </span>
+                  {tr("Configuration de mission")}</span>
               )}
               {isFirstActivity && (
                 <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20">
-                  <Sparkles className="w-3 h-3" /> Première étape
-                </span>
+                  <Sparkles className="w-3 h-3" /> {tr("Première étape")}</span>
               )}
             </div>
 
@@ -163,16 +162,16 @@ export default async function NewActivityPage({
               {isDuplicating
                 ? `Dupliquer « ${sourceActivity?.name} »`
                 : isFirstActivity
-                ? "Créons votre première activité"
-                : "Nouvelle activité"}
+                ? tr("Créons votre première activité")
+                : tr("Nouvelle activité")}
             </h1>
 
             <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 mt-1 max-w-2xl">
               {isDuplicating
-                ? "Les données de l'activité originale ont été préremplies. Ajustez les jours, créneaux ou rémunération puis enregistrez."
+                ? tr("Les données de l'activité originale ont été préremplies. Ajustez les jours, créneaux ou rémunération puis enregistrez.")
                 : isFirstActivity
-                ? "Ces informations alimenteront votre calendrier intelligent et vos prévisions de trésorerie."
-                : "Renseignez les horaires, modalités d'intervention et rémunération pour un suivi automatisé."}
+                ? tr("Ces informations alimenteront votre calendrier intelligent et vos prévisions de trésorerie.")
+                : tr("Renseignez les horaires, modalités d'intervention et rémunération pour un suivi automatisé.")}
             </p>
           </div>
         </div>
@@ -184,7 +183,7 @@ export default async function NewActivityPage({
         existingActivities={existingActivities}
         action={createActivity}
         initial={initialValues}
-        submitLabel={isDuplicating ? "Créer cette nouvelle activité" : "Créer l'activité"}
+        submitLabel={isDuplicating ? tr("Créer cette nouvelle activité") : tr("Créer l'activité")}
       />
     </div>
   );

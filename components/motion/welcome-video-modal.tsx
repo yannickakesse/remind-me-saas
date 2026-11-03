@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { X, Play, Pause, Volume2, VolumeX, Sparkles, ArrowRight } from "lucide-react";
 import { stopVoiceReminder } from "@/lib/voice";
@@ -12,6 +14,7 @@ import {
 
 
 export function WelcomeVideoModal() {
+  const { tr } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -217,7 +220,7 @@ export function WelcomeVideoModal() {
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 dark:bg-black/80 backdrop-blur-md animate-in fade-in duration-300 select-none"
       role="dialog"
       aria-modal="true"
-      aria-label="Présentation Remind Me"
+      aria-label={tr("Présentation Remind Me")}
     >
       <div className="relative w-full max-w-2xl bg-canvas-raised border-2 border-signal rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
         {/* Header du Pop-up */}
@@ -228,16 +231,15 @@ export function WelcomeVideoModal() {
             </span>
             <div>
               <h3 className="text-xs sm:text-sm font-black text-ink-950 dark:text-white">
-                Découvrez Remind Me en 45 secondes
-              </h3>
-              <p className="text-[10px] text-ink-500 dark:text-ink-400">Présentation officielle du SaaS</p>
+                {tr("Découvrez Remind Me en 45 secondes")}</h3>
+              <p className="text-[10px] text-ink-500 dark:text-ink-400">{tr("Présentation officielle du SaaS")}</p>
             </div>
           </div>
 
           <button
             type="button"
             onClick={handleClose}
-            aria-label="Fermer la vidéo"
+            aria-label={tr("Fermer la vidéo")}
             className="flex h-8 w-8 items-center justify-center rounded-xl text-ink-500 hover:text-ink-950 dark:hover:text-white hover:bg-signal/10 active:scale-95 transition-all cursor-pointer"
           >
             <X className="h-5 w-5" />
@@ -277,7 +279,7 @@ export function WelcomeVideoModal() {
               className="absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-signal hover:bg-signal-dark text-white text-xs font-bold shadow-lg cursor-pointer transition-all hover:scale-105 animate-bounce"
             >
               <VolumeX className="w-3.5 h-3.5" />
-              <span>Activer le son 🔊</span>
+              <span>{tr("Activer le son 🔊")}</span>
             </button>
           )}
 
@@ -305,7 +307,7 @@ export function WelcomeVideoModal() {
               className="flex items-center gap-1 hover:text-signal transition-colors cursor-pointer"
             >
               {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              <span>{isMuted ? "Son coupé" : "Son activé"}</span>
+              <span>{isMuted ? tr("Son coupé") : tr("Son activé")}</span>
             </button>
           </div>
         </div>
@@ -313,16 +315,15 @@ export function WelcomeVideoModal() {
         {/* Footer avec bouton Passer (Skip) */}
         <div className="flex items-center justify-between p-4 bg-canvas-raised border-t border-signal/30">
           <p className="text-[11px] text-ink-500 dark:text-ink-400 hidden sm:block">
-            Cette présentation réapparaîtra tous les 2 à 3 jours.
-          </p>
+            {tr("Cette présentation réapparaîtra tous les 2 à 3 jours.")}</p>
 
           <button
             type="button"
             onClick={handleClose}
             className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-xl bg-signal hover:bg-signal-dark active:scale-95 text-white text-xs font-black shadow-md transition-all cursor-pointer"
-            aria-label="Passer la présentation"
+            aria-label={tr("Passer la présentation")}
           >
-            <span>Passer</span>
+            <span>{tr("Passer")}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

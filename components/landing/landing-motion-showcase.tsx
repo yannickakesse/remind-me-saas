@@ -67,7 +67,7 @@ const SCENES: MotionScene[] = [
 ];
 
 export function LandingMotionShowcase() {
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
   const [activeSceneIndex, setActiveSceneIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -171,14 +171,12 @@ export function LandingMotionShowcase() {
       <div className="text-center max-w-3xl mx-auto mb-12">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-signal-soft/80 border border-signal/30 text-signal font-extrabold text-xs uppercase tracking-wider mb-4 shadow-xs">
           <Sparkles className="w-3.5 h-3.5" />
-          Motion Design &amp; Démo Interactive
-        </div>
+          {tr("Motion Design & Démo Interactive")}</div>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-ink-950 tracking-tight">
-          Voyez Remind Me <span className="bg-gradient-to-r from-signal via-gold to-gold-dark bg-clip-text text-transparent">en action</span>
+          {tr("Voyez Remind Me")}{" "}<span className="bg-gradient-to-r from-signal via-gold to-gold-dark bg-clip-text text-transparent">{tr("en action")}</span>
         </h2>
         <p className="mt-3 text-sm sm:text-base text-ink-600 max-w-2xl mx-auto">
-          Une expérience fluide, conçue pour synchroniser vos activités multiples, sécuriser vos encaissements et vous alerter au bon moment.
-        </p>
+          {tr("Une expérience fluide, conçue pour synchroniser vos activités multiples, sécuriser vos encaissements et vous alerter au bon moment.")}</p>
       </div>
 
       {/* Main Interactive Motion Design Container */}
@@ -216,7 +214,7 @@ export function LandingMotionShowcase() {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-ink-200 bg-canvas-raised text-xs font-semibold text-ink-800 hover:bg-ink-100 active:scale-95 transition-all cursor-pointer shadow-2xs"
             >
               {isPlaying ? <Pause className="w-3.5 h-3.5 text-signal" /> : <Play className="w-3.5 h-3.5 text-positive" />}
-              <span>{isPlaying ? "Pause" : "Lecture auto"}</span>
+              <span>{isPlaying ? "Pause" : tr("Lecture auto")}</span>
             </button>
             <button
               type="button"
@@ -226,7 +224,7 @@ export function LandingMotionShowcase() {
                 setIsPaymentCollected(false);
                 setIsVoicePlaying(false);
               }}
-              title="Rejouer cette étape"
+              title={tr("Rejouer cette étape")}
               className="p-1.5 rounded-xl border border-ink-200 bg-canvas-raised text-ink-600 hover:text-ink-950 hover:bg-ink-100 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -267,10 +265,10 @@ export function LandingMotionShowcase() {
                 <div className="flex items-center justify-between border-b border-ink-100 pb-3">
                   <div className="flex items-center gap-2">
                     <span className="h-3 w-3 rounded-full bg-signal animate-pulse" />
-                    <span className="text-xs font-bold text-ink-950">Mardi 14 Octobre 2026 — Emploi du temps synchronisé</span>
+                    <span className="text-xs font-bold text-ink-950">{tr("Mardi 14 Octobre 2026 — Emploi du temps synchronisé")}</span>
                   </div>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-positive-soft text-positive border border-positive/30">
-                    {isConflictResolved ? "0 Conflit détecté" : "Analyse des plannings en cours"}
+                    {isConflictResolved ? tr("0 Conflit détecté") : tr("Analyse des plannings en cours")}
                   </span>
                 </div>
 
@@ -283,11 +281,11 @@ export function LandingMotionShowcase() {
                         09:00 - 13:00
                       </span>
                       <div>
-                        <div className="font-bold text-xs sm:text-sm text-blue-950">Contrat Salarié — Tech Lead</div>
-                        <div className="text-[10px] text-blue-700">Société Alpha • Présentiel</div>
+                        <div className="font-bold text-xs sm:text-sm text-blue-950">{tr("Contrat Salarié — Tech Lead")}</div>
+                        <div className="text-[10px] text-blue-700">{tr("Société Alpha • Présentiel")}</div>
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-blue-950">Fixe</span>
+                    <span className="text-xs font-bold text-blue-950">{tr("Fixe")}</span>
                   </div>
 
                   {/* Activité 2 : Conflit initial puis réorganisation fluide */}
@@ -304,12 +302,12 @@ export function LandingMotionShowcase() {
                           isConflictResolved ? "bg-emerald-600" : "bg-amber-600"
                         }`}
                       >
-                        {isConflictResolved ? "14:30 - 16:30" : "12:30 - 14:30 (Chevauchement)"}
+                        {isConflictResolved ? "14:30 - 16:30" : tr("12:30 - 14:30 (Chevauchement)")}
                       </span>
                       <div>
-                        <div className="font-bold text-xs sm:text-sm text-ink-950">Coaching SpeakPro — Mission Freelance</div>
+                        <div className="font-bold text-xs sm:text-sm text-ink-950">{tr("Coaching SpeakPro — Mission Freelance")}</div>
                         <div className="text-[10px] text-ink-500">
-                          {isConflictResolved ? "Créneau optimisé automatiquement" : "Conflit potentiel détecté avec le repas d'équipe"}
+                          {isConflictResolved ? tr("Créneau optimisé automatiquement") : tr("Conflit potentiel détecté avec le repas d'équipe")}
                         </div>
                       </div>
                     </div>
@@ -325,12 +323,10 @@ export function LandingMotionShowcase() {
                     >
                       {isConflictResolved ? (
                         <>
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Résolu
-                        </>
+                          <CheckCircle2 className="w-3.5 h-3.5" /> {tr("Résolu")}</>
                       ) : (
                         <>
-                          <Zap className="w-3.5 h-3.5" /> Réaligner
-                        </>
+                          <Zap className="w-3.5 h-3.5" /> {tr("Réaligner")}</>
                       )}
                     </button>
                   </div>
@@ -342,11 +338,11 @@ export function LandingMotionShowcase() {
                         17:00 - 19:00
                       </span>
                       <div>
-                        <div className="font-bold text-xs sm:text-sm text-ink-950">Suivis Personnalisés — Famille O.</div>
-                        <div className="text-[10px] text-ink-500">Consulting • Facturation horaire</div>
+                        <div className="font-bold text-xs sm:text-sm text-ink-950">{tr("Suivis Personnalisés — Famille O.")}</div>
+                        <div className="text-[10px] text-ink-500">{tr("Consulting • Facturation horaire")}</div>
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-amber-700">35 000 XOF</span>
+                    <span className="text-xs font-bold text-amber-700">{tr("35 000 XOF")}</span>
                   </div>
                 </div>
               </div>
@@ -360,21 +356,21 @@ export function LandingMotionShowcase() {
                 {/* 3 Cartes KPI Live */}
                 <div className="grid grid-cols-3 gap-3">
                   <div className="p-3 rounded-2xl bg-canvas-raised border border-ink-200">
-                    <span className="text-[10px] font-semibold text-ink-500 uppercase">En attente</span>
+                    <span className="text-[10px] font-semibold text-ink-500 uppercase">{tr("En attente")}</span>
                     <div className="text-sm sm:text-base font-extrabold text-amber-600 mt-1 transition-all">
-                      {isPaymentCollected ? "85 000 XOF" : "185 000 XOF"}
+                      {isPaymentCollected ? tr("85 000 XOF") : tr("185 000 XOF")}
                     </div>
                   </div>
                   <div className="p-3 rounded-2xl bg-canvas-raised border border-ink-200">
-                    <span className="text-[10px] font-semibold text-ink-500 uppercase">Total Reçu</span>
+                    <span className="text-[10px] font-semibold text-ink-500 uppercase">{tr("Total Reçu")}</span>
                     <div className="text-sm sm:text-base font-extrabold text-positive mt-1 transition-all">
-                      {isPaymentCollected ? "100 000 XOF" : "0 XOF"}
+                      {isPaymentCollected ? tr("100 000 XOF") : tr("0 XOF")}
                     </div>
                   </div>
                   <div className="p-3 rounded-2xl bg-canvas-raised border border-ink-200">
-                    <span className="text-[10px] font-semibold text-ink-500 uppercase">Solde Net</span>
+                    <span className="text-[10px] font-semibold text-ink-500 uppercase">{tr("Solde Net")}</span>
                     <div className="text-sm sm:text-base font-extrabold text-ink-950 mt-1 transition-all">
-                      {isPaymentCollected ? "+74 894 XOF" : "-25 106 XOF"}
+                      {isPaymentCollected ? tr("+74 894 XOF") : tr("-25 106 XOF")}
                     </div>
                   </div>
                 </div>
@@ -386,8 +382,8 @@ export function LandingMotionShowcase() {
                       100k
                     </div>
                     <div>
-                      <div className="font-bold text-xs sm:text-sm text-ink-950">Prestation Client — Suivis Octobre 2026</div>
-                      <div className="text-[10px] text-ink-500">Échéance aujourd'hui • 100 000 XOF</div>
+                      <div className="font-bold text-xs sm:text-sm text-ink-950">{tr("Prestation Client — Suivis Octobre 2026")}</div>
+                      <div className="text-[10px] text-ink-500">{tr("Échéance aujourd'hui • 100 000 XOF")}</div>
                     </div>
                   </div>
 
@@ -402,12 +398,10 @@ export function LandingMotionShowcase() {
                   >
                     {isPaymentCollected ? (
                       <>
-                        <CheckCircle2 className="w-4 h-4" /> Encaissé (+100k XOF)
-                      </>
+                        <CheckCircle2 className="w-4 h-4" /> {tr("Encaissé (+100k XOF)")}</>
                     ) : (
                       <>
-                        <Wallet className="w-4 h-4" /> Encaisser en 1 clic
-                      </>
+                        <Wallet className="w-4 h-4" /> {tr("Encaisser en 1 clic")}</>
                     )}
                   </button>
                 </div>
@@ -422,11 +416,10 @@ export function LandingMotionShowcase() {
                 <div className="flex items-center justify-between border-b border-ink-100 pb-3">
                   <div className="flex items-center gap-2">
                     <Bell className="w-4 h-4 text-signal animate-bounce" />
-                    <span className="text-xs font-bold text-ink-950">Notification Push &amp; Synthèse Vocale</span>
+                    <span className="text-xs font-bold text-ink-950">{tr("Notification Push & Synthèse Vocale")}</span>
                   </div>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-signal-soft text-signal">
-                    Haute Priorité
-                  </span>
+                    {tr("Haute Priorité")}</span>
                 </div>
 
                 {/* Simulated Notification Card */}
@@ -436,10 +429,9 @@ export function LandingMotionShowcase() {
                       <Clock className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-ink-950">Échéance de Facture — Famille M.</h4>
+                      <h4 className="font-bold text-sm text-ink-950">{tr("Échéance de Facture — Famille M.")}</h4>
                       <p className="text-xs text-ink-600 mt-0.5">
-                        Rappel programmé : Le règlement de 50 000 XOF doit être perçu aujourd'hui avant 18h00.
-                      </p>
+                        {tr("Rappel programmé : Le règlement de 50 000 XOF doit être perçu aujourd'hui avant 18h00.")}</p>
                     </div>
                   </div>
 
@@ -458,7 +450,7 @@ export function LandingMotionShowcase() {
                         ))}
                       </div>
                       <span className="text-xs font-mono text-ink-200">
-                        {isVoicePlaying ? "Lecture vocale en cours..." : "Alerte vocale disponible"}
+                        {isVoicePlaying ? tr("Lecture vocale en cours...") : tr("Alerte vocale disponible")}
                       </span>
                     </div>
 
@@ -468,7 +460,7 @@ export function LandingMotionShowcase() {
                       className="px-3 py-1.5 rounded-lg bg-signal text-white text-xs font-bold hover:bg-signal/90 active:scale-95 transition-all flex items-center gap-1 cursor-pointer shadow-xs"
                     >
                       <Volume2 className="w-3.5 h-3.5" />
-                      <span>{isVoicePlaying ? "En écoute" : "Écouter l'alerte"}</span>
+                      <span>{isVoicePlaying ? tr("En écoute") : tr("Écouter l'alerte")}</span>
                     </button>
                   </div>
                 </div>
@@ -482,12 +474,11 @@ export function LandingMotionShowcase() {
               <div className="w-full max-w-2xl bg-canvas border border-ink-200 rounded-3xl p-6 shadow-sm space-y-4 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-extrabold text-sm text-ink-950">Évolution Mensuelle — Revenus vs Dépenses</h4>
-                    <p className="text-[11px] text-ink-500">Taux horaire moyen : 18 500 XOF / heure</p>
+                    <h4 className="font-extrabold text-sm text-ink-950">{tr("Évolution Mensuelle — Revenus vs Dépenses")}</h4>
+                    <p className="text-[11px] text-ink-500">{tr("Taux horaire moyen : 18 500 XOF / heure")}</p>
                   </div>
                   <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-positive-soft text-positive border border-positive/30">
-                    +34% de Rentabilité
-                  </span>
+                    {tr("+34% de Rentabilité")}</span>
                 </div>
 
                 {/* Animated SVG Graph Curve */}
@@ -539,14 +530,14 @@ export function LandingMotionShowcase() {
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5">
                       <span className="w-3 h-1 bg-signal rounded-full" />
-                      <span className="font-semibold text-ink-950">Revenus cumulés</span>
+                      <span className="font-semibold text-ink-950">{tr("Revenus cumulés")}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="w-3 h-1 bg-danger rounded-full" />
-                      <span className="text-ink-500">Dépenses réelles</span>
+                      <span className="text-ink-500">{tr("Dépenses réelles")}</span>
                     </div>
                   </div>
-                  <span className="font-bold text-positive">+125 000 XOF Net</span>
+                  <span className="font-bold text-positive">{tr("+125 000 XOF Net")}</span>
                 </div>
               </div>
             )}
@@ -556,13 +547,13 @@ export function LandingMotionShowcase() {
           <div className="pt-4 border-t border-ink-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-ink-600">
               <ShieldCheck className="w-4 h-4 text-positive" />
-              <span>Toutes les simulations sont interconnectées en temps réel avec votre compte.</span>
+              <span>{tr("Toutes les simulations sont interconnectées en temps réel avec votre compte.")}</span>
             </div>
             <a
               href="/register"
               className="inline-flex items-center gap-1.5 font-bold text-signal hover:underline"
             >
-              Créer mon compte gratuitement <ArrowRight className="w-3.5 h-3.5" />
+              {tr("Créer mon compte gratuitement")}{" "}<ArrowRight className="w-3.5 h-3.5" />
             </a>
           </div>
         </div>

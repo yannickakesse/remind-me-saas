@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 
 interface TabItem {
@@ -20,6 +22,7 @@ interface TabsProps {
  * sous-routes plus tard si besoin sans changer l'API des sections.
  */
 export function Tabs({ items, defaultTabId }: TabsProps) {
+  const { tr } = useLanguage();
   const [activeId, setActiveId] = useState(defaultTabId ?? items[0]?.id ?? "");
 
   function handleKeyDown(e: React.KeyboardEvent, index: number) {
@@ -41,7 +44,7 @@ export function Tabs({ items, defaultTabId }: TabsProps) {
       <div className="w-full max-w-full overflow-x-auto no-scrollbar pb-1">
         <div
           role="tablist"
-          aria-label="Sections des paramètres"
+          aria-label={tr("Sections des paramètres")}
           className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-canvas-raised/98 dark:bg-slate-900/98 border border-ink-200/90 dark:border-ink-800/90 shadow-xs min-w-max"
         >
           {items.map((item, index) => {

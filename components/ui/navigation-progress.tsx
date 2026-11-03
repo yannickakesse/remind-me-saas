@@ -1,9 +1,12 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 export function NavigationProgressBar() {
+  const { tr } = useLanguage();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -100,7 +103,7 @@ export function NavigationProgressBar() {
       {loading && progress < 100 && (
         <div className="fixed top-[max(0.8rem,env(safe-area-inset-top,0px))] right-4 z-[999999] pointer-events-none flex items-center gap-2.5 bg-ink-950/90 dark:bg-canvas-raised/95 backdrop-blur-xl px-3.5 py-1.5 rounded-full border border-signal/40 shadow-2xl text-[11px] font-bold text-white animate-in fade-in slide-in-from-top-2 duration-150">
           <div className="w-3.5 h-3.5 border-2 border-signal border-t-transparent rounded-full animate-spin" />
-          <span className="tracking-wide">Chargement...</span>
+          <span className="tracking-wide">{tr("Chargement...")}</span>
         </div>
       )}
     </>

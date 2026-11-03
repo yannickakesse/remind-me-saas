@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
@@ -27,6 +29,7 @@ export function TaskForm({
   initial,
   submitLabel = "Créer la tâche",
 }: TaskFormProps) {
+  const { tr } = useLanguage();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -78,29 +81,29 @@ export function TaskForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-5">
-      <Field label="Titre de la tâche *" htmlFor="title">
+      <Field label={tr("Titre de la tâche *")} htmlFor="title">
         <TextInput
           id="title"
           name="title"
           defaultValue={initial?.title}
-          placeholder="Ex : Préparer la facture mensuelle, livrable client..."
+          placeholder={tr("Ex : Préparer la facture mensuelle, livrable client...")}
           required
         />
       </Field>
 
-      <Field label="Description (optionnel)" htmlFor="description">
+      <Field label={tr("Description (optionnel)")} htmlFor="description">
         <textarea
           id="description"
           name="description"
           defaultValue={initial?.description}
           rows={3}
-          placeholder="Détails, liens ou consignes relatives à cette tâche..."
+          placeholder={tr("Détails, liens ou consignes relatives à cette tâche...")}
           className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
         />
       </Field>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Priorité" htmlFor="priority">
+        <Field label={tr("Priorité")} htmlFor="priority">
           <select
             id="priority"
             name="priority"
@@ -116,7 +119,7 @@ export function TaskForm({
         </Field>
 
         {/* Statut (par défaut À faire ou En cours à la création) */}
-        <Field label="Statut" htmlFor="status">
+        <Field label={tr("Statut")} htmlFor="status">
           <select
             id="status"
             name="status"
@@ -139,37 +142,32 @@ export function TaskForm({
       <div className="rounded-xl border border-ink-200 bg-canvas/40 p-4 space-y-3">
         <div className="flex items-center justify-between">
           <label htmlFor="dueDate" className="text-sm font-medium text-ink-900">
-            Date d'échéance *
-          </label>
+            {tr("Date d'échéance *")}</label>
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
             <button
               type="button"
               onClick={() => setDateShortcut(0)}
               className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200 font-medium"
             >
-              Aujourd'hui
-            </button>
+              {tr("Aujourd'hui")}</button>
             <button
               type="button"
               onClick={() => setDateShortcut(1)}
               className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200 font-medium"
             >
-              Demain
-            </button>
+              {tr("Demain")}</button>
             <button
               type="button"
               onClick={setEndOfWeek}
               className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200 font-medium"
             >
-              Vendredi
-            </button>
+              {tr("Vendredi")}</button>
             <button
               type="button"
               onClick={setNextMonday}
               className="rounded bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200 font-medium"
             >
-              Lundi proch.
-            </button>
+              {tr("Lundi proch.")}</button>
           </div>
         </div>
 
@@ -187,7 +185,7 @@ export function TaskForm({
             name="dueTime"
             type="time"
             defaultValue={initial?.dueTime}
-            placeholder="Heure (optionnel)"
+            placeholder={tr("Heure (optionnel)")}
           />
         </div>
       </div>
@@ -195,11 +193,10 @@ export function TaskForm({
       <div className="rounded-xl border border-signal/20 bg-signal-soft/10 p-4 space-y-2">
         <div className="flex items-center justify-between">
           <label htmlFor="reminderMinutesBefore" className="text-sm font-semibold text-ink-950 flex items-center gap-1.5">
-            <span>🔔 Rappel & Sonnerie d'alerte</span>
+            <span>{tr("🔔 Rappel & Sonnerie d'alerte")}</span>
           </label>
           <span className="text-[11px] text-signal font-medium bg-signal-soft/80 px-2 py-0.5 rounded-md">
-            Sonnerie audio Remind Me
-          </span>
+            {tr("Sonnerie audio Remind Me")}</span>
         </div>
         <select
           id="reminderMinutesBefore"
@@ -207,18 +204,17 @@ export function TaskForm({
           defaultValue={initial?.reminderMinutesBefore ?? "0"}
           className="w-full rounded-lg border border-ink-300 bg-canvas-raised px-3 py-2 text-sm text-ink-950 focus:border-signal focus:outline-none"
         >
-          <option value="0">À l'heure exacte de l'échéance (Sonnerie immédiate)</option>
-          <option value="15">15 minutes avant</option>
-          <option value="30">30 minutes avant</option>
-          <option value="60">1 heure avant</option>
-          <option value="120">2 heures avant</option>
-          <option value="1440">1 jour avant</option>
-          <option value="2880">2 jours avant</option>
-          <option value="">Aucun rappel</option>
+          <option value="0">{tr("À l'heure exacte de l'échéance (Sonnerie immédiate)")}</option>
+          <option value="15">{tr("15 minutes avant")}</option>
+          <option value="30">{tr("30 minutes avant")}</option>
+          <option value="60">{tr("1 heure avant")}</option>
+          <option value="120">{tr("2 heures avant")}</option>
+          <option value="1440">{tr("1 jour avant")}</option>
+          <option value="2880">{tr("2 jours avant")}</option>
+          <option value="">{tr("Aucun rappel")}</option>
         </select>
         <p className="text-[11px] text-ink-500">
-          Une alerte sonore et visuelle retentira automatiquement sur votre appareil à l'heure programmée.
-        </p>
+          {tr("Une alerte sonore et visuelle retentira automatiquement sur votre appareil à l'heure programmée.")}</p>
       </div>
 
       {error ? (
@@ -234,8 +230,7 @@ export function TaskForm({
           disabled={submitting}
           className="rounded-lg border border-ink-300 px-4 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50 transition-colors disabled:opacity-50"
         >
-          Annuler
-        </button>
+          {tr("Annuler")}</button>
         <PrimaryButton type="submit" loading={submitting} disabled={submitting} className="w-auto px-6">
           {submitting ? "Enregistrement..." : submitLabel}
         </PrimaryButton>

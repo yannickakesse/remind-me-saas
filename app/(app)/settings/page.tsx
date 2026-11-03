@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import { PageBackground } from "@/components/shared/page-background";
 import { createClient } from "@/lib/supabase/server";
 import { requireCurrentUser } from "@/lib/supabase/auth";
@@ -13,6 +14,7 @@ import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigg
 import type { NotificationPreference } from "@/types/database";
 
 export default async function SettingsPage() {
+  const tr = await getTr();
   const user = await requireCurrentUser();
   const supabase = createClient();
 
@@ -37,7 +39,7 @@ export default async function SettingsPage() {
   ]);
 
   if (!profile) {
-    return <p className="text-sm text-danger">Impossible de charger votre profil.</p>;
+    return <p className="text-sm text-danger">{tr("Impossible de charger votre profil.")}</p>;
   }
 
   return (
@@ -47,11 +49,11 @@ export default async function SettingsPage() {
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-6 sm:p-8 shadow-xs" data-tour="settings-header">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white">Paramètres</h1>
-            <p className="mt-1 text-xs sm:text-sm text-ink-500">Gérez votre profil, votre compte et vos préférences.</p>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white">{tr("Paramètres")}</h1>
+            <p className="mt-1 text-xs sm:text-sm text-ink-500">{tr("Gérez votre profil, votre compte et vos préférences.")}</p>
           </div>
           <div className="shrink-0">
-            <SectionGuideTrigger section="settings" label="Guide paramètres" />
+            <SectionGuideTrigger section="settings" label={tr("Guide paramètres")} />
           </div>
         </div>
       </div>
@@ -93,7 +95,8 @@ export default async function SettingsPage() {
             label: "Abonnement",
             content: (
               <SubscriptionSection
-                plan={subscription?.plan ?? (user?.user_metadata?.subscription_plan as string) ?? "free"}
+                plan={subscription?.plan ?? "free"}
+                demoEnabled={process.env.ENABLE_PLAN_DEMO === "true"}
                 status={subscription?.status ?? "active"}
               />
             ),

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import Link from "next/link";
 import { DateTime } from "luxon";
 import {
@@ -43,6 +45,7 @@ export function TodayFocus({
   locale,
   todayIso,
 }: TodayFocusProps) {
+  const { tr } = useLanguage();
   const now = DateTime.now().setZone(timezone);
   const nowIso = now.toISO()!;
 
@@ -62,15 +65,15 @@ export function TodayFocus({
 
         {/* En-tête centré (la date est déjà affichée en haut de la page) */}
         <div className="relative z-10 flex flex-col items-center gap-2.5 pb-4 border-b border-ink-200/70 dark:border-white/5 text-center">
-          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-signal">Focus de la journée</h2>
+          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-signal">{tr("Focus de la journée")}</h2>
           <div className="flex items-center gap-3">
             <span className="text-xs font-semibold px-3 py-1 rounded-full bg-ink-100/80 dark:bg-white/5 text-ink-700 dark:text-ink-300 border border-ink-200/50 dark:border-white/5">
               {eventCount === 0 && taskCount === 0
-                ? "Journée libre"
+                ? tr("Journée libre")
                 : `${eventCount} séance${eventCount > 1 ? "s" : ""} • ${taskCount} tâche${taskCount > 1 ? "s" : ""}`}
             </span>
             <Link href="/calendar" className="text-xs font-semibold text-signal hover:underline inline-flex items-center gap-1 group">
-              <span>Voir</span>
+              <span>{tr("Voir")}</span>
               <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
@@ -119,8 +122,7 @@ export function TodayFocus({
                   {isNext && (
                     <span className="absolute top-2.5 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-signal text-white shadow-xs">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                      Prochaine
-                    </span>
+                      {tr("Prochaine")}</span>
                   )}
 
                   <div className="flex items-center justify-between gap-2 pl-1.5">
@@ -144,7 +146,7 @@ export function TodayFocus({
                     {/* Le badge « Prochaine » remplace le statut pour ne pas se superposer */}
                     {!isNext && (
                       <span className="text-[11px] font-medium text-ink-400 shrink-0 ml-1">
-                        {eventStatusLabel(event.status)}
+                        {tr(eventStatusLabel(event.status))}
                       </span>
                     )}
                   </div>
@@ -188,17 +190,17 @@ export function TodayFocus({
                     <div className="text-[11px] text-ink-500 mt-0.5">
                       {isOverdue ? (
                         <span className="text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5" /> En retard • Échéance : {task.due_date}
+                          <AlertTriangle className="w-3.5 h-3.5" /> {tr("En retard • Échéance :")}{" "}{task.due_date}
                         </span>
                       ) : (
-                        <span>Échéance : Aujourd&apos;hui</span>
+                        <span>{tr("Échéance : Aujourd'hui")}</span>
                       )}
                     </div>
                   </div>
                   <span
                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 shadow-2xs ${TASK_PRIORITY_STYLES[task.priority]}`}
                   >
-                    {taskPriorityLabel(task.priority)}
+                    {tr(taskPriorityLabel(task.priority))}
                   </span>
                 </Link>
               );

@@ -1,7 +1,9 @@
-export default function AuthLoading() {
+import { getTr } from "@/lib/i18n/server";
+export default async function AuthLoading() {
+  const tr = await getTr();
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-12 bg-canvas">
-      <div className="w-full max-w-sm space-y-6 animate-pulse" aria-label="Chargement...">
+      <div className="w-full max-w-sm space-y-6 animate-pulse" aria-label={tr("Chargement...")}>
         {/* Top bar skeleton */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">

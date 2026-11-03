@@ -131,7 +131,7 @@ function isNotificationActionable(n: Notification): boolean {
 
 export function NotificationsCenter({ initialNotifications, timezone, activities = [] }: NotificationsCenterProps) {
   const router = useRouter();
-  const { locale, t } = useLanguage();
+  const { locale, t , tr } = useLanguage();
   const { push: showToast } = useToast();
   const [, startTransition] = useTransition();
 
@@ -458,9 +458,9 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       const res = await markAllNotificationsResolved();
       if (res && !res.success) {
         setNotifications(previous);
-        showToast("Impossible de compléter les alertes. Veuillez réessayer.", "error");
+        showToast(tr("Impossible de compléter les alertes. Veuillez réessayer."), "error");
       } else {
-        showToast("Toutes les notifications actives ont été complétées.", "success");
+        showToast(tr("Toutes les notifications actives ont été complétées."), "success");
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("remindme:finances-updated"));
           window.dispatchEvent(new CustomEvent("remindme:notifications-updated"));
@@ -471,7 +471,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       }
     } catch {
       setNotifications(previous);
-      showToast("Erreur de connexion. Modifications annulées.", "error");
+      showToast(tr("Erreur de connexion. Modifications annulées."), "error");
     } finally {
       setIsCompletingAll(false);
     }
@@ -498,20 +498,20 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       if (!res?.success) {
         await fetch("/api/notifications/read-all", { method: "POST" });
       }
-      showToast("Toutes les notifications ont été marquées comme lues.", "success");
+      showToast(tr("Toutes les notifications ont été marquées comme lues."), "success");
       startTransition(() => {
         router.refresh();
       });
     } catch {
       try {
         await fetch("/api/notifications/read-all", { method: "POST" });
-        showToast("Toutes les notifications ont été marquées comme lues.", "success");
+        showToast(tr("Toutes les notifications ont été marquées comme lues."), "success");
         startTransition(() => {
           router.refresh();
         });
       } catch {
         setNotifications(previous);
-        showToast("Erreur de connexion. Veuillez réessayer.", "error");
+        showToast(tr("Erreur de connexion. Veuillez réessayer."), "error");
       }
     } finally {
       setIsReadingAll(false);
@@ -606,7 +606,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
         setNotifications(previous);
         showToast(res.error || "Erreur lors de la validation.", "error");
       } else {
-        showToast("Élément validé avec succès.", "success");
+        showToast(tr("Élément validé avec succès."), "success");
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("remindme:finances-updated"));
           window.dispatchEvent(new CustomEvent("remindme:notifications-updated"));
@@ -617,7 +617,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       }
     } catch {
       setNotifications(previous);
-      showToast("Erreur réseau.", "error");
+      showToast(tr("Erreur réseau."), "error");
     } finally {
       setProcessingId(null);
     }
@@ -648,13 +648,13 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
         });
         if (!apiRes.ok) throw new Error("Échec");
       }
-      showToast("Tâche reportée à demain.", "info");
+      showToast(tr("Tâche reportée à demain."), "info");
       startTransition(() => {
         router.refresh();
       });
     } catch {
       setNotifications(previous);
-      showToast("Erreur lors du report de la tâche.", "error");
+      showToast(tr("Erreur lors du report de la tâche."), "error");
     } finally {
       setProcessingId(null);
     }
@@ -685,13 +685,13 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
         });
         if (!apiRes.ok) throw new Error("Échec");
       }
-      showToast("Séance enregistrée comme manquée.", "info");
+      showToast(tr("Séance enregistrée comme manquée."), "info");
       startTransition(() => {
         router.refresh();
       });
     } catch {
       setNotifications(previous);
-      showToast("Erreur lors de l'enregistrement de la séance.", "error");
+      showToast(tr("Erreur lors de l'enregistrement de la séance."), "error");
     } finally {
       setProcessingId(null);
     }
@@ -728,7 +728,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       });
     } catch {
       setNotifications(previous);
-      showToast("Erreur lors du report de la séance.", "error");
+      showToast(tr("Erreur lors du report de la séance."), "error");
     } finally {
       setProcessingId(null);
     }
@@ -771,7 +771,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       const res = await deleteNotification(id);
       if (res && !res.success) {
         setNotifications(previous);
-        showToast("Erreur lors de la suppression.", "error");
+        showToast(tr("Erreur lors de la suppression."), "error");
       } else {
         startTransition(() => {
           router.refresh();
@@ -811,8 +811,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       default:
         return (
           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-ink-100 dark:bg-ink-800 text-ink-500 shrink-0">
-            Info
-          </span>
+            {tr("Info")}</span>
         );
     }
   };
@@ -1137,7 +1136,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
             )}
             {isResolved && (
               <span className="inline-flex items-center gap-1 text-[11px] font-medium text-positive">
-                <Check className="h-3 w-3" /> {item.status === "dismissed" ? "Écartée" : "Traitée"}
+                <Check className="h-3 w-3" /> {item.status === "dismissed" ? tr("Écartée") : tr("Traitée")}
               </span>
             )}
             {item.link && (
@@ -1146,7 +1145,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
                 onClick={() => isUnread && handleMarkRead(item.id)}
                 className="inline-flex items-center gap-0.5 text-xs font-medium text-signal hover:underline"
               >
-                Voir <ArrowRight className="h-3 w-3" />
+                {tr("Voir")}{" "}<ArrowRight className="h-3 w-3" />
               </Link>
             )}
 
@@ -1155,7 +1154,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
               <button
                 type="button"
                 onClick={() => setOpenMenuId(menuOpen ? null : item.id)}
-                aria-label="Plus d'actions"
+                aria-label={tr("Plus d'actions")}
                 aria-expanded={menuOpen}
                 className="flex h-8 w-8 items-center justify-center rounded-full text-ink-500 hover:bg-ink-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
               >
@@ -1211,10 +1210,10 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
             <p className="mt-1 text-xs sm:text-sm text-ink-600 dark:text-ink-400">
               {activeCount > 0
                 ? `${activeCount} à traiter${unreadCount > 0 ? ` · ${unreadCount} non lue${unreadCount > 1 ? "s" : ""}` : ""}`
-                : "Vous êtes à jour."}
+                : tr("Vous êtes à jour.")}
             </p>
           </div>
-          <SectionGuideTrigger section="notifications" label="Guide" className="shrink-0" />
+          <SectionGuideTrigger section="notifications" label={tr("Guide")} className="shrink-0" />
         </div>
 
         <div className="mt-4 flex items-center justify-between gap-3" data-tour="notifications-tabs">
@@ -1250,8 +1249,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-signal hover:underline disabled:opacity-50 cursor-pointer"
             >
               {isReadingAll ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCheck className="h-3.5 w-3.5" />}
-              Tout lire
-            </button>
+              {tr("Tout lire")}</button>
           )}
         </div>
       </div>
@@ -1362,8 +1360,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-bold text-ink-950 dark:text-white">
-                    Renouveler l&apos;activité
-                  </h3>
+                    {tr("Renouveler l'activité")}</h3>
                   <p className="text-xs text-ink-500 truncate max-w-xs">
                     « {renewModal.activityName} »
                   </p>
@@ -1373,7 +1370,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
                 type="button"
                 disabled={renewSubmitting}
                 onClick={() => setRenewModal(null)}
-                aria-label="Fermer la boîte de dialogue"
+                aria-label={tr("Fermer la boîte de dialogue")}
                 className="p-1.5 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
@@ -1382,14 +1379,13 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
 
             {renewModal.currentEndDate && (
               <div className="p-2.5 rounded-xl bg-ink-100/70 dark:bg-ink-800/70 border border-ink-200/50 dark:border-ink-700/50 text-xs text-ink-600 dark:text-ink-300">
-                Échéance précédente : <span className="font-semibold text-ink-950 dark:text-white">{formatDateLocale(renewModal.currentEndDate, locale, timezone)}</span>
+                {tr("Échéance précédente :")}{" "}<span className="font-semibold text-ink-950 dark:text-white">{formatDateLocale(renewModal.currentEndDate, locale, timezone)}</span>
               </div>
             )}
 
             <div className="space-y-2">
               <label className="text-xs font-semibold text-ink-700 dark:text-ink-300 block">
-                Nouvelle date d&apos;échéance
-              </label>
+                {tr("Nouvelle date d'échéance")}</label>
 
               {/* Raccourcis de durée */}
               <div className="grid grid-cols-4 gap-1.5">
@@ -1436,7 +1432,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
                 onClick={() => setRenewModal(null)}
                 className="text-xs font-medium text-signal hover:underline inline-flex items-center gap-1 tap-active"
               >
-                Édition complète <ArrowRight className="w-3 h-3" />
+                {tr("Édition complète")}{" "}<ArrowRight className="w-3 h-3" />
               </Link>
 
               <div className="flex items-center gap-2">
@@ -1446,8 +1442,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
                   onClick={() => setRenewModal(null)}
                   className="px-3.5 py-2 rounded-xl text-xs font-semibold text-ink-600 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors cursor-pointer min-h-[38px]"
                 >
-                  Annuler
-                </button>
+                  {tr("Annuler")}</button>
 
                 <button
                   type="button"
@@ -1495,7 +1490,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
                       });
                     } catch {
                       setNotifications(previous);
-                      showToast("Erreur lors du renouvellement de l'activité.", "error");
+                      showToast(tr("Erreur lors du renouvellement de l'activité."), "error");
                     } finally {
                       setRenewSubmitting(false);
                     }
@@ -1505,12 +1500,12 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
                   {renewSubmitting ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Renouvellement...</span>
+                      <span>{tr("Renouvellement...")}</span>
                     </>
                   ) : (
                     <>
                       <Check className="w-3.5 h-3.5" />
-                      <span>Valider</span>
+                      <span>{tr("Valider")}</span>
                     </>
                   )}
                 </button>

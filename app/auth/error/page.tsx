@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -9,6 +11,7 @@ import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { getAuthRedirectUrl } from "@/lib/auth/url";
 
 function AuthErrorContent() {
+  const { tr } = useLanguage();
   const searchParams = useSearchParams();
   const reason = searchParams.get("reason") || "expired";
   const messageParam = searchParams.get("message") || "";
@@ -97,7 +100,7 @@ function AuthErrorContent() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold">
             <ShieldAlert className="h-3.5 w-3.5" />
-            <span>Vérification requise</span>
+            <span>{tr("Vérification requise")}</span>
           </div>
 
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-ink-950">
@@ -114,10 +117,9 @@ function AuthErrorContent() {
           <div className="flex items-start gap-2.5">
             <CheckCircle2 className="h-4 w-4 text-positive shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <h2 className="text-xs font-bold text-ink-950">Votre compte est peut-être déjà actif</h2>
+              <h2 className="text-xs font-bold text-ink-950">{tr("Votre compte est peut-être déjà actif")}</h2>
               <p className="text-xs text-ink-500 leading-relaxed">
-                Si vous avez déjà cliqué sur le lien précédemment, votre compte est prêt. Essayez de vous connecter avec votre mot de passe habituel.
-              </p>
+                {tr("Si vous avez déjà cliqué sur le lien précédemment, votre compte est prêt. Essayez de vous connecter avec votre mot de passe habituel.")}</p>
             </div>
           </div>
 
@@ -125,7 +127,7 @@ function AuthErrorContent() {
             href="/login"
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-dark px-4 py-2.5 text-xs font-bold text-white shadow-gold hover:brightness-110 active:scale-98 transition-all"
           >
-            <span>Se connecter à Remind Me</span>
+            <span>{tr("Se connecter à Remind Me")}</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -134,8 +136,7 @@ function AuthErrorContent() {
         <div className="relative flex items-center justify-center">
           <div className="border-t border-ink-100 dark:border-ink-100/10 w-full" />
           <span className="bg-canvas-raised px-3 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
-            Ou
-          </span>
+            {tr("Ou")}</span>
         </div>
 
         {/* Option 2: Recevoir un nouvel e-mail */}
@@ -143,11 +144,10 @@ function AuthErrorContent() {
           <div className="space-y-1">
             <label htmlFor="resend-email" className="text-xs font-bold text-ink-950 flex items-center gap-1.5">
               <Mail className="h-3.5 w-3.5 text-signal" />
-              <span>Recevoir un nouvel e-mail de confirmation</span>
+              <span>{tr("Recevoir un nouvel e-mail de confirmation")}</span>
             </label>
             <p className="text-xs text-ink-500">
-              Entrez l&apos;adresse e-mail utilisée lors de votre inscription.
-            </p>
+              {tr("Entrez l'adresse e-mail utilisée lors de votre inscription.")}</p>
           </div>
 
           <div className="space-y-2">
@@ -156,7 +156,7 @@ function AuthErrorContent() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="votre-email@exemple.com"
+              placeholder={tr("votre-email@exemple.com")}
               required
               className="w-full rounded-xl border border-ink-200 dark:border-ink-100/20 bg-canvas px-3.5 py-2.5 text-sm text-ink-950 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-gold"
             />
@@ -168,7 +168,7 @@ function AuthErrorContent() {
             {resendSuccess ? (
               <div className="rounded-xl bg-positive-soft p-3 text-xs text-positive font-medium flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
-                <span>Un nouvel e-mail de confirmation vient de vous être envoyé.</span>
+                <span>{tr("Un nouvel e-mail de confirmation vient de vous être envoyé.")}</span>
               </div>
             ) : null}
 
@@ -180,10 +180,10 @@ function AuthErrorContent() {
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
               <span>
                 {loading
-                  ? "Envoi en cours..."
+                  ? tr("Envoi en cours...")
                   : cooldown > 0
                   ? `Patientez ${cooldown}s`
-                  : "Renvoyer le lien de confirmation"}
+                  : tr("Renvoyer le lien de confirmation")}
               </span>
             </button>
           </div>
@@ -192,10 +192,9 @@ function AuthErrorContent() {
 
       {/* Footer */}
       <p className="text-center text-xs text-ink-400">
-        Besoin d&apos;aide ? Contactez notre support ou retournez à la{" "}
+        {tr("Besoin d'aide ? Contactez notre support ou retournez à la")}{" "}
         <Link href="/" className="text-signal hover:underline">
-          page d&apos;accueil
-        </Link>
+          {tr("page d'accueil")}</Link>
         .
       </p>
     </div>
@@ -203,13 +202,13 @@ function AuthErrorContent() {
 }
 
 export default function AuthErrorPage() {
+  const { tr } = useLanguage();
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-12 bg-canvas">
       <Suspense
         fallback={
           <div className="flex items-center justify-center p-8 text-ink-500 text-sm">
-            Chargement...
-          </div>
+            {tr("Chargement...")}</div>
         }
       >
         <AuthErrorContent />

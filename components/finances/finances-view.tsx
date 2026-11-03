@@ -72,7 +72,7 @@ export function FinancesView({
   rangeEnd,
 }: FinancesViewProps) {
   const toast = useToast();
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
   const [activeTab, setActiveTab] = useState<FinanceTab>(initialTab);
   const [incomes, setIncomes] = useState<any[]>(initialIncomeRows);
   const [expenses, setExpenses] = useState<any[]>(initialExpenseRows ?? []);
@@ -139,7 +139,7 @@ export function FinancesView({
       );
     } catch (err) {
       setIncomes(initialIncomeRows);
-      toast.push("Erreur lors de la mise à jour du revenu.", "error");
+      toast.push(tr("Erreur lors de la mise à jour du revenu."), "error");
     } finally {
       setActionLoadingId(null);
     }
@@ -170,7 +170,7 @@ export function FinancesView({
       );
     } catch (err) {
       setExpenses(initialExpenseRows ?? []);
-      toast.push("Erreur lors de la mise à jour de la dépense.", "error");
+      toast.push(tr("Erreur lors de la mise à jour de la dépense."), "error");
     } finally {
       setActionLoadingId(null);
     }
@@ -181,9 +181,9 @@ export function FinancesView({
     setActionLoadingId(id);
     try {
       await postponeIncomeAction(id, 7);
-      toast.push("Échéance de revenu reportée de 7 jours.", "info");
+      toast.push(tr("Échéance de revenu reportée de 7 jours."), "info");
     } catch (err) {
-      toast.push("Erreur lors du report.", "error");
+      toast.push(tr("Erreur lors du report."), "error");
     } finally {
       setActionLoadingId(null);
     }
@@ -216,12 +216,12 @@ export function FinancesView({
           </div>
 
           <div className="flex items-center justify-center sm:justify-end gap-2.5 flex-wrap shrink-0 mt-2 sm:mt-0 w-full sm:w-auto">
-            <SectionGuideTrigger section="finances" label="Guide financier" />
+            <SectionGuideTrigger section="finances" label={tr("Guide financier")} />
             <Link
               href={`/finances/print?month=${rangeStart.slice(0, 7)}`}
               target="_blank"
               className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 h-10 rounded-xl bg-canvas border border-ink-300 dark:border-ink-700 text-xs sm:text-sm font-semibold text-ink-900 dark:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shadow-xs flex-1 sm:flex-initial"
-              title="Imprimer ou enregistrer le relevé en PDF"
+              title={tr("Imprimer ou enregistrer le relevé en PDF")}
             >
               <Printer className="w-4 h-4 text-signal shrink-0" /> {t("finances.pdf_statement")}
             </Link>
@@ -230,7 +230,7 @@ export function FinancesView({
               download
               data-tour="finance-export"
               className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 h-10 rounded-xl bg-canvas border border-ink-300 dark:border-ink-700 text-xs sm:text-sm font-semibold text-ink-900 dark:text-ink-100 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shadow-xs flex-1 sm:flex-initial"
-              title="Exporter les données financières au format CSV"
+              title={tr("Exporter les données financières au format CSV")}
             >
               <Download className="w-4 h-4 mr-1 shrink-0" /> {t("finances.export_csv")}
             </a>
@@ -300,10 +300,9 @@ export function FinancesView({
               <div className="w-12 h-12 rounded-2xl bg-gold-soft text-gold-dark flex items-center justify-center mx-auto shadow-xs">
                 <Wallet className="w-6 h-6" />
               </div>
-              <h3 className="font-bold text-base text-ink-950">Aucune donnée financière pour le moment</h3>
+              <h3 className="font-bold text-base text-ink-950">{tr("Aucune donnée financière pour le moment")}</h3>
               <p className="text-xs text-ink-500 max-w-md mx-auto">
-                Toutes les métriques affichées proviennent de vos transactions réelles. Ajoutez votre premier revenu ou programmez votre première dépense pour commencer le suivi.
-              </p>
+                {tr("Toutes les métriques affichées proviennent de vos transactions réelles. Ajoutez votre premier revenu ou programmez votre première dépense pour commencer le suivi.")}</p>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                 <Link
                   href="/finances/income/new"
@@ -315,16 +314,15 @@ export function FinancesView({
                   }}
                   className={buttonClasses("primary", "sm")}
                 >
-                  <Plus className="w-3.5 h-3.5 mr-1" /> Enregistrer un premier revenu
-                </Link>
+                  <Plus className="w-3.5 h-3.5 mr-1" /> {tr("Enregistrer un premier revenu")}</Link>
                 <button
                   type="button"
                   onClick={() => handleTabChange("scheduled")}
                   className={`${buttonClasses("secondary", "sm")} w-full sm:w-auto justify-center whitespace-nowrap`}
                 >
                   <Plus className="w-3.5 h-3.5 mr-1" />
-                  <span className="sm:hidden">Programmer</span>
-                  <span className="hidden sm:inline">Programmer une dépense</span>
+                  <span className="sm:hidden">{tr("Programmer")}</span>
+                  <span className="hidden sm:inline">{tr("Programmer une dépense")}</span>
                 </button>
               </div>
             </div>
@@ -336,20 +334,19 @@ export function FinancesView({
             <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3 min-w-0">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-xs sm:text-sm text-ink-950 flex items-center gap-1.5 truncate">
-                  <TrendingUp className="w-4 h-4 text-positive" /> Prochains Revenus
-                </h3>
+                  <TrendingUp className="w-4 h-4 text-positive" /> {tr("Prochains Revenus")}</h3>
                 <button
                   type="button"
                   onClick={() => handleTabChange("income")}
                   className="text-xs font-semibold text-signal hover:underline shrink-0 flex items-center gap-0.5"
                 >
-                  Voir tout <ArrowRight className="w-3 h-3" />
+                  {tr("Voir tout")}{" "}<ArrowRight className="w-3 h-3" />
                 </button>
               </div>
 
               {(incomes ?? []).filter((i) => !i.received).slice(0, 4).length === 0 ? (
                 <div className="py-6 text-center space-y-2 rounded-lg bg-canvas border border-ink-100">
-                  <p className="text-xs text-ink-500">Aucun revenu en attente ce mois-ci</p>
+                  <p className="text-xs text-ink-500">{tr("Aucun revenu en attente ce mois-ci")}</p>
                   <Link
                     href="/finances/income/new"
                     onClick={(e) => {
@@ -360,8 +357,7 @@ export function FinancesView({
                     }}
                     className="inline-flex items-center text-xs font-semibold text-signal hover:underline"
                   >
-                    + Ajouter un revenu
-                  </Link>
+                    {tr("+ Ajouter un revenu")}</Link>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -372,7 +368,7 @@ export function FinancesView({
                           {inc.label}
                         </div>
                         <div className="text-[10px] text-ink-500 truncate">
-                          Échéance : {inc.due_date}
+                          {tr("Échéance :")}{" "}{inc.due_date}
                         </div>
                       </div>
                       <div className="font-bold text-ink-950 shrink-0 text-right">
@@ -388,27 +384,25 @@ export function FinancesView({
             <div className="p-4 rounded-xl border border-ink-200 bg-canvas-raised space-y-3 min-w-0">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-xs sm:text-sm text-ink-950 flex items-center gap-1.5 truncate">
-                  <Clock className="w-4 h-4 text-amber-600" /> Dépenses Programmées
-                </h3>
+                  <Clock className="w-4 h-4 text-amber-600" /> {tr("Dépenses Programmées")}</h3>
                 <button
                   type="button"
                   onClick={() => handleTabChange("scheduled")}
                   className="text-xs font-semibold text-signal hover:underline shrink-0 flex items-center gap-0.5"
                 >
-                  Voir tout <ArrowRight className="w-3 h-3" />
+                  {tr("Voir tout")}{" "}<ArrowRight className="w-3 h-3" />
                 </button>
               </div>
 
               {(scheduledExpenses ?? []).filter((s) => s.status === "planned" || s.status === "due").slice(0, 4).length === 0 ? (
                 <div className="py-6 text-center space-y-2 rounded-lg bg-canvas border border-ink-100">
-                  <p className="text-xs text-ink-500">Aucune charge ou abonnement programmé</p>
+                  <p className="text-xs text-ink-500">{tr("Aucune charge ou abonnement programmé")}</p>
                   <button
                     type="button"
                     onClick={() => handleTabChange("scheduled")}
                     className="inline-flex items-center text-xs font-semibold text-signal hover:underline"
                   >
-                    + Programmer une dépense
-                  </button>
+                    {tr("+ Programmer une dépense")}</button>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -419,7 +413,7 @@ export function FinancesView({
                           {sc.name}
                         </div>
                         <div className="text-[10px] text-ink-500 truncate">
-                          Échéance : {sc.next_due_date}
+                          {tr("Échéance :")}{" "}{sc.next_due_date}
                         </div>
                       </div>
                       <div className="font-bold text-ink-950 shrink-0 text-right">
@@ -472,10 +466,9 @@ export function FinancesView({
         <div className="p-5 sm:p-7 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md space-y-4 min-w-0 animate-in fade-in-50 duration-150 shadow-sm">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <h3 className="font-bold text-sm sm:text-base text-ink-950 dark:text-white truncate">Revenus du mois</h3>
+              <h3 className="font-bold text-sm sm:text-base text-ink-950 dark:text-white truncate">{tr("Revenus du mois")}</h3>
               <p className="text-xs text-ink-500">
-                Encaissez vos paiements reçus pour les intégrer à votre Total reçu et Solde net.
-              </p>
+                {tr("Encaissez vos paiements reçus pour les intégrer à votre Total reçu et Solde net.")}</p>
             </div>
             <Link
               href="/finances/income/new"
@@ -487,8 +480,7 @@ export function FinancesView({
               }}
               className={buttonClasses("primary", "sm")}
             >
-              <Plus className="w-3.5 h-3.5 mr-1" /> Nouveau revenu
-            </Link>
+              <Plus className="w-3.5 h-3.5 mr-1" /> {tr("Nouveau revenu")}</Link>
           </div>
 
           {(incomes ?? []).length === 0 ? (
@@ -496,10 +488,9 @@ export function FinancesView({
               <div className="w-10 h-10 rounded-full bg-positive-soft text-positive flex items-center justify-center mx-auto">
                 <TrendingUp className="w-5 h-5" />
               </div>
-              <p className="font-semibold text-ink-950 dark:text-white text-sm">Aucun revenu pour ce mois</p>
+              <p className="font-semibold text-ink-950 dark:text-white text-sm">{tr("Aucun revenu pour ce mois")}</p>
               <p className="text-xs text-ink-500 max-w-sm mx-auto">
-                Ajoutez vos prestations, contrats ou salaires pour suivre vos encaissements et votre chiffre d'affaires.
-              </p>
+                {tr("Ajoutez vos prestations, contrats ou salaires pour suivre vos encaissements et votre chiffre d'affaires.")}</p>
               <Link
                 href="/finances/income/new"
                 onClick={(e) => {
@@ -510,17 +501,16 @@ export function FinancesView({
                 }}
                 className={buttonClasses("primary", "sm")}
               >
-                <Plus className="w-3.5 h-3.5 mr-1" /> Ajouter un revenu
-              </Link>
+                <Plus className="w-3.5 h-3.5 mr-1" /> {tr("Ajouter un revenu")}</Link>
             </div>
           ) : (
             <div className="divide-y divide-ink-100 dark:divide-ink-800">
               {/* En-tête de colonnes alignées sur tablette & desktop */}
               <div className="hidden md:grid grid-cols-12 gap-3 pb-2.5 text-[11px] font-bold uppercase tracking-wider text-ink-500">
-                <div className="col-span-5">Libellé &amp; Activité</div>
-                <div className="col-span-3">Échéance &amp; Statut</div>
-                <div className="col-span-2 text-right">Montant</div>
-                <div className="col-span-2 text-right">Actions</div>
+                <div className="col-span-5">{tr("Libellé & Activité")}</div>
+                <div className="col-span-3">{tr("Échéance & Statut")}</div>
+                <div className="col-span-2 text-right">{tr("Montant")}</div>
+                <div className="col-span-2 text-right">{tr("Actions")}</div>
               </div>
 
               {(incomes ?? []).map((inc) => {
@@ -538,11 +528,11 @@ export function FinancesView({
                             inc.received ? "bg-positive-soft text-positive border border-positive/30" : "bg-warning-soft text-warning border border-warning/30"
                           }`}
                         >
-                          {inc.received ? "Payé" : "En attente"}
+                          {inc.received ? tr("Payé") : tr("En attente")}
                         </span>
                       </div>
                       <div className="text-xs text-ink-500 truncate mt-0.5">
-                        {inc.activity?.name ? `Activité : ${inc.activity.name}` : "Revenu direct"}
+                        {inc.activity?.name ? `Activité : ${inc.activity.name}` : tr("Revenu direct")}
                       </div>
                     </div>
 
@@ -556,7 +546,7 @@ export function FinancesView({
                             borderColor: inc.received ? "rgba(16, 185, 129, 0.3)" : "rgba(245, 158, 11, 0.3)",
                           }}
                         >
-                          {inc.received ? "Encaissé" : "En attente"}
+                          {inc.received ? tr("Encaissé") : tr("En attente")}
                         </span>
                         <span className="truncate">
                           {inc.received && inc.received_at ? `Reçu le ${inc.received_at}` : `Échéance : ${inc.due_date}`}
@@ -566,7 +556,7 @@ export function FinancesView({
 
                     {/* Colonne 3 : Montant */}
                     <div className="md:col-span-2 text-right mt-2 md:mt-0 flex items-center justify-between md:justify-end">
-                      <span className="text-xs text-ink-400 md:hidden">Montant :</span>
+                      <span className="text-xs text-ink-400 md:hidden">{tr("Montant :")}</span>
                       <span className="font-mono font-bold text-sm text-ink-950 dark:text-white tabular-nums">
                         {formatAmount(inc.amount, inc.currency)}
                       </span>
@@ -581,7 +571,7 @@ export function FinancesView({
                             disabled={isLoading}
                             onClick={() => handleToggleIncomeReceived(inc.id, false)}
                             className="px-2.5 py-1.5 rounded-lg bg-positive text-white text-xs font-semibold hover:bg-positive/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
-                            title="Confirmer l'encaissement et ajouter au Solde Net"
+                            title={tr("Confirmer l'encaissement et ajouter au Solde Net")}
                           >
                             {isLoading ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -595,7 +585,7 @@ export function FinancesView({
                             disabled={isLoading}
                             onClick={() => handlePostponeIncome(inc.id)}
                             className="px-2 py-1.5 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-300 bg-canvas dark:bg-ink-950 text-xs font-medium hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
-                            title="Reporter l'échéance de 7 jours"
+                            title={tr("Reporter l'échéance de 7 jours")}
                           >
                             {isLoading ? (
                               <Loader2 className="w-3 h-3 animate-spin text-amber-600" />
@@ -611,10 +601,10 @@ export function FinancesView({
                           disabled={isLoading}
                           onClick={() => handleToggleIncomeReceived(inc.id, true)}
                           className="px-2 py-1 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1"
-                          title="Remettre ce revenu en attente"
+                          title={tr("Remettre ce revenu en attente")}
                         >
                           {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
-                          <span>Annuler</span>
+                          <span>{tr("Annuler")}</span>
                         </button>
                       )}
                     </div>
@@ -635,11 +625,9 @@ export function FinancesView({
                 <span className="p-1.5 rounded-xl bg-danger text-white shadow-xs">
                   <TrendingDown className="w-4 h-4" />
                 </span>
-                Dépenses du mois
-              </h3>
+                {tr("Dépenses du mois")}</h3>
               <p className="text-xs text-ink-700 dark:text-ink-300 mt-1">
-                Historique des décaissements et charges à régler déduits du Solde Net.
-              </p>
+                {tr("Historique des décaissements et charges à régler déduits du Solde Net.")}</p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
               <Link
@@ -652,16 +640,15 @@ export function FinancesView({
                 }}
                 className={`${buttonClasses("primary", "sm")} w-full sm:w-auto justify-center whitespace-nowrap`}
               >
-                <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle dépense
-              </Link>
+                <Plus className="w-3.5 h-3.5 mr-1" /> {tr("Nouvelle dépense")}</Link>
               <button
                 type="button"
                 onClick={() => handleTabChange("scheduled")}
                 className={`${buttonClasses("secondary", "sm")} w-full sm:w-auto justify-center whitespace-nowrap`}
               >
                 <Plus className="w-3.5 h-3.5 mr-1" />
-                <span className="sm:hidden">Programmer</span>
-                <span className="hidden sm:inline">Programmer une dépense</span>
+                <span className="sm:hidden">{tr("Programmer")}</span>
+                <span className="hidden sm:inline">{tr("Programmer une dépense")}</span>
               </button>
             </div>
           </div>
@@ -671,10 +658,9 @@ export function FinancesView({
               <div className="w-10 h-10 rounded-full bg-danger-soft text-danger flex items-center justify-center mx-auto">
                 <TrendingDown className="w-5 h-5" />
               </div>
-              <p className="font-semibold text-ink-950 dark:text-white text-sm">Aucune dépense pour ce mois</p>
+              <p className="font-semibold text-ink-950 dark:text-white text-sm">{tr("Aucune dépense pour ce mois")}</p>
               <p className="text-xs text-ink-500 max-w-sm mx-auto">
-                Les dépenses payées sont automatiquement enregistrées lorsque vous marquez une dépense programmée comme payée ou en ajoutant une charge.
-              </p>
+                {tr("Les dépenses payées sont automatiquement enregistrées lorsque vous marquez une dépense programmée comme payée ou en ajoutant une charge.")}</p>
               <div className="grid grid-cols-2 gap-2 pt-1 max-w-sm mx-auto sm:flex sm:justify-center">
                 <Link
                   href="/finances/expenses/new"
@@ -686,16 +672,15 @@ export function FinancesView({
                   }}
                   className={`${buttonClasses("primary", "sm")} w-full sm:w-auto justify-center whitespace-nowrap`}
                 >
-                  <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle dépense
-                </Link>
+                  <Plus className="w-3.5 h-3.5 mr-1" /> {tr("Nouvelle dépense")}</Link>
                 <button
                   type="button"
                   onClick={() => handleTabChange("scheduled")}
                   className={`${buttonClasses("secondary", "sm")} w-full sm:w-auto justify-center whitespace-nowrap`}
                 >
                   <Plus className="w-3.5 h-3.5 mr-1" />
-                  <span className="sm:hidden">Programmer</span>
-                  <span className="hidden sm:inline">Programmer une dépense</span>
+                  <span className="sm:hidden">{tr("Programmer")}</span>
+                  <span className="hidden sm:inline">{tr("Programmer une dépense")}</span>
                 </button>
               </div>
             </div>
@@ -703,10 +688,10 @@ export function FinancesView({
             <div className="relative z-10 divide-y divide-ink-100 dark:divide-ink-800">
               {/* En-tête de colonnes alignées sur tablette & desktop */}
               <div className="hidden md:grid grid-cols-12 gap-3 pb-2.5 text-[11px] font-bold uppercase tracking-wider text-ink-500">
-                <div className="col-span-5">Libellé &amp; Catégorie</div>
-                <div className="col-span-3">Échéance &amp; Statut</div>
-                <div className="col-span-2 text-right">Montant</div>
-                <div className="col-span-2 text-right">Actions</div>
+                <div className="col-span-5">{tr("Libellé & Catégorie")}</div>
+                <div className="col-span-3">{tr("Échéance & Statut")}</div>
+                <div className="col-span-2 text-right">{tr("Montant")}</div>
+                <div className="col-span-2 text-right">{tr("Actions")}</div>
               </div>
 
               {(expenses ?? []).map((exp) => {
@@ -726,7 +711,7 @@ export function FinancesView({
                               : "bg-warning-soft text-warning border border-warning/30"
                           }`}
                         >
-                          {exp.paid ? "Payée" : "À payer"}
+                          {exp.paid ? tr("Payée") : tr("À payer")}
                         </span>
                       </div>
                       <div className="text-xs text-ink-500 truncate mt-0.5">
@@ -744,7 +729,7 @@ export function FinancesView({
                             borderColor: exp.paid ? "rgba(16, 185, 129, 0.3)" : "rgba(245, 158, 11, 0.3)",
                           }}
                         >
-                          {exp.paid ? "Payée" : "À payer"}
+                          {exp.paid ? tr("Payée") : tr("À payer")}
                         </span>
                         <span className="truncate">
                           {exp.paid && exp.paid_at ? `Payé le ${exp.paid_at}` : `Échéance : ${exp.due_date}`}
@@ -754,7 +739,7 @@ export function FinancesView({
 
                     {/* Colonne 3 : Montant */}
                     <div className="md:col-span-2 text-right mt-2 md:mt-0 flex items-center justify-between md:justify-end">
-                      <span className="text-xs text-ink-400 md:hidden">Montant :</span>
+                      <span className="text-xs text-ink-400 md:hidden">{tr("Montant :")}</span>
                       <span className="font-mono font-bold text-sm text-ink-950 dark:text-white tabular-nums">
                         {formatAmount(exp.amount, exp.currency)}
                       </span>
@@ -768,14 +753,14 @@ export function FinancesView({
                           disabled={isLoading}
                           onClick={() => handleToggleExpensePaid(exp.id, false)}
                           className="px-2.5 py-1.5 rounded-lg bg-danger text-white text-xs font-semibold hover:bg-danger/90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
-                          title="Marquer cette dépense comme réglée et déduire du Solde Net"
+                          title={tr("Marquer cette dépense comme réglée et déduire du Solde Net")}
                         >
                           {isLoading ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
                             <Check className="w-3.5 h-3.5" />
                           )}
-                          <span>{isLoading ? "..." : "Régler"}</span>
+                          <span>{isLoading ? "..." : tr("Régler")}</span>
                         </button>
                       ) : (
                         <button
@@ -783,10 +768,10 @@ export function FinancesView({
                           disabled={isLoading}
                           onClick={() => handleToggleExpensePaid(exp.id, true)}
                           className="px-2 py-1 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-500 hover:text-ink-800 dark:hover:text-ink-200 text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1"
-                          title="Remettre cette dépense en attente de règlement"
+                          title={tr("Remettre cette dépense en attente de règlement")}
                         >
                           {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
-                          <span>Annuler</span>
+                          <span>{tr("Annuler")}</span>
                         </button>
                       )}
                     </div>

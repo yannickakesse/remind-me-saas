@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
 import { completeOnboarding } from "@/app/(onboarding)/onboarding/actions";
@@ -24,6 +26,7 @@ export function OnboardingWizard({
   currencies,
   defaultFullName,
 }: OnboardingWizardProps) {
+  const { tr } = useLanguage();
   const [step, setStep] = useState(0);
   const [fullName, setFullName] = useState(defaultFullName);
   const [countryCode, setCountryCode] = useState(countries[0]?.code ?? "CI");
@@ -45,7 +48,7 @@ export function OnboardingWizard({
 
   function goNext() {
     if (step === 0 && fullName.trim().length < 2) {
-      setError("Entrez votre nom complet.");
+      setError(tr("Entrez votre nom complet."));
       return;
     }
     setError(null);
@@ -82,7 +85,7 @@ export function OnboardingWizard({
 
   return (
     <div className="w-full max-w-md">
-      <ol className="mb-8 flex gap-2" aria-label="Étapes de configuration">
+      <ol className="mb-8 flex gap-2" aria-label={tr("Étapes de configuration")}>
         {STEPS.map((label, i) => (
           <li
             key={label}
@@ -95,7 +98,7 @@ export function OnboardingWizard({
       </ol>
 
       <p className="mb-1 text-sm font-medium text-signal">
-        Étape {step + 1} sur {STEPS.length}
+        {tr("Étape")}{" "}{step + 1} sur {STEPS.length}
       </p>
       <h1 className="mb-6 text-2xl font-semibold text-ink-950">
         {STEPS[step]}
@@ -103,7 +106,7 @@ export function OnboardingWizard({
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {step === 0 ? (
-          <Field label="Comment devons-nous vous appeler ?" htmlFor="fullName">
+          <Field label={tr("Comment devons-nous vous appeler ?")} htmlFor="fullName">
             <TextInput
               id="fullName"
               value={fullName}
@@ -114,7 +117,7 @@ export function OnboardingWizard({
         ) : null}
 
         {step === 1 ? (
-          <Field label="Dans quel pays êtes-vous basé ?" htmlFor="countryCode">
+          <Field label={tr("Dans quel pays êtes-vous basé ?")} htmlFor="countryCode">
             <select
               id="countryCode"
               value={countryCode}
@@ -147,7 +150,7 @@ export function OnboardingWizard({
         ) : null}
 
         {step === 2 ? (
-          <Field label="Quelle est votre devise principale ?" htmlFor="currencyCode">
+          <Field label={tr("Quelle est votre devise principale ?")} htmlFor="currencyCode">
             <select
               id="currencyCode"
               value={currencyCode}
@@ -164,7 +167,7 @@ export function OnboardingWizard({
         ) : null}
 
         {step === 3 ? (
-          <Field label="Fuseau horaire" htmlFor="timezone">
+          <Field label={tr("Fuseau horaire")} htmlFor="timezone">
             <select
               id="timezone"
               value={timezone}
@@ -186,8 +189,7 @@ export function OnboardingWizard({
         {step === 4 ? (
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-1 text-sm font-medium text-ink-700">
-              Combien d'activités ou de sources de revenus gérez-vous ?
-            </legend>
+              {tr("Combien d'activités ou de sources de revenus gérez-vous ?")}</legend>
             {ACTIVITY_COUNT_OPTIONS.map((option) => (
               <label
                 key={option.value}
@@ -220,8 +222,7 @@ export function OnboardingWizard({
               disabled={submitting}
               className="rounded-md border border-ink-300 px-4 py-2.5 font-medium text-ink-700 hover:bg-ink-50 transition-colors disabled:opacity-50"
             >
-              Retour
-            </button>
+              {tr("Retour")}</button>
           ) : null}
 
           {isLastStep ? (
@@ -230,8 +231,7 @@ export function OnboardingWizard({
             </PrimaryButton>
           ) : (
             <PrimaryButton type="button" onClick={goNext}>
-              Continuer
-            </PrimaryButton>
+              {tr("Continuer")}</PrimaryButton>
           )}
         </div>
       </form>

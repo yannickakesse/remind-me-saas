@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useRef } from "react";
 import { X, Upload, Sparkles, Check, Image as ImageIcon, Loader2, RefreshCw } from "lucide-react";
 import {
@@ -22,6 +24,7 @@ export function AvatarModal({
   currentAvatarUrl,
   onSelectAvatar,
 }: AvatarModalProps) {
+  const { tr } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"upload" | "presets">("upload");
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
@@ -96,8 +99,8 @@ export function AvatarModal({
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-3 border-b border-ink-200">
           <div>
-            <h3 className="text-base font-bold text-ink-950">Photo de profil</h3>
-            <p className="text-xs text-ink-500">Personnalisez votre avatar ou importez une photo</p>
+            <h3 className="text-base font-bold text-ink-950">{tr("Photo de profil")}</h3>
+            <p className="text-xs text-ink-500">{tr("Personnalisez votre avatar ou importez une photo")}</p>
           </div>
           <button
             type="button"
@@ -123,8 +126,7 @@ export function AvatarModal({
             }`}
           >
             <Upload className="w-3.5 h-3.5" />
-            Importer une photo
-          </button>
+            {tr("Importer une photo")}</button>
           <button
             type="button"
             onClick={() => {
@@ -138,8 +140,7 @@ export function AvatarModal({
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-gold" />
-            Choisir un avatar
-          </button>
+            {tr("Choisir un avatar")}</button>
         </div>
 
         {/* Tab Content: Upload */}
@@ -158,16 +159,15 @@ export function AvatarModal({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={optimizedImage.dataUrl}
-                  alt="Prévisualisation"
+                  alt={tr("Prévisualisation")}
                   className="w-28 h-28 rounded-full object-cover shadow-md ring-4 ring-canvas-raised"
                 />
                 <div className="text-center space-y-1">
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-positive-soft text-positive border border-positive/30">
-                    <Check className="w-3 h-3" /> Photo optimisée avec succès
-                  </span>
+                    <Check className="w-3 h-3" /> {tr("Photo optimisée avec succès")}</span>
                   {originalFileSize && (
                     <p className="text-[11px] text-ink-500">
-                      Taille originale : <strong>{formatBytes(originalFileSize)}</strong> ➔ Compressée :{" "}
+                      {tr("Taille originale :")}{" "}<strong>{formatBytes(originalFileSize)}</strong> {tr("➔ Compressée :")}{" "}
                       <strong className="text-ink-900">{formatBytes(optimizedImage.sizeBytes)}</strong>
                     </p>
                   )}
@@ -177,8 +177,7 @@ export function AvatarModal({
                   onClick={() => fileInputRef.current?.click()}
                   className="inline-flex items-center gap-1.5 text-xs text-signal font-semibold hover:underline pt-1"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" /> Choisir une autre photo
-                </button>
+                  <RefreshCw className="w-3.5 h-3.5" /> {tr("Choisir une autre photo")}</button>
               </div>
             ) : (
               <div
@@ -188,7 +187,7 @@ export function AvatarModal({
                 {processing ? (
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="w-8 h-8 text-signal animate-spin" />
-                    <span className="text-xs font-semibold text-ink-700">Compression automatique...</span>
+                    <span className="text-xs font-semibold text-ink-700">{tr("Compression automatique...")}</span>
                   </div>
                 ) : (
                   <>
@@ -197,11 +196,9 @@ export function AvatarModal({
                     </div>
                     <div>
                       <div className="text-xs font-bold text-ink-900">
-                        Cliquez pour choisir une photo depuis votre appareil
-                      </div>
+                        {tr("Cliquez pour choisir une photo depuis votre appareil")}</div>
                       <div className="text-[11px] text-ink-500 mt-0.5">
-                        JPG, PNG, WebP acceptés • Jusqu&apos;à 20 Mo (optimisé automatiquement)
-                      </div>
+                        {tr("JPG, PNG, WebP acceptés • Jusqu'à 20 Mo (optimisé automatiquement)")}</div>
                     </div>
                   </>
                 )}
@@ -240,7 +237,7 @@ export function AvatarModal({
             </div>
             {selectedPresetId && (
               <p className="text-xs text-center font-medium text-ink-700">
-                Avatar sélectionné :{" "}
+                {tr("Avatar sélectionné :")}{" "}
                 <strong className="text-ink-950">
                   {PRESET_AVATARS.find((p) => p.id === selectedPresetId)?.label}
                 </strong>
@@ -263,8 +260,7 @@ export function AvatarModal({
             onClick={handleClose}
             className="px-4 py-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 rounded-xl transition-colors"
           >
-            Annuler
-          </button>
+            {tr("Annuler")}</button>
           <button
             type="button"
             disabled={
@@ -277,10 +273,9 @@ export function AvatarModal({
           >
             {saving ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Enregistrement...
-              </>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> {tr("Enregistrement...")}</>
             ) : (
-              "Confirmer & Appliquer"
+              tr("Confirmer & Appliquer")
             )}
           </button>
         </div>

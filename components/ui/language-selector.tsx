@@ -2,55 +2,59 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { Globe, Check, X, Search } from "lucide-react";
+import { Globe, Check, X, Search, ChevronRight, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { CountryFlag } from "@/components/ui/country-flag";
 import type { SupportedLocale } from "@/lib/i18n/types";
 
 interface LanguageSelectorProps {
-  variant?: "pill" | "button" | "compact" | "drawer";
+  /**
+   * "pill" / "compact" / "button" : déclencheur compact [🌐 FR] pour les en-têtes.
+   * "drawer" / "row" : ligne pleine largeur (menu mobile, Paramètres).
+   */
+  variant?: "pill" | "button" | "compact" | "drawer" | "row";
   className?: string;
 }
 
-export function LanguageSelector({
-  variant = "pill",
-  className = "",
-}: LanguageSelectorProps) {
-  const { locale, setLocale, locales, t } = useLanguage();
+/**
+ * Sélecteur de langue — inspiré des SaaS de référence (Stripe, Linear, Airbnb) :
+ * chaque langue est écrite dans sa propre langue, sans drapeau (une langue n'est
+ * pas un pays), avec la langue suggérée par l'appareil en tête de liste.
+ */
+export function LanguageSelector({ variant = "pill", className = "" }: LanguageSelectorProps) {
+  const { locale, setLocale, locales, t , tr } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [deviceLocale, setDeviceLocale] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const wasOpenRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
+    try {
+      setDeviceLocale(navigator.language?.slice(0, 2).toLowerCase() ?? null);
+    } catch {}
   }, []);
 
-  const currentLocale = locales.find((l) => l.code === locale) || locales[0] || {
-    code: "fr" as SupportedLocale,
-    countryCode: "FR",
-    label: "Français",
-    nativeLabel: "Français",
-    flag: "🇫🇷",
-  };
+  const current = locales.find((l) => l.code === locale) ?? locales[0];
 
-  // Keyboard shortcut (Escape to close) & Auto-focus search input
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && isOpen) {
-        setIsOpen(false);
-      }
+      if (e.key === "Escape") setIsOpen(false);
     }
     if (isOpen) {
       window.addEventListener("keydown", handleKeyDown);
-      setTimeout(() => searchInputRef.current?.focus(), 50);
       document.body.style.overflow = "hidden";
+      // Sur ordinateur, focus direct sur la recherche ; sur mobile on évite d'ouvrir le clavier
+      if (window.matchMedia("(min-width: 640px)").matches) {
+        setTimeout(() => searchInputRef.current?.focus(), 50);
+      }
     } else {
       setSearch("");
       document.body.style.overflow = "";
-      // Rend le focus à la pastille après fermeture (navigation clavier)
       if (wasOpenRef.current) triggerRef.current?.focus();
     }
     wasOpenRef.current = isOpen;
@@ -60,15 +64,16 @@ export function LanguageSelector({
     };
   }, [isOpen]);
 
-  const filteredLocales = useMemo(() => {
-    if (!search.trim()) return locales;
+  const suggested = useMemo(
+    () => (deviceLocale && deviceLocale !== locale ? locales.find((l) => l.code === deviceLocale) ?? null : null),
+    [deviceLocale, locale, locales]
+  );
+
+  const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
+    if (!q) return locales;
     return locales.filter(
-      (l) =>
-        l.code.toLowerCase().includes(q) ||
-        (l.countryCode && l.countryCode.toLowerCase().includes(q)) ||
-        l.label.toLowerCase().includes(q) ||
-        l.nativeLabel.toLowerCase().includes(q)
+      (l) => l.code.toLowerCase().includes(q) || l.label.toLowerCase().includes(q) || l.nativeLabel.toLowerCase().includes(q)
     );
   }, [locales, search]);
 
@@ -77,161 +82,151 @@ export function LanguageSelector({
     setIsOpen(false);
   };
 
-  // Libellé accessible : le bouton fermé n'affiche que le drapeau, le nom
-  // complet de la langue reste donc exposé aux technologies d'assistance.
-  const triggerLabel = `Changer de langue — ${currentLocale.label}`;
+  // Navigation clavier haut / bas entre les langues
+  const handleListKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    e.preventDefault();
+    const options = Array.from(listRef.current?.querySelectorAll<HTMLButtonElement>("[data-lang-option]") ?? []);
+    const index = options.indexOf(document.activeElement as HTMLButtonElement);
+    const next = e.key === "ArrowDown" ? Math.min(index + 1, options.length - 1) : Math.max(index - 1, 0);
+    options[next]?.focus();
+  };
+
+  const triggerLabel = `${t("actions.select_language_title")} — ${current?.nativeLabel ?? ""}`;
+  const isRow = variant === "drawer" || variant === "row";
+
+  const renderOption = (loc: (typeof locales)[number]) => {
+    const isSelected = loc.code === locale;
+    const showSecondary = loc.label !== loc.nativeLabel;
+    return (
+      <button
+        key={loc.code}
+        type="button"
+        data-lang-option
+        onClick={() => handleSelect(loc.code)}
+        aria-pressed={isSelected}
+        lang={loc.code}
+        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:bg-ink-100 dark:focus-visible:bg-white/5 ${
+          isSelected ? "bg-signal/10" : "hover:bg-ink-100/70 dark:hover:bg-white/5"
+        }`}
+      >
+        <span
+          className={`flex h-9 w-11 shrink-0 items-center justify-center rounded-lg border bg-canvas ${
+            isSelected ? "border-signal/50" : "border-ink-200/80 dark:border-ink-800"
+          }`}
+        >
+          <CountryFlag code={loc.countryCode || loc.code} size="lg" className="rounded-[3px]" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span
+            dir={loc.direction === "rtl" ? "rtl" : undefined}
+            className={`block truncate text-[15px] ${isSelected ? "font-semibold text-signal" : "font-medium text-ink-950 dark:text-white"}`}
+          >
+            {loc.nativeLabel}
+          </span>
+          {showSecondary && <span className="block truncate text-xs text-ink-500 dark:text-ink-400">{loc.label}</span>}
+        </span>
+        {isSelected && <Check className="h-4 w-4 shrink-0 text-signal" strokeWidth={2.5} />}
+      </button>
+    );
+  };
 
   return (
     <>
-      {/* Déclencheur unique et harmonisé : pastille ronde contenant uniquement
-          le drapeau de la langue active. Toutes les variantes historiques
-          ("pill", "compact", "button", "drawer") partagent désormais ce même
-          rendu afin de garantir une seule identité visuelle dans l'app. */}
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={() => setIsOpen(true)}
-        aria-haspopup="dialog"
-        aria-expanded={isOpen}
-        aria-label={triggerLabel}
-        title={triggerLabel}
-        data-variant={variant}
-        className={`group inline-flex items-center justify-center h-10 w-10 sm:h-9 sm:w-9 shrink-0 rounded-full border border-ink-200 dark:border-ink-800 bg-canvas-raised shadow-xs hover:border-signal/50 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all duration-150 tap-active cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/50 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${className}`}
-      >
-        <CountryFlag
-          code={currentLocale.countryCode || currentLocale.code}
-          size="sm"
-          className="rounded-[3px] group-hover:scale-110 transition-transform duration-150"
-        />
-      </button>
+      {isRow ? (
+        <button
+          ref={triggerRef}
+          type="button"
+          onClick={() => setIsOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={isOpen}
+          aria-label={triggerLabel}
+          className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-ink-100/70 dark:hover:bg-white/5 cursor-pointer ${className}`}
+        >
+          <Globe className="h-[18px] w-[18px] shrink-0 text-ink-400" strokeWidth={1.8} />
+          <span className="flex-1 text-[14px] font-medium text-ink-700 dark:text-ink-300">{t("settings.language_title")}</span>
+          <span className="text-[13px] text-ink-500 dark:text-ink-400">{current?.nativeLabel}</span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-ink-400" />
+        </button>
+      ) : (
+        <button
+          ref={triggerRef}
+          type="button"
+          onClick={() => setIsOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={isOpen}
+          aria-label={triggerLabel}
+          title={triggerLabel}
+          data-variant={variant}
+          className={`inline-flex h-10 w-10 sm:h-9 sm:w-auto shrink-0 items-center justify-center gap-1.5 rounded-full border border-ink-200 dark:border-ink-800 bg-canvas-raised sm:px-2.5 text-xs font-bold sm:font-semibold text-ink-700 dark:text-ink-200 shadow-2xs hover:border-signal/50 active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/50 ${className}`}
+        >
+          {/* Mobile : pastille ronde au drapeau ; à partir de sm : drapeau + ▾ */}
+          {/* Drapeau de la langue active (le nom complet reste lu par les lecteurs d'écran) */}
+          <CountryFlag code={current?.countryCode || current?.code || "FR"} size="sm" className="rounded-[3px]" />
+          <ChevronDown className="hidden sm:block h-3 w-3 text-ink-400" />
+        </button>
+      )}
 
-      {/* Portal-rendered Centered Modal Dialog — Guaranteed 100% Opaque & Never Clipped */}
       {mounted &&
         isOpen &&
         createPortal(
           <div
-            className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 animate-in fade-in duration-150"
+            className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center sm:p-6 animate-in fade-in duration-150"
             role="dialog"
             aria-modal="true"
-            aria-label="Sélection de la langue"
+            aria-label={t("actions.select_language_title")}
           >
-            {/* Dark Opaque Backdrop */}
-            <div
-              className="fixed inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity"
-              onClick={() => setIsOpen(false)}
-            />
+            <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
 
-            {/* Modal Card — Fully Opaque Solid Background */}
-            <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[80vh] z-10 opacity-100 animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-signal-soft text-signal">
-                    <Globe className="w-5 h-5" strokeWidth={2.2} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-bold text-slate-950 dark:text-white">
-                      {t("actions.select_language_title")}
-                    </h3>
-                    <p className="text-[11px] text-slate-500">
-                      {t("actions.select_language_subtitle")}
-                    </p>
-                  </div>
+            {/* Feuille : en bas sur mobile, centrée sur ordinateur */}
+            <div className="relative z-10 flex max-h-[85vh] w-full flex-col overflow-hidden rounded-t-[28px] sm:max-w-md sm:rounded-3xl border border-ink-200/80 dark:border-ink-800 bg-canvas-raised shadow-2xl animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 pb-[env(safe-area-inset-bottom)]">
+              <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-ink-200 dark:bg-ink-700 sm:hidden" aria-hidden="true" />
+
+              <div className="flex items-center justify-between px-5 pt-4 pb-3">
+                <div>
+                  <h3 className="text-base font-bold tracking-tight text-ink-950 dark:text-white">
+                    {t("actions.select_language_title")}
+                  </h3>
+                  <p className="mt-0.5 text-xs text-ink-500 dark:text-ink-400">{t("actions.language_footer_note")}</p>
                 </div>
-
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  aria-label="Fermer"
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer"
+                  aria-label={t("actions.close")}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-ink-500 hover:bg-ink-100 dark:hover:bg-white/5 cursor-pointer"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
 
-              {/* Search Bar */}
-              <div className="px-5 pt-3.5 pb-1.5 bg-white dark:bg-slate-900">
-                <div className="relative flex items-center">
-                  <Search className="absolute left-3 w-4 h-4 text-slate-400" />
+              <div className="px-5 pb-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
                   <input
                     ref={searchInputRef}
-                    type="text"
+                    type="search"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder={t("actions.search_language")}
-                    className="w-full pl-9 pr-8 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-signal/40 transition-all"
+                    className="w-full rounded-xl border border-ink-200 dark:border-ink-800 bg-canvas py-2.5 pl-9 pr-3 text-sm text-ink-950 dark:text-white placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-signal/40"
                   />
-                  {search && (
-                    <button
-                      type="button"
-                      onClick={() => setSearch("")}
-                      className="absolute right-2.5 p-1 rounded-md text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
                 </div>
               </div>
 
-              {/* Languages Grid */}
-              <div className="p-4 sm:p-5 overflow-y-auto max-h-[50vh] space-y-2 bg-white dark:bg-slate-900">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {filteredLocales.map((loc) => {
-                    const isSelected = loc.code === locale;
-                    return (
-                      <button
-                        key={loc.code}
-                        type="button"
-                        onClick={() => handleSelect(loc.code)}
-                        aria-pressed={isSelected}
-                        aria-current={isSelected ? "true" : undefined}
-                        className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all tap-active cursor-pointer ${
-                          isSelected
-                            ? "border-signal bg-amber-50/80 dark:bg-amber-950/30 text-signal font-bold shadow-xs ring-2 ring-signal/30"
-                            : "border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/60 hover:border-signal/40 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex h-11 w-12 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xs p-1">
-                            <CountryFlag code={loc.countryCode || loc.code} size="xl" />
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-xs sm:text-sm font-bold text-slate-950 dark:text-white truncate">
-                              {loc.label}
-                            </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                              {loc.nativeLabel}
-                            </span>
-                          </div>
-                        </div>
-
-                        {isSelected && (
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-signal text-white shrink-0 shadow-xs">
-                            <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {filteredLocales.length === 0 && (
-                  <div className="py-8 text-center text-xs text-slate-400">
-                    Aucune langue ne correspond à votre recherche.
-                  </div>
+              <div ref={listRef} onKeyDown={handleListKeyDown} className="overflow-y-auto px-3 pb-4">
+                {!search && suggested && (
+                  <>
+                    <p className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-400">
+                      {tr("Suggérée pour cet appareil")}</p>
+                    {renderOption(suggested)}
+                    <p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-400">
+                      {tr("Toutes les langues")}</p>
+                  </>
                 )}
-              </div>
-
-              {/* Footer Note */}
-              <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 flex items-center justify-between gap-3 text-[11px] text-slate-400">
-                <p className="truncate">{t("actions.language_footer_note")}</p>
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 shrink-0 cursor-pointer"
-                >
-                  {t("actions.close")}
-                </button>
+                <div className="space-y-0.5">{filtered.map(renderOption)}</div>
+                {filtered.length === 0 && (
+                  <p className="py-8 text-center text-sm text-ink-500">{tr("Aucune langue ne correspond à «")}{" "}{search} ».</p>
+                )}
               </div>
             </div>
           </div>,

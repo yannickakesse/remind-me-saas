@@ -1,13 +1,14 @@
+import { msg } from "@/lib/i18n/catalog";
 import { z } from "zod";
 import type { CalendarEventStatus } from "@/types/database";
 
 export const EVENT_STATUSES: { value: CalendarEventStatus; label: string }[] = [
-  { value: "planned", label: "Prévu" },
-  { value: "in_progress", label: "En cours" },
-  { value: "completed", label: "Terminé" },
-  { value: "cancelled", label: "Annulé" },
-  { value: "missed", label: "Manqué" },
-  { value: "postponed", label: "Reporté" },
+  { value: "planned", label: msg("Prévu") },
+  { value: "in_progress", label: msg("En cours") },
+  { value: "completed", label: msg("Terminé") },
+  { value: "cancelled", label: msg("Annulé") },
+  { value: "missed", label: msg("Manqué") },
+  { value: "postponed", label: msg("Reporté") },
 ];
 
 export function eventStatusLabel(status: string): string {

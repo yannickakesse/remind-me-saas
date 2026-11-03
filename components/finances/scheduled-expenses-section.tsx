@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { DateTime } from "luxon";
@@ -43,6 +45,7 @@ export function ScheduledExpensesSection({
   defaultCurrency,
   activities,
 }: Props) {
+  const { tr } = useLanguage();
   const toast = useToast();
   const [items, setItems] = useState<ScheduledExpenseItem[]>(scheduledExpenses);
   const [filter, setFilter] = useState<"all" | "planned" | "due" | "paid" | "cancelled">("all");
@@ -79,9 +82,9 @@ export function ScheduledExpensesSection({
     setActionLoadingId(id);
     try {
       await postponeScheduledExpenseAction(id, 7);
-      toast.push("Échéance reportée de 7 jours.", "info");
+      toast.push(tr("Échéance reportée de 7 jours."), "info");
     } catch (err) {
-      toast.push("Erreur lors du report de l'échéance.", "error");
+      toast.push(tr("Erreur lors du report de l'échéance."), "error");
     } finally {
       setActionLoadingId(null);
     }
@@ -113,11 +116,11 @@ export function ScheduledExpensesSection({
 
     try {
       await markScheduledExpensePaidAction(id);
-      toast.push("Dépense marquée comme payée et enregistrée.", "success");
+      toast.push(tr("Dépense marquée comme payée et enregistrée."), "success");
     } catch (err) {
       // Rollback en cas d'erreur
       setItems(scheduledExpenses);
-      toast.push("Erreur lors de l'enregistrement du paiement.", "error");
+      toast.push(tr("Erreur lors de l'enregistrement du paiement."), "error");
     } finally {
       setActionLoadingId(null);
     }
@@ -125,7 +128,7 @@ export function ScheduledExpensesSection({
 
   async function handleCancel(id: string) {
     if (actionLoadingId) return;
-    if (confirm("Voulez-vous vraiment annuler cette dépense programmée ?")) {
+    if (confirm(tr("Voulez-vous vraiment annuler cette dépense programmée ?"))) {
       setActionLoadingId(id);
 
       // Mise à jour optimiste immédiate
@@ -135,10 +138,10 @@ export function ScheduledExpensesSection({
 
       try {
         await cancelScheduledExpenseAction(id);
-        toast.push("Dépense programmée annulée.", "info");
+        toast.push(tr("Dépense programmée annulée."), "info");
       } catch (err) {
         setItems(scheduledExpenses);
-        toast.push("Erreur lors de l'annulation.", "error");
+        toast.push(tr("Erreur lors de l'annulation."), "error");
       } finally {
         setActionLoadingId(null);
       }
@@ -147,7 +150,7 @@ export function ScheduledExpensesSection({
 
   async function handleDelete(id: string) {
     if (actionLoadingId) return;
-    if (confirm("Voulez-vous supprimer définitivement cette dépense programmée ?")) {
+    if (confirm(tr("Voulez-vous supprimer définitivement cette dépense programmée ?"))) {
       setActionLoadingId(id);
 
       // Suppression optimiste immédiate
@@ -155,10 +158,10 @@ export function ScheduledExpensesSection({
 
       try {
         await deleteScheduledExpenseAction(id);
-        toast.push("Dépense programmée supprimée.", "info");
+        toast.push(tr("Dépense programmée supprimée."), "info");
       } catch (err) {
         setItems(scheduledExpenses);
-        toast.push("Erreur lors de la suppression.", "error");
+        toast.push(tr("Erreur lors de la suppression."), "error");
       } finally {
         setActionLoadingId(null);
       }
@@ -176,7 +179,7 @@ export function ScheduledExpensesSection({
         toast.push(res.error || "Erreur lors de la programmation de la dépense.", "error");
         return;
       }
-      toast.push("Dépense programmée avec succès.", "success");
+      toast.push(tr("Dépense programmée avec succès."), "success");
       setIsModalOpen(false);
     } catch (err: any) {
       toast.push(err?.message || "Erreur lors de la programmation de la dépense.", "error");
@@ -195,16 +198,14 @@ export function ScheduledExpensesSection({
               <span className="p-1.5 rounded-xl bg-signal text-white shadow-xs">
                 <Clock className="w-4 h-4" />
               </span>
-              Dépenses Programmées &amp; Récurrentes
-            </h2>
+              {tr("Dépenses Programmées & Récurrentes")}</h2>
             <p className="text-xs text-ink-500 mt-1">
-              Planifiez vos charges régulières (loyers, abonnements, factures) et anticipez votre trésorerie.
-            </p>
+              {tr("Planifiez vos charges régulières (loyers, abonnements, factures) et anticipez votre trésorerie.")}</p>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <span className="text-xs text-ink-500">Total prévisionnel : </span>
+              <span className="text-xs text-ink-500">{tr("Total prévisionnel :")}{" "}</span>
               <span className="font-bold text-sm text-ink-950 dark:text-ink-50">
                 {formatAmount(totalPlannedThisMonth, defaultCurrency)}
               </span>
@@ -215,8 +216,7 @@ export function ScheduledExpensesSection({
               onClick={() => setIsModalOpen(true)}
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-signal text-white text-xs font-semibold hover:bg-signal/90 active:scale-95 transition-all shadow-xs"
             >
-              <Plus className="w-4 h-4" /> Programmer une dépense
-            </button>
+              <Plus className="w-4 h-4" /> {tr("Programmer une dépense")}</button>
           </div>
         </div>
       </div>
@@ -250,12 +250,12 @@ export function ScheduledExpensesSection({
         <div className="p-8 text-center rounded-2xl border border-dashed border-ink-300 dark:border-ink-800 bg-canvas-raised">
           <Clock className="w-8 h-8 text-amber-600 mx-auto mb-2" />
           <div className="font-bold text-sm text-ink-900 dark:text-ink-100">
-            {filter === "cancelled" ? "Aucune dépense annulée" : "Aucune dépense programmée"}
+            {filter === "cancelled" ? tr("Aucune dépense annulée") : tr("Aucune dépense programmée")}
           </div>
           <div className="text-xs text-ink-500 mt-1 max-w-sm mx-auto">
             {filter === "cancelled"
-              ? "Toutes vos charges récurrentes sont actuellement actives, planifiées ou payées."
-              : "Programmez vos charges régulières (abonnements, électricité, internet, loyer) pour anticiper votre trésorerie."}
+              ? tr("Toutes vos charges récurrentes sont actuellement actives, planifiées ou payées.")
+              : tr("Programmez vos charges régulières (abonnements, électricité, internet, loyer) pour anticiper votre trésorerie.")}
           </div>
           {filter !== "cancelled" && (
             <button
@@ -263,8 +263,7 @@ export function ScheduledExpensesSection({
               onClick={() => setIsModalOpen(true)}
               className="mt-4 px-4 py-2 rounded-xl bg-signal text-white text-xs font-semibold active:scale-95 transition-transform"
             >
-              Programmer maintenant
-            </button>
+              {tr("Programmer maintenant")}</button>
           )}
         </div>
       ) : (
@@ -309,14 +308,14 @@ export function ScheduledExpensesSection({
 
                   <div className="mt-3 flex items-baseline justify-between">
                     <div>
-                      <div className="text-[10px] text-ink-500 uppercase tracking-wider">Montant</div>
+                      <div className="text-[10px] text-ink-500 uppercase tracking-wider">{tr("Montant")}</div>
                       <div className="text-lg font-bold font-mono tabular-nums text-ink-950 dark:text-white">
                         {formatAmount(item.amount, item.currency)}
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <div className="text-[10px] text-ink-500 uppercase tracking-wider">Prochaine échéance</div>
+                      <div className="text-[10px] text-ink-500 uppercase tracking-wider">{tr("Prochaine échéance")}</div>
                       <div className="text-xs font-bold text-ink-900 dark:text-ink-100">
                         {item.next_due_date}
                       </div>
@@ -346,21 +345,21 @@ export function ScheduledExpensesSection({
                           ) : (
                             <Check className="w-3.5 h-3.5" />
                           )}
-                          <span>{isLoading ? "Traitement..." : "Marquer payée"}</span>
+                          <span>{isLoading ? "Traitement..." : tr("Marquer payée")}</span>
                         </button>
                         <button
                           type="button"
                           disabled={isLoading}
                           onClick={() => handlePostpone(item.id)}
                           className="px-2.5 py-1.5 rounded-lg border border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-300 bg-canvas dark:bg-ink-950 text-xs font-medium hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
-                          title="Reporter l'échéance de 7 jours"
+                          title={tr("Reporter l'échéance de 7 jours")}
                         >
                           {isLoading ? (
                             <Loader2 className="w-3 h-3 animate-spin text-amber-600" />
                           ) : (
                             <Clock className="w-3 h-3 text-amber-600" />
                           )}
-                          <span>{isLoading ? "Report..." : "Reporter (+7j)"}</span>
+                          <span>{isLoading ? "Report..." : tr("Reporter (+7j)")}</span>
                         </button>
                       </>
                     )}
@@ -372,8 +371,7 @@ export function ScheduledExpensesSection({
                         onClick={() => handleCancel(item.id)}
                         className="px-2.5 py-1.5 rounded-lg border border-ink-200 text-ink-600 text-xs font-medium hover:bg-ink-100 active:scale-95 disabled:opacity-50 transition-all"
                       >
-                        Annuler
-                      </button>
+                        {tr("Annuler")}</button>
                     )}
                   </div>
 
@@ -382,7 +380,7 @@ export function ScheduledExpensesSection({
                     disabled={isLoading}
                     onClick={() => handleDelete(item.id)}
                     className="p-1.5 rounded-lg text-ink-400 hover:text-danger hover:bg-danger-soft transition-colors"
-                    title="Supprimer"
+                    title={tr("Supprimer")}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -398,7 +396,7 @@ export function ScheduledExpensesSection({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/60 backdrop-blur-xs">
           <div className="relative w-full max-w-md bg-canvas-raised rounded-2xl p-6 shadow-2xl border border-ink-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-ink-200">
-              <h3 className="font-bold text-base text-ink-950">Programmer une dépense</h3>
+              <h3 className="font-bold text-base text-ink-950">{tr("Programmer une dépense")}</h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
@@ -411,7 +409,7 @@ export function ScheduledExpensesSection({
             <form onSubmit={handleFormSubmit} className="space-y-4">
               {/* Choix Explicite : Dépense Occasionnelle vs Récurrente */}
               <div>
-                <label className="block text-xs font-bold text-ink-700 mb-2">Type d&apos;engagement financier *</label>
+                <label className="block text-xs font-bold text-ink-700 mb-2">{tr("Type d'engagement financier *")}</label>
                 <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
@@ -424,11 +422,10 @@ export function ScheduledExpensesSection({
                   >
                     <div className="flex items-center gap-1.5 text-xs font-bold">
                       <Calendar className="w-3.5 h-3.5 text-signal" />
-                      <span>Dépense occasionnelle</span>
+                      <span>{tr("Dépense occasionnelle")}</span>
                     </div>
                     <p className="text-[10px] text-ink-500 mt-1 font-normal leading-tight">
-                      Une seule fois à la date choisie, sans répétition automatique.
-                    </p>
+                      {tr("Une seule fois à la date choisie, sans répétition automatique.")}</p>
                   </button>
 
                   <button
@@ -442,29 +439,28 @@ export function ScheduledExpensesSection({
                   >
                     <div className="flex items-center gap-1.5 text-xs font-bold">
                       <Clock className="w-3.5 h-3.5 text-signal" />
-                      <span>Dépense récurrente</span>
+                      <span>{tr("Dépense récurrente")}</span>
                     </div>
                     <p className="text-[10px] text-ink-500 mt-1 font-normal leading-tight">
-                      Répétition périodique selon la fréquence choisie (loyer, facture...).
-                    </p>
+                      {tr("Répétition périodique selon la fréquence choisie (loyer, facture...).")}</p>
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-ink-700 mb-1">Nom / Description *</label>
+                <label className="block text-xs font-bold text-ink-700 mb-1">{tr("Nom / Description *")}</label>
                 <input
                   name="name"
                   type="text"
                   required
-                  placeholder={expenseType === "once" ? "Ex: Réparation équipement, Achat ponctuel" : "Ex: Électricité, Loyer, Abonnement Internet"}
+                  placeholder={expenseType === "once" ? tr("Ex: Réparation équipement, Achat ponctuel") : tr("Ex: Électricité, Loyer, Abonnement Internet")}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-ink-700 mb-1">Montant *</label>
+                  <label className="block text-xs font-bold text-ink-700 mb-1">{tr("Montant *")}</label>
                   <input
                     name="amount"
                     type="number"
@@ -477,17 +473,17 @@ export function ScheduledExpensesSection({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-ink-700 mb-1">Devise *</label>
+                  <label className="block text-xs font-bold text-ink-700 mb-1">{tr("Devise *")}</label>
                   <select
                     name="currency"
                     defaultValue={defaultCurrency}
                     className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
                   >
-                    <option value="XOF">XOF (FCFA)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="GBP">GBP (£)</option>
-                    <option value="CAD">CAD ($)</option>
+                    <option value="XOF">{tr("XOF (FCFA)")}</option>
+                    <option value="EUR">{tr("EUR (€)")}</option>
+                    <option value="USD">{tr("USD ($)")}</option>
+                    <option value="GBP">{tr("GBP (£)")}</option>
+                    <option value="CAD">{tr("CAD ($)")}</option>
                     <option value="CHF">CHF</option>
                   </select>
                 </div>
@@ -495,27 +491,27 @@ export function ScheduledExpensesSection({
 
               <div className={`grid ${expenseType === "recurring" ? "grid-cols-2" : "grid-cols-1"} gap-3`}>
                 <div>
-                  <label className="block text-xs font-bold text-ink-700 mb-1">Catégorie *</label>
+                  <label className="block text-xs font-bold text-ink-700 mb-1">{tr("Catégorie *")}</label>
                   <select
                     name="category"
                     required
                     defaultValue="utilities"
                     className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
                   >
-                    <option value="utilities">Électricité / Eau / Services</option>
-                    <option value="housing">Logement / Loyer</option>
-                    <option value="telecom">Internet / Télécom</option>
-                    <option value="software">Logiciels & Abonnements</option>
-                    <option value="transport">Transport / Carburant</option>
-                    <option value="insurance">Assurance</option>
-                    <option value="supplies">Fournitures & Équipement</option>
-                    <option value="other">Autre charge</option>
+                    <option value="utilities">{tr("Électricité / Eau / Services")}</option>
+                    <option value="housing">{tr("Logement / Loyer")}</option>
+                    <option value="telecom">{tr("Internet / Télécom")}</option>
+                    <option value="software">{tr("Logiciels & Abonnements")}</option>
+                    <option value="transport">{tr("Transport / Carburant")}</option>
+                    <option value="insurance">{tr("Assurance")}</option>
+                    <option value="supplies">{tr("Fournitures & Équipement")}</option>
+                    <option value="other">{tr("Autre charge")}</option>
                   </select>
                 </div>
 
                 {expenseType === "recurring" ? (
                   <div>
-                    <label className="block text-xs font-bold text-ink-700 mb-1">Fréquence de répétition *</label>
+                    <label className="block text-xs font-bold text-ink-700 mb-1">{tr("Fréquence de répétition *")}</label>
                     <select
                       name="frequency"
                       required
@@ -523,10 +519,10 @@ export function ScheduledExpensesSection({
                       onChange={(e) => setRecurringFrequency(e.target.value)}
                       className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal font-semibold"
                     >
-                      <option value="monthly">Mensuel</option>
-                      <option value="weekly">Hebdomadaire</option>
-                      <option value="quarterly">Trimestriel</option>
-                      <option value="yearly">Annuel</option>
+                      <option value="monthly">{tr("Mensuel")}</option>
+                      <option value="weekly">{tr("Hebdomadaire")}</option>
+                      <option value="quarterly">{tr("Trimestriel")}</option>
+                      <option value="yearly">{tr("Annuel")}</option>
                     </select>
                   </div>
                 ) : (
@@ -537,7 +533,7 @@ export function ScheduledExpensesSection({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-ink-700 mb-1">
-                    {expenseType === "once" ? "Date de paiement *" : "1ère Échéance *"}
+                    {expenseType === "once" ? tr("Date de paiement *") : tr("1ère Échéance *")}
                   </label>
                   <input
                     name="nextDueDate"
@@ -549,13 +545,13 @@ export function ScheduledExpensesSection({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-ink-700 mb-1">Activité associée</label>
+                  <label className="block text-xs font-bold text-ink-700 mb-1">{tr("Activité associée")}</label>
                   <select
                     name="activityId"
                     defaultValue=""
                     className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
                   >
-                    <option value="">(Aucune - Dépense générale)</option>
+                    <option value="">{tr("(Aucune - Dépense générale)")}</option>
                     {activities.map((a) => (
                       <option key={a.id} value={a.id}>
                         {a.name}
@@ -566,11 +562,11 @@ export function ScheduledExpensesSection({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-ink-700 mb-1">Notes / Référence</label>
+                <label className="block text-xs font-bold text-ink-700 mb-1">{tr("Notes / Référence")}</label>
                 <input
                   name="notes"
                   type="text"
-                  placeholder="Ex: Compteur N° 45892, Prélèvement le 15"
+                  placeholder={tr("Ex: Compteur N° 45892, Prélèvement le 15")}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
                 />
               </div>
@@ -581,14 +577,13 @@ export function ScheduledExpensesSection({
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 text-xs font-medium text-ink-700 hover:bg-ink-100 rounded-xl"
                 >
-                  Annuler
-                </button>
+                  {tr("Annuler")}</button>
                 <button
                   type="submit"
                   disabled={submitting}
                   className="px-5 py-2.5 rounded-xl bg-signal text-white text-xs font-bold shadow-xs active:scale-95 transition-transform disabled:opacity-50"
                 >
-                  {submitting ? "Enregistrement..." : "Enregistrer la dépense"}
+                  {submitting ? "Enregistrement..." : tr("Enregistrer la dépense")}
                 </button>
               </div>
             </form>

@@ -87,7 +87,7 @@ export function ActivitiesClientView({
   initialRenewActivityId,
 }: ActivitiesClientViewProps) {
   const { push: toastPush } = useToast();
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
   const [activities, setActivities] = useState<ActivityViewItem[]>(initialActivities);
   const [suggestions, setSuggestions] = useState<RoutineSuggestionItem[]>(initialSuggestions);
   const [filterTab, setFilterTab] = useState<"all" | "active" | "expired" | "suspended" | "archived">("all");
@@ -416,23 +416,21 @@ export function ActivitiesClientView({
             <div className="flex items-center gap-2 mb-1.5">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-signal/10 dark:bg-signal/20 text-signal text-[11px] font-bold border border-signal/20 shadow-2xs">
                 <Briefcase className="w-3 h-3" />
-                <span>Portefeuille d&apos;activités</span>
+                <span>{tr("Portefeuille d'activités")}</span>
               </span>
               <span className="text-xs text-ink-500">
-                {activities.length} activité{activities.length > 1 ? "s" : ""} au total
-              </span>
+                {activities.length} {tr("activité")}{activities.length > 1 ? "s" : ""} {tr("au total")}</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink-950 dark:text-white flex items-center gap-2.5">
               {t("activities.title")}
             </h1>
             <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 mt-1">
-              Pilotez vos différentes casquettes, contrats, tarifs et temps de mission en un seul endroit.
-            </p>
+              {tr("Pilotez vos différentes casquettes, contrats, tarifs et temps de mission en un seul endroit.")}</p>
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-            <SectionGuideTrigger section="activities" label="Guide" />
+            <SectionGuideTrigger section="activities" label={tr("Guide")} />
             <Link
               href="/activities/new"
               data-tour="activity-create"
@@ -458,7 +456,7 @@ export function ActivitiesClientView({
                 : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
             }`}
           >
-            <span>Toutes</span>
+            <span>{tr("Toutes")}</span>
             <span
               className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                 filterTab === "all" ? "bg-white/20 text-white" : "bg-ink-100 dark:bg-white/10 text-ink-700 dark:text-ink-300"
@@ -477,7 +475,7 @@ export function ActivitiesClientView({
                 : "text-ink-600 dark:text-ink-400 hover:text-ink-950 dark:hover:text-white"
             }`}
           >
-            <span>Actives</span>
+            <span>{tr("Actives")}</span>
             <span
               className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                 filterTab === "active" ? "bg-white/20 text-white" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
@@ -498,7 +496,7 @@ export function ActivitiesClientView({
               }`}
             >
               <Clock className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-              <span>Expirées</span>
+              <span>{tr("Expirées")}</span>
               <span
                 className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                   filterTab === "expired" ? "bg-white/20 text-white" : "bg-purple-500/10 text-purple-600 dark:text-purple-400"
@@ -520,7 +518,7 @@ export function ActivitiesClientView({
               }`}
             >
               <Pause className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span>En pause</span>
+              <span>{tr("En pause")}</span>
               <span
                 className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                   filterTab === "suspended" ? "bg-white/20 text-white" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
@@ -542,7 +540,7 @@ export function ActivitiesClientView({
               }`}
             >
               <Archive className="w-3.5 h-3.5 text-ink-400" />
-              <span>Archivées</span>
+              <span>{tr("Archivées")}</span>
               <span
                 className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                   filterTab === "archived" ? "bg-white/20 text-white" : "bg-ink-100 dark:bg-white/10 text-ink-600 dark:text-ink-400"
@@ -561,7 +559,7 @@ export function ActivitiesClientView({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher une activité..."
+            placeholder={tr("Rechercher une activité...")}
             className="w-full pl-9 pr-8 py-2 rounded-2xl border border-ink-200/80 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-900/80 text-xs text-ink-950 dark:text-white placeholder:text-ink-400 focus:outline-none focus:border-signal transition-colors shadow-2xs"
           />
           {searchQuery && (
@@ -583,7 +581,7 @@ export function ActivitiesClientView({
             <Briefcase className="h-7 w-7" />
           </div>
           <h3 className="text-base font-bold text-ink-950 dark:text-white">
-            {searchQuery ? "Aucune activité ne correspond à votre recherche" : t("activities.empty_title")}
+            {searchQuery ? tr("Aucune activité ne correspond à votre recherche") : t("activities.empty_title")}
           </h3>
           <p className="text-xs sm:text-sm text-ink-500 max-w-sm mx-auto">
             {searchQuery ? `Essayez de modifier votre terme de recherche « ${searchQuery} »` : t("activities.empty_desc")}
@@ -595,8 +593,7 @@ export function ActivitiesClientView({
                 onClick={() => setSearchQuery("")}
                 className="px-4 py-2 rounded-xl bg-ink-100 dark:bg-white/10 text-ink-900 dark:text-white text-xs font-bold hover:bg-ink-200 transition-colors"
               >
-                Effacer la recherche
-              </button>
+                {tr("Effacer la recherche")}</button>
             ) : (
               <Link
                 href="/activities/new"
@@ -651,42 +648,35 @@ export function ActivitiesClientView({
 
                       {activity.status === "expired" && (
                         <span className="rounded-full bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 text-[11px] font-bold text-purple-700 dark:text-purple-300 shrink-0 flex items-center gap-1">
-                          <Clock className="w-2.5 h-2.5" /> Expirée
-                        </span>
+                          <Clock className="w-2.5 h-2.5" /> {tr("Expirée")}</span>
                       )}
 
                       {activity.status === "suspended" && (
                         <span className="rounded-full bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-300 shrink-0 flex items-center gap-1">
-                          <Pause className="w-2.5 h-2.5" /> En pause
-                        </span>
+                          <Pause className="w-2.5 h-2.5" /> {tr("En pause")}</span>
                       )}
 
                       {activity.status === "archived" && (
                         <span className="rounded-full bg-ink-100 dark:bg-white/10 px-2 py-0.5 text-[11px] font-medium text-ink-600 dark:text-ink-400 shrink-0">
-                          Archivée
-                        </span>
+                          {tr("Archivée")}</span>
                       )}
 
                       {activity.engagement_nature === "routine" && (
                         <span className="rounded-full bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 shrink-0">
-                          Routine
-                        </span>
+                          {tr("Routine")}</span>
                       )}
 
                       {activity.engagement_nature === "important" && (
                         <span className="rounded-full bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 text-[11px] font-bold text-purple-700 dark:text-purple-300 shrink-0">
-                          Important
-                        </span>
+                          {tr("Important")}</span>
                       )}
 
                       {activity.validity_type === "permanent" ? (
                         <span className="rounded-full bg-sky-500/15 border border-sky-500/25 px-2 py-0.5 text-[11px] font-medium text-sky-700 dark:text-sky-300 shrink-0">
-                          Permanente
-                        </span>
+                          {tr("Permanente")}</span>
                       ) : activity.validity_type === "temporary" ? (
                         <span className="rounded-full bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300 shrink-0">
-                          Temporaire
-                        </span>
+                          {tr("Temporaire")}</span>
                       ) : null}
                     </div>
                   </div>
@@ -714,7 +704,7 @@ export function ActivitiesClientView({
                     {activity.endDate ? (
                       <span className="inline-flex items-center gap-1 text-ink-500 font-medium">
                         <Calendar className="h-3.5 w-3.5 text-ink-400" />
-                        Fin : {new Date(activity.endDate).toLocaleDateString("fr-FR")}
+                        {tr("Fin :")}{" "}{new Date(activity.endDate).toLocaleDateString("fr-FR")}
                       </span>
                     ) : null}
 
@@ -747,16 +737,14 @@ export function ActivitiesClientView({
                             onClick={() => handleAcceptEvolution(activity.id, suggestion.id)}
                             className="px-3 py-1.5 rounded-xl bg-signal hover:bg-signal-dark text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer"
                           >
-                            Passer en routine
-                          </button>
+                            {tr("Passer en routine")}</button>
                           <button
                             type="button"
                             disabled={isBusy}
                             onClick={() => handleDeclineEvolution(activity.id, suggestion.id)}
                             className="px-3 py-1.5 rounded-xl bg-ink-100 hover:bg-ink-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-ink-700 dark:text-ink-200 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
                           >
-                            Garder la configuration actuelle (répit 30j)
-                          </button>
+                            {tr("Garder la configuration actuelle (répit 30j)")}</button>
                         </div>
                       </div>
                     );
@@ -767,7 +755,7 @@ export function ActivitiesClientView({
                   {isConfirmingDelete ? (
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-2 bg-rose-500/10 border border-rose-500/20 p-3 rounded-2xl text-xs">
                       <span className="text-rose-600 dark:text-rose-400 font-semibold">
-                        Supprimer définitivement « {activity.name} » ?
+                        {tr("Supprimer définitivement «")}{" "}{activity.name} » ?
                       </span>
                       <div className="flex items-center gap-2">
                         <Button
@@ -778,8 +766,7 @@ export function ActivitiesClientView({
                           disabled={isDeleting}
                           onClick={() => handleDelete(activity.id)}
                         >
-                          Oui, supprimer
-                        </Button>
+                          {tr("Oui, supprimer")}</Button>
                         <Button
                           type="button"
                           variant="secondary"
@@ -787,8 +774,7 @@ export function ActivitiesClientView({
                           disabled={isDeleting}
                           onClick={() => setConfirmDeleteId(null)}
                         >
-                          Annuler
-                        </Button>
+                          {tr("Annuler")}</Button>
                       </div>
                     </div>
                   ) : (
@@ -803,24 +789,22 @@ export function ActivitiesClientView({
                               className="rounded-xl px-2.5 py-1.5 text-xs font-bold text-purple-900 dark:text-purple-200 bg-purple-100 dark:bg-purple-950/60 hover:bg-purple-200 transition-colors min-h-[32px] inline-flex items-center gap-1 shadow-2xs cursor-pointer border border-purple-300 dark:border-purple-800"
                             >
                               <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                              Renouveler
-                            </button>
+                              {tr("Renouveler")}</button>
                             <button
                               type="button"
                               onClick={() => handleKeepExpired(activity.id)}
                               className="rounded-xl px-2 py-1.5 text-xs font-medium text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-white hover:bg-ink-100 dark:hover:bg-white/5 transition-colors min-h-[32px] inline-flex items-center gap-1 cursor-pointer"
-                              title="Conserver l'activité expirée sans la renouveler"
+                              title={tr("Conserver l'activité expirée sans la renouveler")}
                             >
                               <X className="w-3.5 h-3.5 text-ink-400" />
-                              Conserver expirée
-                            </button>
+                              {tr("Conserver expirée")}</button>
                           </>
                         )}
 
                         {/* Actions en icônes seules (libellé au survol / lecteur d'écran) */}
                         <Link
                           href={`/activities/${activity.id}/edit`}
-                          title="Modifier"
+                          title={tr("Modifier")}
                           aria-label={`Modifier « ${activity.name} »`}
                           className={`${ICON_ACTION} border-signal/30 text-signal hover:bg-signal/10`}
                         >
@@ -832,7 +816,7 @@ export function ActivitiesClientView({
                             type="button"
                             onClick={() => handleSuspend(activity.id)}
                             disabled={isSuspending || isArchiving || isResuming || isRestoring || isDeleting}
-                            title="Suspendre"
+                            title={tr("Suspendre")}
                             aria-label={`Suspendre « ${activity.name} »`}
                             className={`${ICON_ACTION} border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20`}
                           >
@@ -845,7 +829,7 @@ export function ActivitiesClientView({
                             type="button"
                             onClick={() => handleResume(activity.id)}
                             disabled={isSuspending || isArchiving || isResuming || isRestoring || isDeleting}
-                            title="Reprendre"
+                            title={tr("Reprendre")}
                             aria-label={`Reprendre « ${activity.name} »`}
                             className={`${ICON_ACTION} border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20`}
                           >
@@ -858,7 +842,7 @@ export function ActivitiesClientView({
                             type="button"
                             onClick={() => handleRestore(activity.id)}
                             disabled={isSuspending || isArchiving || isResuming || isRestoring || isDeleting}
-                            title="Restaurer"
+                            title={tr("Restaurer")}
                             aria-label={`Restaurer « ${activity.name} »`}
                             className={`${ICON_ACTION} border-signal/30 text-signal hover:bg-signal/10`}
                           >
@@ -869,7 +853,7 @@ export function ActivitiesClientView({
                             type="button"
                             onClick={() => handleArchive(activity.id)}
                             disabled={isSuspending || isArchiving || isResuming || isRestoring || isDeleting}
-                            title="Archiver"
+                            title={tr("Archiver")}
                             aria-label={`Archiver « ${activity.name} »`}
                             className={`${ICON_ACTION} border-ink-200 dark:border-ink-800 text-ink-600 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-white/5`}
                           >
@@ -881,7 +865,7 @@ export function ActivitiesClientView({
                           type="button"
                           onClick={() => setConfirmDeleteId(activity.id)}
                           disabled={isSuspending || isArchiving || isResuming || isRestoring || isDeleting}
-                          title="Supprimer"
+                          title={tr("Supprimer")}
                           aria-label={`Supprimer « ${activity.name} »`}
                           className={`${ICON_ACTION} ml-auto border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10`}
                         >
@@ -914,7 +898,7 @@ export function ActivitiesClientView({
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-ink-950 dark:text-ink-50">Renouveler l'activité</h3>
+                <h3 className="text-lg font-bold text-ink-950 dark:text-ink-50">{tr("Renouveler l'activité")}</h3>
                 <p className="text-xs text-ink-500">« {renewingActivity.name} »</p>
               </div>
             </div>
@@ -922,44 +906,42 @@ export function ActivitiesClientView({
             {/* Présentation claire des dates actuelles */}
             <div className="rounded-xl border border-ink-200 dark:border-ink-800 bg-ink-50 dark:bg-ink-900/60 p-3 space-y-1.5 text-xs">
               <div className="flex justify-between text-ink-600 dark:text-ink-400">
-                <span>Date de fin actuelle :</span>
+                <span>{tr("Date de fin actuelle :")}</span>
                 <span className="font-semibold text-ink-950 dark:text-ink-100">
                   {renewingActivity.endDate
                     ? new Date(renewingActivity.endDate).toLocaleDateString("fr-FR")
-                    : "Non définie"}
+                    : tr("Non définie")}
                 </span>
               </div>
               {renewingActivity.startDate ? (
                 <div className="flex justify-between text-ink-600 dark:text-ink-400">
-                  <span>Date de début :</span>
+                  <span>{tr("Date de début :")}</span>
                   <span className="font-semibold text-ink-950 dark:text-ink-100">
                     {new Date(renewingActivity.startDate).toLocaleDateString("fr-FR")}
                   </span>
                 </div>
               ) : null}
               <div className="flex justify-between text-ink-600 dark:text-ink-400">
-                <span>Nature de l'activité :</span>
+                <span>{tr("Nature de l'activité :")}</span>
                 <span className="font-medium text-ink-700 dark:text-ink-300 capitalize">
                   {renewingActivity.engagement_nature === "routine"
                     ? "Routine"
                     : renewingActivity.engagement_nature === "important"
                     ? "Important"
-                    : "Engagement temporaire"}
+                    : tr("Engagement temporaire")}
                 </span>
               </div>
               <div className="flex justify-between text-ink-600 dark:text-ink-400">
-                <span>Type de validité :</span>
+                <span>{tr("Type de validité :")}</span>
                 <span className="font-medium text-purple-700 dark:text-purple-300">
-                  Temporaire (préservé)
-                </span>
+                  {tr("Temporaire (préservé)")}</span>
               </div>
             </div>
 
             <form onSubmit={handleRenewSubmit} className="space-y-4">
               <div>
                 <label htmlFor="newEndDate" className="block text-xs font-semibold text-ink-800 dark:text-ink-200 mb-1">
-                  Nouvelle date de fin *
-                </label>
+                  {tr("Nouvelle date de fin *")}</label>
                 <input
                   id="newEndDate"
                   name="newEndDate"
@@ -972,14 +954,13 @@ export function ActivitiesClientView({
                   className="w-full rounded-lg border border-ink-300 dark:border-ink-700 bg-canvas dark:bg-ink-950 px-3 py-2 text-sm text-ink-950 dark:text-ink-50 focus:border-purple-600 focus:outline-none"
                 />
                 <p className="text-[11px] text-ink-500 mt-1">
-                  L'activité redeviendra active jusqu'à cette nouvelle date. L'historique des occurrences passées reste intégralement préservé.
-                </p>
+                  {tr("L'activité redeviendra active jusqu'à cette nouvelle date. L'historique des occurrences passées reste intégralement préservé.")}</p>
               </div>
 
               {renewingActivity.compensation ? (
                 <div>
                   <label htmlFor="newAmount" className="block text-xs font-semibold text-ink-800 dark:text-ink-200 mb-1">
-                    Montant de rémunération ({renewingActivity.compensation.currency})
+                    {tr("Montant de rémunération (")}{renewingActivity.compensation.currency})
                   </label>
                   <input
                     id="newAmount"
@@ -999,10 +980,9 @@ export function ActivitiesClientView({
                   disabled={renewSubmitting}
                   onClick={() => handleKeepExpired(renewingActivity.id)}
                   className="text-xs text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-ink-200 underline cursor-pointer"
-                  title="Conserver l'activité expirée sans prolonger"
+                  title={tr("Conserver l'activité expirée sans prolonger")}
                 >
-                  Conserver expirée sans renouvellement
-                </button>
+                  {tr("Conserver expirée sans renouvellement")}</button>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                   <Button
@@ -1012,8 +992,7 @@ export function ActivitiesClientView({
                     disabled={renewSubmitting}
                     onClick={() => setRenewingActivity(null)}
                   >
-                    Annuler
-                  </Button>
+                    {tr("Annuler")}</Button>
                   <Button
                     type="submit"
                     variant="primary"
@@ -1022,8 +1001,7 @@ export function ActivitiesClientView({
                     disabled={renewSubmitting}
                     className="bg-purple-700 hover:bg-purple-800 text-white"
                   >
-                    Confirmer le renouvellement
-                  </Button>
+                    {tr("Confirmer le renouvellement")}</Button>
                 </div>
               </div>
             </form>

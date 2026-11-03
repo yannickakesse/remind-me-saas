@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import type { SupportedLocale, TranslationKey } from "@/lib/i18n/types";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/types";
 import { TRANSLATIONS } from "@/lib/i18n/translations";
+import { loadCatalog, translate, type Catalog, type TrFunction } from "@/lib/i18n/catalog";
 
 interface LanguageContextType {
   locale: SupportedLocale;
   setLocale: (newLocale: SupportedLocale) => Promise<void>;
   t: (key: TranslationKey | (string & {}), params?: Record<string, string | number>) => string;
+  /** Traduction par texte source : tr("Nouvelle tâche") */
+  tr: TrFunction;
   locales: typeof SUPPORTED_LOCALES;
 }
 
@@ -17,18 +20,40 @@ const LanguageContext = createContext<LanguageContextType>({
   locale: "fr",
   setLocale: async () => {},
   t: (key: TranslationKey | (string & {})) => key,
+  tr: (source) => source,
   locales: SUPPORTED_LOCALES,
 });
 
 export function LanguageProvider({
   children,
   initialLocale = "fr",
+  initialCatalog = {},
 }: {
   children: React.ReactNode;
   initialLocale?: SupportedLocale;
+  initialCatalog?: Catalog;
 }) {
   const router = useRouter();
   const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
+  const [catalog, setCatalog] = useState<Catalog>(initialCatalog);
+  const catalogLocaleRef = React.useRef<SupportedLocale>(initialLocale);
+
+  // Charge le catalogue de la langue active (une seule langue téléchargée à la fois)
+  useEffect(() => {
+    if (catalogLocaleRef.current === locale) return;
+    let cancelled = false;
+    loadCatalog(locale).then((next) => {
+      if (!cancelled) {
+        catalogLocaleRef.current = locale;
+        setCatalog(next);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
+
+  const tr = useCallback<TrFunction>((source, params) => translate(catalog, source, params), [catalog]);
 
   const applyDirection = useCallback((loc: SupportedLocale) => {
     if (typeof document !== "undefined") {
@@ -116,6 +141,7 @@ export function LanguageProvider({
         locale,
         setLocale,
         t,
+        tr,
         locales: SUPPORTED_LOCALES,
       }}
     >

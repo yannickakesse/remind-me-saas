@@ -1,11 +1,14 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useEffect } from "react";
 import { WifiOff, RefreshCw, CheckCircle2 } from "lucide-react";
 import { processOfflineSyncQueue } from "@/lib/offline/sync-queue";
 import { useToast } from "@/components/ui/toast";
 
 export function OfflineSyncIndicator() {
+  const { tr } = useLanguage();
   const { push: showToast } = useToast();
   const [isOffline, setIsOffline] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -34,7 +37,7 @@ export function OfflineSyncIndicator() {
 
     function handleOffline() {
       setIsOffline(true);
-      showToast("Mode hors-ligne actif. Vos saisies sont enregistrées localement.", "info");
+      showToast(tr("Mode hors-ligne actif. Vos saisies sont enregistrées localement."), "info");
     }
 
     window.addEventListener("online", handleOnline);
@@ -53,21 +56,21 @@ export function OfflineSyncIndicator() {
       {isOffline && (
         <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/90 text-slate-950 font-bold text-xs shadow-lg shadow-black/30 backdrop-blur-md border border-amber-300/40">
           <WifiOff className="w-3.5 h-3.5" />
-          <span>Mode hors-ligne — Données conservées localement</span>
+          <span>{tr("Mode hors-ligne — Données conservées localement")}</span>
         </div>
       )}
 
       {syncing && (
         <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-600/90 text-white font-bold text-xs shadow-lg shadow-black/30 backdrop-blur-md">
           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-          <span>Synchronisation des modifications...</span>
+          <span>{tr("Synchronisation des modifications...")}</span>
         </div>
       )}
 
       {justSynced && !syncing && !isOffline && (
         <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-600/90 text-white font-bold text-xs shadow-lg shadow-black/30 backdrop-blur-md animate-out fade-out duration-1000">
           <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>Données synchronisées avec succès !</span>
+          <span>{tr("Données synchronisées avec succès !")}</span>
         </div>
       )}
     </div>

@@ -24,7 +24,7 @@ export function CalendarToolbar({
   anchorDate: string;
   timezone: string;
 }) {
-  const { locale, t } = useLanguage();
+  const { locale, t , tr } = useLanguage();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -156,7 +156,7 @@ export function CalendarToolbar({
             disabled={isExporting}
             className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-75 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             data-tour="calendar-export-btn"
-            title="Télécharger ou imprimer le calendrier en PDF A4"
+            title={tr("Télécharger ou imprimer le calendrier en PDF A4")}
           >
             {isExporting ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -172,11 +172,9 @@ export function CalendarToolbar({
             <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-2 z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
               <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
                 <span className="font-extrabold text-slate-900 dark:text-white text-[11px] uppercase tracking-wider block">
-                  Exportation PDF A4
-                </span>
+                  {tr("Exportation PDF A4")}</span>
                 <span className="text-[10px] text-slate-500">
-                  {dt.toFormat("MMMM yyyy")} • Dimensions 210 × 297 mm
-                </span>
+                  {dt.toFormat("MMMM yyyy")} {tr("• Dimensions 210 × 297 mm")}</span>
               </div>
 
               <div className="py-1 space-y-1">
@@ -193,8 +191,7 @@ export function CalendarToolbar({
                       {t("calendar.download_pdf")}
                     </div>
                     <div className="text-[10px] text-slate-500 leading-tight">
-                      Fichier PDF autonome prêt pour impression ou partage
-                    </div>
+                      {tr("Fichier PDF autonome prêt pour impression ou partage")}</div>
                   </div>
                 </button>
 
@@ -211,8 +208,7 @@ export function CalendarToolbar({
                       {t("calendar.print_pdf")}
                     </div>
                     <div className="text-[10px] text-slate-500 leading-tight">
-                      Aperçu plein écran &amp; boîte de dialogue d&apos;impression
-                    </div>
+                      {tr("Aperçu plein écran & boîte de dialogue d'impression")}</div>
                   </div>
                 </Link>
               </div>
@@ -233,8 +229,7 @@ export function CalendarToolbar({
             onClick={() => setExportError(null)}
             className="text-xs font-bold hover:underline"
           >
-            Fermer
-          </button>
+            {tr("Fermer")}</button>
         </div>
       )}
     </div>

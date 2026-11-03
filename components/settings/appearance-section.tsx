@@ -2,7 +2,7 @@
 
 import { useTheme, type ThemePreference } from "@/components/theme/theme-provider";
 import { useLanguage } from "@/components/i18n/language-provider";
-import { CountryFlag } from "@/components/ui/country-flag";
+import { LanguageSelector } from "@/components/ui/language-selector";
 import { Globe, Check, Sun, Moon, Laptop } from "lucide-react";
 
 const THEME_OPTIONS: { value: ThemePreference; labelKey: string; descKey: string; icon: any }[] = [
@@ -13,7 +13,7 @@ const THEME_OPTIONS: { value: ThemePreference; labelKey: string; descKey: string
 
 export function AppearanceSection() {
   const { theme, setTheme } = useTheme();
-  const { locale, setLocale, locales, t } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <div className="w-full space-y-8">
@@ -29,43 +29,9 @@ export function AppearanceSection() {
           {t("settings.language_desc")}
         </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {locales.map((loc) => {
-            const isSelected = loc.code === locale;
-            return (
-              <button
-                key={loc.code}
-                type="button"
-                onClick={() => setLocale(loc.code)}
-                aria-pressed={isSelected}
-                className={`relative flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all tap-active cursor-pointer ${
-                  isSelected
-                    ? "border-signal bg-signal/15 shadow-sm ring-2 ring-signal/30"
-                    : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-signal/40 hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                }`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-10 w-11 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-1">
-                    <CountryFlag code={loc.countryCode || loc.code} size="lg" />
-                  </div>
-                  <div className="min-w-0 flex flex-col">
-                    <span className={`text-xs truncate font-bold ${isSelected ? "text-signal" : "text-zinc-950 dark:text-white"}`}>
-                      {loc.label}
-                    </span>
-                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate font-medium">
-                      {loc.nativeLabel}
-                    </span>
-                  </div>
-                </div>
-
-                {isSelected && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-signal text-white shrink-0 shadow-xs">
-                    <Check className="w-3 h-3" strokeWidth={3} />
-                  </span>
-                )}
-              </button>
-            );
-          })}
+        {/* Même sélecteur que dans l'en-tête et le menu : une seule façon de changer de langue */}
+        <div className="rounded-2xl border border-ink-200/80 dark:border-ink-800 p-1">
+          <LanguageSelector variant="row" />
         </div>
       </div>
 

@@ -41,7 +41,7 @@ interface InteractiveProductTourProps {
 export function InteractiveProductTour({ initialCompleted = false }: InteractiveProductTourProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
   const [isActive, setIsActive] = useState(false);
   const [currentSteps, setCurrentSteps] = useState<TourStep[]>(MAIN_TOUR_STEPS);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -487,7 +487,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       role="dialog"
       aria-modal="true"
       data-remindme-tour="active"
-      aria-label={t("help.modal_title") || "Guide interactif Remind Me"}
+      aria-label={t("help.modal_title") || tr("Guide interactif Remind Me")}
     >
       {/* Masque Sombre avec Découpe Spotlight directe :
           La zone sombre intercepte les clics pour fermer/passer le guide, tandis que le trou
@@ -546,7 +546,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
                 </span>
                 {isContextual && (
                   <span className="rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold">
-                    {t("tour.badge_contextual") || "Guide contextuel"}
+                    {t("tour.badge_contextual") || tr("Guide contextuel")}
                   </span>
                 )}
               </div>
@@ -601,12 +601,12 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
               }`}
               title={
                 isSpeakingStep
-                  ? "Couper la voix du guide"
+                  ? tr("Couper la voix du guide")
                   : isVoiceMuted
-                  ? "Activer la voix du guide"
-                  : "Réécouter l'étape"
+                  ? tr("Activer la voix du guide")
+                  : tr("Réécouter l'étape")
               }
-              aria-label="Contrôle audio du guide"
+              aria-label={tr("Contrôle audio du guide")}
             >
               {isVoiceMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             </button>

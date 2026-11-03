@@ -1,9 +1,11 @@
+import { getTr } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { IncomeForm } from "@/components/shared/income-form";
 import { createIncome } from "../../actions";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 
 export default async function NewIncomePage() {
+  const tr = await getTr();
   const [user, profile] = await Promise.all([
     requireCurrentUser(),
     getCurrentProfile(),
@@ -23,11 +25,9 @@ export default async function NewIncomePage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-ink-950">Nouveau revenu</h1>
+        <h1 className="text-2xl font-semibold text-ink-950">{tr("Nouveau revenu")}</h1>
         <p className="text-ink-500">
-          Pour une échéance récurrente liée à une activité, préférez renseigner sa rémunération dans
-          la fiche de l&apos;activité — elle sera générée automatiquement ici.
-        </p>
+          {tr("Pour une échéance récurrente liée à une activité, préférez renseigner sa rémunération dans la fiche de l'activité — elle sera générée automatiquement ici.")}</p>
       </div>
       <IncomeForm
         activities={activities ?? []}

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useEffect } from "react";
 import {
   Mail,
@@ -28,6 +30,7 @@ export function InternalMessenger({
   locale = "fr",
   onUnreadChange,
 }: InternalMessengerProps) {
+  const { tr } = useLanguage();
   const [messages, setMessages] = useState<InternalMessageRow[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<InternalMessageRow | null>(null);
   const [loading, setLoading] = useState(false);
@@ -134,12 +137,12 @@ export function InternalMessenger({
                   {locale === "en"
                     ? "Inbox"
                     : locale === "es"
-                    ? "Buzón de entrada"
+                    ? tr("Buzón de entrada")
                     : locale === "de"
                     ? "Posteingang"
                     : locale === "pt"
-                    ? "Caixa de entrada"
-                    : "Boîte de réception"}
+                    ? tr("Caixa de entrada")
+                    : tr("Boîte de réception")}
                 </span>
               </button>
             ) : (
@@ -149,7 +152,7 @@ export function InternalMessenger({
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                    <span>Inbox Remind Me</span>
+                    <span>{tr("Inbox Remind Me")}</span>
                     {unreadCount > 0 && (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-black">
                         {unreadCount}{" "}
@@ -157,30 +160,30 @@ export function InternalMessenger({
                           ? "unread"
                           : locale === "es"
                           ? unreadCount > 1
-                            ? "no leídos"
-                            : "no leído"
+                            ? tr("no leídos")
+                            : tr("no leído")
                           : locale === "de"
                           ? "ungelesen"
                           : locale === "pt"
                           ? unreadCount > 1
-                            ? "não lidos"
-                            : "não lido"
+                            ? tr("não lidos")
+                            : tr("não lido")
                           : unreadCount > 1
-                          ? "non lus"
-                          : "non lu"}
+                          ? tr("non lus")
+                          : tr("non lu")}
                       </span>
                     )}
                   </h3>
                   <p className="text-[11px] text-slate-400">
                     {locale === "en"
-                      ? "Your financial alerts, daily summaries and official notices"
+                      ? tr("Your financial alerts, daily summaries and official notices")
                       : locale === "es"
-                      ? "Sus alertas financieras, balances y comunicaciones oficiales"
+                      ? tr("Sus alertas financieras, balances y comunicaciones oficiales")
                       : locale === "de"
-                      ? "Ihre Finanzwarnungen, Tagesübersichten und Mitteilungen"
+                      ? tr("Ihre Finanzwarnungen, Tagesübersichten und Mitteilungen")
                       : locale === "pt"
-                      ? "Seus alertas financeiros, relatórios diários e comunicados oficiais"
-                      : "Vos alertes financières, bilans et communications officielles"}
+                      ? tr("Seus alertas financeiros, relatórios diários e comunicados oficiais")
+                      : tr("Vos alertes financières, bilans et communications officielles")}
                   </p>
                 </div>
               </div>
@@ -229,14 +232,14 @@ export function InternalMessenger({
             <div className="pt-4 flex items-center justify-between text-xs text-slate-500">
               <span>
                 {locale === "en"
-                  ? "Official Remind Me notice"
+                  ? tr("Official Remind Me notice")
                   : locale === "es"
-                  ? "Mensaje oficial de Remind Me"
+                  ? tr("Mensaje oficial de Remind Me")
                   : locale === "de"
-                  ? "Offizielle Remind Me Mitteilung"
+                  ? tr("Offizielle Remind Me Mitteilung")
                   : locale === "pt"
-                  ? "Mensagem oficial do Remind Me"
-                  : "Message officiel Remind Me"}
+                  ? tr("Mensagem oficial do Remind Me")
+                  : tr("Message officiel Remind Me")}
               </span>
               <button
                 type="button"
@@ -244,14 +247,14 @@ export function InternalMessenger({
                 className="text-amber-400 hover:underline font-semibold"
               >
                 {locale === "en"
-                  ? "← Back to list"
+                  ? tr("← Back to list")
                   : locale === "es"
-                  ? "← Volver a la lista"
+                  ? tr("← Volver a la lista")
                   : locale === "de"
-                  ? "← Zurück zur Liste"
+                  ? tr("← Zurück zur Liste")
                   : locale === "pt"
-                  ? "← Voltar à lista"
-                  : "← Revenir à la liste"}
+                  ? tr("← Voltar à lista")
+                  : tr("← Revenir à la liste")}
               </button>
             </div>
           </div>
@@ -289,12 +292,12 @@ export function InternalMessenger({
                   {locale === "en"
                     ? "Unread"
                     : locale === "es"
-                    ? "No leídos"
+                    ? tr("No leídos")
                     : locale === "de"
                     ? "Ungelesen"
                     : locale === "pt"
-                    ? "Não lidos"
-                    : "Non lus"}{" "}
+                    ? tr("Não lidos")
+                    : tr("Non lus")}{" "}
                   ({unreadCount})
                 </button>
               </div>
@@ -305,14 +308,14 @@ export function InternalMessenger({
                   type="text"
                   placeholder={
                     locale === "en"
-                      ? "Search messages..."
+                      ? tr("Search messages...")
                       : locale === "es"
-                      ? "Buscar mensajes..."
+                      ? tr("Buscar mensajes...")
                       : locale === "de"
-                      ? "Nachrichten suchen..."
+                      ? tr("Nachrichten suchen...")
                       : locale === "pt"
-                      ? "Pesquisar mensagens..."
-                      : "Rechercher un message..."
+                      ? tr("Pesquisar mensagens...")
+                      : tr("Rechercher un message...")
                   }
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -326,14 +329,14 @@ export function InternalMessenger({
               {loading && messages.length === 0 ? (
                 <div className="p-10 text-center text-xs text-slate-400">
                   {locale === "en"
-                    ? "Loading your messages..."
+                    ? tr("Loading your messages...")
                     : locale === "es"
-                    ? "Cargando sus mensajes..."
+                    ? tr("Cargando sus mensajes...")
                     : locale === "de"
-                    ? "Ihre Nachrichten werden geladen..."
+                    ? tr("Ihre Nachrichten werden geladen...")
                     : locale === "pt"
-                    ? "Carregando suas mensagens..."
-                    : "Chargement de vos messages..."}
+                    ? tr("Carregando suas mensagens...")
+                    : tr("Chargement de vos messages...")}
                 </div>
               ) : filteredMessages.length === 0 ? (
                 <div className="p-12 text-center space-y-3">
@@ -341,34 +344,34 @@ export function InternalMessenger({
                   <p className="text-sm font-semibold text-slate-300">
                     {filter === "unread"
                       ? locale === "en"
-                        ? "No unread messages"
+                        ? tr("No unread messages")
                         : locale === "es"
-                        ? "No hay mensajes sin leer"
+                        ? tr("No hay mensajes sin leer")
                         : locale === "de"
-                        ? "Keine ungelesenen Nachrichten"
+                        ? tr("Keine ungelesenen Nachrichten")
                         : locale === "pt"
-                        ? "Nenhuma mensagem não lida"
-                        : "Aucun message non lu"
+                        ? tr("Nenhuma mensagem não lida")
+                        : tr("Aucun message non lu")
                       : locale === "en"
-                      ? "Your inbox is empty"
+                      ? tr("Your inbox is empty")
                       : locale === "es"
-                      ? "Su buzón de entrada está vacío"
+                      ? tr("Su buzón de entrada está vacío")
                       : locale === "de"
-                      ? "Ihr Posteingang ist leer"
+                      ? tr("Ihr Posteingang ist leer")
                       : locale === "pt"
-                      ? "Sua caixa de entrada está vazia"
-                      : "Votre boîte de réception est vide"}
+                      ? tr("Sua caixa de entrada está vazia")
+                      : tr("Votre boîte de réception est vide")}
                   </p>
                   <p className="text-xs text-slate-500 max-w-xs mx-auto">
                     {locale === "en"
-                      ? "Your important activity reminders, financial alerts and daily summaries will appear here."
+                      ? tr("Your important activity reminders, financial alerts and daily summaries will appear here.")
                       : locale === "es"
-                      ? "Sus recordatorios de actividades, alertas financieras y balances diarios se archivarán aquí."
+                      ? tr("Sus recordatorios de actividades, alertas financieras y balances diarios se archivarán aquí.")
                       : locale === "de"
-                      ? "Ihre Aktivitätserinnerungen, Finanzwarnungen und Tagesbilanzen werden hier archiviert."
+                      ? tr("Ihre Aktivitätserinnerungen, Finanzwarnungen und Tagesbilanzen werden hier archiviert.")
                       : locale === "pt"
-                      ? "Seus lembretes de atividades, alertas financeiros e relatórios diários serão arquivados aqui."
-                      : "Vos rappels d'activités importants, alertes financières et bilans quotidiens seront archivés ici."}
+                      ? tr("Seus lembretes de atividades, alertas financeiros e relatórios diários serão arquivados aqui.")
+                      : tr("Vos rappels d'activités importants, alertes financières et bilans quotidiens seront archivés ici.")}
                   </p>
                 </div>
               ) : (

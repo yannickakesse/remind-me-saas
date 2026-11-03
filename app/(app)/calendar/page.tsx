@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import { PageBackground } from "@/components/shared/page-background";
 import { DateTime } from "luxon";
 import { createClient } from "@/lib/supabase/server";
@@ -19,6 +20,7 @@ export default async function CalendarPage({
 }: {
   searchParams: { view?: string; date?: string };
 }) {
+  const tr = await getTr();
   const [user, profile] = await Promise.all([
     requireCurrentUser(),
     getCurrentProfile(),
@@ -94,14 +96,12 @@ export default async function CalendarPage({
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white truncate">
-              Calendrier &amp; Planning
-            </h1>
+              {tr("Calendrier & Planning")}</h1>
             <p className="text-xs sm:text-sm text-ink-500 mt-1">
-              Vos séances d&apos;activités et vos échéances financières programmées.
-            </p>
+              {tr("Vos séances d'activités et vos échéances financières programmées.")}</p>
           </div>
           <div className="shrink-0">
-            <SectionGuideTrigger section="calendar" label="Guide du planning" />
+            <SectionGuideTrigger section="calendar" label={tr("Guide du planning")} />
           </div>
         </div>
       </div>

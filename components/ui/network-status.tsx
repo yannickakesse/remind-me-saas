@@ -8,7 +8,7 @@ export function NetworkStatus() {
   const [isOnline, setIsOnline] = useState(true);
   const [showReconnected, setShowReconnected] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
-  const { locale } = useLanguage();
+  const { locale , tr } = useLanguage();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -69,14 +69,14 @@ export function NetworkStatus() {
           </div>
           <p className="truncate font-semibold text-ink-950 text-xs sm:text-sm">
             {locale === "fr"
-              ? "Connexion perdue • Mode hors-ligne"
+              ? tr("Connexion perdue • Mode hors-ligne")
               : locale === "es"
-              ? "Sin conexión • Modo sin conexión"
+              ? tr("Sin conexión • Modo sin conexión")
               : locale === "de"
-              ? "Keine Verbindung • Offline-Modus"
+              ? tr("Keine Verbindung • Offline-Modus")
               : locale === "ar"
               ? "انقطع الاتصال • وضع عدم الاتصال"
-              : "Connection lost • Offline mode"}
+              : tr("Connection lost • Offline mode")}
           </p>
         </div>
 
@@ -84,7 +84,7 @@ export function NetworkStatus() {
           onClick={handleManualCheck}
           disabled={isChecking}
           className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-ink-950/15 hover:bg-ink-950/25 active:bg-ink-950/30 text-ink-950 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-          title="Vérifier la connexion"
+          title={tr("Vérifier la connexion")}
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isChecking ? "animate-spin" : ""}`} />
           <span className="hidden sm:inline">
@@ -106,14 +106,14 @@ export function NetworkStatus() {
         <Wifi className="w-4 h-4 text-white shrink-0 animate-bounce" />
         <span className="font-semibold text-xs sm:text-sm">
           {locale === "fr"
-            ? "Connexion Internet rétablie avec succès"
+            ? tr("Connexion Internet rétablie avec succès")
             : locale === "es"
-            ? "Conexión a Internet restablecida"
+            ? tr("Conexión a Internet restablecida")
             : locale === "de"
-            ? "Internetverbindung wiederhergestellt"
+            ? tr("Internetverbindung wiederhergestellt")
             : locale === "ar"
             ? "تمت استعادة الاتصال بالإنترنت بنجاح"
-            : "Internet connection restored successfully"}
+            : tr("Internet connection restored successfully")}
         </span>
       </aside>
     );

@@ -28,18 +28,12 @@ export async function getUserSubscription(
     .eq("user_id", userId)
     .maybeSingle();
 
-  let rawPlan = sub?.plan;
-
-  if (!rawPlan) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user?.id === userId && user?.user_metadata?.subscription_plan) {
-      rawPlan = user.user_metadata.subscription_plan;
-    }
-  }
-
-  const plan = normalizePlan(rawPlan);
+  // Pas de repli sur user_metadata : ce champ est modifiable par l'utilisateur lui-même.
   const status = sub?.status ?? "active";
   const currentPeriodEnd = sub?.current_period_end ?? null;
+  // Un forfait payant expiré ou inactif repasse automatiquement au forfait gratuit
+  const isExpired = currentPeriodEnd !== null && new Date(currentPeriodEnd).getTime() < Date.now();
+  const plan = status !== "active" || isExpired ? "free" : normalizePlan(sub?.plan);
 
   return {
     plan,

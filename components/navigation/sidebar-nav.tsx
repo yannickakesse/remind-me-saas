@@ -38,10 +38,10 @@ const NAV_ITEMS: NavItemDef[] = [
 
 export function SidebarNav() {
   const pathname = usePathname();
-  const { t } = useLanguage();
+  const { t , tr } = useLanguage();
 
   return (
-    <nav className="flex flex-col gap-1.5" aria-label="Navigation principale">
+    <nav className="flex flex-col gap-1.5" aria-label={tr("Navigation principale")}>
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isActive =
