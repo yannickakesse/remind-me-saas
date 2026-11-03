@@ -292,7 +292,7 @@ export function MessagesInboxView({
             return it;
           })
         );
-        toast.push(`Échéance reportée de ${days} jours.`, "info");
+        toast.push(tr("Échéance reportée de {days} jours.", { days }), "info");
       } else {
         toast.push(res.error || "Erreur lors du report.", "error");
       }
@@ -326,7 +326,7 @@ export function MessagesInboxView({
             return it;
           })
         );
-        toast.push(`Dépense reportée de ${days} jours.`, "info");
+        toast.push(tr("Dépense reportée de {days} jours.", { days }), "info");
       } else {
         toast.push(res.error || "Erreur lors du report.", "error");
       }
@@ -759,8 +759,8 @@ export function MessagesInboxView({
                           <Calendar className="w-3 h-3 text-ink-400" />
                           <span>
                             {item.status === "completed" && item.resolvedDate
-                              ? `Réglé le ${formatDateLocale(item.resolvedDate, currentLocale)}`
-                              : `Échéance : ${formatDateLocale(item.dueDate, currentLocale)}`}
+                              ? tr("Réglé le {v0}", { v0: formatDateLocale(item.resolvedDate, currentLocale) })
+                              : tr("Échéance : {v0}", { v0: formatDateLocale(item.dueDate, currentLocale) })}
                           </span>
                         </span>
                       )}

@@ -187,7 +187,7 @@ export function TaskCard({ task }: TaskCardProps) {
         d.setDate(d.getDate() + days);
         const newDateStr = d.toISOString().slice(0, 10);
         await postponeTask(task.id, newDateStr);
-        toast.push(`Tâche reportée de ${days} jour(s).`, "info");
+        toast.push(tr("Tâche reportée de {days} jour(s).", { days }), "info");
       } catch (err) {
         toast.push(tr("Erreur lors du report."), "error");
       } finally {

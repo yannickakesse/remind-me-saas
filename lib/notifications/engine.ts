@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { DateTime } from "luxon";
 import type { Database, NotificationPriority, SupportedLocale } from "@/types/database";
 import { t, formatCurrencyLocale, formatDateLocale } from "@/lib/i18n/format";
+import { getTrFor } from "@/lib/i18n/catalog";
 import { sendNotificationEmail } from "@/lib/email/service";
 import { sendNotificationPush } from "@/lib/push/service";
 import { ensureCalendarEvents } from "@/lib/calendar/sync";
@@ -243,6 +244,8 @@ export async function evaluateSmartReminders(
     return { processed: 0, inserted: 0, emailCount: 0, pushCount: 0, resolvedCleanups: 0 };
   }
   const locale: SupportedLocale = prefsData?.preferred_locale ?? (profileData?.locale as SupportedLocale) ?? "fr";
+  // Rappels rédigés dans la langue choisie par l'utilisateur (titres, textes, e-mails, push)
+  const tr = await getTrFor(locale);
   const voiceLang: "fr" | "en" | "es" = (locale === "fr" || locale === "en" || locale === "es") ? locale : "fr";
   const emailEnabled = prefsData?.email_enabled ?? true;
   const pushEnabled = prefsData?.push_enabled ?? true;
@@ -389,8 +392,8 @@ export async function evaluateSmartReminders(
         });
 
         const bodyText = daysDiff === 3
-          ? `Bonjour, vous devez recevoir ${formattedAmount} de votre activité « ${activityName} » dans trois jours.`
-          : `Un paiement de ${formattedAmount} pour « ${inc.label} » est attendu le ${formattedDate}.`;
+          ? tr("Bonjour, vous devez recevoir {formattedAmount} de votre activité « {activityName} » dans trois jours.", { formattedAmount, activityName })
+          : tr("Un paiement de {formattedAmount} pour « {label} » est attendu le {formattedDate}.", { formattedAmount, label: inc.label, formattedDate });
 
         candidates.push({
           user_id: userId,
@@ -400,7 +403,7 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "income",
           entity_id: inc.id,
-          title: `Paiement prévu dans ${daysDiff} jours : ${inc.label}`,
+          title: tr("Paiement prévu dans {daysDiff} jours : {label}", { daysDiff, label: inc.label }),
           body: bodyText,
           title_key: "notif.payment_upcoming.title",
           body_key: "notif.payment_upcoming.body",
@@ -429,8 +432,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "income",
           entity_id: inc.id,
-          title: `Paiement prévu demain : ${inc.label}`,
-          body: `Un paiement de ${formattedAmount} pour « ${inc.label} » est attendu pour demain (${formattedDate}).`,
+          title: tr("Paiement prévu demain : {label}", { label: inc.label }),
+          body: tr("Un paiement de {formattedAmount} pour « {label} » est attendu pour demain ({formattedDate}).", { formattedAmount, label: inc.label, formattedDate }),
           title_key: "notif.payment_upcoming.title",
           body_key: "notif.payment_upcoming.body",
           metadata: {
@@ -468,8 +471,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "income",
           entity_id: inc.id,
-          title: `Paiement attendu aujourd'hui : ${inc.label}`,
-          body: `Bonjour, aujourd'hui est la date prévue pour recevoir ${formattedAmount} de votre activité « ${activityName} ».`,
+          title: tr("Paiement attendu aujourd'hui : {label}", { label: inc.label }),
+          body: tr("Bonjour, aujourd'hui est la date prévue pour recevoir {formattedAmount} de votre activité « {activityName} ».", { formattedAmount, activityName }),
           title_key: "notif.payment_due_today.title",
           body_key: "notif.payment_due_today.body",
           metadata: {
@@ -492,11 +495,11 @@ export async function evaluateSmartReminders(
         const overdueDays = Math.abs(daysDiff);
         const priority: NotificationPriority = overdueDays >= 7 ? "critical" : "high";
         const overdueTitle = overdueDays === 1
-          ? `Paiement en retard (1 jour) : ${inc.label}`
-          : `Paiement toujours en retard (${overdueDays}j) : ${inc.label}`;
+          ? tr("Paiement en retard (1 jour) : {label}", { label: inc.label })
+          : tr("Paiement toujours en retard ({overdueDays}j) : {label}", { overdueDays, label: inc.label });
         const overdueBody = overdueDays === 1
-          ? `Le paiement de ${formattedAmount} pour « ${inc.label} » devait être reçu hier (${formattedDate}).`
-          : `Le paiement de ${formattedAmount} pour « ${inc.label} » est toujours en attente depuis le ${formattedDate}.`;
+          ? tr("Le paiement de {formattedAmount} pour « {label} » devait être reçu hier ({formattedDate}).", { formattedAmount, label: inc.label, formattedDate })
+          : tr("Le paiement de {formattedAmount} pour « {label} » est toujours en attente depuis le {formattedDate}.", { formattedAmount, label: inc.label, formattedDate });
 
         candidates.push({
           user_id: userId,
@@ -550,9 +553,9 @@ export async function evaluateSmartReminders(
           entity_type: "expense",
           entity_id: exp.id,
           title: daysDiff === 1
-            ? `Facture à régler demain : ${exp.label}`
-            : `Facture à régler dans ${daysDiff} jours : ${exp.label}`,
-          body: `Une dépense de ${formattedAmount} pour « ${exp.label} » arrive à échéance le ${formattedDate}.`,
+            ? tr("Facture à régler demain : {label}", { label: exp.label })
+            : tr("Facture à régler dans {daysDiff} jours : {label}", { daysDiff, label: exp.label }),
+          body: tr("Une dépense de {formattedAmount} pour « {label} » arrive à échéance le {formattedDate}.", { formattedAmount, label: exp.label, formattedDate }),
           metadata: { amount: exp.amount, currency: exp.currency, label: exp.label, days: daysDiff },
           link: `/finances?tab=expenses`,
           scheduled_at: userNow.toISO()!,
@@ -568,8 +571,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "expense",
           entity_id: exp.id,
-          title: `Dépense à régler aujourd'hui : ${exp.label}`,
-          body: `La facture « ${exp.label} » (${formattedAmount}) doit être réglée aujourd'hui.`,
+          title: tr("Dépense à régler aujourd'hui : {label}", { label: exp.label }),
+          body: tr("La facture « {label} » ({formattedAmount}) doit être réglée aujourd'hui.", { label: exp.label, formattedAmount }),
           metadata: { amount: exp.amount, currency: exp.currency, label: exp.label },
           link: `/finances?tab=expenses`,
           scheduled_at: userNow.toISO()!,
@@ -587,9 +590,9 @@ export async function evaluateSmartReminders(
           entity_type: "expense",
           entity_id: exp.id,
           title: overdueDays === 1
-            ? `Dépense en retard (1 jour) : ${exp.label}`
-            : `Dépense en retard (${overdueDays}j) : ${exp.label}`,
-          body: `La dépense « ${exp.label} » (${formattedAmount}) a dépassé son échéance du ${formattedDate}.`,
+            ? tr("Dépense en retard (1 jour) : {label}", { label: exp.label })
+            : tr("Dépense en retard ({overdueDays}j) : {label}", { overdueDays, label: exp.label }),
+          body: tr("La dépense « {label} » ({formattedAmount}) a dépassé son échéance du {formattedDate}.", { label: exp.label, formattedAmount, formattedDate }),
           metadata: { amount: exp.amount, currency: exp.currency, label: exp.label, days: overdueDays },
           link: `/finances?tab=expenses`,
           scheduled_at: userNow.toISO()!,
@@ -628,9 +631,9 @@ export async function evaluateSmartReminders(
           entity_type: "scheduled_expense",
           entity_id: sch.id,
           title: daysDiff === 1
-            ? `Facture programmée pour demain : ${sch.name}`
-            : `Facture programmée dans ${daysDiff} jours : ${sch.name}`,
-          body: `L'échéance de ${formattedAmount} pour « ${sch.name} » est prévue le ${formatDateLocale(sch.next_due_date, locale, userTimezone)}.`,
+            ? tr("Facture programmée pour demain : {name}", { name: sch.name })
+            : tr("Facture programmée dans {daysDiff} jours : {name}", { daysDiff, name: sch.name }),
+          body: tr("L'échéance de {formattedAmount} pour « {name} » est prévue le {v2}.", { formattedAmount, name: sch.name, v2: formatDateLocale(sch.next_due_date, locale, userTimezone) }),
           metadata: { amount: sch.amount, currency: sch.currency, label: sch.name, frequency: sch.frequency },
           link: `/finances?tab=scheduled`,
           scheduled_at: userNow.toISO()!,
@@ -645,8 +648,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "scheduled_expense",
           entity_id: sch.id,
-          title: `Facture à régler aujourd'hui : ${sch.name}`,
-          body: `Facture programmée de ${formattedAmount} pour « ${sch.name} ».`,
+          title: tr("Facture à régler aujourd'hui : {name}", { name: sch.name }),
+          body: tr("Facture programmée de {formattedAmount} pour « {name} ».", { formattedAmount, name: sch.name }),
           metadata: { amount: sch.amount, currency: sch.currency, label: sch.name },
           link: `/finances?tab=scheduled`,
           scheduled_at: userNow.toISO()!,
@@ -662,8 +665,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "scheduled_expense",
           entity_id: sch.id,
-          title: `Facture programmée en retard (${overdueDays}j) : ${sch.name}`,
-          body: `Facture programmée de ${formattedAmount} pour « ${sch.name} » en attente de règlement.`,
+          title: tr("Facture programmée en retard ({overdueDays}j) : {name}", { overdueDays, name: sch.name }),
+          body: tr("Facture programmée de {formattedAmount} pour « {name} » en attente de règlement.", { formattedAmount, name: sch.name }),
           metadata: { amount: sch.amount, currency: sch.currency, label: sch.name, overdueDays },
           link: `/finances?tab=scheduled`,
           scheduled_at: userNow.toISO()!,
@@ -772,9 +775,9 @@ export async function evaluateSmartReminders(
           entity_type: "activity",
           entity_id: evt.id,
           title: daysAgo >= 1
-            ? `⚠️ Séance non confirmée (${daysAgo}j de retard) : ${evt.title}`
-            : `Séance passée : ${evt.title}`,
-          body: `Votre séance « ${evt.title} » du ${formatDateLocale(eventStart.toISODate()!, locale, userTimezone)} est terminée. Confirmez sa réalisation.`,
+            ? tr("⚠️ Séance non confirmée ({daysAgo}j de retard) : {title}", { daysAgo, title: evt.title })
+            : tr("Séance passée : {title}", { title: evt.title }),
+          body: tr("Votre séance « {title} » du {v1} est terminée. Confirmez sa réalisation.", { title: evt.title, v1: formatDateLocale(eventStart.toISODate()!, locale, userTimezone) }),
           metadata: {
             title: evt.title,
             starts_at: evt.starts_at,
@@ -808,8 +811,8 @@ export async function evaluateSmartReminders(
             status: "unread",
             entity_type: "activity",
             entity_id: evt.id,
-            title: `⏰ Dans ${firstLead} min : ${evt.title}`,
-            body: `Votre activité « ${evt.title} » commence à ${eventStart.toFormat("HH:mm")}. Préparez-vous tranquillement, votre session approche.`,
+            title: tr("⏰ Dans {firstLead} min : {title}", { firstLead, title: evt.title }),
+            body: tr("Votre activité « {title} » commence à {v1}. Préparez-vous tranquillement, votre session approche.", { title: evt.title, v1: eventStart.toFormat("HH:mm") }),
             metadata: {
               title: evt.title,
               starts_at: evt.starts_at,
@@ -842,8 +845,8 @@ export async function evaluateSmartReminders(
             status: "unread",
             entity_type: "activity",
             entity_id: evt.id,
-            title: `⚡ Dans ${secondLead} min : ${evt.title}`,
-            body: `Votre séance « ${evt.title} » débute dans ${secondLead} minutes (à ${eventStart.toFormat("HH:mm")}).`,
+            title: tr("⚡ Dans {secondLead} min : {title}", { secondLead, title: evt.title }),
+            body: tr("Votre séance « {title} » débute dans {secondLead} minutes (à {v2}).", { title: evt.title, secondLead, v2: eventStart.toFormat("HH:mm") }),
             metadata: {
               title: evt.title,
               starts_at: evt.starts_at,
@@ -876,8 +879,8 @@ export async function evaluateSmartReminders(
             status: "unread",
             entity_type: "activity",
             entity_id: evt.id,
-            title: `🎯 C'est l'heure : ${evt.title}`,
-            body: `Votre activité « ${evt.title} » commence maintenant (de ${eventStart.toFormat("HH:mm")} à ${eventEnd.toFormat("HH:mm")}).`,
+            title: tr("🎯 C'est l'heure : {title}", { title: evt.title }),
+            body: tr("Votre activité « {title} » commence maintenant (de {v1} à {v2}).", { title: evt.title, v1: eventStart.toFormat("HH:mm"), v2: eventEnd.toFormat("HH:mm") }),
             metadata: {
               title: evt.title,
               starts_at: evt.starts_at,
@@ -900,8 +903,8 @@ export async function evaluateSmartReminders(
             status: "unread",
             entity_type: "activity",
             entity_id: evt.id,
-            title: `Séance aujourd'hui : ${evt.title}`,
-            body: `Vous avez « ${evt.title} » prévue aujourd'hui de ${eventStart.toFormat("HH:mm")} à ${eventEnd.toFormat("HH:mm")}.`,
+            title: tr("Séance aujourd'hui : {title}", { title: evt.title }),
+            body: tr("Vous avez « {title} » prévue aujourd'hui de {v1} à {v2}.", { title: evt.title, v1: eventStart.toFormat("HH:mm"), v2: eventEnd.toFormat("HH:mm") }),
             metadata: {
               title: evt.title,
               starts_at: evt.starts_at,
@@ -923,8 +926,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "activity",
           entity_id: evt.id,
-          title: `Séance demain : ${evt.title}`,
-          body: `N'oubliez pas votre séance « ${evt.title} » demain à ${eventStart.toFormat("HH:mm")}.`,
+          title: tr("Séance demain : {title}", { title: evt.title }),
+          body: tr("N'oubliez pas votre séance « {title} » demain à {v1}.", { title: evt.title, v1: eventStart.toFormat("HH:mm") }),
           metadata: { title: evt.title, starts_at: evt.starts_at, days: 1, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
           link: `/calendar/${evt.id}`,
           scheduled_at: userNow.toISO()!,
@@ -944,8 +947,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "activity",
           entity_id: evt.id,
-          title: `Séance dans ${daysDiff} jours : ${evt.title}`,
-          body: `Votre séance « ${evt.title} » aura lieu le ${formatDateLocale(eventStart.toISODate()!, locale, userTimezone)} à ${eventStart.toFormat("HH:mm")}.`,
+          title: tr("Séance dans {daysDiff} jours : {title}", { daysDiff, title: evt.title }),
+          body: tr("Votre séance « {title} » aura lieu le {v1} à {v2}.", { title: evt.title, v1: formatDateLocale(eventStart.toISODate()!, locale, userTimezone), v2: eventStart.toFormat("HH:mm") }),
           metadata: { title: evt.title, starts_at: evt.starts_at, days: daysDiff, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
           link: `/calendar/${evt.id}`,
           scheduled_at: userNow.toISO()!,
@@ -996,14 +999,14 @@ export async function evaluateSmartReminders(
 
       if (isCandidateDay) {
         const title = isTempEngagement
-          ? `Engagement arrivant à terme : ${act.name}`
+          ? tr("Engagement arrivant à terme : {name}", { name: act.name })
           : isImportant
-          ? `⚠️ Échéance importante proche : ${act.name}`
-          : `Activité arrivant à terme : ${act.name}`;
+          ? tr("⚠️ Échéance importante proche : {name}", { name: act.name })
+          : tr("Activité arrivant à terme : {name}", { name: act.name });
 
         const body = isTempEngagement
-          ? `Votre engagement temporaire « ${act.name} » arrive à échéance dans ${daysDiff} jour(s) (le ${formatDateLocale(act.end_date, locale, userTimezone)}). Vous pouvez le prolonger ou le renouveler.`
-          : `L'activité « ${act.name} » arrive à échéance dans ${daysDiff} jour(s) (le ${formatDateLocale(act.end_date, locale, userTimezone)}).`;
+          ? tr("Votre engagement temporaire « {name} » arrive à échéance dans {daysDiff} jour(s) (le {v2}). Vous pouvez le prolonger ou le renouveler.", { name: act.name, daysDiff, v2: formatDateLocale(act.end_date, locale, userTimezone) })
+          : tr("L'activité « {name} » arrive à échéance dans {daysDiff} jour(s) (le {v2}).", { name: act.name, daysDiff, v2: formatDateLocale(act.end_date, locale, userTimezone) });
 
         candidates.push({
           user_id: userId,
@@ -1038,8 +1041,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "activity",
           entity_id: act.id,
-          title: `Activité arrivée à expiration : ${act.name}`,
-          body: `L'activité « ${act.name} » est arrivée à expiration le ${formatDateLocale(act.end_date, locale, userTimezone)}. Vous pouvez la prolonger ou l'archiver.`,
+          title: tr("Activité arrivée à expiration : {name}", { name: act.name }),
+          body: tr("L'activité « {name} » est arrivée à expiration le {v1}. Vous pouvez la prolonger ou l'archiver.", { name: act.name, v1: formatDateLocale(act.end_date, locale, userTimezone) }),
           metadata: {
             activityId: act.id,
             name: act.name,
@@ -1104,9 +1107,9 @@ export async function evaluateSmartReminders(
           entity_type: "task",
           entity_id: tsk.id,
           title: overdueDays === 1
-            ? `Tâche en retard (1 jour) : ${tsk.title}`
-            : `Tâche toujours en retard (${overdueDays}j) : ${tsk.title}`,
-          body: `La tâche « ${tsk.title} » est en retard depuis le ${formatDateLocale(tsk.due_date, locale, userTimezone)}.`,
+            ? tr("Tâche en retard (1 jour) : {title}", { title: tsk.title })
+            : tr("Tâche toujours en retard ({overdueDays}j) : {title}", { overdueDays, title: tsk.title }),
+          body: tr("La tâche « {title} » est en retard depuis le {v1}.", { title: tsk.title, v1: formatDateLocale(tsk.due_date, locale, userTimezone) }),
           metadata: { title: tsk.title, priority: tsk.priority, overdueDays },
           link: `/tasks/${tsk.id}/edit`,
           scheduled_at: userNow.toISO()!,
@@ -1125,10 +1128,10 @@ export async function evaluateSmartReminders(
             status: "unread",
             entity_type: "task",
             entity_id: tsk.id,
-            title: `Rappel tâche : ${tsk.title}`,
+            title: tr("Rappel tâche : {title}", { title: tsk.title }),
             body: tsk.due_time
-              ? `Échéance prévue aujourd'hui à ${tsk.due_time} pour « ${tsk.title} »`
-              : `La tâche « ${tsk.title} » arrive à échéance aujourd'hui.`,
+              ? tr("Échéance prévue aujourd'hui à {due_time} pour « {title} »", { due_time: tsk.due_time, title: tsk.title })
+              : tr("La tâche « {title} » arrive à échéance aujourd'hui.", { title: tsk.title }),
             metadata: { title: tsk.title, priority: tsk.priority },
             link: `/tasks/${tsk.id}/edit`,
             scheduled_at: userNow.toISO()!,
@@ -1144,8 +1147,8 @@ export async function evaluateSmartReminders(
             status: "unread",
             entity_type: "task",
             entity_id: tsk.id,
-            title: `Tâche du jour : ${tsk.title}`,
-            body: `La tâche « ${tsk.title} » est programmée pour aujourd'hui.`,
+            title: tr("Tâche du jour : {title}", { title: tsk.title }),
+            body: tr("La tâche « {title} » est programmée pour aujourd'hui.", { title: tsk.title }),
             metadata: { title: tsk.title },
             link: `/tasks/${tsk.id}/edit`,
             scheduled_at: userNow.toISO()!,
@@ -1163,9 +1166,9 @@ export async function evaluateSmartReminders(
           entity_type: "task",
           entity_id: tsk.id,
           title: daysDiff === 1
-            ? `Tâche pour demain : ${tsk.title}`
-            : `Tâche dans ${daysDiff} jours : ${tsk.title}`,
-          body: `La tâche « ${tsk.title} » est prévue pour le ${formatDateLocale(tsk.due_date, locale, userTimezone)}.`,
+            ? tr("Tâche pour demain : {title}", { title: tsk.title })
+            : tr("Tâche dans {daysDiff} jours : {title}", { daysDiff, title: tsk.title }),
+          body: tr("La tâche « {title} » est prévue pour le {v1}.", { title: tsk.title, v1: formatDateLocale(tsk.due_date, locale, userTimezone) }),
           metadata: { title: tsk.title, priority: tsk.priority, days: daysDiff },
           link: `/tasks/${tsk.id}/edit`,
           scheduled_at: userNow.toISO()!,
@@ -1208,7 +1211,7 @@ export async function evaluateSmartReminders(
       const totalIncome = (monthIncomes || []).reduce((acc, inc) => acc + Number(inc.amount || 0), 0);
       const currency = monthIncomes?.[0]?.currency || profileData?.default_currency || "XOF";
       const formattedTotal = formatCurrencyLocale(totalIncome, currency, locale);
-      const monthName = userNow.setLocale("fr").toFormat("MMMM yyyy");
+      const monthName = userNow.setLocale(locale).toFormat("MMMM yyyy");
 
       candidates.push({
         user_id: userId,
@@ -1218,8 +1221,8 @@ export async function evaluateSmartReminders(
         status: "unread",
         entity_type: "summary",
         entity_id: `month_${currentMonthKey}`,
-        title: `Bienvenue en ${monthName} — Vos perspectives du mois`,
-        body: `Votre nouveau mois commence : ${incomeCount} paiement(s) attendu(s) pour un total de ${formattedTotal}${expenseCount > 0 ? ` et ${expenseCount} dépense(s) programmée(s)` : ""}.`,
+        title: tr("Bienvenue en {monthName} — Vos perspectives du mois", { monthName }),
+        body: tr("Votre nouveau mois commence : {incomeCount} paiement(s) attendu(s) pour un total de {formattedTotal}{v2}.", { incomeCount, formattedTotal, v2: expenseCount > 0 ? ` et ${expenseCount} dépense(s) programmée(s)` : "" }),
         title_key: "notif.month_start.title",
         body_key: "notif.month_start.body",
         metadata: {
@@ -1284,8 +1287,8 @@ export async function evaluateSmartReminders(
         status: "unread",
         entity_type: "summary",
         entity_id: `week_${weekKey}`,
-        title: `Votre résumé de la semaine (${weekKey})`,
-        body: `Cette semaine : ${incomeCount} paiement(s) à surveiller, ${eventCount} séance(s) au planning et ${taskCount} tâche(s) à accomplir.`,
+        title: tr("Votre résumé de la semaine ({weekKey})", { weekKey }),
+        body: tr("Cette semaine : {incomeCount} paiement(s) à surveiller, {eventCount} séance(s) au planning et {taskCount} tâche(s) à accomplir.", { incomeCount, eventCount, taskCount }),
         metadata: { week: weekKey, incomeCount, taskCount, eventCount },
         link: "/dashboard",
         scheduled_at: userNow.toISO()!,
@@ -1358,7 +1361,7 @@ export async function evaluateSmartReminders(
     for (const tsk of todayTasks ?? []) {
       dailyItems.push({
         id: tsk.id,
-        title: `Tâche « ${tsk.title} »`,
+        title: tr("Tâche « {title} »", { title: tsk.title }),
         timeStr: tsk.due_time ? tsk.due_time.slice(0, 5) : null,
         status: tsk.status === "done" ? "completed" : "pending",
         category: "task",
@@ -1369,7 +1372,7 @@ export async function evaluateSmartReminders(
     for (const exp of todayExpenses ?? []) {
       dailyItems.push({
         id: exp.id,
-        title: `Dépense « ${exp.name} »`,
+        title: tr("Dépense « {name} »", { name: exp.name }),
         status: exp.status === "paid" ? "completed" : "pending",
         category: "expense",
       });
@@ -1379,7 +1382,7 @@ export async function evaluateSmartReminders(
     for (const inc of todayIncomes ?? []) {
       dailyItems.push({
         id: inc.id,
-        title: `Paiement « ${inc.label} »`,
+        title: tr("Paiement « {label} »", { label: inc.label }),
         status: inc.received ? "completed" : "pending",
         category: "payment",
       });
@@ -1406,12 +1409,12 @@ export async function evaluateSmartReminders(
 
     const totalCount = dailyItems.length;
     const titleText = totalCount > 0
-      ? `🌅 Programme du jour : ${totalCount} activité(s)`
-      : `🌅 Programme du jour : Aucune activité`;
+      ? tr("🌅 Programme du jour : {totalCount} activité(s)", { totalCount })
+      : tr("🌅 Programme du jour : Aucune activité");
 
     const bodyText = totalCount > 0
-      ? `Vous avez ${pendingCount} activité(s) au planning aujourd'hui${completedCount > 0 ? ` (${completedCount} déjà complétée(s))` : ""}${yesterdayUnconfirmed > 0 ? ` et ⚠️ ${yesterdayUnconfirmed} séance(s) d'hier à confirmer` : ""}. Excellente journée !`
-      : `Votre journée est libre. Profitez-en pour vous reposer ou planifier vos prochaines sessions.`;
+      ? tr("Vous avez {pendingCount} activité(s) au planning aujourd'hui{v1}{v2}. Excellente journée !", { pendingCount, v1: completedCount > 0 ? ` (${completedCount} déjà complétée(s))` : "", v2: yesterdayUnconfirmed > 0 ? ` et ⚠️ ${yesterdayUnconfirmed} séance(s) d'hier à confirmer` : "" })
+      : tr("Votre journée est libre. Profitez-en pour vous reposer ou planifier vos prochaines sessions.");
 
     candidates.push({
       user_id: userId,
@@ -1502,7 +1505,7 @@ export async function evaluateSmartReminders(
       const timeStr = tsk.due_time ? tsk.due_time.slice(0, 5) : null;
       const item: DailyActivityItem = {
         id: tsk.id,
-        title: `Tâche « ${tsk.title} »`,
+        title: tr("Tâche « {title} »", { title: tsk.title }),
         timeStr,
         category: "task",
       };
@@ -1519,7 +1522,7 @@ export async function evaluateSmartReminders(
     for (const exp of todayExpenses ?? []) {
       const item: DailyActivityItem = {
         id: exp.id,
-        title: `Dépense « ${exp.name} »`,
+        title: tr("Dépense « {name} »", { name: exp.name }),
         category: "expense",
       };
       if (exp.status === "paid") {
@@ -1533,7 +1536,7 @@ export async function evaluateSmartReminders(
     for (const inc of todayIncomes ?? []) {
       const item: DailyActivityItem = {
         id: inc.id,
-        title: `Paiement « ${inc.label} »`,
+        title: tr("Paiement « {label} »", { label: inc.label }),
         category: "payment",
       };
       if (inc.received) {
@@ -1555,8 +1558,8 @@ export async function evaluateSmartReminders(
         language: voiceLanguage,
       });
 
-      const titleText = `☀️ Point de mi-journée : ${completedItems.length}/${totalCount} terminée(s)`;
-      const bodyText = `${completedItems.length} activité(s) terminée(s), ${upcomingItems.length} à venir cet après-midi.${overdueItems.length > 0 ? ` ⚠️ ${overdueItems.length} en attente de vérification.` : ""}`;
+      const titleText = tr("☀️ Point de mi-journée : {length}/{totalCount} terminée(s)", { length: completedItems.length, totalCount });
+      const bodyText = tr("{length} activité(s) terminée(s), {length2} à venir cet après-midi.{v2}", { length: completedItems.length, length2: upcomingItems.length, v2: overdueItems.length > 0 ? ` ⚠️ ${overdueItems.length} en attente de vérification.` : "" });
 
       candidates.push({
         user_id: userId,
@@ -1636,7 +1639,7 @@ export async function evaluateSmartReminders(
 
     // Tasks
     for (const tsk of todayTasks ?? []) {
-      const item: DailyActivityItem = { id: tsk.id, title: `Tâche « ${tsk.title} »`, category: "task" };
+      const item: DailyActivityItem = { id: tsk.id, title: tr("Tâche « {title} »", { title: tsk.title }), category: "task" };
       if (tsk.status === "done") {
         completedItems.push({ ...item, status: "completed" });
       } else {
@@ -1646,7 +1649,7 @@ export async function evaluateSmartReminders(
 
     // Expenses
     for (const exp of todayExpenses ?? []) {
-      const item: DailyActivityItem = { id: exp.id, title: `Dépense « ${exp.name} »`, category: "expense" };
+      const item: DailyActivityItem = { id: exp.id, title: tr("Dépense « {name} »", { name: exp.name }), category: "expense" };
       if (exp.status === "paid") {
         completedItems.push({ ...item, status: "completed" });
       } else {
@@ -1656,7 +1659,7 @@ export async function evaluateSmartReminders(
 
     // Income
     for (const inc of todayIncomes ?? []) {
-      const item: DailyActivityItem = { id: inc.id, title: `Paiement « ${inc.label} »`, category: "payment" };
+      const item: DailyActivityItem = { id: inc.id, title: tr("Paiement « {label} »", { label: inc.label }), category: "payment" };
       if (inc.received) {
         completedItems.push({ ...item, status: "completed" });
       } else {
@@ -1674,14 +1677,14 @@ export async function evaluateSmartReminders(
     });
 
     const titleText = totalCount > 0
-      ? `🌙 Bilan du soir : ${completedItems.length}/${totalCount} accomplie(s)`
-      : `🌙 Bilan du soir : Clôture de votre journée`;
+      ? tr("🌙 Bilan du soir : {length}/{totalCount} accomplie(s)", { length: completedItems.length, totalCount })
+      : tr("🌙 Bilan du soir : Clôture de votre journée");
 
     const bodyText = totalCount === 0
-      ? `Aucune activité n'était programmée aujourd'hui. Reposez-vous bien et préparez sereinement votre journée de demain.`
+      ? tr("Aucune activité n'était programmée aujourd'hui. Reposez-vous bien et préparez sereinement votre journée de demain.")
       : uncompletedItems.length === 0
-      ? `Toutes vos activités prévues aujourd'hui sont accomplies avec succès. Vous pouvez clore sereinement votre journée.`
-      : `Il vous reste ${uncompletedItems.length} élément(s) en attente. Prenez un instant pour valider votre bilan de journée.`;
+      ? tr("Toutes vos activités prévues aujourd'hui sont accomplies avec succès. Vous pouvez clore sereinement votre journée.")
+      : tr("Il vous reste {length} élément(s) en attente. Prenez un instant pour valider votre bilan de journée.", { length: uncompletedItems.length });
 
     candidates.push({
       user_id: userId,

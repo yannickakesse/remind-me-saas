@@ -53,6 +53,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   const [isSpeakingStep, setIsSpeakingStep] = useState(false);
   const speechTokenRef = useRef(0);
   const tourRef = useRef<HTMLDivElement>(null);
+  const scrolledStepRef = useRef<unknown>(null);
 
   // Synchronisation de la taille du viewport pour le calcul SVG précis
   useEffect(() => {
@@ -179,7 +180,17 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
     if (target) {
       // Défilement automatique vers la cible pour s'assurer qu'elle est dans le viewport
       try {
-        target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+        if (window.innerWidth < 768) {
+          // Mobile : la bulle du guide occupe le bas de l'écran → l'élément présenté remonte en haut
+          // (une seule fois par étape : ce calcul est aussi relancé à chaque défilement)
+          if (scrolledStepRef.current !== currentStep) {
+            scrolledStepRef.current = currentStep;
+            const top = target.getBoundingClientRect().top + window.scrollY - 84;
+            window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+          }
+        } else {
+          target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+        }
       } catch (_) {}
 
       const rect = target.getBoundingClientRect();

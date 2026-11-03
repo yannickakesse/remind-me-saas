@@ -104,7 +104,7 @@ export default async function EditActivityPage({
               <span
                 className="h-3.5 w-3.5 rounded-full ring-2 ring-white/20 shadow-2xs"
                 style={{ backgroundColor: activityColor }}
-                title={`Couleur configurée : ${activityColor}`}
+                title={tr("Couleur configurée : {activityColor}", { activityColor })}
               />
             </div>
 

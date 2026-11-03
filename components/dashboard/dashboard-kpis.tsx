@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DateTime } from "luxon";
 import { Clock, TrendingUp, TrendingDown, Wallet, ArrowRight } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -21,7 +22,8 @@ export function DashboardKpis({
   net,
   currency,
 }: DashboardKpisProps) {
-  const { t , tr } = useLanguage();
+  const { locale, t , tr } = useLanguage();
+  const currentMonth = DateTime.now().setLocale(locale).toFormat("LLLL yyyy");
 
   const totalIncomeForecast = incomeReceived + incomeExpected;
   const collectionRate =
@@ -31,23 +33,15 @@ export function DashboardKpis({
 
   return (
     <div className="space-y-3" data-tour="dashboard-kpi">
-      <div className="flex items-center justify-between gap-2 rounded-2xl bg-canvas-raised/95 dark:bg-slate-900/95 backdrop-blur-md border border-ink-200/80 dark:border-ink-800 px-3 py-2 shadow-2xs">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-signal/10 text-signal">
-            <Wallet className="w-4 h-4" />
-          </div>
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-ink-700 dark:text-ink-300">
-              {t("nav.finances")} {tr("• Mois en cours")}</h2>
-            <p className="text-[10px] text-ink-500">
-              {collectionRate}{tr("% encaissé sur l'objectif")}</p>
-          </div>
-        </div>
+      {/* En-tête centré : « Finances & Factures » + mois en cours (dans la langue choisie) */}
+      <div className="relative rounded-2xl bg-canvas-raised/95 dark:bg-slate-900/95 backdrop-blur-md border border-ink-200/80 dark:border-ink-800 px-12 py-2.5 text-center shadow-2xs">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-signal">{t("nav.finances")}</h2>
+        <p className="text-[11px] font-medium text-ink-600 dark:text-ink-400 capitalize">{currentMonth}</p>
         <Link
           href="/finances"
           aria-label={t("dashboard.see_all")}
           title={t("dashboard.see_all")}
-          className="p-1.5 rounded-full text-signal hover:bg-signal/10 flex items-center group"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-signal hover:bg-signal/10 flex items-center group"
         >
           <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
         </Link>

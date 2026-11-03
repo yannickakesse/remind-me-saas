@@ -175,8 +175,8 @@ export function QuickTransactionModal({
 
         toast.push(
           isPaid
-            ? `Dépense de ${numAmount} ${currency} enregistrée et réglée.`
-            : `Dépense de ${numAmount} ${currency} enregistrée (en attente).`,
+            ? tr("Dépense de {numAmount} {currency} enregistrée et réglée.", { numAmount, currency })
+            : tr("Dépense de {numAmount} {currency} enregistrée (en attente).", { numAmount, currency }),
           "success"
         );
       } else if (activeTab === "income") {
@@ -200,8 +200,8 @@ export function QuickTransactionModal({
 
         toast.push(
           isPaid
-            ? `Revenu de ${numAmount} ${currency} encaissé.`
-            : `Revenu de ${numAmount} ${currency} enregistré (en attente).`,
+            ? tr("Revenu de {numAmount} {currency} encaissé.", { numAmount, currency })
+            : tr("Revenu de {numAmount} {currency} enregistré (en attente).", { numAmount, currency }),
           "success"
         );
       } else if (activeTab === "scheduled") {
@@ -224,7 +224,7 @@ export function QuickTransactionModal({
         }
 
         toast.push(
-          `Dépense programmée (${frequency}) enregistrée avec succès.`,
+          tr("Dépense programmée ({frequency}) enregistrée avec succès.", { frequency }),
           "success"
         );
       }

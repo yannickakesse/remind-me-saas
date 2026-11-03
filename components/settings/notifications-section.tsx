@@ -384,7 +384,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
           type: "success",
           text: `E-mail envoyé avec succès à ${data.recipient} (Message ID : ${data.messageId}).`,
         });
-        push(`Véritable e-mail de test envoyé à ${data.recipient} !`, "success");
+        push(tr("Véritable e-mail de test envoyé à {recipient} !", { recipient: data.recipient }), "success");
       } else if (data.status === "NOT_CONFIGURED") {
         setEmailStatusMsg({
           type: "info",

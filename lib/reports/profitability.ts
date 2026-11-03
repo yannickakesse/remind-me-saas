@@ -1,3 +1,4 @@
+import { getServerLocale } from "@/lib/i18n/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DateTime } from "luxon";
 
@@ -281,7 +282,7 @@ export async function calculateProfitabilityReport(
     const mDT = endDT.minus({ months: m });
     const monthKey = mDT.toFormat("yyyy-MM");
     if (accountStartMonth && monthKey < accountStartMonth) continue;
-    const monthLabel = mDT.setLocale("fr").toFormat("MMM yyyy");
+    const monthLabel = mDT.setLocale(getServerLocale()).toFormat("MMM yyyy");
 
     let monthIncRec = 0;
     let monthIncExp = 0;

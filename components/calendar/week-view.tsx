@@ -1,3 +1,4 @@
+import { getServerLocale } from "@/lib/i18n/server";
 import Link from "next/link";
 import { DateTime } from "luxon";
 import { AlertTriangle } from "lucide-react";
@@ -41,7 +42,7 @@ export function WeekView({
                   iso === today ? "bg-signal-soft text-signal" : "text-ink-700 dark:text-ink-300"
                 }`}
               >
-                <span className="capitalize">{day.setLocale("fr").toFormat("ccc d")}</span>
+                <span className="capitalize">{day.setLocale(getServerLocale()).toFormat("ccc d")}</span>
               </Link>
             );
           })}
@@ -53,6 +54,7 @@ export function WeekView({
                 <span className="absolute right-2 top-0 -translate-y-1/2 text-[11px] font-medium tabular-nums text-ink-500 dark:text-ink-400">
                   {String(hour).padStart(2, "0")}:00
                 </span>
+                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-medium tabular-nums text-ink-400/80">:30</span>
               </div>
             ))}
           </div>
@@ -63,7 +65,10 @@ export function WeekView({
             return (
               <div key={iso} className="relative flex-1 border-l border-ink-200/80 dark:border-ink-800" style={{ height: TIMELINE_HEIGHT_PX }}>
                 {TIMELINE_HOURS.map((hour) => (
-                  <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="border-t border-ink-200/70 dark:border-ink-800/70" />
+                  <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="border-t border-ink-200/70 dark:border-ink-800/70">
+                  {/* Repère de la demi-heure (ex. 07:30) */}
+                  <div className="h-1/2 border-b border-dashed border-ink-200/60 dark:border-ink-800/60" />
+                </div>
                 ))}
                 {dayEvents.map((event) => {
                   const { topPx, heightPx } = timelinePosition(event.starts_at, event.ends_at, timezone);

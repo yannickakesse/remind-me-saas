@@ -182,7 +182,7 @@ export default async function ReportsPage({
             {formatAmount(totalExpensesPaid, defaultCurrency)}
           </p>
           <p className="mt-1 text-xs font-medium text-ink-500">
-            {totalExpensesPlanned > 0 ? `${formatAmount(totalExpensesPlanned, defaultCurrency)} prévues` : tr("Toutes payées")}
+            {totalExpensesPlanned > 0 ? tr("{v0} prévues", { v0: formatAmount(totalExpensesPlanned, defaultCurrency) }) : tr("Toutes payées")}
           </p>
         </div>
 
@@ -217,7 +217,7 @@ export default async function ReportsPage({
               </p>
               <p className="mt-1 text-xs font-medium text-ink-500">
                 {totalHoursWorked > 0
-                  ? `Pour ${totalHoursWorked} h travaillées au total`
+                  ? tr("Pour {totalHoursWorked} h travaillées au total", { totalHoursWorked })
                   : tr("Planifiez des séances dans le calendrier")}
               </p>
             </>

@@ -113,7 +113,7 @@ export function BudgetsSection({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col items-center text-center sm:flex-row sm:text-left sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-ink-950">{tr("Budgets Mensuels")}</h2>
           <p className="text-sm text-ink-700 dark:text-ink-300 mt-1 leading-relaxed">
@@ -292,8 +292,8 @@ export function BudgetsSection({
                       }`}
                     >
                       {isExceeded
-                        ? `Dépassement de ${formatAmount(spent - limit, b.currency)} (${percentage}%)`
-                        : `Reste : ${formatAmount(remaining, b.currency)} (${percentage}% consommé)`}
+                        ? tr("Dépassement de {v0} ({percentage}%)", { v0: formatAmount(spent - limit, b.currency), percentage })
+                        : tr("Reste : {v0} ({percentage}% consommé)", { v0: formatAmount(remaining, b.currency), percentage })}
                     </span>
                   </div>
 

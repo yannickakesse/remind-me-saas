@@ -192,9 +192,9 @@ export function ScheduledExpensesSection({
     <div className="space-y-6">
       {/* Header with summary card and new button */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-7 shadow-xs">
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="relative z-10 flex flex-col items-center text-center sm:flex-row sm:text-left sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2">
+            <h2 className="text-xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center justify-center sm:justify-start gap-2">
               <span className="p-1.5 rounded-xl bg-signal text-white shadow-xs">
                 <Clock className="w-4 h-4" />
               </span>

@@ -464,23 +464,11 @@ export function FinancesView({
       {/* Tab: INCOME */}
       {activeTab === "income" && (
         <div className="p-5 sm:p-7 rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md space-y-4 min-w-0 animate-in fade-in-50 duration-150 shadow-sm">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <h3 className="font-bold text-sm sm:text-base text-ink-950 dark:text-white truncate">{tr("Revenus du mois")}</h3>
-              <p className="text-xs text-ink-500">
-                {tr("Encaissez vos paiements reçus pour les intégrer à votre Total reçu et Solde net.")}</p>
-            </div>
-            <Link
-              href="/finances/income/new"
-              onClick={(e) => {
-                if (!e.metaKey && !e.ctrlKey && !e.shiftKey) {
-                  e.preventDefault();
-                  openQuickTransaction("income");
-                }
-              }}
-              className={buttonClasses("primary", "sm")}
-            >
-              <Plus className="w-3.5 h-3.5 mr-1" /> {tr("Nouveau revenu")}</Link>
+          {/* Titre centré (l'ajout d'un revenu se fait via « + Ajouter un revenu » en haut de page) */}
+          <div className="text-center space-y-1 pb-1">
+            <h3 className="text-lg sm:text-xl font-extrabold tracking-tight text-signal">{tr("Revenus du mois")}</h3>
+            <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 max-w-md mx-auto">
+              {tr("Encaissez vos paiements reçus pour les intégrer à votre Total reçu et Solde net.")}</p>
           </div>
 
           {(incomes ?? []).length === 0 ? (
@@ -504,9 +492,9 @@ export function FinancesView({
                 <Plus className="w-3.5 h-3.5 mr-1" /> {tr("Ajouter un revenu")}</Link>
             </div>
           ) : (
-            <div className="divide-y divide-ink-100 dark:divide-ink-800">
+            <div className="space-y-3">
               {/* En-tête de colonnes alignées sur tablette & desktop */}
-              <div className="hidden md:grid grid-cols-12 gap-3 pb-2.5 text-[11px] font-bold uppercase tracking-wider text-ink-500">
+              <div className="hidden md:grid grid-cols-12 gap-3 px-4 pb-1 text-[11px] font-bold uppercase tracking-wider text-ink-500">
                 <div className="col-span-5">{tr("Libellé & Activité")}</div>
                 <div className="col-span-3">{tr("Échéance & Statut")}</div>
                 <div className="col-span-2 text-right">{tr("Montant")}</div>
@@ -516,7 +504,7 @@ export function FinancesView({
               {(incomes ?? []).map((inc) => {
                 const isLoading = actionLoadingId === inc.id;
                 return (
-                  <div key={inc.id} className="py-3.5 flex flex-col md:grid md:grid-cols-12 md:gap-3 md:items-center min-w-0">
+                  <div key={inc.id} className="p-4 rounded-2xl border border-ink-200/80 dark:border-ink-800 bg-canvas dark:bg-ink-950/60 shadow-2xs flex flex-col md:grid md:grid-cols-12 md:gap-3 md:items-center min-w-0">
                     {/* Colonne 1 : Libellé & Activité */}
                     <div className="min-w-0 md:col-span-5">
                       <div className="flex items-center gap-2">
@@ -532,7 +520,7 @@ export function FinancesView({
                         </span>
                       </div>
                       <div className="text-xs text-ink-500 truncate mt-0.5">
-                        {inc.activity?.name ? `Activité : ${inc.activity.name}` : tr("Revenu direct")}
+                        {inc.activity?.name ? tr("Activité : {name}", { name: inc.activity.name }) : tr("Revenu direct")}
                       </div>
                     </div>
 
@@ -549,7 +537,7 @@ export function FinancesView({
                           {inc.received ? tr("Encaissé") : tr("En attente")}
                         </span>
                         <span className="truncate">
-                          {inc.received && inc.received_at ? `Reçu le ${inc.received_at}` : `Échéance : ${inc.due_date}`}
+                          {inc.received && inc.received_at ? tr("Reçu le {received_at}", { received_at: inc.received_at }) : tr("Échéance : {due_date}", { due_date: inc.due_date })}
                         </span>
                       </div>
                     </div>
@@ -715,7 +703,7 @@ export function FinancesView({
                         </span>
                       </div>
                       <div className="text-xs text-ink-500 truncate mt-0.5">
-                        {exp.category} {exp.activity?.name ? ` • Activité : ${exp.activity.name}` : ""}
+                        {exp.category} {exp.activity?.name ? tr(" • Activité : {name}", { name: exp.activity.name }) : ""}
                       </div>
                     </div>
 
@@ -732,7 +720,7 @@ export function FinancesView({
                           {exp.paid ? tr("Payée") : tr("À payer")}
                         </span>
                         <span className="truncate">
-                          {exp.paid && exp.paid_at ? `Payé le ${exp.paid_at}` : `Échéance : ${exp.due_date}`}
+                          {exp.paid && exp.paid_at ? tr("Payé le {paid_at}", { paid_at: exp.paid_at }) : tr("Échéance : {due_date}", { due_date: exp.due_date })}
                         </span>
                       </div>
                     </div>

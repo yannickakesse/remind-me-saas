@@ -1,3 +1,4 @@
+import { getServerLocale } from "@/lib/i18n/server";
 import { DateTime } from "luxon";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -83,9 +84,9 @@ export default async function ReportsPrintPage({
       period={{
         from: rangeStart,
         to: rangeEnd,
-        fromLabel: dtStart.setLocale("fr").toFormat("dd LLL yyyy"),
-        toLabel: dtEnd.setLocale("fr").toFormat("dd LLL yyyy"),
-        generatedAtFormatted: today.setLocale("fr").toFormat("dd/MM/yyyy HH:mm"),
+        fromLabel: dtStart.setLocale(getServerLocale()).toFormat("dd LLL yyyy"),
+        toLabel: dtEnd.setLocale(getServerLocale()).toFormat("dd LLL yyyy"),
+        generatedAtFormatted: today.setLocale(getServerLocale()).toFormat("dd/MM/yyyy HH:mm"),
         documentRef,
       }}
       metrics={{

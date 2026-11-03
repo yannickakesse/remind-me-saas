@@ -101,7 +101,7 @@ export function EventActions({
 
           {/* Options de modification repliées par défaut */}
           {showEditOptions && (
-            <div className="pt-3 border-t border-positive/20 flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="pt-3 border-t border-positive/20 flex flex-wrap justify-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
               <button
                 type="button"
                 disabled={pending}
@@ -146,7 +146,7 @@ export function EventActions({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2.5 pt-1">
+          <div className="flex flex-wrap justify-center gap-2.5 pt-1">
             <button
               type="button"
               disabled={pending}
@@ -183,7 +183,7 @@ export function EventActions({
             <span>{tr("Avez-vous terminé cette activité ?")}</span>
           </div>
 
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex flex-wrap justify-center gap-2.5">
             <button
               type="button"
               disabled={pending}
@@ -215,7 +215,7 @@ export function EventActions({
         </div>
       ) : (
         /* 4. État : PRÉVU (Standard) */
-        <div className="flex flex-wrap gap-2.5">
+        <div className="flex flex-wrap justify-center gap-2.5">
           {status !== "in_progress" && status !== "cancelled" ? (
             <button
               type="button"

@@ -15,6 +15,35 @@ import { useLanguage } from "@/components/i18n/language-provider";
 import { GuideMascot } from "@/components/onboarding/guide-mascot";
 
 const SESSION_VISITED_KEY = "remindme_voice_visited_sections";
+
+// Voix enregistrées (ElevenLabs) : /public/voice/guides/<section>-<langue>.mp3
+// Si le fichier existe, il est joué ; sinon la synthèse vocale prend le relais.
+let currentGuideAudio: HTMLAudioElement | null = null;
+
+function stopRecordedGuide() {
+  if (currentGuideAudio) {
+    currentGuideAudio.pause();
+    currentGuideAudio = null;
+  }
+}
+
+function playRecordedGuide(src: string, onEnd: () => void): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") return resolve(false);
+    stopRecordedGuide();
+    const audio = new Audio(src);
+    currentGuideAudio = audio;
+    audio.onended = () => {
+      if (currentGuideAudio === audio) currentGuideAudio = null;
+      onEnd();
+    };
+    audio.onerror = () => resolve(false); // fichier absent → synthèse vocale
+    audio
+      .play()
+      .then(() => resolve(true))
+      .catch(() => resolve(false));
+  });
+}
 const ASSISTANT_PREF_KEY = "remindme_voice_assistant_auto";
 
 function getVisitedSections(): Set<string> {
@@ -126,6 +155,18 @@ export function SectionVoiceAssistant() {
       // Notifier la section comme visitée dans la session
       markSectionVisited(section);
 
+      const finish = () => {
+        if (assistantTokenRef.current === currentToken) {
+          setIsSpeaking(false);
+          setCurrentNarratingSection(null);
+          window.dispatchEvent(
+            new CustomEvent("remindme:voice-section-status", { detail: { section, isPlaying: false } })
+          );
+        }
+      };
+
+      if (await playRecordedGuide(`/voice/guides/${section}-${voiceLang}.mp3`, finish)) return;
+
       try {
         await playVoiceReminder({
           text,
@@ -189,6 +230,7 @@ export function SectionVoiceAssistant() {
       if (!section) return;
 
       if (isSpeaking && currentNarratingSection === section) {
+        stopRecordedGuide();
         assistantTokenRef.current++;
         stopVoiceReminder(false);
         setIsSpeaking(false);
@@ -206,6 +248,7 @@ export function SectionVoiceAssistant() {
     }
 
     function handleStopRequest() {
+      stopRecordedGuide();
       assistantTokenRef.current++;
       stopVoiceReminder(false);
       setIsSpeaking(false);
@@ -239,6 +282,7 @@ export function SectionVoiceAssistant() {
   useEffect(() => {
     const section = resolveSectionFromPath(pathname);
     if (!section) {
+      stopRecordedGuide();
       assistantTokenRef.current++;
       stopVoiceReminder(false);
       setIsSpeaking(false);
@@ -278,6 +322,7 @@ export function SectionVoiceAssistant() {
   }, [pathname, speakSection]);
 
   const handleStop = () => {
+    stopRecordedGuide();
     assistantTokenRef.current++;
     stopVoiceReminder(false);
     setIsSpeaking(false);
@@ -297,7 +342,7 @@ export function SectionVoiceAssistant() {
     <button
       type="button"
       onClick={() => (isSpeaking ? handleStop() : speakSection(pageSection, true))}
-      title={isSpeaking ? `Arrêter le guide vocal — ${sectionLabel}` : `Écouter le guide vocal — ${sectionLabel}`}
+      title={isSpeaking ? tr("Arrêter le guide vocal — {sectionLabel}", { sectionLabel }) : tr("Écouter le guide vocal — {sectionLabel}", { sectionLabel })}
       aria-label={isSpeaking ? tr("Arrêter le guide vocal") : tr("Écouter le guide vocal de cette page")}
       aria-pressed={isSpeaking}
       className={`fixed right-4 sm:right-6 bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:bottom-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-canvas-raised dark:bg-slate-900 shadow-lg transition-all duration-200 hover:-translate-y-0.5 active:scale-90 cursor-pointer select-none print:hidden ${

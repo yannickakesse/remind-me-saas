@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import Link from "next/link";
 import { DateTime } from "luxon";
 import { AlertTriangle } from "lucide-react";
@@ -5,7 +6,7 @@ import { EVENT_STATUS_STYLES, eventStatusLabel, getContrastTextColor } from "@/l
 import { HOUR_HEIGHT_PX, TIMELINE_HEIGHT_PX, TIMELINE_HOURS, timelinePosition } from "@/lib/calendar/timeline";
 import type { CalendarEventView } from "./types";
 
-export function DayView({
+export async function DayView({
   day,
   timezone,
   events,
@@ -16,6 +17,7 @@ export function DayView({
   events: CalendarEventView[];
   conflictIds: Set<string>;
 }) {
+  const tr = await getTr();
   const iso = day.toISODate()!;
   const dayEvents = events
     .filter((e) => DateTime.fromISO(e.starts_at, { zone: timezone }).toISODate() === iso)
@@ -30,19 +32,22 @@ export function DayView({
               <span className="absolute right-2.5 top-0 -translate-y-1/2 text-[11px] font-medium tabular-nums text-ink-500 dark:text-ink-400">
                 {String(hour).padStart(2, "0")}:00
               </span>
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-medium tabular-nums text-ink-400/80">:30</span>
             </div>
           ))}
         </div>
         <div className="relative flex-1 border-l border-ink-200/80 dark:border-ink-800" style={{ height: TIMELINE_HEIGHT_PX }}>
           {TIMELINE_HOURS.map((hour) => (
-            <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="border-t border-ink-200/70 dark:border-ink-800/70" />
+            <div key={hour} style={{ height: HOUR_HEIGHT_PX }} className="border-t border-ink-200/70 dark:border-ink-800/70">
+                  {/* Repère de la demi-heure (ex. 07:30) */}
+                  <div className="h-1/2 border-b border-dashed border-ink-200/60 dark:border-ink-800/60" />
+                </div>
           ))}
           {dayEvents.length === 0 ? (
             <div className="absolute inset-x-0 top-12 text-center text-xs text-ink-400">
-              <p className="font-semibold">Aucun événement ce jour-là.</p>
+              <p className="font-semibold">{tr("Aucun événement ce jour-là.")}</p>
               <Link href="/activities/new" className="mt-1 inline-block text-signal font-bold hover:underline">
-                + Planifier une séance
-              </Link>
+                {tr("+ Planifier une séance")}</Link>
             </div>
           ) : null}
           {dayEvents.map((event) => {
@@ -75,11 +80,10 @@ export function DayView({
                   </p>
                   {hasConflict ? (
                     <span className="shrink-0 flex items-center rounded bg-danger px-1 text-[10px] font-bold text-white shadow-xs">
-                      <AlertTriangle className="h-3 w-3 mr-0.5" /> Conflit
-                    </span>
+                      <AlertTriangle className="h-3 w-3 mr-0.5" /> {tr("Conflit")}</span>
                   ) : null}
                 </div>
-                <p className="truncate opacity-85 text-[11px] font-medium">{eventStatusLabel(event.status)}</p>
+                <p className="truncate opacity-85 text-[11px] font-medium">{tr(eventStatusLabel(event.status))}</p>
               </Link>
             );
           })}

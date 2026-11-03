@@ -408,6 +408,19 @@ button, a, input, select, textarea {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
+    /* Sur téléphone, le navigateur imprime à la largeur de l'écran (≈ 390 px) : le document
+       n'occupait alors qu'une partie de la feuille. On impose la largeur utile d'une page A4
+       (210 mm − marges) pour que le contenu remplisse toute la feuille. */
+    min-width: 186mm !important;
+  }
+
+  /* Le conteneur du document prend toute la largeur imprimable */
+  body > div,
+  body > div > div {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    background: #ffffff !important;
   }
 
   /* Masquer éléments d'interface web standard */

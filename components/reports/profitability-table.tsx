@@ -106,7 +106,7 @@ export function ProfitabilityTable({ items }: { items: ActivityProfitability[] }
                       </span>
                     ) : (
                       <span className="text-[11px] font-medium text-ink-500">
-                        {row.totalHours > 0 ? `${row.totalHours} h passées` : "—"}
+                        {row.totalHours > 0 ? tr("{totalHours} h passées", { totalHours: row.totalHours }) : "—"}
                       </span>
                     )}
                   </div>

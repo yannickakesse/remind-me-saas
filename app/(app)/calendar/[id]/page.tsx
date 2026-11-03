@@ -1,4 +1,4 @@
-import { getTr } from "@/lib/i18n/server";
+import { getTr, getServerLocale } from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DateTime } from "luxon";
@@ -95,8 +95,8 @@ export default async function EventDetailPage({ params }: { params: { id: string
           </span>
         </div>
 
-        <div className="mb-6 flex flex-col gap-1 text-sm text-ink-700">
-          <p className="capitalize">{start.setLocale("fr").toFormat("cccc d MMMM yyyy")}</p>
+        <div className="mb-6 flex flex-col items-center gap-1 text-center text-sm text-ink-700 dark:text-ink-300">
+          <p className="capitalize">{start.setLocale(getServerLocale()).toFormat("cccc d MMMM yyyy")}</p>
           <p>
             {start.toFormat("HH:mm")} – {end.toFormat("HH:mm")}
           </p>

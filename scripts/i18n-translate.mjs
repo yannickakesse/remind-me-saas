@@ -148,7 +148,7 @@ async function main() {
     totalChars += chars;
     console.log(`  ${locale.padEnd(3)} ${String(missing.length).padStart(5)} à traduire  (${chars} caractères)`);
   }
-  console.log(`Total : ${totalChars} caractères (quota gratuit DeepL : 500 000 / mois).`);
+  console.log(`Total : ${totalChars} caractères (quota visible sur deepl.com → Compte → Utilisation).`);
   if (DRY) return;
 
   const key = readKey();

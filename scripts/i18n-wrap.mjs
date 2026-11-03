@@ -105,7 +105,7 @@ function processFile(abs) {
   if (SKIP_FILES.has(rel)) return null;
   const src = fs.readFileSync(abs, "utf8");
   const isClient = /^\s*["']use client["']/.test(src);
-  const isAppFile = rel.startsWith("app/");
+  const isAppFile = rel.startsWith("app/") || process.argv.includes("--server");
   if (!isClient && !isAppFile) return null; // composants partagés sans "use client" : à la main
 
   const sf = ts.createSourceFile(abs, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);

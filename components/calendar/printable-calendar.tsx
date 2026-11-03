@@ -44,7 +44,7 @@ export function PrintableCalendar({
   activities,
   initialOrientation = "landscape",
 }: PrintableCalendarProps) {
-  const { tr } = useLanguage();
+  const { tr, locale } = useLanguage();
   const [orientation, setOrientation] = useState<"landscape" | "portrait">(initialOrientation);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -103,7 +103,7 @@ export function PrintableCalendar({
   }
 
   const sampleWeekDays = days.slice(0, 7);
-  const weekdayLabels = sampleWeekDays.map((d) => d.setLocale("fr").toFormat("cccc"));
+  const weekdayLabels = sampleWeekDays.map((d) => d.setLocale(locale).toFormat("cccc"));
 
   const isLandscape = orientation === "landscape";
 

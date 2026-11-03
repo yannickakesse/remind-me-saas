@@ -93,9 +93,9 @@ export default async function CalendarPage({
       <PageBackground src="/images/backgrounds/calendar-bg.jpg" />
 
       <div className="relative overflow-hidden rounded-2xl bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 p-5 sm:p-6 shadow-xs" data-tour="calendar-header">
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="relative z-10 flex flex-col items-center text-center sm:flex-row sm:text-left sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white truncate">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-950 dark:text-white ">
               {tr("Calendrier & Planning")}</h1>
             <p className="text-xs sm:text-sm text-ink-500 mt-1">
               {tr("Vos séances d'activités et vos échéances financières programmées.")}</p>

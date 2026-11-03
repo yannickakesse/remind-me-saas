@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import type { SupportedLocale } from "@/types/database";
 import { getAppUrl } from "@/lib/auth/url";
+import { msg, type TrFunction } from "@/lib/i18n/catalog";
 
 export interface EmailPayload {
   recipientName: string;
@@ -9,6 +10,8 @@ export interface EmailPayload {
   link: string;
   ctaText?: string;
   locale?: SupportedLocale;
+  /** Traduction dans la langue du destinataire (fournie par le service d'envoi) */
+  tr?: TrFunction;
   template?: string;
   dateStr?: string;
   timezone?: string;
@@ -57,21 +60,21 @@ function getBadgeInfo(template?: string, title?: string): { label: string; color
   const lowerTpl = (template || "").toLowerCase();
 
   if (lowerTpl.includes("evening") || lowerTitle.includes("bilan du soir") || lowerTitle.includes("soir")) {
-    return { label: "Bilan du Soir", color: "#F59E0B", bg: "rgba(245, 158, 11, 0.12)", border: "rgba(245, 158, 11, 0.3)" };
+    return { label: msg("Bilan du Soir"), color: "#F59E0B", bg: "rgba(245, 158, 11, 0.12)", border: "rgba(245, 158, 11, 0.3)" };
   }
   if (lowerTpl.includes("midday") || lowerTitle.includes("mi-journée") || lowerTitle.includes("midi")) {
-    return { label: "Point Mi-Journée", color: "#38BDF8", bg: "rgba(56, 189, 248, 0.12)", border: "rgba(56, 189, 248, 0.3)" };
+    return { label: msg("Point Mi-Journée"), color: "#38BDF8", bg: "rgba(56, 189, 248, 0.12)", border: "rgba(56, 189, 248, 0.3)" };
   }
   if (lowerTpl.includes("morning") || lowerTpl.includes("daily_briefing") || lowerTitle.includes("matin") || lowerTitle.includes("programme")) {
-    return { label: "Briefing Matin", color: "#FBBF24", bg: "rgba(251, 191, 36, 0.12)", border: "rgba(251, 191, 36, 0.3)" };
+    return { label: msg("Briefing Matin"), color: "#FBBF24", bg: "rgba(251, 191, 36, 0.12)", border: "rgba(251, 191, 36, 0.3)" };
   }
   if (lowerTpl.includes("payment") || lowerTitle.includes("paiement") || lowerTitle.includes("revenu")) {
-    return { label: "Finances & Revenus", color: "#10B981", bg: "rgba(16, 185, 129, 0.12)", border: "rgba(16, 185, 129, 0.3)" };
+    return { label: msg("Finances & Revenus"), color: "#10B981", bg: "rgba(16, 185, 129, 0.12)", border: "rgba(16, 185, 129, 0.3)" };
   }
   if (lowerTpl.includes("expense") || lowerTitle.includes("dépense")) {
-    return { label: "Dépense Programmée", color: "#F43F5E", bg: "rgba(244, 63, 94, 0.12)", border: "rgba(244, 63, 94, 0.3)" };
+    return { label: msg("Dépense Programmée"), color: "#F43F5E", bg: "rgba(244, 63, 94, 0.12)", border: "rgba(244, 63, 94, 0.3)" };
   }
-  return { label: "Rappel Remind Me", color: "#E5A91E", bg: "rgba(229, 169, 30, 0.12)", border: "rgba(229, 169, 30, 0.3)" };
+  return { label: msg("Rappel Remind Me"), color: "#E5A91E", bg: "rgba(229, 169, 30, 0.12)", border: "rgba(229, 169, 30, 0.3)" };
 }
 
 /**
@@ -84,18 +87,19 @@ export function generateEmailHtml(payload: EmailPayload): string {
     title,
     body,
     link,
-    ctaText = "Accéder à Remind Me",
     locale = "fr",
     template,
     timezone = "Africa/Abidjan",
   } = payload;
+  const tr: TrFunction = payload.tr ?? ((s) => s);
+  const ctaText = payload.ctaText ?? tr("Accéder à Remind Me");
 
   const baseUrl = getAppUrl();
   const rawFullLink = link.startsWith("http") ? link : `${baseUrl}${link.startsWith("/") ? "" : "/"}${link}`;
   const safeLink = /^https?:\/\//i.test(rawFullLink) ? encodeURI(rawFullLink) : `${baseUrl}/dashboard`;
 
   // Nom nettoyé
-  const cleanRecipientName = (recipientName || "Bonjour").trim().split(" ")[0] || "Bonjour";
+  const cleanRecipientName = (recipientName || "").trim().split(" ")[0] || "";
   const safeRecipientName = escapeHtml(cleanRecipientName);
 
   // Nettoyage du titre pour éviter les redondances avec le nom
@@ -121,12 +125,12 @@ export function generateEmailHtml(payload: EmailPayload): string {
     title.toLowerCase().includes("soir") ||
     hour >= 18;
 
-  const greetingWord = isEvening ? "Bonsoir" : "Bonjour";
+  const greetingWord = isEvening ? tr("Bonsoir") : tr("Bonjour");
 
   // Date du jour formatée lisiblement
   let formattedDate = "";
   try {
-    const luxonLocale = locale === "en" ? "en-US" : locale === "es" ? "es-ES" : "fr-FR";
+    const luxonLocale = locale;
     formattedDate = now.setLocale(luxonLocale).toFormat("EEEE d MMMM yyyy");
     if (formattedDate) {
       formattedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
@@ -183,7 +187,7 @@ export function generateEmailHtml(payload: EmailPayload): string {
               <!-- BADGE CATÉGORIE -->
               <td align="right" valign="middle">
                 <span style="display: inline-block; padding: 5px 12px; background-color: ${badge.bg}; border: 1px solid ${badge.border}; border-radius: 9999px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; font-weight: 700; color: ${badge.color}; text-transform: uppercase; letter-spacing: 0.5px;">
-                  ${badge.label}
+                  ${escapeHtml(tr(badge.label))}
                 </span>
               </td>
             </tr>
@@ -221,7 +225,7 @@ export function generateEmailHtml(payload: EmailPayload): string {
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
             <tr>
               <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; font-weight: 600; color: #E2E8F0; padding-bottom: 12px;">
-                ${greetingWord} ${safeRecipientName},
+                ${greetingWord}${safeRecipientName ? ` ${safeRecipientName}` : ""},
               </td>
             </tr>
           </table>
@@ -255,9 +259,9 @@ export function generateEmailHtml(payload: EmailPayload): string {
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
             <tr>
               <td align="center" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; line-height: 1.6; color: #64748B;">
-                <span style="font-weight: 600; color: #94A3B8;">Remind Me</span> • Multi-activités, planning et rentabilité en toute sérénité.<br>
-                Pour ajuster la fréquence de vos alertes, accédez à vos 
-                <a href="${baseUrl}/settings" target="_blank" style="color: #F59E0B; text-decoration: underline; font-weight: 600;">Paramètres de notifications</a>.
+                <span style="font-weight: 600; color: #94A3B8;">Remind Me</span> • ${escapeHtml(tr("Multi-activités, planning et rentabilité en toute sérénité."))}<br>
+                ${escapeHtml(tr("Pour ajuster la fréquence de vos alertes, accédez à vos"))}
+                <a href="${baseUrl}/settings" target="_blank" style="color: #F59E0B; text-decoration: underline; font-weight: 600;">${escapeHtml(tr("Paramètres de notifications"))}</a>.
               </td>
             </tr>
           </table>
@@ -274,11 +278,13 @@ export function generateEmailHtml(payload: EmailPayload): string {
  * Génère la version texte brut pour les clients e-mail sans HTML.
  */
 export function generateEmailText(payload: EmailPayload): string {
-  const { recipientName, title, body, link, ctaText = "Ouvrir dans Remind Me", template } = payload;
+  const { recipientName, title, body, link, template } = payload;
+  const tr: TrFunction = payload.tr ?? ((s) => s);
+  const ctaText = payload.ctaText ?? tr("Ouvrir dans Remind Me");
   const baseUrl = getAppUrl();
   const fullLink = link.startsWith("http") ? link : `${baseUrl}${link.startsWith("/") ? "" : "/"}${link}`;
 
-  const cleanRecipientName = (recipientName || "Bonjour").trim().split(" ")[0] || "Bonjour";
+  const cleanRecipientName = (recipientName || "").trim().split(" ")[0] || "";
   const cleanedBody = cleanBodyRedundancies(body, cleanRecipientName);
 
   const isEvening =
@@ -286,18 +292,18 @@ export function generateEmailText(payload: EmailPayload): string {
     title.toLowerCase().includes("bilan du soir") ||
     title.toLowerCase().includes("soir");
 
-  const greetingWord = isEvening ? "Bonsoir" : "Bonjour";
+  const greetingWord = isEvening ? tr("Bonsoir") : tr("Bonjour");
 
   return `Remind Me — ${title}
 
-${greetingWord} ${cleanRecipientName},
+${greetingWord}${cleanRecipientName ? ` ${cleanRecipientName}` : ""},
 
 ${cleanedBody}
 
 ${ctaText} : ${fullLink}
 
 ---
-Remind Me • Multi-activités, planning et rentabilité.
-Paramètres : ${baseUrl}/settings
+Remind Me • ${tr("Multi-activités, planning et rentabilité.")}
+${tr("Paramètres")} : ${baseUrl}/settings
 `;
 }

@@ -95,7 +95,7 @@ export function CalendarToolbar({
   }
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 shadow-2xs relative">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 shadow-2xs relative z-30">
       {/* 1. Navigation temporelle (Précédent / Aujourd'hui / Suivant + Titre de la période) */}
       <div className="flex items-center justify-between sm:justify-start gap-2 w-full md:w-auto">
         <div className="flex items-center gap-1.5 shrink-0">
@@ -149,7 +149,7 @@ export function CalendarToolbar({
         </div>
 
         {/* Bouton Exporter / Imprimer PDF A4 */}
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative flex justify-center md:block" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -169,7 +169,7 @@ export function CalendarToolbar({
 
           {/* Menu déroulant d'exportation */}
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-2 z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 top-full mt-2 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-2 z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
               <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
                 <span className="font-extrabold text-slate-900 dark:text-white text-[11px] uppercase tracking-wider block">
                   {tr("Exportation PDF A4")}</span>

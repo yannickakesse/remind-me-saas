@@ -10,10 +10,10 @@ import { TodayFocus } from "@/components/dashboard/today-focus";
 // Aperçu du VRAI tableau de bord Remind Me : mêmes composants que dans l'application,
 // alimentés par un jeu de données de démonstration (non cliquable).
 export function LandingDashboardPreview() {
-  const { locale } = useLanguage();
+  const { locale, tr } = useLanguage();
   // Rendu après montage : les créneaux de démo dépendent de l'heure locale du visiteur
   const [demo, setDemo] = useState<ReturnType<typeof buildDemo> | null>(null);
-  useEffect(() => setDemo(buildDemo()), []);
+  useEffect(() => setDemo(buildDemo(tr)), [tr]);
 
   return (
     <div
@@ -53,7 +53,7 @@ export function LandingDashboardPreview() {
   );
 }
 
-function buildDemo() {
+function buildDemo(tr: (s: string) => string) {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   const today = DateTime.now().setZone(timezone).startOf("day");
   const at = (h: number, m = 0) => today.set({ hour: h, minute: m }).toISO()!;
@@ -64,25 +64,25 @@ function buildDemo() {
     events: [
       {
         id: "demo-1",
-        title: "Cours de mathématiques",
+        title: tr("Cours de mathématiques"),
         starts_at: at(8),
         ends_at: at(10),
         status: "planned",
-        activity: { name: "Enseignement", color: "#1E3A5F" },
+        activity: { name: tr("Enseignement"), color: "#1E3A5F" },
       },
       {
         id: "demo-2",
-        title: "Atelier client",
+        title: tr("Atelier client"),
         starts_at: at(17, 30),
         ends_at: at(19),
         status: "planned",
-        activity: { name: "Conseil", color: "#D97706" },
+        activity: { name: tr("Conseil"), color: "#D97706" },
       },
     ],
     tasks: [
       {
         id: "demo-t1",
-        title: "Envoyer la facture d'octobre",
+        title: tr("Envoyer la facture d'octobre"),
         priority: "high" as const,
         due_date: today.toISODate()!,
         status: "todo",

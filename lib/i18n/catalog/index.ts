@@ -52,3 +52,9 @@ export function translate(catalog: Catalog, source: string, params?: TrParams): 
  * collecté et traduit par le script. Il sera traduit à l'affichage avec tr(...).
  */
 export const msg = (source: string): string => source;
+
+/** Fonction de traduction pour une langue donnée (traitements serveur hors requête : cron, e-mails…). */
+export async function getTrFor(locale: SupportedLocale): Promise<TrFunction> {
+  const catalog = await loadCatalog(locale);
+  return (source, params) => translate(catalog, source, params);
+}

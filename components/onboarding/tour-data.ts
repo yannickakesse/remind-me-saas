@@ -519,7 +519,7 @@ export const CONTEXTUAL_TOURS: Record<string, TourStep[]> = {
     },
     {
       id: "notif-filters",
-      targetSelector: '[data-tour="notifications-filters"]',
+      targetSelector: '[data-tour="notifications-tabs"]',
       title: "Filtres Multi-Critères Avancés",
       subtitle: "Recherche textuelle, types, statuts et dates",
       description:

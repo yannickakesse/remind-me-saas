@@ -29,11 +29,9 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   applicationName: "Remind Me",
   title: {
-    default: "Remind Me — Multi-Activity SaaS",
+    default: "Remind Me",
     template: "%s | Remind Me",
   },
-  description:
-    "Gérez vos activités multiples, votre temps et vos revenus depuis un seul endroit avec rappels intelligents.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,

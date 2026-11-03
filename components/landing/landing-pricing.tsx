@@ -81,13 +81,13 @@ export function LandingPricing() {
                 : `${p.priceMonthly} €`;
 
             const features: { ok: boolean; label: React.ReactNode }[] = [
-              { ok: true, label: quota(p.maxActivities, "Activités illimitées", (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("activités")}</>) },
-              { ok: true, label: quota(p.maxClients, "Contacts & clients illimités", (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("contacts & clients")}</>) },
-              { ok: true, label: quota(p.maxGoals, "Objectifs d'épargne illimités", (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("objectifs d'épargne")}</>) },
-              { ok: true, label: quota(p.maxBudgets, "Budgets mensuels illimités", (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("budgets mensuels")}</>) },
-              { ok: p.hourlyProfitability, label: "Rapports de rentabilité horaire" },
-              { ok: p.multiCurrency, label: "Gestion multi-devises unifiée" },
-              { ok: p.aiAssistant, label: "Assistant IA & Insights prédictifs" },
+              { ok: true, label: quota(p.maxActivities, tr("Activités illimitées"), (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("activités")}</>) },
+              { ok: true, label: quota(p.maxClients, tr("Contacts & clients illimités"), (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("contacts & clients")}</>) },
+              { ok: true, label: quota(p.maxGoals, tr("Objectifs d'épargne illimités"), (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("objectifs d'épargne")}</>) },
+              { ok: true, label: quota(p.maxBudgets, tr("Budgets mensuels illimités"), (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("budgets mensuels")}</>) },
+              { ok: p.hourlyProfitability, label: tr("Rapports de rentabilité horaire") },
+              { ok: p.multiCurrency, label: tr("Gestion multi-devises unifiée") },
+              { ok: p.aiAssistant, label: tr("Assistant IA & Insights prédictifs") },
             ];
 
             return (
@@ -145,7 +145,7 @@ export function LandingPricing() {
                       : "border border-ink-300 dark:border-ink-700 text-ink-950 dark:text-white font-semibold hover:bg-ink-100 dark:hover:bg-ink-800"
                   }`}
                 >
-                  {key === "free" ? tr("Commencer gratuitement") : `Choisir le forfait ${tr(p.planName)}`}
+                  {key === "free" ? tr("Commencer gratuitement") : tr("Choisir le forfait {v0}", { v0: tr(p.planName) })}
                 </Link>
               </div>
             );

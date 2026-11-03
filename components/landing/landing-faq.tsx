@@ -11,28 +11,28 @@ export function LandingFAQ() {
 
   const faqs = [
     {
-      q: "À qui s'adresse principalement Remind Me ?",
-      a: "Remind Me a été spécialement conçu pour les professionnels, consultants, freelances, formateurs, créateurs et indépendants qui mènent plusieurs activités de front et ont besoin d'une vision unifiée de leur temps, de leurs tâches et de leurs finances.",
+      q: tr("À qui s'adresse principalement Remind Me ?"),
+      a: tr("Remind Me a été spécialement conçu pour les professionnels, consultants, freelances, formateurs, créateurs et indépendants qui mènent plusieurs activités de front et ont besoin d'une vision unifiée de leur temps, de leurs tâches et de leurs finances."),
     },
     {
-      q: "Peut-on gérer plusieurs activités distinctes avec des tarifs différents ?",
-      a: "Oui. Vous pouvez créer autant d'activités permanentes (ex : Conseil récurrent, Cabinet) ou temporaires (ex : Mission de 3 mois avec date de fin) que votre forfait le permet. Chaque activité possède sa couleur, ses contacts, son mode de tarification (taux horaire ou forfait) et sa devise dédiée.",
+      q: tr("Peut-on gérer plusieurs activités distinctes avec des tarifs différents ?"),
+      a: tr("Oui. Vous pouvez créer autant d'activités permanentes (ex : Conseil récurrent, Cabinet) ou temporaires (ex : Mission de 3 mois avec date de fin) que votre forfait le permet. Chaque activité possède sa couleur, ses contacts, son mode de tarification (taux horaire ou forfait) et sa devise dédiée."),
     },
     {
-      q: "Comment fonctionne le suivi de la trésorerie et des encaissements ?",
-      a: "Remind Me centralise vos entrées et vos sorties d'argent. Vous enregistrez vos paiements encaissés, vos factures en attente et vos charges fixes programmées. Le cockpit calcule automatiquement votre solde net et votre rentabilité horaire réelle pour chaque activité.",
+      q: tr("Comment fonctionne le suivi de la trésorerie et des encaissements ?"),
+      a: tr("Remind Me centralise vos entrées et vos sorties d'argent. Vous enregistrez vos paiements encaissés, vos factures en attente et vos charges fixes programmées. Le cockpit calcule automatiquement votre solde net et votre rentabilité horaire réelle pour chaque activité."),
     },
     {
-      q: "Comment fonctionne la détection des conflits dans le calendrier ?",
-      a: "Lorsque vous planifiez un événement ou une séance pour une activité, Remind Me vérifie instantanément si ce créneau chevauche un engagement d'une autre activité. Si un conflit est détecté, une alerte visuelle claire vous avertit avant même la confirmation.",
+      q: tr("Comment fonctionne la détection des conflits dans le calendrier ?"),
+      a: tr("Lorsque vous planifiez un événement ou une séance pour une activité, Remind Me vérifie instantanément si ce créneau chevauche un engagement d'une autre activité. Si un conflit est détecté, une alerte visuelle claire vous avertit avant même la confirmation."),
     },
     {
-      q: "Peut-on utiliser Remind Me sur téléphone mobile et ordinateur ?",
-      a: "Absolument. Remind Me est développé selon les standards PWA (Progressive Web App). Vous pouvez l'utiliser directement dans votre navigateur sur ordinateur ou l'installer comme une application native sur votre smartphone (iOS ou Android) avec synchronisation en temps réel.",
+      q: tr("Peut-on utiliser Remind Me sur téléphone mobile et ordinateur ?"),
+      a: tr("Absolument. Remind Me est développé selon les standards PWA (Progressive Web App). Vous pouvez l'utiliser directement dans votre navigateur sur ordinateur ou l'installer comme une application native sur votre smartphone (iOS ou Android) avec synchronisation en temps réel."),
     },
     {
-      q: "Comment démarrer et créer un compte ?",
-      a: "Il vous suffit de cliquer sur 'Commencer gratuitement'. L'inscription prend moins de 2 minutes, ne nécessite aucune carte bancaire et vous donne un accès immédiat à votre cockpit avec toutes les fonctionnalités du forfait découverte.",
+      q: tr("Comment démarrer et créer un compte ?"),
+      a: tr("Il vous suffit de cliquer sur 'Commencer gratuitement'. L'inscription prend moins de 2 minutes, ne nécessite aucune carte bancaire et vous donne un accès immédiat à votre cockpit avec toutes les fonctionnalités du forfait découverte."),
     },
   ];
 

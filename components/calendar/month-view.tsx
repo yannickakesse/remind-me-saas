@@ -1,3 +1,4 @@
+import { getTr, getServerLocale } from "@/lib/i18n/server";
 import Link from "next/link";
 import { DateTime } from "luxon";
 import { EventPill } from "./event-pill";
@@ -5,7 +6,7 @@ import type { CalendarEventView } from "./types";
 
 const MAX_VISIBLE_PER_DAY = 3;
 
-export function MonthView({
+export async function MonthView({
   anchorDate,
   timezone,
   events,
@@ -16,6 +17,7 @@ export function MonthView({
   events: CalendarEventView[];
   conflictIds: Set<string>;
 }) {
+  const tr = await getTr();
   const anchor = DateTime.fromISO(anchorDate, { zone: timezone });
   const gridStart = anchor.startOf("month").startOf("week");
   const gridEnd = anchor.endOf("month").endOf("week");
@@ -35,7 +37,7 @@ export function MonthView({
     eventsByDay.get(day)!.push(event);
   }
 
-  const weekdayLabels = days.slice(0, 7).map((d) => d.setLocale("fr").toFormat("ccc"));
+  const weekdayLabels = days.slice(0, 7).map((d) => d.setLocale(getServerLocale()).toFormat("ccc"));
 
   return (
     <div className="overflow-x-auto rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md shadow-sm p-1.5 sm:p-3">
@@ -83,8 +85,7 @@ export function MonthView({
                       href={`/calendar?view=day&date=${iso}`}
                       className="px-1 text-xs font-bold text-signal hover:underline"
                     >
-                      +{overflow} de plus
-                    </Link>
+                      +{overflow} {tr("de plus")}</Link>
                   ) : null}
                 </div>
               </div>

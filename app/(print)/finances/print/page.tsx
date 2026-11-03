@@ -1,3 +1,4 @@
+import { getServerLocale } from "@/lib/i18n/server";
 import { DateTime } from "luxon";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -89,8 +90,8 @@ export default async function FinancesPrintPage({
         planName: userSub.entitlements.planName,
       }}
       period={{
-        monthLabel: currentMonth.setLocale("fr").toFormat("LLLL yyyy"),
-        generatedAtFormatted: today.setLocale("fr").toFormat("dd/MM/yyyy HH:mm"),
+        monthLabel: currentMonth.setLocale(getServerLocale()).toFormat("LLLL yyyy"),
+        generatedAtFormatted: today.setLocale(getServerLocale()).toFormat("dd/MM/yyyy HH:mm"),
         documentRef,
       }}
       defaultCurrency={defaultCurrency}

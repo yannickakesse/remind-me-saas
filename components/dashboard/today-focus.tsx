@@ -70,7 +70,7 @@ export function TodayFocus({
             <span className="text-xs font-semibold px-3 py-1 rounded-full bg-ink-100/80 dark:bg-white/5 text-ink-700 dark:text-ink-300 border border-ink-200/50 dark:border-white/5">
               {eventCount === 0 && taskCount === 0
                 ? tr("Journée libre")
-                : `${eventCount} séance${eventCount > 1 ? "s" : ""} • ${taskCount} tâche${taskCount > 1 ? "s" : ""}`}
+                : `${eventCount > 1 ? tr("{n} séances", { n: eventCount }) : tr("{n} séance", { n: eventCount })} • ${taskCount > 1 ? tr("{n} tâches", { n: taskCount }) : tr("{n} tâche", { n: taskCount })}`}
             </span>
             <Link href="/calendar" className="text-xs font-semibold text-signal hover:underline inline-flex items-center gap-1 group">
               <span>{tr("Voir")}</span>

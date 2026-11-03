@@ -1,3 +1,4 @@
+import { getTr, getServerLocale } from "@/lib/i18n/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { LandingView } from "@/components/landing/landing-view";
@@ -5,38 +6,26 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Remind Me — Gérez votre travail, votre temps et votre argent",
-  description:
-    "Un espace intelligent pour organiser vos activités, maîtriser vos échéances, éviter les conflits d’agenda et garder une vision limpide de vos finances, sans vous éparpiller.",
-  keywords: [
-    "SaaS",
-    "gestion multi-activités",
-    "pluriactifs",
-    "consultants",
-    "freelances",
-    "trésorerie",
-    "calendrier sans conflit",
-    "suivi du temps",
-    "rappels intelligents",
-  ],
-  authors: [{ name: "Remind Me Team" }],
-  openGraph: {
-    title: "Remind Me — Gérez votre travail, votre temps et votre argent",
-    description:
-      "Un espace intelligent pour organiser vos activités, maîtriser vos échéances, éviter les conflits d’agenda et garder une vision limpide de vos finances, sans vous éparpiller.",
-    url: "https://remind-me-saas.vercel.app",
-    siteName: "Remind Me",
-    locale: "fr_FR",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Remind Me — Gérez votre travail, votre temps et votre argent",
-    description:
-      "Un espace intelligent pour organiser vos activités, maîtriser vos échéances, éviter les conflits d’agenda et garder une vision limpide de vos finances, sans vous éparpiller.",
-  },
-};
+// Titre et description dans la langue du visiteur (onglet du navigateur, partage, moteurs de recherche)
+export async function generateMetadata(): Promise<Metadata> {
+  const tr = await getTr();
+  const title = tr("Remind Me — Gérez votre travail, votre temps et votre argent");
+  const description = tr("Un espace intelligent pour organiser vos activités, maîtriser vos échéances, éviter les conflits d’agenda et garder une vision limpide de vos finances, sans vous éparpiller.");
+  return {
+    title,
+    description,
+    authors: [{ name: "Remind Me Team" }],
+    openGraph: {
+      title,
+      description,
+      url: "https://remind-me-saas-ybkc.vercel.app",
+      siteName: "Remind Me",
+      locale: getServerLocale(),
+      type: "website",
+    },
+    twitter: { card: "summary_large_image", title, description },
+  };
+}
 
 export default async function HomePage() {
   let user: { id: string; email?: string } | null = null;

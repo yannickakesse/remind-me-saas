@@ -205,23 +205,17 @@ export default async function DashboardPage() {
         {/* 3. DÉPENSES PROGRAMMÉES (Desktop 6 cols, Mobile order-3) */}
         <div className="lg:col-span-6 order-3" data-tour="dashboard-scheduled-expenses">
           <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-4 sm:p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
+            <div className="relative px-12 text-center">
+              <h3 className="inline-flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
+                <span className="text-amber-600 dark:text-amber-400"><Clock className="w-3.5 h-3.5" /></span>
                     {t("dashboard.scheduled_expenses_title", locale)}
-                  </h3>
-                  <span className="text-[11px] text-ink-500">
-                    {scheduledExpenses?.length ?? 0} charge{scheduledExpenses && scheduledExpenses.length > 1 ? "s" : ""} {tr("prévue")}{scheduledExpenses && scheduledExpenses.length > 1 ? "s" : ""}
-                  </span>
-                </div>
-              </div>
+              </h3>
+              <span className="block text-[11px] text-ink-500">
+                    {(scheduledExpenses?.length ?? 0) > 1 ? tr("{n} charges prévues", { n: scheduledExpenses!.length }) : tr("{n} charge prévue", { n: scheduledExpenses?.length ?? 0 })}
+              </span>
               <Link
                 href="/finances?tab=scheduled"
-                className="text-xs text-signal font-semibold hover:underline flex items-center gap-1 group"
+                className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-signal font-semibold hover:underline flex items-center gap-1 group"
               >
                 <span>{t("dashboard.manage", locale)}</span>
                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -303,21 +297,17 @@ export default async function DashboardPage() {
         {/* 4. RÈGLEMENTS & ENCAISSEMENTS ATTENDUS (Desktop 6 cols, Mobile order-4) */}
         <div className="lg:col-span-6 order-4" data-tour="dashboard-late-income">
           <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-4 sm:p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
-                    {tr("Encaissements attendus")}</h3>
-                  <span className="text-[11px] text-ink-500">
-                    {lateIncome?.length ?? 0} facture{lateIncome && lateIncome.length > 1 ? "s" : ""} {tr("en attente")}</span>
-                </div>
-              </div>
+            <div className="relative px-12 text-center">
+              <h3 className="inline-flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
+                <span className="text-emerald-600 dark:text-emerald-400"><TrendingUp className="w-3.5 h-3.5" /></span>
+                    {tr("Encaissements attendus")}
+              </h3>
+              <span className="block text-[11px] text-ink-500">
+                    {(lateIncome?.length ?? 0) > 1 ? tr("{n} factures en attente", { n: lateIncome!.length }) : tr("{n} facture en attente", { n: lateIncome?.length ?? 0 })}
+              </span>
               <Link
                 href="/finances?tab=income"
-                className="text-xs text-signal font-semibold hover:underline flex items-center gap-1 group"
+                className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-signal font-semibold hover:underline flex items-center gap-1 group"
               >
                 <span>{locale === "fr" ? "Voir" : t("dashboard.see_all", locale)}</span>
                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />

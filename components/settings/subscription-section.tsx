@@ -78,7 +78,7 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
           setActivePlan(targetPlan);
           setModalOpen(false);
           push(
-            `Félicitations ! Votre compte est maintenant activé sur le forfait ${tr(PLAN_ENTITLEMENTS[targetPlan].planName)}.`,
+            tr("Félicitations ! Votre compte est maintenant activé sur le forfait {v0}.", { v0: tr(PLAN_ENTITLEMENTS[targetPlan].planName) }),
             "success"
           );
         } else {
@@ -311,7 +311,7 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                   <span className="text-ink-600 font-medium">{tr("Tarif (Mode Test) :")}</span>
                   <span className="font-extrabold text-ink-950 text-base">
                     {billingCycle === "monthly"
-                      ? `${target.priceMonthly} € / mois`
+                      ? tr("{priceMonthly} € / mois", { priceMonthly: target.priceMonthly })
                       : `${target.priceYearly} € / an`}
                   </span>
                 </div>
@@ -325,7 +325,7 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                   <li className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
                     <span>
-                      {target.maxActivities === Infinity ? tr("Activités illimitées") : `${target.maxActivities} activités`}
+                      {target.maxActivities === Infinity ? tr("Activités illimitées") : tr("{maxActivities} activités", { maxActivities: target.maxActivities })}
                     </span>
                   </li>
                   <li className="flex items-center gap-2">
@@ -337,7 +337,7 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                   <li className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
                     <span>
-                      {target.maxGoals === Infinity ? tr("Objectifs d'épargne illimités") : `${target.maxGoals} objectifs d'épargne`}
+                      {target.maxGoals === Infinity ? tr("Objectifs d'épargne illimités") : tr("{maxGoals} objectifs d'épargne", { maxGoals: target.maxGoals })}
                     </span>
                   </li>
                   <li className="flex items-center gap-2">

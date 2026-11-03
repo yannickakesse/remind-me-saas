@@ -155,8 +155,8 @@ export function SavingsGoalsSection({
         await adjustSavingsGoalAmount(goalId, delta);
         toast.push(
           delta > 0
-            ? `+${val} ajoutés à votre objectif.`
-            : `-${val} retirés de votre objectif.`,
+            ? tr("+{val} ajoutés à votre objectif.", { val })
+            : tr("-{val} retirés de votre objectif.", { val }),
           "success"
         );
       } catch (err) {
@@ -185,9 +185,9 @@ export function SavingsGoalsSection({
     <div className="space-y-6">
       {/* En-tête avec bannière visuelle retravaillée */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-6 sm:p-7 shadow-xs">
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="relative z-10 flex flex-col items-center text-center sm:flex-row sm:text-left sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2">
+            <h2 className="text-xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center justify-center sm:justify-start gap-2">
               <span className="p-1.5 rounded-xl bg-signal text-white shadow-xs">
                 <Target className="w-4 h-4" />
               </span>
@@ -373,7 +373,7 @@ export function SavingsGoalsSection({
                     <h3 className="font-bold text-ink-950 text-base">{g.name}</h3>
                     <p className="text-xs text-ink-500">
                       {tr("Cible :")}{" "}{formatAmount(g.target_amount, g.currency)}
-                      {g.deadline ? ` • Échéance : ${g.deadline}` : ""}
+                      {g.deadline ? tr(" • Échéance : {deadline}", { deadline: g.deadline }) : ""}
                     </p>
                   </div>
 

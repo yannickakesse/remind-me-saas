@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, SupportedLocale } from "@/types/database";
 import { generateEmailHtml, generateEmailText } from "./templates";
+import { getTrFor } from "@/lib/i18n/catalog";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 
 export interface SendEmailOptions {
@@ -81,8 +82,10 @@ export async function sendNotificationEmail(
     }
   }
 
-  const html = generateEmailHtml({ recipientName, title, body, link, locale, template, timezone, metadata });
-  const text = generateEmailText({ recipientName, title, body, link, locale, template, metadata });
+  // Textes fixes de l'e-mail (salutation, bouton, pied de page) dans la langue du destinataire
+  const tr = await getTrFor(locale);
+  const html = generateEmailHtml({ recipientName, title, body, link, locale, template, timezone, metadata, tr });
+  const text = generateEmailText({ recipientName, title, body, link, locale, template, metadata, tr });
 
   const resendApiKey = process.env.RESEND_API_KEY;
 

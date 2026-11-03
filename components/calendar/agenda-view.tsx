@@ -1,10 +1,11 @@
+import { getTr, getServerLocale } from "@/lib/i18n/server";
 import Link from "next/link";
 import { DateTime } from "luxon";
 import { AlertTriangle } from "lucide-react";
 import { EVENT_STATUS_STYLES, eventStatusLabel, getContrastTextColor } from "@/lib/validation/calendar";
 import type { CalendarEventView } from "./types";
 
-export function AgendaView({
+export async function AgendaView({
   start,
   end,
   timezone,
@@ -17,6 +18,7 @@ export function AgendaView({
   events: CalendarEventView[];
   conflictIds: Set<string>;
 }) {
+  const tr = await getTr();
   const eventsByDay = new Map<string, CalendarEventView[]>();
   for (const event of events) {
     const iso = DateTime.fromISO(event.starts_at, { zone: timezone }).toISODate()!;
@@ -38,24 +40,20 @@ export function AgendaView({
     return (
       <div className="rounded-3xl border border-dashed border-ink-200 dark:border-ink-800 bg-canvas-raised/60 dark:bg-slate-900/60 p-8 sm:p-12 text-center space-y-3">
         <p className="font-bold text-sm text-ink-950 dark:text-white">
-          Aucun événement sur cette période
-        </p>
+          {tr("Aucun événement sur cette période")}</p>
         <p className="text-xs text-ink-500 max-w-sm mx-auto">
-          Vos séances d&apos;activités et vos échéances programmées apparaissent ici automatiquement dès qu&apos;elles sont planifiées.
-        </p>
+          {tr("Vos séances d'activités et vos échéances programmées apparaissent ici automatiquement dès qu'elles sont planifiées.")}</p>
         <div className="pt-2 flex items-center justify-center gap-2 flex-wrap">
           <Link
             href="/activities/new"
             className="px-3.5 py-2 rounded-xl bg-signal text-white text-xs font-bold shadow-xs hover:bg-signal-dark transition-all"
           >
-            + Nouvelle activité
-          </Link>
+            {tr("+ Nouvelle activité")}</Link>
           <Link
             href="/calendar"
             className="px-3.5 py-2 rounded-xl border border-ink-300 dark:border-ink-700 text-ink-700 dark:text-ink-300 text-xs font-semibold hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
           >
-            Revenir à aujourd&apos;hui
-          </Link>
+            {tr("Revenir à aujourd'hui")}</Link>
         </div>
       </div>
     );
@@ -79,12 +77,11 @@ export function AgendaView({
                   isToday ? "text-signal" : "text-ink-700 dark:text-ink-300"
                 }`}
               >
-                {day.setLocale("fr").toFormat("cccc d MMMM yyyy")}
+                {day.setLocale(getServerLocale()).toFormat("cccc d MMMM yyyy")}
               </span>
               {isToday && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-signal text-white shadow-2xs">
-                  Aujourd&apos;hui
-                </span>
+                  {tr("Aujourd'hui")}</span>
               )}
             </div>
 
@@ -123,13 +120,11 @@ export function AgendaView({
                             {hasConflict ? (
                               <span className="inline-flex items-center gap-1 rounded-md bg-danger px-1.5 py-0.5 text-[10px] font-bold text-white shadow-2xs shrink-0">
                                 <AlertTriangle className="h-3 w-3" />
-                                Conflit
-                              </span>
+                                {tr("Conflit")}</span>
                             ) : null}
                             {event.is_scheduled_expense && (
                               <span className="rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 px-1.5 py-0.5 text-[10px] font-bold shrink-0">
-                                Dépense programmée
-                              </span>
+                                {tr("Dépense programmée")}</span>
                             )}
                           </div>
                           <p className="text-[11px] text-ink-500 mt-0.5 truncate">
@@ -139,7 +134,7 @@ export function AgendaView({
                         </div>
                       </div>
                       <span className="rounded-full bg-ink-100 dark:bg-ink-800 px-2.5 py-1 text-[10px] sm:text-xs font-semibold text-ink-700 dark:text-ink-300 shrink-0">
-                        {eventStatusLabel(event.status)}
+                        {tr(eventStatusLabel(event.status))}
                       </span>
                     </Link>
                   </li>

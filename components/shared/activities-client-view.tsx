@@ -584,7 +584,7 @@ export function ActivitiesClientView({
             {searchQuery ? tr("Aucune activité ne correspond à votre recherche") : t("activities.empty_title")}
           </h3>
           <p className="text-xs sm:text-sm text-ink-500 max-w-sm mx-auto">
-            {searchQuery ? `Essayez de modifier votre terme de recherche « ${searchQuery} »` : t("activities.empty_desc")}
+            {searchQuery ? tr("Essayez de modifier votre terme de recherche « {searchQuery} »", { searchQuery }) : t("activities.empty_desc")}
           </p>
           <div className="pt-2">
             {searchQuery ? (

@@ -1,10 +1,11 @@
+import { getTr } from "@/lib/i18n/server";
 import Link from "next/link";
 import { DateTime } from "luxon";
 import { AlertTriangle } from "lucide-react";
 import { getContrastTextColor } from "@/lib/validation/calendar";
 import type { CalendarEventView } from "./types";
 
-export function EventPill({
+export async function EventPill({
   event,
   timezone,
   hasConflict,
@@ -13,6 +14,7 @@ export function EventPill({
   timezone: string;
   hasConflict?: boolean;
 }) {
+  const tr = await getTr();
   const start = DateTime.fromISO(event.starts_at, { zone: timezone });
   const color = event.is_scheduled_expense ? "#D97706" : (event.activity?.color ?? "#1E3A5F");
   const textColor = getContrastTextColor(color);
@@ -43,8 +45,7 @@ export function EventPill({
       <span className="truncate">{event.title}</span>
       {hasConflict ? (
         <span className="ml-auto shrink-0 flex items-center justify-center rounded bg-danger px-1 text-[10px] font-bold text-white shadow-xs">
-          <AlertTriangle className="h-3 w-3 mr-0.5" /> Conflit
-        </span>
+          <AlertTriangle className="h-3 w-3 mr-0.5" /> {tr("Conflit")}</span>
       ) : null}
     </Link>
   );

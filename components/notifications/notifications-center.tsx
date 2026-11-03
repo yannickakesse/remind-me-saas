@@ -722,7 +722,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
         });
         if (!apiRes.ok) throw new Error("Échec");
       }
-      showToast(`Séance reportée de ${hours}h.`, "info");
+      showToast(tr("Séance reportée de {hours}h.", { hours }), "info");
       startTransition(() => {
         router.refresh();
       });
@@ -749,7 +749,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       if (res && !res.success) {
         setNotifications(previous);
       } else {
-        showToast(`Rappel reporté de ${hours}h.`, "info");
+        showToast(tr("Rappel reporté de {hours}h.", { hours }), "info");
         startTransition(() => {
           router.refresh();
         });
@@ -1209,7 +1209,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-ink-600 dark:text-ink-400">
               {activeCount > 0
-                ? `${activeCount} à traiter${unreadCount > 0 ? ` · ${unreadCount} non lue${unreadCount > 1 ? "s" : ""}` : ""}`
+                ? `${tr("{n} à traiter", { n: activeCount })}${unreadCount > 0 ? ` · ${unreadCount > 1 ? tr("{n} non lues", { n: unreadCount }) : tr("{n} non lue", { n: unreadCount })}` : ""}`
                 : tr("Vous êtes à jour.")}
             </p>
           </div>
@@ -1483,7 +1483,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
                         if (!apiRes.ok) throw new Error("Échec du renouvellement");
                       }
 
-                      showToast(`Activité renouvelée avec succès jusqu'au ${formatDateLocale(renewEndDate, locale, timezone)} !`, "success");
+                      showToast(tr("Activité renouvelée avec succès jusqu'au {v0} !", { v0: formatDateLocale(renewEndDate, locale, timezone) }), "success");
                       setRenewModal(null);
                       startTransition(() => {
                         router.refresh();

@@ -1,3 +1,4 @@
+import { getTr } from "@/lib/i18n/server";
 import { PageBackground } from "@/components/shared/page-background";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
@@ -11,10 +12,13 @@ import {
 import { buildInboxItems } from "@/lib/messages/inbox-aggregator";
 import { MessagesInboxView } from "@/components/messages/messages-inbox-view";
 
-export const metadata: Metadata = {
-  title: "Inbox | Remind Me",
-  description: "Espace centralisé de vos flux financiers, échéances à traiter et communications officielles.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const tr = await getTr();
+  return {
+    title: tr("Inbox"),
+    description: tr("Espace centralisé de vos flux financiers, échéances à traiter et communications officielles."),
+  };
+}
 
 export const dynamic = "force-dynamic";
 

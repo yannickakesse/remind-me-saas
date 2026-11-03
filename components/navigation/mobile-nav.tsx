@@ -123,7 +123,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            aria-label={unreadCount ? `Menu de navigation — ${unreadCount} notification(s) non lue(s)` : tr("Menu de navigation")}
+            aria-label={unreadCount ? tr("Menu de navigation — {unreadCount} notification(s) non lue(s)", { unreadCount }) : tr("Menu de navigation")}
             data-tour="mobile-notification-bell"
             className="relative flex items-center justify-center h-10 w-10 rounded-xl text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 active:scale-95 transition-all tap-active"
           >
@@ -318,106 +318,85 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
             aria-hidden="true"
           />
 
-          {/* Action Sheet Panel */}
-          <div className="relative z-10 w-full max-w-md mx-auto bg-canvas-raised dark:bg-slate-900 rounded-t-3xl border-t border-x border-ink-200/90 dark:border-ink-800/90 p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom duration-200 safe-area-bottom">
-            {/* Grabber */}
-            <div className="w-12 h-1.5 rounded-full bg-ink-300 dark:bg-ink-700 mx-auto" />
+          {/* Feuille « Création rapide » : contenu centré, une couleur par type (palette Remind Me) */}
+          <div className="relative z-10 w-full max-w-md mx-auto rounded-t-[28px] border-t border-x border-ink-200/80 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl space-y-5 animate-in slide-in-from-bottom duration-200">
+            <div className="mx-auto h-1.5 w-12 rounded-full bg-ink-200 dark:bg-ink-700" />
 
-            <div className="flex items-center justify-between pb-1 border-b border-ink-100 dark:border-ink-800">
-              <div>
-                <h3 className="text-sm font-extrabold text-ink-950 dark:text-white">
-                  {tr("Création Rapide")}</h3>
-                <p className="text-[11px] text-ink-500">
-                  {tr("Que souhaitez-vous enregistrer ?")}</p>
-              </div>
+            <div className="relative text-center">
+              <h3 className="text-base font-extrabold tracking-tight text-ink-950 dark:text-white">{tr("Création Rapide")}</h3>
+              <p className="mt-0.5 text-xs text-ink-500 dark:text-ink-400">{tr("Que souhaitez-vous enregistrer ?")}</p>
               <button
                 type="button"
                 onClick={() => setIsSpeedDialOpen(false)}
-                className="p-1.5 rounded-xl text-ink-400 hover:text-ink-700 dark:hover:text-white"
+                aria-label={tr("Fermer")}
+                className="absolute right-0 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-ink-100/80 dark:bg-white/5 text-ink-500 hover:text-ink-900 dark:hover:text-white"
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Grille des 4 actions rapides ergonomiques */}
-            <div className="grid grid-cols-2 gap-2.5">
-              {/* 1. Dépense */}
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => {
                   setIsSpeedDialOpen(false);
                   openQuickTransaction("expense");
                 }}
-                className="flex flex-col items-start p-3.5 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/30 text-left hover:scale-[1.02] active:scale-95 transition-all shadow-2xs group"
+                className="group flex flex-col items-center text-center gap-2 rounded-3xl border border-ink-200/80 dark:border-white/10 bg-canvas dark:bg-slate-950/50 px-3 py-4 shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-sm active:scale-95"
               >
-                <div className="w-9 h-9 rounded-xl bg-danger text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-110 transition-transform">
-                  <TrendingDown className="w-5 h-5 stroke-[2.2]" />
-                </div>
-                <span className="text-xs font-bold text-ink-950 dark:text-white">
-                  {tr("+ Dépense")}</span>
-                <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
-                  {tr("Ponctuelle ou comptant")}</span>
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-rose-600 shadow-rose-500/30 text-white shadow-md transition-transform group-hover:scale-105">
+                  <TrendingDown className="h-6 w-6" strokeWidth={2.2} />
+                </span>
+                <span className="text-[13px] font-bold text-ink-950 dark:text-white">{tr("Dépense")}</span>
+                <span className="-mt-1 text-[11px] leading-snug text-ink-500 dark:text-ink-400">{tr("Ponctuelle ou comptant")}</span>
               </button>
-
-              {/* 2. Revenu */}
               <button
                 type="button"
                 onClick={() => {
                   setIsSpeedDialOpen(false);
                   openQuickTransaction("income");
                 }}
-                className="flex flex-col items-start p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/30 text-left hover:scale-[1.02] active:scale-95 transition-all shadow-2xs group"
+                className="group flex flex-col items-center text-center gap-2 rounded-3xl border border-ink-200/80 dark:border-white/10 bg-canvas dark:bg-slate-950/50 px-3 py-4 shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-sm active:scale-95"
               >
-                <div className="w-9 h-9 rounded-xl bg-positive text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-110 transition-transform">
-                  <TrendingUp className="w-5 h-5 stroke-[2.2]" />
-                </div>
-                <span className="text-xs font-bold text-ink-950 dark:text-white">
-                  {tr("+ Revenu")}</span>
-                <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
-                  {tr("Facture ou paiement client")}</span>
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/30 text-white shadow-md transition-transform group-hover:scale-105">
+                  <TrendingUp className="h-6 w-6" strokeWidth={2.2} />
+                </span>
+                <span className="text-[13px] font-bold text-ink-950 dark:text-white">{tr("Revenu")}</span>
+                <span className="-mt-1 text-[11px] leading-snug text-ink-500 dark:text-ink-400">{tr("Facture ou paiement client")}</span>
               </button>
-
-              {/* 3. Tâche */}
               <Link
                 href="/tasks/new"
                 onClick={() => setIsSpeedDialOpen(false)}
-                className="flex flex-col items-start p-3.5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/30 text-left hover:scale-[1.02] active:scale-95 transition-all shadow-2xs group"
+                className="group flex flex-col items-center text-center gap-2 rounded-3xl border border-ink-200/80 dark:border-white/10 bg-canvas dark:bg-slate-950/50 px-3 py-4 shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-sm active:scale-95"
               >
-                <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-110 transition-transform">
-                  <CheckSquare className="w-5 h-5 stroke-[2.2]" />
-                </div>
-                <span className="text-xs font-bold text-ink-950 dark:text-white">
-                  {tr("+ Tâche")}</span>
-                <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
-                  {tr("To-do ou priorité du jour")}</span>
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 shadow-blue-500/30 text-white shadow-md transition-transform group-hover:scale-105">
+                  <CheckSquare className="h-6 w-6" strokeWidth={2.2} />
+                </span>
+                <span className="text-[13px] font-bold text-ink-950 dark:text-white">{tr("Tâche")}</span>
+                <span className="-mt-1 text-[11px] leading-snug text-ink-500 dark:text-ink-400">{tr("To-do ou priorité du jour")}</span>
               </Link>
-
-              {/* 4. Séance / Activité */}
               <Link
                 href="/activities/new"
                 onClick={() => setIsSpeedDialOpen(false)}
-                className="flex flex-col items-start p-3.5 rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/30 text-left hover:scale-[1.02] active:scale-95 transition-all shadow-2xs group"
+                className="group flex flex-col items-center text-center gap-2 rounded-3xl border border-ink-200/80 dark:border-white/10 bg-canvas dark:bg-slate-950/50 px-3 py-4 shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-sm active:scale-95"
               >
-                <div className="w-9 h-9 rounded-xl bg-signal text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-110 transition-transform">
-                  <Calendar className="w-5 h-5 stroke-[2.2]" />
-                </div>
-                <span className="text-xs font-bold text-ink-950 dark:text-white">
-                  {tr("+ Activité / Séance")}</span>
-                <span className="text-[10px] text-ink-500 line-clamp-1 mt-0.5">
-                  {tr("Nouvelle mission ou planning")}</span>
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-signal shadow-amber-500/30 text-white shadow-md transition-transform group-hover:scale-105">
+                  <Calendar className="h-6 w-6" strokeWidth={2.2} />
+                </span>
+                <span className="text-[13px] font-bold text-ink-950 dark:text-white">{tr("Activité / Séance")}</span>
+                <span className="-mt-1 text-[11px] leading-snug text-ink-500 dark:text-ink-400">{tr("Nouvelle mission ou planning")}</span>
               </Link>
             </div>
 
-            {/* Dépense récurrente */}
             <button
               type="button"
               onClick={() => {
                 setIsSpeedDialOpen(false);
                 openQuickTransaction("scheduled");
               }}
-              className="w-full py-2.5 px-3 rounded-xl border border-ink-200 dark:border-ink-800 bg-canvas/70 dark:bg-ink-950/70 text-xs font-bold text-ink-700 dark:text-ink-300 hover:text-signal flex items-center justify-center gap-1.5 transition-colors"
+              className="mx-auto flex items-center justify-center gap-2 rounded-full border border-signal/30 bg-signal/10 px-5 py-2.5 text-xs font-semibold text-signal transition-colors hover:bg-signal/15"
             >
-              <Clock className="w-3.5 h-3.5 text-signal" />
+              <Clock className="h-4 w-4" />
               <span>{tr("Programmer une dépense récurrente (loyer, abonnement)")}</span>
             </button>
           </div>
@@ -427,6 +406,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
       {/* Barre du bas mobile : pilule flottante translucide (esprit iOS), indicateur qui glisse d'un onglet à l'autre */}
       <nav
         aria-label={tr("Navigation principale")}
+        data-tour="mobile-nav-bar"
         className="md:hidden fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pointer-events-none print:hidden"
       >
         <div className="pointer-events-auto relative mx-auto flex max-w-md items-center rounded-full border border-white/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 p-1.5 shadow-[0_10px_35px_-8px_rgba(15,23,42,0.28)] backdrop-blur-2xl backdrop-saturate-150">

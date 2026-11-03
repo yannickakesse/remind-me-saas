@@ -26,7 +26,7 @@ export function OfflineSyncIndicator() {
         const result = await processOfflineSyncQueue();
         if (result.succeeded > 0) {
           setJustSynced(true);
-          showToast(`Connexion rétablie : ${result.succeeded} modification(s) synchronisée(s).`, "success");
+          showToast(tr("Connexion rétablie : {succeeded} modification(s) synchronisée(s).", { succeeded: result.succeeded }), "success");
           setTimeout(() => setJustSynced(false), 4000);
         }
       } catch {
