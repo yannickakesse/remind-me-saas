@@ -5,7 +5,7 @@ import { playNotificationChime, isSoundEnabled } from "@/lib/notifications/sound
 import {
   initVoiceEngine,
   unlockVoiceAudio,
-  playVoiceReminder,
+  playReminderVoice,
   generateVoiceMessage,
   getLocalVoiceSettings,
   saveLocalVoiceSettings,
@@ -124,7 +124,8 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
 
         if (textToSpeak && voiceAllowed && localSettings.voice_reminders && !isSpeakingRef.current) {
           isSpeakingRef.current = true;
-          playVoiceReminder({
+          playReminderVoice({
+            alert: { kind: payload?.data?.kind, category: payload?.data?.category, metadata: { days: payload?.data?.days } },
             text: textToSpeak,
             language: localSettings.voice_language,
             voiceType: localSettings.voice_type,
@@ -159,7 +160,8 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
       if (voiceMsgFromUrl && localSettings.voice_reminders && !isSpeakingRef.current) {
         // Exécution vocale synchrone immédiate (Conserve le geste utilisateur mobile sans délai)
         isSpeakingRef.current = true;
-        playVoiceReminder({
+        playReminderVoice({
+          alert: null,
           text: decodeURIComponent(voiceMsgFromUrl),
           language: localSettings.voice_language,
           voiceType: localSettings.voice_type,
@@ -190,7 +192,8 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
 
               if (voiceSettings.voice_reminders && firstUnread.metadata?.voice_reminder_enabled !== false && !isSpeakingRef.current) {
                 isSpeakingRef.current = true;
-                playVoiceReminder({
+                playReminderVoice({
+                  alert: { kind: firstUnread.kind, category: firstUnread.category, metadata: firstUnread.metadata },
                   text: textToSpeak,
                   language: voiceSettings.voice_language,
                   voiceType: voiceSettings.voice_type,
@@ -334,7 +337,8 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
                   }
                 };
 
-                playVoiceReminder({
+                playReminderVoice({
+                  alert: { kind: item.kind, category: item.category, metadata: item.metadata },
                   text: voiceScript,
                   language: voicePrefs.voice_language,
                   voiceType: voicePrefs.voice_type,

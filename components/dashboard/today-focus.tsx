@@ -47,12 +47,25 @@ export function TodayFocus({
 }: TodayFocusProps) {
   const { tr } = useLanguage();
   const now = DateTime.now().setZone(timezone);
-  const nowIso = now.toISO()!;
 
-  // Trouver la prochaine séance imminente ou en cours
-  const nextEventId = todayEvents.find(
-    (e) => e.status !== "cancelled" && e.ends_at >= nowIso
-  )?.id;
+  // Phase de chaque séance : en cours, prochaine (la suivante), à venir, passée
+  const nowMs = now.toMillis();
+  const ms = (iso: string) => DateTime.fromISO(iso).toMillis();
+  const active = todayEvents.filter((e) => e.status !== "cancelled");
+  const currentEventId = active.find((e) => ms(e.starts_at) <= nowMs && ms(e.ends_at) > nowMs)?.id;
+  const nextEventId = active.find((e) => ms(e.starts_at) > nowMs)?.id;
+  const highlightedId = currentEventId ?? nextEventId;
+  type Phase = "current" | "next" | "upcoming" | "past" | "cancelled";
+  const phaseOf = (e: (typeof todayEvents)[number]): Phase =>
+    e.status === "cancelled"
+      ? "cancelled"
+      : e.id === currentEventId
+      ? "current"
+      : e.id === nextEventId
+      ? "next"
+      : ms(e.ends_at) <= nowMs
+      ? "past"
+      : "upcoming";
 
   const eventCount = todayEvents.length;
   const taskCount = urgentTasks.length;
@@ -101,7 +114,8 @@ export function TodayFocus({
               const textColor = getContrastTextColor(color);
               const start = DateTime.fromISO(event.starts_at, { zone: timezone }).toFormat("HH:mm");
               const end = DateTime.fromISO(event.ends_at, { zone: timezone }).toFormat("HH:mm");
-              const isNext = event.id === nextEventId;
+              const phase = phaseOf(event);
+              const isNext = event.id === highlightedId;
 
               return (
                 <Link
@@ -118,12 +132,6 @@ export function TodayFocus({
                     className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl"
                     style={{ backgroundColor: color }}
                   />
-
-                  {isNext && (
-                    <span className="absolute top-2.5 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-signal text-white shadow-xs">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                      {tr("Prochaine")}</span>
-                  )}
 
                   <div className="flex items-center justify-between gap-2 pl-1.5">
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -143,11 +151,20 @@ export function TodayFocus({
                         </div>
                       </div>
                     </div>
-                    {/* Le badge « Prochaine » remplace le statut pour ne pas se superposer */}
-                    {!isNext && (
-                      <span className="text-[11px] font-medium text-ink-400 shrink-0 ml-1">
-                        {tr(eventStatusLabel(event.status))}
+                    {/* Statut, centré verticalement à droite */}
+                    {phase === "current" || phase === "next" ? (
+                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-signal px-2.5 py-1 text-[10px] font-bold text-white shadow-xs">
+                        {phase === "current" && <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />}
+                        {phase === "current" ? tr("En cours") : tr("Prochaine")}
                       </span>
+                    ) : phase === "past" ? (
+                      <span className="shrink-0 rounded-full bg-ink-100 dark:bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-ink-500">
+                        {tr("Passé")}
+                      </span>
+                    ) : phase === "upcoming" ? (
+                      <span className="shrink-0 text-[11px] font-medium text-ink-500">{tr("À venir")}</span>
+                    ) : (
+                      <span className="shrink-0 text-[11px] font-medium text-ink-400">{tr(eventStatusLabel(event.status))}</span>
                     )}
                   </div>
                 </Link>

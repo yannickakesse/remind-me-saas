@@ -1,0 +1,364 @@
+{
+  "groups": {
+    "activities": {
+      "title": "Activités",
+      "ids": [
+        "activity_in_3d",
+        "activity_in_2d",
+        "activity_tomorrow",
+        "activity_today",
+        "activity_in_2h",
+        "activity_in_1h",
+        "activity_in_30m"
+      ]
+    },
+    "activities_soon": {
+      "title": "Activités (dernières minutes)",
+      "ids": [
+        "activity_in_15m",
+        "activity_in_10m",
+        "activity_in_5m",
+        "activity_soon",
+        "activity_now",
+        "activity_overdue"
+      ]
+    },
+    "payments": {
+      "title": "Paiements attendus",
+      "ids": [
+        "payment_in_7d",
+        "payment_in_3d",
+        "payment_in_2d",
+        "payment_tomorrow",
+        "payment_today",
+        "payment_overdue",
+        "payment_soon"
+      ]
+    },
+    "expenses": {
+      "title": "Dépenses à régler",
+      "ids": [
+        "expense_in_7d",
+        "expense_in_3d",
+        "expense_in_2d",
+        "expense_tomorrow",
+        "expense_today",
+        "expense_overdue",
+        "expense_soon"
+      ]
+    },
+    "tasks": {
+      "title": "Tâches",
+      "ids": [
+        "task_in_3d",
+        "task_in_2d",
+        "task_tomorrow",
+        "task_today",
+        "task_soon",
+        "task_overdue"
+      ]
+    },
+    "contracts": {
+      "title": "Fin d'engagement et rappels généraux",
+      "ids": [
+        "contract_in_7d",
+        "contract_in_3d",
+        "contract_in_2d",
+        "contract_tomorrow",
+        "contract_expired",
+        "morning_briefing",
+        "evening_checkin",
+        "generic"
+      ]
+    }
+  },
+  "texts": {
+    "activity_in_3d": {
+      "fr": "Une activité est prévue dans trois jours.",
+      "en": "An activity is scheduled in three days.",
+      "es": "Hay una actividad programada para dentro de tres días.",
+      "de": "In drei Tagen ist eine Aktivität geplant.",
+      "pt": "Há uma atividade marcada para daqui a três dias."
+    },
+    "activity_in_2d": {
+      "fr": "Une activité est prévue dans deux jours.",
+      "en": "An activity is scheduled in two days.",
+      "es": "Hay una actividad prevista para dentro de dos días.",
+      "de": "In zwei Tagen ist eine Aktivität geplant.",
+      "pt": "Há uma atividade agendada para daqui a dois dias."
+    },
+    "activity_tomorrow": {
+      "fr": "Une activité est prévue demain. Pensez à vous organiser.",
+      "en": "An activity is scheduled for tomorrow. Remember to plan ahead.",
+      "es": "Mañana hay una actividad programada. No olvide organizarse.",
+      "de": "Für morgen ist eine Aktivität geplant. Denken Sie daran, sich zu organisieren.",
+      "pt": "Há uma atividade marcada para amanhã. Lembre-se de se organizar."
+    },
+    "activity_today": {
+      "fr": "Vous avez une activité prévue aujourd'hui.",
+      "en": "You have an activity scheduled for today.",
+      "es": "Tiene una actividad programada para hoy.",
+      "de": "Für heute ist eine Aktivität geplant.",
+      "pt": "Você tem uma atividade marcada para hoje."
+    },
+    "activity_in_2h": {
+      "fr": "Votre prochaine activité commence dans deux heures.",
+      "en": "Your next activity starts in two hours.",
+      "es": "Su próxima actividad comienza dentro de dos horas.",
+      "de": "Ihre nächste Aktivität beginnt in zwei Stunden.",
+      "pt": "Sua próxima atividade começa em duas horas."
+    },
+    "activity_in_1h": {
+      "fr": "Votre prochaine activité commence dans une heure.",
+      "en": "Your next activity starts in one hour.",
+      "es": "Su próxima actividad comienza dentro de una hora.",
+      "de": "Ihre nächste Aktivität beginnt in einer Stunde.",
+      "pt": "Sua próxima atividade começa em uma hora."
+    },
+    "activity_in_30m": {
+      "fr": "Votre prochaine activité commence dans trente minutes.",
+      "en": "Your next activity starts in thirty minutes.",
+      "es": "Su próxima actividad comienza dentro de treinta minutos.",
+      "de": "Ihre nächste Aktivität beginnt in dreißig Minuten.",
+      "pt": "Sua próxima atividade começa em trinta minutos."
+    },
+    "activity_in_15m": {
+      "fr": "Votre activité commence dans quinze minutes. Préparez-vous.",
+      "en": "Your activity starts in fifteen minutes. Please get ready.",
+      "es": "Su actividad comienza dentro de quince minutos. Prepárese.",
+      "de": "Ihre Aktivität beginnt in fünfzehn Minuten. Bitte bereiten Sie sich vor.",
+      "pt": "Sua atividade terá início em quinze minutos. Prepare-se."
+    },
+    "activity_in_10m": {
+      "fr": "Votre activité commence dans dix minutes.",
+      "en": "Your activity starts in ten minutes.",
+      "es": "Su actividad comienza dentro de diez minutos.",
+      "de": "Ihre Aktivität beginnt in zehn Minuten.",
+      "pt": "Sua atividade terá início em dez minutos."
+    },
+    "activity_in_5m": {
+      "fr": "Votre activité commence dans cinq minutes.",
+      "en": "Your activity starts in five minutes.",
+      "es": "Su actividad comienza dentro de cinco minutos.",
+      "de": "Ihre Aktivität beginnt in fünf Minuten.",
+      "pt": "Sua atividade terá início em cinco minutos."
+    },
+    "activity_soon": {
+      "fr": "Votre prochaine activité commence bientôt.",
+      "en": "Your next activity is starting soon.",
+      "es": "Su próxima actividad comenzará en breve.",
+      "de": "Ihre nächste Aktivität beginnt in Kürze.",
+      "pt": "Sua próxima atividade começará em breve."
+    },
+    "activity_now": {
+      "fr": "Votre activité commence maintenant. Bonne séance !",
+      "en": "Your activity is starting now. Have a great session!",
+      "es": "Su actividad comienza ahora. ¡Que tenga una buena sesión!",
+      "de": "Ihre Aktivität beginnt jetzt. Viel Erfolg!",
+      "pt": "Sua atividade começa agora. Boa sessão!"
+    },
+    "activity_overdue": {
+      "fr": "Une séance passée n'a pas encore été confirmée. Pensez à la mettre à jour.",
+      "en": "A past session has not yet been confirmed. Please remember to update it.",
+      "es": "Aún no se ha confirmado una sesión ya celebrada. No olvide actualizarla.",
+      "de": "Eine vergangene Sitzung wurde noch nicht bestätigt. Bitte denken Sie daran, sie zu aktualisieren.",
+      "pt": "Uma sessão já realizada ainda não foi confirmada. Lembre-se de atualizá-la."
+    },
+    "payment_in_7d": {
+      "fr": "Un paiement est attendu dans une semaine.",
+      "en": "A payment is expected in one week.",
+      "es": "Se espera un pago dentro de una semana.",
+      "de": "Eine Zahlung wird in einer Woche erwartet.",
+      "pt": "Um pagamento está previsto para daqui a uma semana."
+    },
+    "payment_in_3d": {
+      "fr": "Un paiement est attendu dans trois jours. Pensez à le suivre.",
+      "en": "A payment is expected in three days. Remember to follow up on it.",
+      "es": "Se espera un pago dentro de tres días. No olvide hacer el seguimiento.",
+      "de": "Eine Zahlung wird in drei Tagen erwartet. Bitte denken Sie daran, dies im Auge zu behalten.",
+      "pt": "Um pagamento está previsto para daqui a três dias. Lembre-se de acompanhar o andamento."
+    },
+    "payment_in_2d": {
+      "fr": "Un paiement est attendu dans deux jours.",
+      "en": "A payment is expected in two days.",
+      "es": "Se espera un pago dentro de dos días.",
+      "de": "Eine Zahlung wird in zwei Tagen erwartet.",
+      "pt": "Um pagamento está previsto para daqui a dois dias."
+    },
+    "payment_tomorrow": {
+      "fr": "Un paiement est attendu demain.",
+      "en": "A payment is expected tomorrow.",
+      "es": "Se espera recibir un pago mañana.",
+      "de": "Eine Zahlung wird morgen erwartet.",
+      "pt": "Um pagamento está previsto para amanhã."
+    },
+    "payment_today": {
+      "fr": "Un paiement est attendu aujourd'hui. Pensez à vérifier sa réception.",
+      "en": "A payment is expected today. Remember to check that it has arrived.",
+      "es": "Hoy se espera un pago. No olvide comprobar si se ha recibido.",
+      "de": "Heute wird eine Zahlung erwartet. Bitte überprüfen Sie, ob diese eingegangen ist.",
+      "pt": "Um pagamento está previsto para hoje. Lembre-se de verificar se ele foi recebido."
+    },
+    "payment_overdue": {
+      "fr": "Un paiement attendu est en retard. Pensez à relancer.",
+      "en": "An expected payment is overdue. Please follow up.",
+      "es": "Un pago esperado está atrasado. No olvide reclamarlo.",
+      "de": "Eine erwartete Zahlung ist überfällig. Bitte haken Sie nach.",
+      "pt": "Um pagamento esperado está atrasado. Lembre-se de cobrar."
+    },
+    "payment_soon": {
+      "fr": "Un paiement est attendu prochainement.",
+      "en": "A payment is expected shortly.",
+      "es": "Se espera recibir un pago en breve.",
+      "de": "Eine Zahlung wird in Kürze erwartet.",
+      "pt": "Um pagamento está previsto para breve."
+    },
+    "expense_in_7d": {
+      "fr": "Une dépense est à régler dans une semaine.",
+      "en": "An expense is due in one week.",
+      "es": "Hay que abonar un gasto en el plazo de una semana.",
+      "de": "Eine Rechnung ist in einer Woche zu begleichen.",
+      "pt": "Há uma despesa a ser paga dentro de uma semana."
+    },
+    "expense_in_3d": {
+      "fr": "Une dépense est à régler dans trois jours.",
+      "en": "An expense is due in three days.",
+      "es": "Hay que abonar un gasto en un plazo de tres días.",
+      "de": "Eine Rechnung ist in drei Tagen zu begleichen.",
+      "pt": "Há uma despesa a ser paga em três dias."
+    },
+    "expense_in_2d": {
+      "fr": "Une dépense est à régler dans deux jours.",
+      "en": "An expense is due in two days.",
+      "es": "Hay que abonar un gasto en dos días.",
+      "de": "Eine Rechnung ist in zwei Tagen zu begleichen.",
+      "pt": "Há uma despesa a ser paga em dois dias."
+    },
+    "expense_tomorrow": {
+      "fr": "Une dépense est à régler demain.",
+      "en": "An expense is due tomorrow.",
+      "es": "Mañana hay que abonar un gasto.",
+      "de": "Eine Rechnung ist morgen zu begleichen.",
+      "pt": "Há uma despesa a ser paga amanhã."
+    },
+    "expense_today": {
+      "fr": "Une dépense est à régler aujourd'hui.",
+      "en": "An expense is due today.",
+      "es": "Hoy hay que abonar un gasto.",
+      "de": "Eine Rechnung ist heute zu begleichen.",
+      "pt": "Há uma despesa a ser paga hoje."
+    },
+    "expense_overdue": {
+      "fr": "Une dépense n'a pas encore été réglée. Elle est en retard.",
+      "en": "An expense has not yet been paid. It is overdue.",
+      "es": "Aún no se ha pagado un gasto. Está atrasado.",
+      "de": "Eine Rechnung wurde noch nicht beglichen. Sie ist überfällig.",
+      "pt": "Uma despesa ainda não foi paga. Ela está em atraso."
+    },
+    "expense_soon": {
+      "fr": "Une dépense est à régler prochainement.",
+      "en": "An expense is due soon.",
+      "es": "Próximamente deberá abonarse un gasto.",
+      "de": "Eine Rechnung ist in Kürze zu begleichen.",
+      "pt": "Há uma despesa a ser paga em breve."
+    },
+    "task_in_3d": {
+      "fr": "Une tâche arrive à échéance dans trois jours.",
+      "en": "A task is due in three days.",
+      "es": "Una tarea vence dentro de tres días.",
+      "de": "Eine Aufgabe ist in drei Tagen fällig.",
+      "pt": "Uma tarefa vence em três dias."
+    },
+    "task_in_2d": {
+      "fr": "Une tâche arrive à échéance dans deux jours.",
+      "en": "A task is due in two days.",
+      "es": "Una tarea vence dentro de dos días.",
+      "de": "Eine Aufgabe ist in zwei Tagen fällig.",
+      "pt": "Uma tarefa vence em dois dias."
+    },
+    "task_tomorrow": {
+      "fr": "Une tâche arrive à échéance demain.",
+      "en": "A task is due tomorrow.",
+      "es": "Mañana vence el plazo de una tarea.",
+      "de": "Eine Aufgabe ist morgen fällig.",
+      "pt": "Uma tarefa vence amanhã."
+    },
+    "task_today": {
+      "fr": "Une tâche est à terminer aujourd'hui.",
+      "en": "A task is due today.",
+      "es": "Hay una tarea que debe completarse hoy.",
+      "de": "Eine Aufgabe muss heute erledigt werden.",
+      "pt": "Há uma tarefa a ser concluída hoje."
+    },
+    "task_soon": {
+      "fr": "Une tâche arrive bientôt à échéance.",
+      "en": "A task is due soon.",
+      "es": "Una tarea está a punto de vencer.",
+      "de": "Eine Aufgabe steht bald zur Erledigung an.",
+      "pt": "Uma tarefa está prestes a vencer."
+    },
+    "task_overdue": {
+      "fr": "Une tâche est en retard. Pensez à la terminer.",
+      "en": "A task is overdue. Please remember to complete it.",
+      "es": "Una tarea está atrasada. No olvide terminarla.",
+      "de": "Eine Aufgabe ist überfällig. Bitte denken Sie daran, diese zu erledigen.",
+      "pt": "Uma tarefa está atrasada. Lembre-se de concluí-la."
+    },
+    "contract_in_7d": {
+      "fr": "Un de vos engagements se termine dans une semaine.",
+      "en": "One of your commitments ends in a week.",
+      "es": "Uno de sus compromisos finaliza dentro de una semana.",
+      "de": "Eine Ihrer Verpflichtungen endet in einer Woche.",
+      "pt": "Um de seus compromissos termina em uma semana."
+    },
+    "contract_in_3d": {
+      "fr": "Un de vos engagements se termine dans trois jours.",
+      "en": "One of your commitments ends in three days.",
+      "es": "Uno de sus compromisos finaliza dentro de tres días.",
+      "de": "Eine Ihrer Verpflichtungen endet in drei Tagen.",
+      "pt": "Um de seus compromissos termina em três dias."
+    },
+    "contract_in_2d": {
+      "fr": "Un de vos engagements se termine dans deux jours.",
+      "en": "One of your commitments ends in two days.",
+      "es": "Uno de sus compromisos finaliza dentro de dos días.",
+      "de": "Eine Ihrer Verpflichtungen endet in zwei Tagen.",
+      "pt": "Um de seus compromissos termina daqui a dois dias."
+    },
+    "contract_tomorrow": {
+      "fr": "Un de vos engagements se termine demain.",
+      "en": "One of your commitments ends tomorrow.",
+      "es": "Uno de sus compromisos finaliza mañana.",
+      "de": "Eine Ihrer Verpflichtungen endet morgen.",
+      "pt": "Um de seus compromissos termina amanhã."
+    },
+    "contract_expired": {
+      "fr": "Un de vos engagements est arrivé à son terme.",
+      "en": "One of your commitments has come to an end.",
+      "es": "Uno de sus compromisos ha llegado a su fin.",
+      "de": "Eine Ihrer Verpflichtungen ist beendet.",
+      "pt": "Um de seus compromissos chegou ao fim."
+    },
+    "morning_briefing": {
+      "fr": "Bonjour ! Voici votre programme de la journée.",
+      "en": "Hello! Here is your schedule for the day.",
+      "es": "¡Buenos días! Este es su programa para hoy.",
+      "de": "Guten Morgen! Hier ist Ihr Tagesprogramm.",
+      "pt": "Bom dia! Aqui está a programação do seu dia."
+    },
+    "evening_checkin": {
+      "fr": "Bonsoir ! Voici le bilan de votre journée.",
+      "en": "Good evening! Here’s a recap of your day.",
+      "es": "¡Buenas noches! A continuación le ofrecemos el resumen de su jornada.",
+      "de": "Guten Abend! Hier ist die Zusammenfassung Ihres Tages.",
+      "pt": "Boa noite! Aqui está o resumo do seu dia."
+    },
+    "generic": {
+      "fr": "Vous avez un nouveau rappel dans Remind Me.",
+      "en": "You have a new reminder in Remind Me.",
+      "es": "Tiene un nuevo recordatorio en Remind Me.",
+      "de": "Sie haben eine neue Erinnerung in Remind Me.",
+      "pt": "Você tem um novo lembrete no Remind Me."
+    }
+  }
+}

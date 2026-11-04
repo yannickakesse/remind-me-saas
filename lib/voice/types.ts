@@ -122,6 +122,13 @@ export interface VoiceSpeakOptions {
   onStart?: () => void;
   onEnd?: () => void;
   onError?: (err: any) => void;
+  /**
+   * Autorise la voix de l'appareil (speechSynthesis) si ElevenLabs est indisponible.
+   * Par défaut : seulement si une voix « naturelle » est disponible sur l'appareil.
+   */
+  allowDeviceVoice?: boolean;
+  /** En cas d'échec : ne rien jouer ni afficher (l'appelant a sa propre solution de repli). */
+  silentFailure?: boolean;
 }
 
 /**

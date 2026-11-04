@@ -26,7 +26,7 @@ Commencez par le **français** (`-fr`) ; les autres langues sont facultatives.
 
 - **`dashboard-en.mp3`** — Welcome to your dashboard. At the top, your monthly finances: what you’ve received, what you’ve paid, your balance, and what’s still coming in. Just below that, today’s focus with your scheduled sessions, followed by your urgent tasks. Further down, your scheduled expenses and payments you’re expecting. Tap an arrow to view the details.
 - **`dashboard-es.mp3`** — Bienvenido a tu panel de control. En la parte superior, tus finanzas del mes: lo que has recibido, lo que has pagado, tu saldo y lo que te queda por cobrar. Justo debajo, lo más destacado del día con tus sesiones programadas y, a continuación, tus tareas urgentes. Más abajo, tus gastos programados y los pagos que esperas recibir. Toca una flecha para ver los detalles.
-- **`dashboard-de.mp3`** — Willkommen auf Ihrem Dashboard. Oben sehen Sie Ihre Finanzen des Monats: was Sie erhalten haben, was Sie bezahlt haben, Ihren Kontostand'und was noch einzugehen ist. Direkt darunter der Schwerpunkt des Tages mit Ihren geplanten Terminen, gefolgt von Ihren dringenden Aufgaben. Weiter unten Ihre geplanten Ausgaben und die Zahlungen, auf die Sie warten. Tippen Sie auf einen Pfeil, um die Details anzuzeigen.
+- **`dashboard-de.mp3`** — Willkommen auf Ihrem Dashboard. Oben sehen Sie Ihre Finanzen des Monats: was Sie erhalten haben, was Sie bezahlt haben, Ihren Kontostand und was noch einzugehen ist. Direkt darunter der Schwerpunkt des Tages mit Ihren geplanten Terminen, gefolgt von Ihren dringenden Aufgaben. Weiter unten Ihre geplanten Ausgaben und die Zahlungen, auf die Sie warten. Tippen Sie auf einen Pfeil, um die Details anzuzeigen.
 - **`dashboard-pt.mp3`** — Bem-vindo ao seu painel de controle. Na parte superior, suas finanças do mês: o que você recebeu, o que pagou, seu saldo e o que ainda está por receber. Logo abaixo, o destaque do dia com suas sessões agendadas e, em seguida, suas tarefas urgentes. Mais abaixo, suas despesas programadas e os pagamentos que você aguarda. Toque em uma seta para ver os detalhes.
 
 </details>
@@ -80,7 +80,7 @@ Commencez par le **français** (`-fr`) ; les autres langues sont facultatives.
 
 ## Finances — `finances-fr.mp3`
 
-> Dans Finances, vous suivez votre argent réel. La vue globale résume le mois. Dans Revenus, touchez Encaisser quand'un paiement arrive. Ajoutez vos dépenses, programmez les charges qui reviennent chaque mois, et fixez vos budgets et vos objectifs d'épargne.
+> Dans Finances, vous suivez votre argent réel. La vue globale résume le mois. Dans Revenus, touchez Encaisser quand un paiement arrive. Ajoutez vos dépenses, programmez les charges qui reviennent chaque mois, et fixez vos budgets et vos objectifs d'épargne.
 
 <details><summary>Autres langues (facultatif)</summary>
 

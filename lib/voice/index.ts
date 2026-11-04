@@ -7,3 +7,5 @@ export * from "./voices-config";
 export * from "./elevenlabs";
 export * from "./player";
 export * from "./section-guides";
+export * from "./guide-audio";
+export * from "./standard-alerts";

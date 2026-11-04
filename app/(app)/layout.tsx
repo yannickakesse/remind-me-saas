@@ -9,6 +9,8 @@ import { NotificationSyncTrigger } from "@/components/notifications/notification
 import { TaskSoundWatcher } from "@/components/notifications/task-sound-watcher";
 import { InteractiveProductTour } from "@/components/onboarding/interactive-product-tour";
 import { SectionVoiceAssistant } from "@/components/onboarding/section-voice-assistant";
+import { VoiceRetryToast } from "@/components/notifications/voice-retry-toast";
+import { ScrollReset } from "@/components/navigation/scroll-reset";
 import { WelcomeVideoModal } from "@/components/motion/welcome-video-modal";
 import { HelpCenterButton } from "@/components/help/help-center-modal";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
@@ -91,8 +93,9 @@ export default async function AppLayout({
   const tourState = (userSettings?.ui_prefs as any)?.tour_state;
   const tourCompleted = Boolean(tourState?.completed || tourState?.skipped);
 
+  // Coque fixe à la hauteur de l'écran : seul <main> défile, la barre du bas ne bouge jamais (iPhone/PWA)
   return (
-    <div className="flex min-h-screen md:h-screen w-full overflow-hidden bg-canvas text-ink-950 dark:text-white flex-col md:flex-row">
+    <div className="flex h-[100dvh] w-full overflow-hidden bg-canvas text-ink-950 dark:text-white flex-col md:flex-row">
       {/* Service Worker PWA, push registration & instant background precaching */}
       <PwaRegistrar />
       <OfflineSyncIndicator />
@@ -109,6 +112,8 @@ export default async function AppLayout({
       <TaskSoundWatcher userId={user.id} />
       <InteractiveProductTour initialCompleted={tourCompleted} />
       <SectionVoiceAssistant />
+      <VoiceRetryToast />
+      <ScrollReset />
       <QuickTransactionModal
         activities={userActivities ?? []}
         defaultCurrency={profile?.default_currency ?? "XOF"}
@@ -181,7 +186,7 @@ export default async function AppLayout({
       </aside>
 
       {/* Contenu principal défilable avec scroll indépendant */}
-      <main className="flex-1 min-h-screen md:min-h-0 md:h-screen overflow-y-auto overflow-x-hidden min-w-0 p-3.5 sm:p-6 md:p-8 pb-24 md:pb-8 relative isolate">
+      <main id="app-scroll" className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden min-w-0 p-3.5 sm:p-6 md:p-8 pb-[calc(8.5rem+env(safe-area-inset-bottom,0px))] md:pb-8 relative isolate">
         <div className="max-w-7xl mx-auto w-full min-w-0 space-y-6">
           <MobileSwipeNavigator>{children}</MobileSwipeNavigator>
         </div>

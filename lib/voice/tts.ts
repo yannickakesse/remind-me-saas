@@ -90,6 +90,15 @@ function naturalnessScore(voice: SpeechSynthesisVoice): number {
   return score;
 }
 
+/**
+ * Indique si l'appareil propose une voix de bonne qualité (neuronale) pour la langue.
+ * Sert à décider si la voix de l'appareil peut remplacer ElevenLabs sans dégrader l'écoute.
+ */
+export function hasNaturalDeviceVoice(language: VoiceLanguage = "fr"): boolean {
+  if (!isSpeechSupported()) return false;
+  return getAvailableVoices(language).some((v) => naturalnessScore(v) >= 2);
+}
+
 /** Trie les voix de la plus naturelle à la plus robotique. */
 function byNaturalness(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice[] {
   return [...voices].sort((a, b) => naturalnessScore(b) - naturalnessScore(a));

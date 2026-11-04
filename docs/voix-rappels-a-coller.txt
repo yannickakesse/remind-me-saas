@@ -1,0 +1,426 @@
+﻿Activités — fichier : rappels-activities.mp3 (7 phrases × 5 langues = 35 morceaux)
+
+Une activité est prévue dans trois jours.
+<break time="3s" /> <break time="2s" />
+Une activité est prévue dans deux jours.
+<break time="3s" /> <break time="2s" />
+Une activité est prévue demain. Pensez à vous organiser.
+<break time="3s" /> <break time="2s" />
+Vous avez une activité prévue aujourd'hui.
+<break time="3s" /> <break time="2s" />
+Votre prochaine activité commence dans deux heures.
+<break time="3s" /> <break time="2s" />
+Votre prochaine activité commence dans une heure.
+<break time="3s" /> <break time="2s" />
+Votre prochaine activité commence dans trente minutes.
+<break time="3s" /> <break time="2s" />
+An activity is scheduled in three days.
+<break time="3s" /> <break time="2s" />
+An activity is scheduled in two days.
+<break time="3s" /> <break time="2s" />
+An activity is scheduled for tomorrow. Remember to plan ahead.
+<break time="3s" /> <break time="2s" />
+You have an activity scheduled for today.
+<break time="3s" /> <break time="2s" />
+Your next activity starts in two hours.
+<break time="3s" /> <break time="2s" />
+Your next activity starts in one hour.
+<break time="3s" /> <break time="2s" />
+Your next activity starts in thirty minutes.
+<break time="3s" /> <break time="2s" />
+Hay una actividad programada para dentro de tres días.
+<break time="3s" /> <break time="2s" />
+Hay una actividad prevista para dentro de dos días.
+<break time="3s" /> <break time="2s" />
+Mañana hay una actividad programada. No olvide organizarse.
+<break time="3s" /> <break time="2s" />
+Tiene una actividad programada para hoy.
+<break time="3s" /> <break time="2s" />
+Su próxima actividad comienza dentro de dos horas.
+<break time="3s" /> <break time="2s" />
+Su próxima actividad comienza dentro de una hora.
+<break time="3s" /> <break time="2s" />
+Su próxima actividad comienza dentro de treinta minutos.
+<break time="3s" /> <break time="2s" />
+In drei Tagen ist eine Aktivität geplant.
+<break time="3s" /> <break time="2s" />
+In zwei Tagen ist eine Aktivität geplant.
+<break time="3s" /> <break time="2s" />
+Für morgen ist eine Aktivität geplant. Denken Sie daran, sich zu organisieren.
+<break time="3s" /> <break time="2s" />
+Für heute ist eine Aktivität geplant.
+<break time="3s" /> <break time="2s" />
+Ihre nächste Aktivität beginnt in zwei Stunden.
+<break time="3s" /> <break time="2s" />
+Ihre nächste Aktivität beginnt in einer Stunde.
+<break time="3s" /> <break time="2s" />
+Ihre nächste Aktivität beginnt in dreißig Minuten.
+<break time="3s" /> <break time="2s" />
+Há uma atividade marcada para daqui a três dias.
+<break time="3s" /> <break time="2s" />
+Há uma atividade agendada para daqui a dois dias.
+<break time="3s" /> <break time="2s" />
+Há uma atividade marcada para amanhã. Lembre-se de se organizar.
+<break time="3s" /> <break time="2s" />
+Você tem uma atividade marcada para hoje.
+<break time="3s" /> <break time="2s" />
+Sua próxima atividade começa em duas horas.
+<break time="3s" /> <break time="2s" />
+Sua próxima atividade começa em uma hora.
+<break time="3s" /> <break time="2s" />
+Sua próxima atividade começa em trinta minutos.
+
+
+Activités (dernières minutes) — fichier : rappels-activities_soon.mp3 (6 phrases × 5 langues = 30 morceaux)
+
+Votre activité commence dans quinze minutes. Préparez-vous.
+<break time="3s" /> <break time="2s" />
+Votre activité commence dans dix minutes.
+<break time="3s" /> <break time="2s" />
+Votre activité commence dans cinq minutes.
+<break time="3s" /> <break time="2s" />
+Votre prochaine activité commence bientôt.
+<break time="3s" /> <break time="2s" />
+Votre activité commence maintenant. Bonne séance !
+<break time="3s" /> <break time="2s" />
+Une séance passée n'a pas encore été confirmée. Pensez à la mettre à jour.
+<break time="3s" /> <break time="2s" />
+Your activity starts in fifteen minutes. Please get ready.
+<break time="3s" /> <break time="2s" />
+Your activity starts in ten minutes.
+<break time="3s" /> <break time="2s" />
+Your activity starts in five minutes.
+<break time="3s" /> <break time="2s" />
+Your next activity is starting soon.
+<break time="3s" /> <break time="2s" />
+Your activity is starting now. Have a great session!
+<break time="3s" /> <break time="2s" />
+A past session has not yet been confirmed. Please remember to update it.
+<break time="3s" /> <break time="2s" />
+Su actividad comienza dentro de quince minutos. Prepárese.
+<break time="3s" /> <break time="2s" />
+Su actividad comienza dentro de diez minutos.
+<break time="3s" /> <break time="2s" />
+Su actividad comienza dentro de cinco minutos.
+<break time="3s" /> <break time="2s" />
+Su próxima actividad comenzará en breve.
+<break time="3s" /> <break time="2s" />
+Su actividad comienza ahora. ¡Que tenga una buena sesión!
+<break time="3s" /> <break time="2s" />
+Aún no se ha confirmado una sesión ya celebrada. No olvide actualizarla.
+<break time="3s" /> <break time="2s" />
+Ihre Aktivität beginnt in fünfzehn Minuten. Bitte bereiten Sie sich vor.
+<break time="3s" /> <break time="2s" />
+Ihre Aktivität beginnt in zehn Minuten.
+<break time="3s" /> <break time="2s" />
+Ihre Aktivität beginnt in fünf Minuten.
+<break time="3s" /> <break time="2s" />
+Ihre nächste Aktivität beginnt in Kürze.
+<break time="3s" /> <break time="2s" />
+Ihre Aktivität beginnt jetzt. Viel Erfolg!
+<break time="3s" /> <break time="2s" />
+Eine vergangene Sitzung wurde noch nicht bestätigt. Bitte denken Sie daran, sie zu aktualisieren.
+<break time="3s" /> <break time="2s" />
+Sua atividade terá início em quinze minutos. Prepare-se.
+<break time="3s" /> <break time="2s" />
+Sua atividade terá início em dez minutos.
+<break time="3s" /> <break time="2s" />
+Sua atividade terá início em cinco minutos.
+<break time="3s" /> <break time="2s" />
+Sua próxima atividade começará em breve.
+<break time="3s" /> <break time="2s" />
+Sua atividade começa agora. Boa sessão!
+<break time="3s" /> <break time="2s" />
+Uma sessão já realizada ainda não foi confirmada. Lembre-se de atualizá-la.
+
+
+Paiements attendus — fichier : rappels-payments.mp3 (7 phrases × 5 langues = 35 morceaux)
+
+Un paiement est attendu dans une semaine.
+<break time="3s" /> <break time="2s" />
+Un paiement est attendu dans trois jours. Pensez à le suivre.
+<break time="3s" /> <break time="2s" />
+Un paiement est attendu dans deux jours.
+<break time="3s" /> <break time="2s" />
+Un paiement est attendu demain.
+<break time="3s" /> <break time="2s" />
+Un paiement est attendu aujourd'hui. Pensez à vérifier sa réception.
+<break time="3s" /> <break time="2s" />
+Un paiement attendu est en retard. Pensez à relancer.
+<break time="3s" /> <break time="2s" />
+Un paiement est attendu prochainement.
+<break time="3s" /> <break time="2s" />
+A payment is expected in one week.
+<break time="3s" /> <break time="2s" />
+A payment is expected in three days. Remember to follow up on it.
+<break time="3s" /> <break time="2s" />
+A payment is expected in two days.
+<break time="3s" /> <break time="2s" />
+A payment is expected tomorrow.
+<break time="3s" /> <break time="2s" />
+A payment is expected today. Remember to check that it has arrived.
+<break time="3s" /> <break time="2s" />
+An expected payment is overdue. Please follow up.
+<break time="3s" /> <break time="2s" />
+A payment is expected shortly.
+<break time="3s" /> <break time="2s" />
+Se espera un pago dentro de una semana.
+<break time="3s" /> <break time="2s" />
+Se espera un pago dentro de tres días. No olvide hacer el seguimiento.
+<break time="3s" /> <break time="2s" />
+Se espera un pago dentro de dos días.
+<break time="3s" /> <break time="2s" />
+Se espera recibir un pago mañana.
+<break time="3s" /> <break time="2s" />
+Hoy se espera un pago. No olvide comprobar si se ha recibido.
+<break time="3s" /> <break time="2s" />
+Un pago esperado está atrasado. No olvide reclamarlo.
+<break time="3s" /> <break time="2s" />
+Se espera recibir un pago en breve.
+<break time="3s" /> <break time="2s" />
+Eine Zahlung wird in einer Woche erwartet.
+<break time="3s" /> <break time="2s" />
+Eine Zahlung wird in drei Tagen erwartet. Bitte denken Sie daran, dies im Auge zu behalten.
+<break time="3s" /> <break time="2s" />
+Eine Zahlung wird in zwei Tagen erwartet.
+<break time="3s" /> <break time="2s" />
+Eine Zahlung wird morgen erwartet.
+<break time="3s" /> <break time="2s" />
+Heute wird eine Zahlung erwartet. Bitte überprüfen Sie, ob diese eingegangen ist.
+<break time="3s" /> <break time="2s" />
+Eine erwartete Zahlung ist überfällig. Bitte haken Sie nach.
+<break time="3s" /> <break time="2s" />
+Eine Zahlung wird in Kürze erwartet.
+<break time="3s" /> <break time="2s" />
+Um pagamento está previsto para daqui a uma semana.
+<break time="3s" /> <break time="2s" />
+Um pagamento está previsto para daqui a três dias. Lembre-se de acompanhar o andamento.
+<break time="3s" /> <break time="2s" />
+Um pagamento está previsto para daqui a dois dias.
+<break time="3s" /> <break time="2s" />
+Um pagamento está previsto para amanhã.
+<break time="3s" /> <break time="2s" />
+Um pagamento está previsto para hoje. Lembre-se de verificar se ele foi recebido.
+<break time="3s" /> <break time="2s" />
+Um pagamento esperado está atrasado. Lembre-se de cobrar.
+<break time="3s" /> <break time="2s" />
+Um pagamento está previsto para breve.
+
+
+Dépenses à régler — fichier : rappels-expenses.mp3 (7 phrases × 5 langues = 35 morceaux)
+
+Une dépense est à régler dans une semaine.
+<break time="3s" /> <break time="2s" />
+Une dépense est à régler dans trois jours.
+<break time="3s" /> <break time="2s" />
+Une dépense est à régler dans deux jours.
+<break time="3s" /> <break time="2s" />
+Une dépense est à régler demain.
+<break time="3s" /> <break time="2s" />
+Une dépense est à régler aujourd'hui.
+<break time="3s" /> <break time="2s" />
+Une dépense n'a pas encore été réglée. Elle est en retard.
+<break time="3s" /> <break time="2s" />
+Une dépense est à régler prochainement.
+<break time="3s" /> <break time="2s" />
+An expense is due in one week.
+<break time="3s" /> <break time="2s" />
+An expense is due in three days.
+<break time="3s" /> <break time="2s" />
+An expense is due in two days.
+<break time="3s" /> <break time="2s" />
+An expense is due tomorrow.
+<break time="3s" /> <break time="2s" />
+An expense is due today.
+<break time="3s" /> <break time="2s" />
+An expense has not yet been paid. It is overdue.
+<break time="3s" /> <break time="2s" />
+An expense is due soon.
+<break time="3s" /> <break time="2s" />
+Hay que abonar un gasto en el plazo de una semana.
+<break time="3s" /> <break time="2s" />
+Hay que abonar un gasto en un plazo de tres días.
+<break time="3s" /> <break time="2s" />
+Hay que abonar un gasto en dos días.
+<break time="3s" /> <break time="2s" />
+Mañana hay que abonar un gasto.
+<break time="3s" /> <break time="2s" />
+Hoy hay que abonar un gasto.
+<break time="3s" /> <break time="2s" />
+Aún no se ha pagado un gasto. Está atrasado.
+<break time="3s" /> <break time="2s" />
+Próximamente deberá abonarse un gasto.
+<break time="3s" /> <break time="2s" />
+Eine Rechnung ist in einer Woche zu begleichen.
+<break time="3s" /> <break time="2s" />
+Eine Rechnung ist in drei Tagen zu begleichen.
+<break time="3s" /> <break time="2s" />
+Eine Rechnung ist in zwei Tagen zu begleichen.
+<break time="3s" /> <break time="2s" />
+Eine Rechnung ist morgen zu begleichen.
+<break time="3s" /> <break time="2s" />
+Eine Rechnung ist heute zu begleichen.
+<break time="3s" /> <break time="2s" />
+Eine Rechnung wurde noch nicht beglichen. Sie ist überfällig.
+<break time="3s" /> <break time="2s" />
+Eine Rechnung ist in Kürze zu begleichen.
+<break time="3s" /> <break time="2s" />
+Há uma despesa a ser paga dentro de uma semana.
+<break time="3s" /> <break time="2s" />
+Há uma despesa a ser paga em três dias.
+<break time="3s" /> <break time="2s" />
+Há uma despesa a ser paga em dois dias.
+<break time="3s" /> <break time="2s" />
+Há uma despesa a ser paga amanhã.
+<break time="3s" /> <break time="2s" />
+Há uma despesa a ser paga hoje.
+<break time="3s" /> <break time="2s" />
+Uma despesa ainda não foi paga. Ela está em atraso.
+<break time="3s" /> <break time="2s" />
+Há uma despesa a ser paga em breve.
+
+
+Tâches — fichier : rappels-tasks.mp3 (6 phrases × 5 langues = 30 morceaux)
+
+Une tâche arrive à échéance dans trois jours.
+<break time="3s" /> <break time="2s" />
+Une tâche arrive à échéance dans deux jours.
+<break time="3s" /> <break time="2s" />
+Une tâche arrive à échéance demain.
+<break time="3s" /> <break time="2s" />
+Une tâche est à terminer aujourd'hui.
+<break time="3s" /> <break time="2s" />
+Une tâche arrive bientôt à échéance.
+<break time="3s" /> <break time="2s" />
+Une tâche est en retard. Pensez à la terminer.
+<break time="3s" /> <break time="2s" />
+A task is due in three days.
+<break time="3s" /> <break time="2s" />
+A task is due in two days.
+<break time="3s" /> <break time="2s" />
+A task is due tomorrow.
+<break time="3s" /> <break time="2s" />
+A task is due today.
+<break time="3s" /> <break time="2s" />
+A task is due soon.
+<break time="3s" /> <break time="2s" />
+A task is overdue. Please remember to complete it.
+<break time="3s" /> <break time="2s" />
+Una tarea vence dentro de tres días.
+<break time="3s" /> <break time="2s" />
+Una tarea vence dentro de dos días.
+<break time="3s" /> <break time="2s" />
+Mañana vence el plazo de una tarea.
+<break time="3s" /> <break time="2s" />
+Hay una tarea que debe completarse hoy.
+<break time="3s" /> <break time="2s" />
+Una tarea está a punto de vencer.
+<break time="3s" /> <break time="2s" />
+Una tarea está atrasada. No olvide terminarla.
+<break time="3s" /> <break time="2s" />
+Eine Aufgabe ist in drei Tagen fällig.
+<break time="3s" /> <break time="2s" />
+Eine Aufgabe ist in zwei Tagen fällig.
+<break time="3s" /> <break time="2s" />
+Eine Aufgabe ist morgen fällig.
+<break time="3s" /> <break time="2s" />
+Eine Aufgabe muss heute erledigt werden.
+<break time="3s" /> <break time="2s" />
+Eine Aufgabe steht bald zur Erledigung an.
+<break time="3s" /> <break time="2s" />
+Eine Aufgabe ist überfällig. Bitte denken Sie daran, diese zu erledigen.
+<break time="3s" /> <break time="2s" />
+Uma tarefa vence em três dias.
+<break time="3s" /> <break time="2s" />
+Uma tarefa vence em dois dias.
+<break time="3s" /> <break time="2s" />
+Uma tarefa vence amanhã.
+<break time="3s" /> <break time="2s" />
+Há uma tarefa a ser concluída hoje.
+<break time="3s" /> <break time="2s" />
+Uma tarefa está prestes a vencer.
+<break time="3s" /> <break time="2s" />
+Uma tarefa está atrasada. Lembre-se de concluí-la.
+
+
+Fin d'engagement et rappels généraux — fichier : rappels-contracts.mp3 (8 phrases × 5 langues = 40 morceaux)
+
+Un de vos engagements se termine dans une semaine.
+<break time="3s" /> <break time="2s" />
+Un de vos engagements se termine dans trois jours.
+<break time="3s" /> <break time="2s" />
+Un de vos engagements se termine dans deux jours.
+<break time="3s" /> <break time="2s" />
+Un de vos engagements se termine demain.
+<break time="3s" /> <break time="2s" />
+Un de vos engagements est arrivé à son terme.
+<break time="3s" /> <break time="2s" />
+Bonjour ! Voici votre programme de la journée.
+<break time="3s" /> <break time="2s" />
+Bonsoir ! Voici le bilan de votre journée.
+<break time="3s" /> <break time="2s" />
+Vous avez un nouveau rappel dans Remind Me.
+<break time="3s" /> <break time="2s" />
+One of your commitments ends in a week.
+<break time="3s" /> <break time="2s" />
+One of your commitments ends in three days.
+<break time="3s" /> <break time="2s" />
+One of your commitments ends in two days.
+<break time="3s" /> <break time="2s" />
+One of your commitments ends tomorrow.
+<break time="3s" /> <break time="2s" />
+One of your commitments has come to an end.
+<break time="3s" /> <break time="2s" />
+Hello! Here is your schedule for the day.
+<break time="3s" /> <break time="2s" />
+Good evening! Here’s a recap of your day.
+<break time="3s" /> <break time="2s" />
+You have a new reminder in Remind Me.
+<break time="3s" /> <break time="2s" />
+Uno de sus compromisos finaliza dentro de una semana.
+<break time="3s" /> <break time="2s" />
+Uno de sus compromisos finaliza dentro de tres días.
+<break time="3s" /> <break time="2s" />
+Uno de sus compromisos finaliza dentro de dos días.
+<break time="3s" /> <break time="2s" />
+Uno de sus compromisos finaliza mañana.
+<break time="3s" /> <break time="2s" />
+Uno de sus compromisos ha llegado a su fin.
+<break time="3s" /> <break time="2s" />
+¡Buenos días! Este es su programa para hoy.
+<break time="3s" /> <break time="2s" />
+¡Buenas noches! A continuación le ofrecemos el resumen de su jornada.
+<break time="3s" /> <break time="2s" />
+Tiene un nuevo recordatorio en Remind Me.
+<break time="3s" /> <break time="2s" />
+Eine Ihrer Verpflichtungen endet in einer Woche.
+<break time="3s" /> <break time="2s" />
+Eine Ihrer Verpflichtungen endet in drei Tagen.
+<break time="3s" /> <break time="2s" />
+Eine Ihrer Verpflichtungen endet in zwei Tagen.
+<break time="3s" /> <break time="2s" />
+Eine Ihrer Verpflichtungen endet morgen.
+<break time="3s" /> <break time="2s" />
+Eine Ihrer Verpflichtungen ist beendet.
+<break time="3s" /> <break time="2s" />
+Guten Morgen! Hier ist Ihr Tagesprogramm.
+<break time="3s" /> <break time="2s" />
+Guten Abend! Hier ist die Zusammenfassung Ihres Tages.
+<break time="3s" /> <break time="2s" />
+Sie haben eine neue Erinnerung in Remind Me.
+<break time="3s" /> <break time="2s" />
+Um de seus compromissos termina em uma semana.
+<break time="3s" /> <break time="2s" />
+Um de seus compromissos termina em três dias.
+<break time="3s" /> <break time="2s" />
+Um de seus compromissos termina daqui a dois dias.
+<break time="3s" /> <break time="2s" />
+Um de seus compromissos termina amanhã.
+<break time="3s" /> <break time="2s" />
+Um de seus compromissos chegou ao fim.
+<break time="3s" /> <break time="2s" />
+Bom dia! Aqui está a programação do seu dia.
+<break time="3s" /> <break time="2s" />
+Boa noite! Aqui está o resumo do seu dia.
+<break time="3s" /> <break time="2s" />
+Você tem um novo lembrete no Remind Me.

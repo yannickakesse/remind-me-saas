@@ -80,6 +80,7 @@ export default async function SettingsPage() {
             content: (
               <NotificationsSection
                 notifPrefs={userSettings?.notif_prefs ?? null}
+                userFullName={profile?.full_name ?? null}
                 notificationPreferences={notificationPreferences as NotificationPreference | null}
               />
             ),

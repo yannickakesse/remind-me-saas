@@ -60,12 +60,12 @@ check(
 
 check(
   "includeUserName = true formate correctement en français",
-  formatSalutationName("Yannick Akesse", "fr", true) === "Monsieur Yannick"
+  formatSalutationName("Yannick Akesse", "fr", true) === "Yannick"
 );
 
 check(
   "includeUserName = true formate correctement en anglais",
-  formatSalutationName("Yannick Akesse", "en", true) === "Mr. Yannick"
+  formatSalutationName("Yannick Akesse", "en", true) === "Yannick"
 );
 
 // -----------------------------------------------------------------------------
@@ -104,7 +104,7 @@ const msgFrExposedPayment = generateVoiceMessage({
 
 check(
   "En français, un paiement non masqué mentionne bien le montant et le prénom",
-  msgFrExposedPayment.includes("500000 FCFA") && msgFrExposedPayment.includes("Monsieur Yannick")
+  msgFrExposedPayment.includes("500000 FCFA") && msgFrExposedPayment.includes("Bonjour Yannick")
 );
 
 const msgEnHiddenPayment = generateVoiceMessage({
@@ -171,8 +171,8 @@ const msgWithUser = generateVoiceMessage({
 });
 
 check(
-  "Rappel avec prénom commence par 'Bonjour Monsieur Yannick.'",
-  msgWithUser.startsWith("Bonjour Monsieur Yannick. Votre séance avec \"Consultation Médicale\"")
+  "Rappel avec prénom commence par 'Bonjour Yannick.'",
+  msgWithUser.startsWith("Bonjour Yannick. Votre séance avec \"Consultation Médicale\"")
 );
 
 // -----------------------------------------------------------------------------
@@ -190,7 +190,7 @@ const customPreview = generateVoiceMessage({
 
 check(
   "Texte personnalisé libre préfixe la salutation et restitue fidèlement le texte saisi",
-  customPreview === "Bonjour Monsieur Yannick, Penser à envoyer le compte rendu."
+  customPreview === "Bonjour Yannick, Penser à envoyer le compte rendu."
 );
 
 const normalEvent = generateVoiceMessage({

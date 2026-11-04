@@ -185,8 +185,13 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
           // (une seule fois par étape : ce calcul est aussi relancé à chaque défilement)
           if (scrolledStepRef.current !== currentStep) {
             scrolledStepRef.current = currentStep;
-            const top = target.getBoundingClientRect().top + window.scrollY - 84;
-            window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+            // Le contenu défile dans <main id="app-scroll"> (la page elle-même ne défile pas)
+            const scroller = document.getElementById("app-scroll");
+            const isNav = Boolean(target.closest("[data-tour=\"mobile-nav-bar\"]"));
+            if (scroller && !isNav && scroller.contains(target)) {
+              const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - 12;
+              scroller.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+            }
           }
         } else {
           target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });

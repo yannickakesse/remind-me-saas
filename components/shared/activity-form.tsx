@@ -478,16 +478,27 @@ export function ActivityForm({
         {!variableHours && (
           <div className="flex flex-col gap-3 pt-1">
             {schedules.map((row, i) => (
+              // Un créneau = Jour + Début/Fin, sans cadre supplémentaire (séparés par un trait fin)
               <div
                 key={i}
-                className="flex flex-col sm:flex-row sm:items-end gap-3.5 rounded-2xl border border-ink-200/90 dark:border-white/10 bg-canvas-subtle/60 dark:bg-slate-800/40 p-4 shadow-2xs hover:border-signal/30 transition-all"
+                className={`grid grid-cols-2 gap-3 sm:grid-cols-[1.3fr_1fr_1fr_auto] sm:items-end ${i > 0 ? "border-t border-ink-200/70 dark:border-white/10 pt-4" : ""}`}
               >
-                <div className="flex-1 min-w-[120px]">
-                  <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Jour")}</label>
+                <div className="col-span-2 sm:col-span-1 min-w-0">
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400">{tr("Jour")}</label>
+                    <button
+                      type="button"
+                      onClick={() => removeSchedule(i)}
+                      aria-label={tr("Supprimer ce créneau")}
+                      className="sm:hidden -my-1 rounded-lg p-1.5 text-danger hover:bg-danger/10 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                   <select
                     value={row.weekday}
                     onChange={(e) => updateSchedule(i, { weekday: Number(e.target.value) })}
-                    className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none"
+                    className="w-full min-w-0 appearance-none rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2.5 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none"
                   >
                     {WEEKDAYS.map((d) => (
                       <option key={d.value} value={d.value}>
@@ -496,46 +507,32 @@ export function ActivityForm({
                     ))}
                   </select>
                 </div>
-                <div className="flex gap-2.5 flex-1">
-                  <div className="flex-1">
-                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Début")}</label>
-                    <input
-                      type="time"
-                      value={row.startTime}
-                      onChange={(e) => updateSchedule(i, { startTime: e.target.value })}
-                      className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Fin")}</label>
-                    <input
-                      type="time"
-                      value={row.endTime}
-                      onChange={(e) => updateSchedule(i, { endTime: e.target.value })}
-                      className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none"
-                    />
-                  </div>
+                <div className="min-w-0">
+                  <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Début")}</label>
+                  <input
+                    type="time"
+                    value={row.startTime}
+                    onChange={(e) => updateSchedule(i, { startTime: e.target.value })}
+                    className="w-full min-w-0 appearance-none rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2.5 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none text-center"
+                  />
                 </div>
-                <div className="w-full sm:w-28 flex items-center justify-between sm:justify-start gap-2">
-                  <div className="flex-1 sm:w-20">
-                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Pause (min)")}</label>
-                    <input
-                      type="number"
-                      min={0}
-                      value={row.breakMinutes}
-                      onChange={(e) => updateSchedule(i, { breakMinutes: Number(e.target.value) })}
-                      className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeSchedule(i)}
-                    aria-label={tr("Supprimer ce créneau")}
-                    className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors sm:mt-5 cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div className="min-w-0">
+                  <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Fin")}</label>
+                  <input
+                    type="time"
+                    value={row.endTime}
+                    onChange={(e) => updateSchedule(i, { endTime: e.target.value })}
+                    className="w-full min-w-0 appearance-none rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2.5 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none text-center"
+                  />
                 </div>
+                <button
+                  type="button"
+                  onClick={() => removeSchedule(i)}
+                  aria-label={tr("Supprimer ce créneau")}
+                  className="hidden sm:flex h-[42px] w-10 items-center justify-center rounded-xl text-danger hover:bg-danger/10 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             ))}
 
@@ -551,7 +548,7 @@ export function ActivityForm({
               variant="secondary"
               size="sm"
               onClick={addSchedule}
-              className="self-start"
+              className="self-center"
             >
               <Plus className="w-4 h-4 mr-1" /> {tr("Ajouter un créneau")}</Button>
           </div>
@@ -571,7 +568,7 @@ export function ActivityForm({
                   {tr("Synthèse vocale")}</span>
               </label>
               <p className="text-xs text-ink-600 mt-1 leading-relaxed">
-                {tr("Annoncer automatiquement cette activité par synthèse vocale sur votre appareil au moment du rappel (ex. : « Bonjour Yannick. Vous avez une réunion à 15 heures »).")}</p>
+                {tr("Annoncer automatiquement cette activité par synthèse vocale sur votre appareil au moment du rappel (ex. : « Bonjour, vous avez une réunion à 15 heures »).")}</p>
             </div>
           </div>
           <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
@@ -774,13 +771,13 @@ export function ActivityForm({
           ) : null}
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+        <div className="grid grid-cols-2 gap-3 w-full sm:flex sm:w-auto sm:justify-end">
           <Button
             type="button"
             variant="secondary"
             onClick={() => router.back()}
             disabled={submitting || deleting}
-            className="w-full sm:w-auto rounded-2xl border border-ink-200/90 dark:border-white/10 dark:bg-slate-800/80 text-ink-700 dark:text-ink-200 hover:bg-canvas dark:hover:bg-slate-700/80 py-2.5 cursor-pointer"
+            className="w-full sm:w-auto justify-center bg-canvas-raised rounded-2xl border border-ink-200/90 dark:border-white/10 dark:bg-slate-800/80 text-ink-700 dark:text-ink-200 hover:bg-canvas dark:hover:bg-slate-700/80 py-2.5 cursor-pointer"
           >
             {tr("Annuler")}</Button>
           <Button
@@ -789,7 +786,7 @@ export function ActivityForm({
             loading={submitting}
             disabled={submitting || deleting || Boolean(scheduleConflict)}
             data-tour="activity-form-submit"
-            className="w-full sm:w-auto sm:min-w-[180px] rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:shadow-[0_6px_20px_rgba(217,119,6,0.35)] hover:-translate-y-0.5 transition-all font-bold shadow-xs py-2.5 cursor-pointer text-white border border-amber-400/40"
+            className="w-full sm:w-auto sm:min-w-[180px] justify-center whitespace-nowrap rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:shadow-[0_6px_20px_rgba(217,119,6,0.35)] hover:-translate-y-0.5 transition-all font-bold shadow-xs py-2.5 cursor-pointer text-white border border-amber-400/40"
           >
             {submitting
               ? currentActivityId

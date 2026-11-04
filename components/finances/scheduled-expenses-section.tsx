@@ -395,12 +395,13 @@ export function ScheduledExpensesSection({
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/60 backdrop-blur-xs">
           <div className="relative w-full max-w-md bg-canvas-raised rounded-2xl p-6 shadow-2xl border border-ink-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-ink-200">
-              <h3 className="font-bold text-base text-ink-950">{tr("Programmer une dépense")}</h3>
+            <div className="relative mb-4 pb-3 border-b border-ink-200 text-center">
+              <h3 className="font-extrabold text-lg text-signal">{tr("Programmer une dépense")}</h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-ink-400 hover:text-ink-700"
+                aria-label={tr("Fermer")}
+                className="absolute right-0 top-0 text-ink-400 hover:text-ink-700"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -454,11 +455,11 @@ export function ScheduledExpensesSection({
                   type="text"
                   required
                   placeholder={expenseType === "once" ? tr("Ex: Réparation équipement, Achat ponctuel") : tr("Ex: Électricité, Loyer, Abonnement Internet")}
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal h-11 min-w-0"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 items-end">
                 <div>
                   <label className="block text-xs font-bold text-ink-700 mb-1">{tr("Montant *")}</label>
                   <input
@@ -468,7 +469,7 @@ export function ScheduledExpensesSection({
                     min="0.01"
                     required
                     placeholder="25000"
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal font-semibold"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal font-semibold h-11 min-w-0"
                   />
                 </div>
 
@@ -477,7 +478,7 @@ export function ScheduledExpensesSection({
                   <select
                     name="currency"
                     defaultValue={defaultCurrency}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal h-11 min-w-0"
                   >
                     <option value="XOF">{tr("XOF (FCFA)")}</option>
                     <option value="EUR">{tr("EUR (€)")}</option>
@@ -489,14 +490,14 @@ export function ScheduledExpensesSection({
                 </div>
               </div>
 
-              <div className={`grid ${expenseType === "recurring" ? "grid-cols-2" : "grid-cols-1"} gap-3`}>
+              <div className={`grid ${expenseType === "recurring" ? "grid-cols-2" : "grid-cols-1"} gap-3 items-end`}>
                 <div>
                   <label className="block text-xs font-bold text-ink-700 mb-1">{tr("Catégorie *")}</label>
                   <select
                     name="category"
                     required
                     defaultValue="utilities"
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal h-11 min-w-0"
                   >
                     <option value="utilities">{tr("Électricité / Eau / Services")}</option>
                     <option value="housing">{tr("Logement / Loyer")}</option>
@@ -530,7 +531,7 @@ export function ScheduledExpensesSection({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 items-end">
                 <div>
                   <label className="block text-xs font-bold text-ink-700 mb-1">
                     {expenseType === "once" ? tr("Date de paiement *") : tr("1ère Échéance *")}
@@ -540,7 +541,7 @@ export function ScheduledExpensesSection({
                     type="date"
                     required
                     defaultValue={new Date().toISOString().split("T")[0]}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal h-11 min-w-0"
                   />
                 </div>
 
@@ -549,7 +550,7 @@ export function ScheduledExpensesSection({
                   <select
                     name="activityId"
                     defaultValue=""
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal h-11 min-w-0"
                   >
                     <option value="">{tr("(Aucune - Dépense générale)")}</option>
                     {activities.map((a) => (
@@ -567,7 +568,7 @@ export function ScheduledExpensesSection({
                   name="notes"
                   type="text"
                   placeholder={tr("Ex: Compteur N° 45892, Prélèvement le 15")}
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal"
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-ink-300 bg-canvas text-ink-950 focus:outline-none focus:border-signal h-11 min-w-0"
                 />
               </div>
 

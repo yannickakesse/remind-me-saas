@@ -58,6 +58,8 @@ const VAPID_PUBLIC_KEY = DEFAULT_VAPID_PUBLIC_KEY;
 interface NotificationsSectionProps {
   notifPrefs: Record<string, unknown> | null;
   notificationPreferences?: NotificationPreference | null;
+  /** Nom complet du profil connecté : sert à personnaliser l'aperçu vocal. */
+  userFullName?: string | null;
 }
 
 export type PushState =
@@ -69,7 +71,7 @@ export type PushState =
   | "ios_needs_pwa"
   | "error";
 
-export function NotificationsSection({ notifPrefs, notificationPreferences }: NotificationsSectionProps) {
+export function NotificationsSection({ notifPrefs, notificationPreferences, userFullName = null }: NotificationsSectionProps) {
   const { tr } = useLanguage();
   const { push } = useToast();
 
@@ -231,7 +233,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
     stopVoiceReminder();
     setTestingVoice(true);
     const sampleText = generateVoiceMessage({
-      userName: voiceIncludeUserName ? "Yannick" : null,
+      userName: voiceIncludeUserName ? userFullName : null,
       activityTitle: voiceLanguage === "en" ? "Meeting with Mr. Kouassi" : voiceLanguage === "es" ? "Reunión con el Sr. Kouassi" : voiceLanguage === "de" ? "Treffen mit Herrn Kouassi" : voiceLanguage === "pt" ? "Reunião com o Sr. Kouassi" : "Réunion avec Monsieur Kouassi",
       timeStr: "15:00",
       category: "activity",
@@ -281,7 +283,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
     stopVoiceReminder();
     setTestingCustomVoice(true);
     const sampleText = generateVoiceMessage({
-      userName: voiceIncludeUserName ? "Yannick" : null,
+      userName: voiceIncludeUserName ? userFullName : null,
       kind: "custom_reminder",
       customText: customVoiceReminderText.trim(),
       language: voiceLanguage,
@@ -1141,7 +1143,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                       <span className="font-bold text-zinc-950 dark:text-white block">
                         {tr("👤 Inclure mon prénom dans les salutations vocales")}</span>
                       <span className="text-[11px] text-ink-500 leading-relaxed block mt-0.5">
-                        {tr("Exemple : « Bonjour Monsieur Yannick » selon votre profil, ou salutation naturelle « Bonjour » si désactivé ou absent.")}</span>
+                        {tr("Exemple : « Bonjour » suivi de votre prénom, ou salutation naturelle « Bonjour » si désactivé ou absent.")}</span>
                     </div>
                   </label>
                 </div>
@@ -1270,7 +1272,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences }: No
                   </div>
                   <p className="text-xs text-ink-600 italic truncate mt-0.5 font-medium">
                     {voiceSampleText || generateVoiceMessage({
-                      userName: voiceIncludeUserName ? "Yannick" : null,
+                      userName: voiceIncludeUserName ? userFullName : null,
                       activityTitle: voiceLanguage === "en" ? "Meeting with Mr. Kouassi" : voiceLanguage === "es" ? "Reunión con el Sr. Kouassi" : voiceLanguage === "de" ? "Treffen mit Herrn Kouassi" : voiceLanguage === "pt" ? "Reunião com o Sr. Kouassi" : "Réunion avec Monsieur Kouassi",
                       timeStr: "15:00",
                       category: "activity",

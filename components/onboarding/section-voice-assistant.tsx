@@ -2,12 +2,19 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { Volume2, VolumeX } from "lucide-react";
+import { Loader2, Pause, Play, Volume2, X } from "lucide-react";
 import {
   playVoiceReminder,
+  playAudioFile,
+  pauseVoice,
+  resumeVoice,
   stopVoiceReminder,
+  speakVoiceReminder,
+  isSpeechSupported,
   getLocalVoiceSettings,
   getSectionVoiceGuide,
+  getGuideAudioSrc,
+  GUIDE_AUDIO_LANGUAGES,
   isVoicePlaying,
   type VoiceLanguage,
 } from "@/lib/voice";
@@ -16,34 +23,6 @@ import { GuideMascot } from "@/components/onboarding/guide-mascot";
 
 const SESSION_VISITED_KEY = "remindme_voice_visited_sections";
 
-// Voix enregistrées (ElevenLabs) : /public/voice/guides/<section>-<langue>.mp3
-// Si le fichier existe, il est joué ; sinon la synthèse vocale prend le relais.
-let currentGuideAudio: HTMLAudioElement | null = null;
-
-function stopRecordedGuide() {
-  if (currentGuideAudio) {
-    currentGuideAudio.pause();
-    currentGuideAudio = null;
-  }
-}
-
-function playRecordedGuide(src: string, onEnd: () => void): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (typeof window === "undefined") return resolve(false);
-    stopRecordedGuide();
-    const audio = new Audio(src);
-    currentGuideAudio = audio;
-    audio.onended = () => {
-      if (currentGuideAudio === audio) currentGuideAudio = null;
-      onEnd();
-    };
-    audio.onerror = () => resolve(false); // fichier absent → synthèse vocale
-    audio
-      .play()
-      .then(() => resolve(true))
-      .catch(() => resolve(false));
-  });
-}
 const ASSISTANT_PREF_KEY = "remindme_voice_assistant_auto";
 
 function getVisitedSections(): Set<string> {
@@ -95,35 +74,58 @@ const SECTION_LABELS: Record<string, Record<string, string>> = {
 };
 
 /**
- * Accompagnement Vocal Contextuel Intelligent (Phase 6)
+ * Guide vocal de chaque page (bouton mascotte).
  *
- * Présente automatiquement chaque nouvelle section découverte à l'utilisateur,
- * sans répétitions intempestives lors des rafraîchissements ou rendus React.
- * Permet un contrôle direct (arrêt immédiat, réécoute, désactivation).
+ * 1. Audio préenregistré (registre lib/voice/guide-audio.ts) dans le lecteur central.
+ * 2. Sinon, voix ElevenLabs générée à partir du texte du guide.
+ * 3. Sinon, le texte du guide s'affiche, avec une écoute possible par la voix de l'appareil.
+ * Un appui lance la lecture, un autre la met en pause, puis la reprend ; la croix l'arrête.
  */
+type GuideStatus = "idle" | "loading" | "playing" | "paused";
+
 export function SectionVoiceAssistant() {
   const pathname = usePathname();
-  const { locale , tr } = useLanguage();
+  const { locale, tr } = useLanguage();
   const [currentNarratingSection, setCurrentNarratingSection] = useState<string | null>(null);
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [status, setStatus] = useState<GuideStatus>("idle");
+  const [fallback, setFallback] = useState<{ section: string; text: string; lang: VoiceLanguage } | null>(null);
   const assistantTokenRef = useRef(0);
+  const statusRef = useRef<GuideStatus>("idle");
+  statusRef.current = status;
+  const isSpeaking = status !== "idle";
 
-  // Déclencher la lecture vocale d'une section
+  const announce = (section: string | null, isPlaying: boolean) => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(new CustomEvent("remindme:voice-section-status", { detail: { section, isPlaying } }));
+  };
+
+  const reset = useCallback((section: string | null) => {
+    setStatus("idle");
+    setCurrentNarratingSection(null);
+    announce(section, false);
+  }, []);
+
+  const stopAll = useCallback(
+    (section: string | null) => {
+      assistantTokenRef.current++;
+      stopVoiceReminder(false);
+      reset(section);
+    },
+    [reset]
+  );
+
+  // Langue du guide : celle de l'interface si un guide existe pour elle, sinon la langue des rappels vocaux.
+  const guideLanguage = useCallback((): VoiceLanguage => {
+    const ui = (locale || "fr").slice(0, 2) as VoiceLanguage;
+    if ((GUIDE_AUDIO_LANGUAGES as readonly string[]).includes(ui)) return ui;
+    return getLocalVoiceSettings().voice_language;
+  }, [locale]);
+
   const speakSection = useCallback(
     async (section: string, isManual = false) => {
       const prefs = getLocalVoiceSettings();
-
-      // Si la voix globale est désactivée et qu'il ne s'agit pas d'un clic explicite de l'utilisateur
-      if (!prefs.voice_reminders && !isManual) {
-        return;
-      }
-
-      // Si la vidéo d'introduction est active, ne pas superposer
-      if (typeof window !== "undefined" && (window as any).__REMINDME_VIDEO_PLAYING) {
-        return;
-      }
-
-      // Si le guide interactif est ouvert, le guide a priorité absolue
+      if (!prefs.voice_reminders && !isManual) return;
+      if (typeof window !== "undefined" && (window as any).__REMINDME_VIDEO_PLAYING) return;
       if (
         (typeof window !== "undefined" && (window as any).__REMINDME_TOUR_ACTIVE) ||
         (typeof document !== "undefined" &&
@@ -133,134 +135,85 @@ export function SectionVoiceAssistant() {
         return;
       }
 
-      const voiceLang = (prefs.voice_language || locale || "fr") as VoiceLanguage;
+      const voiceLang = guideLanguage();
       const text = getSectionVoiceGuide(section, voiceLang);
       if (!text) return;
 
-      assistantTokenRef.current++;
-      const currentToken = assistantTokenRef.current;
-
+      const token = ++assistantTokenRef.current;
+      const isMine = () => assistantTokenRef.current === token;
       stopVoiceReminder(false);
+      setFallback(null);
       setCurrentNarratingSection(section);
-      setIsSpeaking(true);
-
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(
-          new CustomEvent("remindme:voice-section-status", {
-            detail: { section, isPlaying: true },
-          })
-        );
-      }
-
-      // Notifier la section comme visitée dans la session
+      setStatus("loading");
+      announce(section, true);
       markSectionVisited(section);
 
       const finish = () => {
-        if (assistantTokenRef.current === currentToken) {
-          setIsSpeaking(false);
-          setCurrentNarratingSection(null);
-          window.dispatchEvent(
-            new CustomEvent("remindme:voice-section-status", { detail: { section, isPlaying: false } })
-          );
-        }
+        if (isMine()) reset(section);
       };
+      const rate = prefs.voice_playback_rate || 1.0;
+      const priority = isManual ? "preview" : "section";
 
-      if (await playRecordedGuide(`/voice/guides/${section}-${voiceLang}.mp3`, finish)) return;
-
-      try {
-        await playVoiceReminder({
-          text,
-          language: voiceLang,
-          voiceType: prefs.voice_type,
-          priority: isManual ? "preview" : "section",
-          rate: prefs.voice_playback_rate || 1.0,
-          onStart: () => {
-            if (assistantTokenRef.current === currentToken) {
-              setIsSpeaking(true);
-            }
-          },
-          onEnd: () => {
-            if (assistantTokenRef.current === currentToken) {
-              setIsSpeaking(false);
-              setCurrentNarratingSection(null);
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(
-                  new CustomEvent("remindme:voice-section-status", {
-                    detail: { section, isPlaying: false },
-                  })
-                );
-              }
-            }
-          },
-          onError: () => {
-            if (assistantTokenRef.current === currentToken) {
-              setIsSpeaking(false);
-              setCurrentNarratingSection(null);
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(
-                  new CustomEvent("remindme:voice-section-status", {
-                    detail: { section, isPlaying: false },
-                  })
-                );
-              }
-            }
-          },
-        });
-      } catch {
-        if (assistantTokenRef.current === currentToken) {
-          setIsSpeaking(false);
-          setCurrentNarratingSection(null);
-          if (typeof window !== "undefined") {
-            window.dispatchEvent(
-              new CustomEvent("remindme:voice-section-status", {
-                detail: { section, isPlaying: false },
-              })
-            );
-          }
+      // 1. Audio préenregistré (lancé immédiatement : compatible iPhone)
+      const src = getGuideAudioSrc(section, voiceLang);
+      if (src) {
+        const started = await playAudioFile({ src, priority, rate, onEnd: finish });
+        if (!isMine()) return;
+        if (started) {
+          setStatus("playing");
+          return;
         }
+        if (!isManual) return finish(); // lecture automatique bloquée : rester discret
       }
+
+      // 2. Voix ElevenLabs (3. texte affiché si elle est indisponible)
+      await playVoiceReminder({
+        text,
+        language: voiceLang,
+        voiceType: prefs.voice_type,
+        priority,
+        rate,
+        onStart: () => {
+          if (isMine()) setStatus("playing");
+        },
+        onEnd: finish,
+        onError: () => {
+          if (!isMine()) return;
+          finish();
+          if (isManual) setFallback({ section, text, lang: voiceLang });
+        },
+      }).then((ok) => {
+        if (!ok && isMine() && statusRef.current === "loading") finish();
+      });
     },
-    [locale, isSpeaking, currentNarratingSection]
+    [guideLanguage, reset]
   );
 
-  // Écoute des événements manuels et de synchronisation
+  // Synchronisation avec le lecteur central (pause, reprise, arrêt par une autre lecture)
+  useEffect(() => {
+    function onVoiceState(e: any) {
+      const { playing, paused } = e?.detail || {};
+      if (statusRef.current === "idle" || statusRef.current === "loading") return;
+      if (!playing) {
+        assistantTokenRef.current++;
+        reset(currentNarratingSection);
+      } else setStatus(paused ? "paused" : "playing");
+    }
+    window.addEventListener("remindme:voice-state", onVoiceState);
+    return () => window.removeEventListener("remindme:voice-state", onVoiceState);
+  }, [reset, currentNarratingSection]);
+
+  // Événements manuels (boutons « Guide » des pages) et arrêts imposés (vidéo, visite guidée)
   useEffect(() => {
     function handleManualRequest(e: any) {
       const section = e?.detail?.section || resolveSectionFromPath(pathname);
       if (!section) return;
-
-      if (isSpeaking && currentNarratingSection === section) {
-        stopRecordedGuide();
-        assistantTokenRef.current++;
-        stopVoiceReminder(false);
-        setIsSpeaking(false);
-        setCurrentNarratingSection(null);
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("remindme:voice-section-status", {
-              detail: { section, isPlaying: false },
-            })
-          );
-        }
-      } else {
-        speakSection(section, true);
-      }
+      if (isSpeaking && currentNarratingSection === section) stopAll(section);
+      else speakSection(section, true);
     }
-
     function handleStopRequest() {
-      stopRecordedGuide();
-      assistantTokenRef.current++;
-      stopVoiceReminder(false);
-      setIsSpeaking(false);
-      const prevSection = currentNarratingSection;
-      setCurrentNarratingSection(null);
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(
-          new CustomEvent("remindme:voice-section-status", {
-            detail: { section: prevSection, isPlaying: false },
-          })
-        );
-      }
+      setFallback(null);
+      stopAll(currentNarratingSection);
     }
 
     window.addEventListener("remindme:play-section-voice", handleManualRequest);
@@ -268,7 +221,6 @@ export function SectionVoiceAssistant() {
     window.addEventListener("remindme:video-active", handleStopRequest);
     window.addEventListener("remindme:start-tour", handleStopRequest);
     window.addEventListener("remindme:start-contextual-tour", handleStopRequest);
-
     return () => {
       window.removeEventListener("remindme:play-section-voice", handleManualRequest);
       window.removeEventListener("remindme:stop-section-voice", handleStopRequest);
@@ -276,58 +228,32 @@ export function SectionVoiceAssistant() {
       window.removeEventListener("remindme:start-tour", handleStopRequest);
       window.removeEventListener("remindme:start-contextual-tour", handleStopRequest);
     };
-  }, [pathname, speakSection, isSpeaking, currentNarratingSection]);
+  }, [pathname, speakSection, stopAll, isSpeaking, currentNarratingSection]);
 
   // Découverte automatique lors de la navigation
   useEffect(() => {
     const section = resolveSectionFromPath(pathname);
+    setFallback(null);
     if (!section) {
-      stopRecordedGuide();
-      assistantTokenRef.current++;
-      stopVoiceReminder(false);
-      setIsSpeaking(false);
-      setCurrentNarratingSection(null);
+      if (statusRef.current !== "idle") stopAll(null);
       return;
     }
+    // Changement de page : le guide de la page précédente s'arrête
+    if (statusRef.current !== "idle") stopAll(null);
 
-    // Vérifier si l'utilisateur a désactivé l'accompagnement automatique des sections
     try {
-      const autoPref = localStorage.getItem(ASSISTANT_PREF_KEY);
-      if (autoPref === "disabled") {
-        return;
-      }
+      if (localStorage.getItem(ASSISTANT_PREF_KEY) === "disabled") return;
     } catch {}
-
-    const visited = getVisitedSections();
-    // Si cette section a déjà été présentée au cours de la session : NE PAS RÉPÉTER
-    if (visited.has(section)) {
-      return;
-    }
-
-    // Vérifier les préférences vocales globales
+    if (getVisitedSections().has(section)) return;
     const prefs = getLocalVoiceSettings();
-    if (!prefs.voice_reminders || prefs.voice_category_briefings === false) {
-      return;
-    }
+    if (!prefs.voice_reminders || prefs.voice_category_briefings === false) return;
 
-    // Délai de 1.4s après navigation pour laisser le temps d'affichage
     const timer = setTimeout(() => {
-      // Vérifier si une autre lecture prioritaire est en cours
-      if (!isVoicePlaying()) {
-        speakSection(section, false);
-      }
+      if (!isVoicePlaying()) speakSection(section, false);
     }, 1400);
-
     return () => clearTimeout(timer);
-  }, [pathname, speakSection]);
-
-  const handleStop = () => {
-    stopRecordedGuide();
-    assistantTokenRef.current++;
-    stopVoiceReminder(false);
-    setIsSpeaking(false);
-    setCurrentNarratingSection(null);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   const pageSection = resolveSectionFromPath(pathname);
   if (!pageSection) return null;
@@ -336,33 +262,109 @@ export function SectionVoiceAssistant() {
   const sectionLabel =
     SECTION_LABELS[activeSection]?.[locale] || SECTION_LABELS[activeSection]?.fr || activeSection;
 
-  // Bouton rond flottant : un appui lit le guide vocal de la page, un second l'arrête.
-  // Placé au-dessus de la barre de navigation mobile (zone de sécurité iPhone comprise).
+  const onMainPress = () => {
+    if (status === "playing") pauseVoice();
+    else if (status === "paused") resumeVoice();
+    else if (status === "idle") speakSection(pageSection, true);
+  };
+
+  const mainLabel =
+    status === "playing"
+      ? tr("Mettre le guide vocal en pause")
+      : status === "paused"
+      ? tr("Reprendre le guide vocal")
+      : tr("Écouter le guide vocal de cette page");
+
   return (
-    <button
-      type="button"
-      onClick={() => (isSpeaking ? handleStop() : speakSection(pageSection, true))}
-      title={isSpeaking ? tr("Arrêter le guide vocal — {sectionLabel}", { sectionLabel }) : tr("Écouter le guide vocal — {sectionLabel}", { sectionLabel })}
-      aria-label={isSpeaking ? tr("Arrêter le guide vocal") : tr("Écouter le guide vocal de cette page")}
-      aria-pressed={isSpeaking}
-      className={`fixed right-4 sm:right-6 bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:bottom-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-canvas-raised dark:bg-slate-900 shadow-lg transition-all duration-200 hover:-translate-y-0.5 active:scale-90 cursor-pointer select-none print:hidden ${
-        isSpeaking ? "border-signal shadow-signal/30 ring-4 ring-signal/20" : "border-signal/40 hover:border-signal"
-      }`}
-    >
-      {isSpeaking && (
-        <span className="absolute inset-0 rounded-full bg-signal/25 animate-ping" aria-hidden="true" />
+    <>
+      {fallback && fallback.section === pageSection && (
+        <div
+          role="status"
+          className="fixed right-4 sm:right-6 bottom-[calc(10rem+env(safe-area-inset-bottom,0px))] md:bottom-24 z-40 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-signal/30 bg-canvas-raised dark:bg-slate-900 p-4 shadow-xl print:hidden"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-signal">{tr("Guide — {sectionLabel}", { sectionLabel })}</p>
+            <button
+              type="button"
+              onClick={() => setFallback(null)}
+              aria-label={tr("Fermer")}
+              className="-mt-1 -mr-1 rounded-full p-1 text-ink-400 hover:text-ink-900 dark:hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <p className="mt-2 text-sm leading-relaxed text-ink-800 dark:text-ink-200">{fallback.text}</p>
+          <p className="mt-2 text-xs text-ink-500">{tr("La voix Remind Me est momentanément indisponible.")}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => speakSection(pageSection, true)}
+              className="rounded-full bg-signal px-3 py-1.5 text-xs font-semibold text-white"
+            >
+              {tr("Réessayer l'écoute")}
+            </button>
+            {isSpeechSupported() && (
+              <button
+                type="button"
+                onClick={() => {
+                  const { text, lang } = fallback;
+                  setFallback(null);
+                  stopVoiceReminder(false);
+                  speakVoiceReminder({ text, language: lang, rate: getLocalVoiceSettings().voice_playback_rate || 1.0 });
+                }}
+                className="rounded-full border border-ink-200 dark:border-ink-600 px-3 py-1.5 text-xs font-semibold text-ink-800 dark:text-ink-200"
+              >
+                {tr("Voix de l'appareil")}
+              </button>
+            )}
+          </div>
+        </div>
       )}
-      {/* Petit assistant : il « parle » pendant la lecture du guide */}
-      <GuideMascot speaking={isSpeaking} className="relative h-10 w-10" />
-      <span
-        className={`absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full text-white shadow-xs ring-2 ring-canvas-raised dark:ring-slate-900 ${
-          isSpeaking ? "bg-ink-950 dark:bg-white dark:text-ink-950" : "bg-signal"
+
+      {isSpeaking && (
+        <button
+          type="button"
+          onClick={() => stopAll(currentNarratingSection)}
+          aria-label={tr("Arrêter le guide vocal")}
+          title={tr("Arrêter le guide vocal")}
+          className="fixed right-[4.75rem] sm:right-[5.25rem] bottom-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:bottom-[2.25rem] z-40 flex h-9 w-9 items-center justify-center rounded-full bg-ink-950 text-white shadow-lg dark:bg-white dark:text-ink-950 print:hidden"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+
+      <button
+        type="button"
+        onClick={onMainPress}
+        title={`${mainLabel} — ${sectionLabel}`}
+        aria-label={mainLabel}
+        aria-pressed={status === "playing"}
+        className={`fixed right-4 sm:right-6 bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:bottom-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-canvas-raised dark:bg-slate-900 shadow-lg transition-all duration-200 hover:-translate-y-0.5 active:scale-90 cursor-pointer select-none print:hidden ${
+          isSpeaking ? "border-signal shadow-signal/30 ring-4 ring-signal/20" : "border-signal/40 hover:border-signal"
         }`}
-        aria-hidden="true"
       >
-        {isSpeaking ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
-      </span>
-    </button>
+        {status === "playing" && (
+          <span className="absolute inset-0 rounded-full bg-signal/25 animate-ping" aria-hidden="true" />
+        )}
+        <GuideMascot speaking={status === "playing"} className="relative h-10 w-10" />
+        <span
+          className={`absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full text-white shadow-xs ring-2 ring-canvas-raised dark:ring-slate-900 ${
+            isSpeaking ? "bg-ink-950 dark:bg-white dark:text-ink-950" : "bg-signal"
+          }`}
+          aria-hidden="true"
+        >
+          {status === "loading" ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : status === "playing" ? (
+            <Pause className="h-3 w-3" />
+          ) : status === "paused" ? (
+            <Play className="h-3 w-3" />
+          ) : (
+            <Volume2 className="h-3 w-3" />
+          )}
+        </span>
+      </button>
+    </>
   );
 }
 

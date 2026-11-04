@@ -17,6 +17,18 @@ export const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
   voice_playback_rate: 1.0,
 };
 
+const VOICE_LANGUAGES: VoiceLanguage[] = ["fr", "en", "es", "de", "pt"];
+
+/**
+ * Langue de voix par défaut : celle de l'interface (si une voix existe pour elle), sinon l'anglais.
+ * Évite qu'un utilisateur anglophone entende des rappels en français par défaut.
+ */
+export function getDefaultVoiceLanguage(): VoiceLanguage {
+  if (typeof document === "undefined") return "fr";
+  const ui = (document.documentElement.lang || "fr").slice(0, 2).toLowerCase() as VoiceLanguage;
+  return VOICE_LANGUAGES.includes(ui) ? ui : "en";
+}
+
 /**
  * Récupère les préférences vocales stockées localement avec fallback sur les valeurs par défaut
  */
@@ -25,16 +37,16 @@ export function getLocalVoiceSettings(): VoiceSettings {
 
   try {
     const raw = localStorage.getItem(VOICE_PREFS_KEY);
-    if (!raw) return DEFAULT_VOICE_SETTINGS;
+    if (!raw) return { ...DEFAULT_VOICE_SETTINGS, voice_language: getDefaultVoiceLanguage() };
     const parsed = JSON.parse(raw);
 
-    const validLanguages: VoiceLanguage[] = ["fr", "en", "es", "de", "pt"];
+    const validLanguages = VOICE_LANGUAGES;
     const validVoiceTypes: VoiceType[] = ["system", "female", "male"];
 
     return {
       voice_reminders: typeof parsed.voice_reminders === "boolean" ? parsed.voice_reminders : true,
       voice_type: (validVoiceTypes.includes(parsed.voice_type) ? parsed.voice_type : "system") as VoiceType,
-      voice_language: (validLanguages.includes(parsed.voice_language) ? parsed.voice_language : "fr") as VoiceLanguage,
+      voice_language: (validLanguages.includes(parsed.voice_language) ? parsed.voice_language : getDefaultVoiceLanguage()) as VoiceLanguage,
       repeat_voice: (([0, 1, 2].includes(Number(parsed.repeat_voice)) ? Number(parsed.repeat_voice) : 0) as RepeatVoice),
       voice_category_activities: typeof parsed.voice_category_activities === "boolean" ? parsed.voice_category_activities : true,
       voice_category_tasks: typeof parsed.voice_category_tasks === "boolean" ? parsed.voice_category_tasks : true,

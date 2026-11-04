@@ -1,16 +1,104 @@
 import type { VoiceSpeakOptions, VoicePriority } from "./types";
-import { speakVoiceReminder, stopSpeaking, isSpeechSynthesizing } from "./tts";
+import { speakVoiceReminder, stopSpeaking, isSpeechSynthesizing, hasNaturalDeviceVoice } from "./tts";
 import { playNotificationChime } from "@/lib/notifications/sound";
+import {
+  resolveStandardAlertKey,
+  getStandardAlertSrc,
+  isPersonalizedVoiceEnabled,
+  type ReminderAlertInfo,
+} from "./standard-alerts";
+
+/**
+ * Lecteur audio central de Remind Me.
+ *
+ * Un seul élément <audio> partagé sert à TOUT (guides préenregistrés, voix ElevenLabs) :
+ * - jamais deux sons en même temps ;
+ * - sur iPhone / PWA, il est « déverrouillé » au premier toucher de l'utilisateur,
+ *   ce qui permet ensuite de jouer un son même après un appel réseau.
+ */
 
 let activeAudioElement: HTMLAudioElement | null = null;
 let activeAudioBlobUrl: string | null = null;
 let currentPlayingPriority: VoicePriority | null = null;
 let repeatTimeoutId: ReturnType<typeof setTimeout> | null = null;
 let isPlaybackStopped = false;
+let isPlaybackPaused = false;
 let currentPlaybackSessionId = 0;
 let currentAbortController: AbortController | null = null;
 
 const VOICE_CHANNEL_NAME = "remindme_notif_channel";
+
+// ─── Élément audio partagé + déverrouillage mobile ──────────────────────────
+const SILENT_MP3 =
+  "data:audio/mpeg;base64,//NAxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEWwAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
+
+let sharedAudio: HTMLAudioElement | null = null;
+let sharedUnlocked = false;
+let unlockListenersInstalled = false;
+
+function getSharedAudio(): HTMLAudioElement {
+  if (!sharedAudio) {
+    sharedAudio = new Audio();
+    sharedAudio.preload = "auto";
+    sharedAudio.setAttribute("playsinline", "true");
+    installUnlockListeners();
+  }
+  return sharedAudio;
+}
+
+function clearAudioHandlers(audio: HTMLAudioElement) {
+  audio.onplay = null;
+  audio.onended = null;
+  audio.onerror = null;
+}
+
+/** À appeler pendant un geste utilisateur (toucher, clic) : autorise les lectures suivantes. */
+export function unlockVoicePlayback(): void {
+  if (sharedUnlocked || typeof window === "undefined") return;
+  const audio = getSharedAudio();
+  if (activeAudioElement) return; // une lecture est déjà en cours : rien à déverrouiller
+  try {
+    clearAudioHandlers(audio);
+    audio.src = SILENT_MP3;
+    audio
+      .play()
+      .then(() => {
+        sharedUnlocked = true;
+        if (!activeAudioElement) audio.pause();
+        removeUnlockListeners();
+      })
+      .catch(() => {});
+  } catch {}
+}
+
+const UNLOCK_EVENTS = ["pointerdown", "touchend", "keydown"] as const;
+function onUserGesture() {
+  unlockVoicePlayback();
+}
+function installUnlockListeners() {
+  if (unlockListenersInstalled || typeof document === "undefined") return;
+  unlockListenersInstalled = true;
+  UNLOCK_EVENTS.forEach((e) => document.addEventListener(e, onUserGesture, { capture: true, passive: true }));
+}
+function removeUnlockListeners() {
+  if (typeof document === "undefined") return;
+  UNLOCK_EVENTS.forEach((e) => document.removeEventListener(e, onUserGesture, { capture: true }));
+}
+
+if (typeof window !== "undefined") {
+  // Prépare l'écoute du premier geste dès le chargement de l'app
+  installUnlockListeners();
+}
+
+// ─── État de lecture (pour les boutons lecture / pause) ─────────────────────
+function emitVoiceState() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent("remindme:voice-state", {
+      detail: { playing: activeAudioElement !== null || isSpeechSynthesizing(), paused: isPlaybackPaused },
+    })
+  );
+}
 
 function notifyBroadcastStop() {
   if (typeof window !== "undefined" && "BroadcastChannel" in window) {
@@ -34,10 +122,15 @@ const PRIORITY_LEVELS: Record<VoicePriority, number> = {
 };
 
 /**
- * Vérifie si une lecture vocale est actuellement en cours (MP3 ou SpeechSynthesis).
+ * Vérifie si une lecture vocale est actuellement en cours (MP3 ou SpeechSynthesis), même en pause.
  */
 export function isVoicePlaying(): boolean {
   return activeAudioElement !== null || isSpeechSynthesizing();
+}
+
+/** La lecture en cours est-elle en pause ? */
+export function isVoicePaused(): boolean {
+  return isPlaybackPaused;
 }
 
 /**
@@ -47,11 +140,37 @@ export function getCurrentVoicePriority(): VoicePriority | null {
   return currentPlayingPriority;
 }
 
+/** Met en pause la lecture en cours (reprise possible avec resumeVoice). */
+export function pauseVoice(): void {
+  if (isPlaybackPaused) return;
+  if (activeAudioElement && !activeAudioElement.paused) {
+    activeAudioElement.pause();
+    isPlaybackPaused = true;
+  } else if (typeof window !== "undefined" && isSpeechSynthesizing()) {
+    window.speechSynthesis.pause();
+    isPlaybackPaused = true;
+  }
+  emitVoiceState();
+}
+
+/** Reprend la lecture mise en pause. */
+export function resumeVoice(): void {
+  if (!isPlaybackPaused) return;
+  isPlaybackPaused = false;
+  if (activeAudioElement) {
+    activeAudioElement.play().catch(() => {});
+  } else if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    window.speechSynthesis.resume();
+  }
+  emitVoiceState();
+}
+
 /**
- * Arrête immédiatement toute lecture audio en cours (ElevenLabs MP3 ou SpeechSynthesis).
+ * Arrête immédiatement toute lecture audio en cours (fichier, ElevenLabs ou SpeechSynthesis).
  */
 export function stopVoiceReminder(broadcast = true): void {
   isPlaybackStopped = true;
+  isPlaybackPaused = false;
   currentPlaybackSessionId++;
   currentPlayingPriority = null;
 
@@ -69,6 +188,7 @@ export function stopVoiceReminder(broadcast = true): void {
 
   if (activeAudioElement) {
     try {
+      clearAudioHandlers(activeAudioElement);
       activeAudioElement.pause();
       activeAudioElement.currentTime = 0;
     } catch {}
@@ -87,22 +207,162 @@ export function stopVoiceReminder(broadcast = true): void {
   if (broadcast) {
     notifyBroadcastStop();
   }
+  emitVoiceState();
 }
 
 /**
- * Lecteur Audio Hybride Intelligent de Remind Me.
+ * Arbitrage : une lecture moins prioritaire n'interrompt jamais une lecture plus importante.
+ * Retourne un identifiant de session, ou null si la lecture est refusée.
+ */
+function claimPlayback(priority: VoicePriority): number | null {
+  if (
+    typeof window !== "undefined" &&
+    (window as any).__REMINDME_VIDEO_PLAYING &&
+    priority !== "critical"
+  ) {
+    return null;
+  }
+
+  if (isVoicePlaying()) {
+    if (priority === "greeting" || priority === "section") return null;
+    const incomingLevel = PRIORITY_LEVELS[priority] ?? 2;
+    const currentLevel = currentPlayingPriority ? (PRIORITY_LEVELS[currentPlayingPriority] ?? 2) : 2;
+    if (incomingLevel < currentLevel) return null;
+  }
+
+  stopVoiceReminder(false);
+  isPlaybackStopped = false;
+  currentPlayingPriority = priority;
+  return ++currentPlaybackSessionId;
+}
+
+const isCurrent = (sessionId: number) => sessionId === currentPlaybackSessionId && !isPlaybackStopped;
+
+/**
+ * Joue un fichier audio (guides préenregistrés) dans le lecteur central.
+ * Résout `true` dès que la lecture démarre, `false` si le fichier est absent ou la lecture bloquée.
+ * `onEnd` est appelé à la fin normale de la lecture.
+ */
+export function playAudioFile(options: {
+  src: string;
+  priority?: VoicePriority;
+  rate?: number;
+  volume?: number;
+  /** Nombre de répétitions supplémentaires (0, 1 ou 2), avec une courte pause entre chaque. */
+  repeat?: number;
+  onEnd?: () => void;
+}): Promise<boolean> {
+  const { src, priority = "section", rate = 1.0, volume = 1.0, repeat = 0, onEnd } = options;
+  let remaining = Math.max(0, Math.min(2, repeat));
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") return resolve(false);
+    const sessionId = claimPlayback(priority);
+    if (sessionId === null) return resolve(false);
+
+    const audio = getSharedAudio();
+    clearAudioHandlers(audio);
+    activeAudioElement = audio;
+    let settled = false;
+    const settle = (v: boolean) => {
+      if (!settled) {
+        settled = true;
+        resolve(v);
+      }
+    };
+
+    audio.onended = () => {
+      if (!isCurrent(sessionId)) return;
+      if (remaining > 0) {
+        remaining--;
+        repeatTimeoutId = setTimeout(() => {
+          repeatTimeoutId = null;
+          if (isCurrent(sessionId)) {
+            audio.currentTime = 0;
+            audio.play().catch(() => {});
+          }
+        }, 1200);
+        return;
+      }
+      activeAudioElement = null;
+      currentPlayingPriority = null;
+      clearAudioHandlers(audio);
+      emitVoiceState();
+      onEnd?.();
+    };
+    audio.onerror = () => {
+      if (!isCurrent(sessionId)) return settle(false);
+      activeAudioElement = null;
+      currentPlayingPriority = null;
+      clearAudioHandlers(audio);
+      emitVoiceState();
+      settle(false);
+    };
+
+    audio.src = src;
+    audio.playbackRate = Math.max(0.7, Math.min(1.5, rate));
+    audio.volume = Math.max(0, Math.min(1, volume));
+    audio
+      .play()
+      .then(() => {
+        sharedUnlocked = true;
+        emitVoiceState();
+        settle(isCurrent(sessionId));
+      })
+      .catch(() => {
+        if (isCurrent(sessionId)) {
+          activeAudioElement = null;
+          currentPlayingPriority = null;
+          clearAudioHandlers(audio);
+          emitVoiceState();
+        }
+        settle(false);
+      });
+  });
+}
+
+/**
+ * Secours quand ElevenLabs ne répond pas : on ne passe à la voix de l'appareil
+ * que si elle est de bonne qualité (ou explicitement demandée). Sinon : carillon
+ * + événement « voix indisponible » pour proposer de réessayer l'écoute.
+ */
+function fallbackSpeak(options: VoiceSpeakOptions, reason: string): Promise<boolean> {
+  const language = options.language || "fr";
+  if (options.silentFailure) {
+    currentPlayingPriority = null;
+    emitVoiceState();
+    return Promise.resolve(false);
+  }
+  if (options.allowDeviceVoice || hasNaturalDeviceVoice(language)) {
+    return speakVoiceReminder(options).finally(emitVoiceState);
+  }
+  currentPlayingPriority = null;
+  const priority = options.priority || "normal";
+  if (priority !== "greeting" && priority !== "section") playNotificationChime(0.4);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("remindme:voice-unavailable", {
+        detail: {
+          text: options.text,
+          language,
+          voiceType: options.voiceType,
+          priority,
+          reason,
+        },
+      })
+    );
+  }
+  options.onError?.(new Error("voice-unavailable"));
+  emitVoiceState();
+  return Promise.resolve(false);
+}
+
+/**
+ * Lecture d'un message vocal dynamique (rappels, notifications, aperçus).
  *
- * HIÉRARCHIE DE LECTURE (ZERO-REGRESSION) :
- * 1. PRIORITÉ 1 ➔ Fichier MP3 Haute Fidélité ElevenLabs (Yannick, Catherine, Déborah, Martina)
- * 2. FALLBACK 1  ➔ Synthèse vocale native SpeechSynthesis (lib/voice/tts.ts)
- * 3. FALLBACK 2  ➔ Carillon sonore officiel Remind Me (Web Audio API)
- *
- * Gère automatiquement :
- * - Les conflits et priorités audio (greeting, routine, normal, high, critical)
- * - Les répétitions vocales (repeat_voice: 0, 1, 2)
- * - La vitesse de diction (rate: 0.7 - 1.5)
- * - Le volume (volume: 0.0 - 1.0)
- * - Les événements de début, fin et erreurs
+ * HIÉRARCHIE :
+ * 1. Voix ElevenLabs (générée côté serveur, mise en cache)
+ * 2. Voix de l'appareil, uniquement si elle est naturelle ou demandée
+ * 3. Carillon + proposition « Réessayer l'écoute »
  */
 export async function playVoiceReminder(options: VoiceSpeakOptions): Promise<boolean> {
   const {
@@ -115,80 +375,40 @@ export async function playVoiceReminder(options: VoiceSpeakOptions): Promise<boo
     volume = 1.0,
     onStart,
     onEnd,
-    onError,
   } = options;
 
   if (!text || !text.trim()) {
     return false;
   }
 
-  // 0. Protection contre superposition avec la vidéo Motion Design d'introduction
-  if (
-    typeof window !== "undefined" &&
-    (window as any).__REMINDME_VIDEO_PLAYING &&
-    priority !== "critical"
-  ) {
-    console.debug("[VoicePlayer] Message vocal différé : la vidéo d'introduction est en cours de lecture.");
+  const claimed = claimPlayback(priority);
+  if (claimed === null) {
+    console.debug(`[VoicePlayer] Annonce '${priority}' ignorée : une lecture plus importante est en cours.`);
     return false;
   }
-
-  // 0b. Arbitrage de priorité audio (Évite les chevauchements et protège les rappels urgents)
-  if (isVoicePlaying()) {
-    // Règle stricte : L'accueil vocal et les guides de section ne doivent JAMAIS interrompre un rappel ou un tour en cours
-    if (priority === "greeting" || priority === "section") {
-      console.debug(`[VoicePlayer] Annonce '${priority}' ignorée : une lecture vocale est déjà en cours.`);
-      return false;
-    }
-
-    const incomingLevel = PRIORITY_LEVELS[priority] ?? 2;
-    const currentLevel = currentPlayingPriority ? (PRIORITY_LEVELS[currentPlayingPriority] ?? 2) : 2;
-
-    if (incomingLevel < currentLevel) {
-      console.debug(`[VoicePlayer] Message ignoré (priorité ${priority} inférieure à ${currentPlayingPriority}).`);
-      return false;
-    }
-  }
-
-  // Interrompre toute lecture précédente et allouer un identifiant de session unique
-  stopVoiceReminder(false);
-  isPlaybackStopped = false;
-  currentPlayingPriority = priority;
-  const sessionId = ++currentPlaybackSessionId;
+  const sessionId: number = claimed;
   const abortController = new AbortController();
   currentAbortController = abortController;
 
-  // Si l'utilisateur est hors-ligne, basculer immédiatement sur SpeechSynthesis
   if (typeof window !== "undefined" && !navigator.onLine) {
-    console.debug("[VoicePlayer] Mode hors-ligne détecté, utilisation de SpeechSynthesis.");
-    return speakVoiceReminder(options);
+    return fallbackSpeak(options, "offline");
   }
 
   try {
-    // 1. Tenter la génération / récupération audio depuis la route API ElevenLabs
     const response = await fetch("/api/voice/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       signal: abortController.signal,
-      body: JSON.stringify({
-        text: text.trim(),
-        language,
-        voiceType,
-      }),
+      body: JSON.stringify({ text: text.trim(), language, voiceType }),
     });
 
-    if (sessionId !== currentPlaybackSessionId || isPlaybackStopped) {
-      return false;
-    }
+    if (!isCurrent(sessionId)) return false;
 
     const contentType = response.headers.get("content-type") || "";
 
-    // 2. Si le serveur retourne un flux audio MP3 valide
     if (response.ok && contentType.includes("audio/")) {
       const audioBlob = await response.blob();
-
-      if (sessionId !== currentPlaybackSessionId || isPlaybackStopped) {
-        return false;
-      }
+      if (!isCurrent(sessionId)) return false;
 
       const blobUrl = URL.createObjectURL(audioBlob);
       activeAudioBlobUrl = blobUrl;
@@ -198,17 +418,14 @@ export async function playVoiceReminder(options: VoiceSpeakOptions): Promise<boo
         const totalIterations = Math.max(1, repeat + 1);
 
         function playOnce() {
-          if (sessionId !== currentPlaybackSessionId || isPlaybackStopped) {
+          if (!isCurrent(sessionId)) {
             resolve(false);
             return;
           }
 
-          const audio = new Audio(blobUrl);
+          const audio = getSharedAudio();
+          clearAudioHandlers(audio);
           activeAudioElement = audio;
-
-          // Ajustement de la vitesse et du volume
-          audio.playbackRate = Math.max(0.7, Math.min(1.5, rate));
-          audio.volume = Math.max(0, Math.min(1, volume));
 
           audio.onplay = () => {
             if (sessionId === currentPlaybackSessionId && currentIteration === 0 && onStart) {
@@ -217,87 +434,108 @@ export async function playVoiceReminder(options: VoiceSpeakOptions): Promise<boo
           };
 
           audio.onended = () => {
-            if (sessionId !== currentPlaybackSessionId || isPlaybackStopped) {
+            if (!isCurrent(sessionId)) {
               resolve(false);
               return;
             }
-
             currentIteration++;
             if (currentIteration < totalIterations) {
-              // Pause de 1.2s entre les répétitions
               repeatTimeoutId = setTimeout(() => {
                 repeatTimeoutId = null;
-                if (sessionId === currentPlaybackSessionId && !isPlaybackStopped) {
-                  playOnce();
-                } else {
-                  resolve(false);
-                }
+                if (isCurrent(sessionId)) playOnce();
+                else resolve(false);
               }, 1200);
             } else {
-              if (onEnd && sessionId === currentPlaybackSessionId && !isPlaybackStopped) {
-                onEnd();
-              }
+              if (onEnd) onEnd();
               stopVoiceReminder(false);
-              resolve(sessionId === currentPlaybackSessionId && !isPlaybackStopped);
+              resolve(true);
             }
           };
 
-          audio.onerror = (audioErr) => {
+          audio.onerror = () => {
             if (sessionId !== currentPlaybackSessionId) {
               resolve(false);
               return;
             }
-            console.warn("[VoicePlayer] Erreur lecture MP3 ElevenLabs, bascule sur fallback:", audioErr);
+            console.warn("[VoicePlayer] Erreur de lecture du MP3 ElevenLabs.");
             stopVoiceReminder(false);
-            // Fallback sur SpeechSynthesis
-            speakVoiceReminder(options).then(resolve);
+            fallbackSpeak(options, "playback-error").then(resolve);
           };
 
-          audio.play().catch((playErr) => {
-            if (sessionId !== currentPlaybackSessionId) {
-              resolve(false);
-              return;
-            }
-            console.warn("[VoicePlayer] Autoplay bloqué ou erreur de lecture, bascule sur fallback:", playErr);
-            stopVoiceReminder(false);
-            // Fallback sur SpeechSynthesis
-            speakVoiceReminder(options).then(resolve);
-          });
+          audio.src = blobUrl;
+          audio.playbackRate = Math.max(0.7, Math.min(1.5, rate));
+          audio.volume = Math.max(0, Math.min(1, volume));
+          audio
+            .play()
+            .then(() => {
+              sharedUnlocked = true;
+              emitVoiceState();
+            })
+            .catch((playErr) => {
+              if (sessionId !== currentPlaybackSessionId) {
+                resolve(false);
+                return;
+              }
+              console.warn("[VoicePlayer] Lecture bloquée par le navigateur :", playErr?.name);
+              stopVoiceReminder(false);
+              fallbackSpeak(options, "autoplay-blocked").then(resolve);
+            });
         }
 
         playOnce();
       });
     }
 
-    if (sessionId !== currentPlaybackSessionId || isPlaybackStopped) {
-      return false;
-    }
-
-    // 3. Si la réponse est un JSON (ElevenLabs non configuré ou quota atteint), basculer proprement
+    if (!isCurrent(sessionId)) return false;
     const json = await response.json().catch(() => ({}));
-    if (json.fallback === "speechSynthesis") {
-      console.debug("[VoicePlayer] Serveur recommande le fallback SpeechSynthesis:", json.error);
-    }
-
-    if (sessionId !== currentPlaybackSessionId || isPlaybackStopped) {
-      return false;
-    }
-
-    return await speakVoiceReminder(options);
+    if (!isCurrent(sessionId)) return false;
+    return await fallbackSpeak(options, json?.reason || "tts-unavailable");
   } catch (fetchErr: any) {
-    if (fetchErr?.name === "AbortError" || sessionId !== currentPlaybackSessionId || isPlaybackStopped) {
+    if (fetchErr?.name === "AbortError" || !isCurrent(sessionId)) {
       return false;
     }
-
-    console.warn("[VoicePlayer] Échec de l'appel TTS ElevenLabs, bascule immédiate sur SpeechSynthesis:", fetchErr?.message);
-    // Fallback 1: SpeechSynthesis
-    try {
-      return await speakVoiceReminder(options);
-    } catch {
-      // Fallback 2: Carillon
-      playNotificationChime(0.4);
-      if (onError) onError(fetchErr);
-      return false;
-    }
+    console.warn("[VoicePlayer] Appel de la voix ElevenLabs impossible :", fetchErr?.message);
+    return fallbackSpeak(options, "network");
   }
+}
+
+/**
+ * Lecture d'un RAPPEL (activité, tâche, paiement, dépense…).
+ *
+ * Ordre :
+ * - par défaut : voix standard préenregistrée (immédiate, sans crédit ElevenLabs) ;
+ * - si la voix personnalisée est activée : ElevenLabs (prénom, nom, heure), puis la voix standard si elle échoue ;
+ * - en dernier recours : le secours habituel (voix de l'appareil si naturelle, sinon bandeau « Réessayer »).
+ */
+export async function playReminderVoice(
+  options: VoiceSpeakOptions & { alert?: ReminderAlertInfo | null }
+): Promise<boolean> {
+  const { alert, ...speak } = options;
+  const language = speak.language || "fr";
+  const src = getStandardAlertSrc(resolveStandardAlertKey(alert), language);
+
+  const playStandard = async () => {
+    if (!src) return false;
+    const started = await playAudioFile({
+      src,
+      priority: speak.priority || "normal",
+      rate: speak.rate,
+      volume: speak.volume,
+      repeat: speak.repeat,
+      onEnd: speak.onEnd,
+    });
+    if (started) speak.onStart?.();
+    return started;
+  };
+
+  if (isPersonalizedVoiceEnabled() && speak.text?.trim()) {
+    const ok = await playVoiceReminder({ ...speak, silentFailure: Boolean(src) });
+    if (ok || !src) return ok;
+    if (await playStandard()) return true;
+    return fallbackSpeak(speak, "standard-unavailable");
+  }
+
+  if (await playStandard()) return true;
+  // Pas d'audio standard (langue non enregistrée, fichiers absents) : voix ElevenLabs puis secours habituel
+  return speak.text?.trim() ? playVoiceReminder(speak) : fallbackSpeak(speak, "no-audio");
 }

@@ -475,11 +475,11 @@ button, a, input, select, textarea {
 }
 
 .animate-slide-from-right {
-  animation: slideFromRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: slideFromRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 .animate-slide-from-left {
-  animation: slideFromLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: slideFromLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -487,5 +487,16 @@ button, a, input, select, textarea {
   .animate-slide-from-left {
     animation: none !important;
     transform: none !important;
+  }
+}
+
+/* ============================================================================
+   Fenêtres (modales) ouvertes dans une page : la barre du bas mobile s'efface
+   pour ne jamais masquer les boutons « Annuler / Enregistrer ».
+   ============================================================================ */
+@supports selector(:has(*)) {
+  html:has(main .fixed.inset-0.z-50) [data-tour="mobile-nav-bar"],
+  html:has(main [role="dialog"][aria-modal="true"]) [data-tour="mobile-nav-bar"] {
+    display: none;
   }
 }

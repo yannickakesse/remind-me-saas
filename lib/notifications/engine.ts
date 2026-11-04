@@ -634,7 +634,7 @@ export async function evaluateSmartReminders(
             ? tr("Facture programmée pour demain : {name}", { name: sch.name })
             : tr("Facture programmée dans {daysDiff} jours : {name}", { daysDiff, name: sch.name }),
           body: tr("L'échéance de {formattedAmount} pour « {name} » est prévue le {v2}.", { formattedAmount, name: sch.name, v2: formatDateLocale(sch.next_due_date, locale, userTimezone) }),
-          metadata: { amount: sch.amount, currency: sch.currency, label: sch.name, frequency: sch.frequency },
+          metadata: { amount: sch.amount, currency: sch.currency, label: sch.name, frequency: sch.frequency, days: daysDiff },
           link: `/finances?tab=scheduled`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `scheduled_expense:${sch.id}:${sch.next_due_date}:minus_${daysDiff}_days`,
@@ -1845,7 +1845,7 @@ export async function evaluateSmartReminders(
             link: cand.link,
             category: cand.category,
             idempotencyKey: `push:${cand.idempotency_key}`,
-            metadata: cand.metadata,
+            metadata: { ...cand.metadata, kind: cand.kind },
           },
           supabase
         );

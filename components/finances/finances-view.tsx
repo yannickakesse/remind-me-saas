@@ -17,6 +17,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { formatAmount } from "@/lib/finances/format";
+import { expenseCategoryLabel } from "@/lib/validation/finances";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { FinanceTabs, FinanceTab } from "./finance-tabs";
 import { BudgetsSection } from "./budgets-section";
@@ -607,17 +608,14 @@ export function FinancesView({
       {/* Tab: EXPENSES */}
       {activeTab === "expenses" && (
         <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md p-5 sm:p-7 space-y-5 min-w-0 animate-in fade-in-50 duration-150 shadow-sm">
-          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h3 className="font-extrabold text-base sm:text-lg text-ink-950 dark:text-ink-50 flex items-center gap-2 truncate">
-                <span className="p-1.5 rounded-xl bg-danger text-white shadow-xs">
-                  <TrendingDown className="w-4 h-4" />
-                </span>
-                {tr("Dépenses du mois")}</h3>
-              <p className="text-xs text-ink-700 dark:text-ink-300 mt-1">
+          <div className="relative z-10 flex flex-col items-center gap-4">
+            {/* Titre centré, même style que « Revenus du mois » */}
+            <div className="text-center space-y-1">
+              <h3 className="text-lg sm:text-xl font-extrabold tracking-tight text-signal">{tr("Dépenses du mois")}</h3>
+              <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 max-w-md mx-auto">
                 {tr("Historique des décaissements et charges à régler déduits du Solde Net.")}</p>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+            <div className="grid w-full max-w-sm grid-cols-2 gap-2 sm:flex sm:w-auto sm:justify-center">
               <Link
                 href="/finances/expenses/new"
                 onClick={(e) => {
@@ -673,9 +671,9 @@ export function FinancesView({
               </div>
             </div>
           ) : (
-            <div className="relative z-10 divide-y divide-ink-100 dark:divide-ink-800">
+            <div className="relative z-10 space-y-3">
               {/* En-tête de colonnes alignées sur tablette & desktop */}
-              <div className="hidden md:grid grid-cols-12 gap-3 pb-2.5 text-[11px] font-bold uppercase tracking-wider text-ink-500">
+              <div className="hidden md:grid grid-cols-12 gap-3 px-4 pb-1 text-[11px] font-bold uppercase tracking-wider text-ink-500">
                 <div className="col-span-5">{tr("Libellé & Catégorie")}</div>
                 <div className="col-span-3">{tr("Échéance & Statut")}</div>
                 <div className="col-span-2 text-right">{tr("Montant")}</div>
@@ -685,7 +683,7 @@ export function FinancesView({
               {(expenses ?? []).map((exp) => {
                 const isLoading = actionLoadingId === exp.id;
                 return (
-                  <div key={exp.id} className="py-3 flex flex-col md:grid md:grid-cols-12 md:gap-3 md:items-center min-w-0">
+                  <div key={exp.id} className="p-4 rounded-2xl border border-ink-200/80 dark:border-ink-800 bg-canvas dark:bg-ink-950/60 shadow-2xs flex flex-col md:grid md:grid-cols-12 md:gap-3 md:items-center min-w-0">
                     {/* Colonne 1 : Libellé & Catégorie */}
                     <div className="min-w-0 md:col-span-5">
                       <div className="flex items-center gap-2">
@@ -703,7 +701,7 @@ export function FinancesView({
                         </span>
                       </div>
                       <div className="text-xs text-ink-500 truncate mt-0.5">
-                        {exp.category} {exp.activity?.name ? tr(" • Activité : {name}", { name: exp.activity.name }) : ""}
+                        {tr(expenseCategoryLabel(exp.category))} {exp.activity?.name ? tr(" • Activité : {name}", { name: exp.activity.name }) : ""}
                       </div>
                     </div>
 

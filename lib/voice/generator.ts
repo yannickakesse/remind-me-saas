@@ -10,7 +10,7 @@ import type {
 } from "./types";
 
 /**
- * Extrait le prénom ou construit une salutation polie naturelle (ex: "Monsieur Yannick")
+ * Extrait le prénom ou renvoie le prénom du profil (ex: "Awa Koné" → "Awa")
  */
 export function extractFirstName(fullName?: string | null): string {
   if (!fullName || !fullName.trim()) return "";
@@ -20,7 +20,7 @@ export function extractFirstName(fullName?: string | null): string {
 }
 
 /**
- * Formate le nom d'adresse pour la synthèse vocale (ex: "Monsieur Yannick", "Mr. Yannick", "Señor Yannick")
+ * Formate le nom d'adresse pour la synthèse vocale (prénom du profil connecté, ou chaîne vide)
  */
 export function formatSalutationName(
   fullName?: string | null,
@@ -31,21 +31,7 @@ export function formatSalutationName(
   const firstName = extractFirstName(fullName);
   if (!firstName) return "";
 
-  if (language === "fr") {
-    return `Monsieur ${firstName}`;
-  }
-  if (language === "en") {
-    return `Mr. ${firstName}`;
-  }
-  if (language === "es") {
-    return `Señor ${firstName}`;
-  }
-  if (language === "de") {
-    return `Herr ${firstName}`;
-  }
-  if (language === "pt") {
-    return `Senhor ${firstName}`;
-  }
+  // Prénom seul : aucune civilité supposée (Monsieur/Madame) pour un SaaS multi-utilisateurs.
   return firstName;
 }
 
@@ -128,10 +114,10 @@ export function formatSpokenTime(timeStr?: string | null, language: VoiceLanguag
  * 🌅 1. BRIEFING DU MATIN (05h00 - 06h00+)
  *
  * Structure attendue :
- * - Salutation chaleureuse : "Bonjour Monsieur Yannick, j’espère que vous êtes bien réveillé ce matin. Voici votre programme pour aujourd’hui."
+ * - Salutation chaleureuse : "Bonjour [prénom], j’espère que vous êtes bien réveillé ce matin. Voici votre programme pour aujourd’hui."
  * - Nombre d'activités : "Vous avez [X] activités prévues aujourd’hui."
  * - Énumération chronologique : "À 7 heures, vous avez votre activité... À 10 heures, vous avez..."
- * - Cas 0 activité : "Bonjour Monsieur Yannick... Vous n’avez aucune activité prévue aujourd’hui. Profitez-en pour organiser votre journée ou vous reposer..."
+ * - Cas 0 activité : "Bonjour [prénom]... Vous n’avez aucune activité prévue aujourd’hui. Profitez-en pour organiser votre journée ou vous reposer..."
  * - Activités déjà complétées tôt : mentionnées comme déjà faites sans redemander de les faire.
  * - Clôture positive : "Voilà pour votre journée. Je vous souhaite une excellente journée et bon courage pour toutes vos activités."
  */
@@ -285,10 +271,10 @@ export function generateMorningBriefingVoiceText(params: MorningBriefingVoicePar
  * ☀️ 2. CHECK-IN DE MIDI / DÉBUT D'APRÈS-MIDI (12h00 - 14h00)
  *
  * Analyse l'état actuel de la journée :
- * - Félicitations pour ce qui a déjà été accompli : "Bravo Monsieur Yannick ! Vous avez déjà terminé..."
+ * - Félicitations pour ce qui a déjà été accompli : "Bravo [prénom] ! Vous avez déjà terminé..."
  * - Rappel des activités à venir l'après-midi / soir : "Pour la suite de votre journée, vous avez encore..."
  * - Alerte factuelle sur les activités du matin non terminées : "J’attire également votre attention sur une activité..."
- * - Cas où tout est terminé : "Félicitations Monsieur Yannick ! Toutes vos activités prévues aujourd’hui sont déjà terminées."
+ * - Cas où tout est terminé : "Félicitations [prénom] ! Toutes vos activités prévues aujourd’hui sont déjà terminées."
  */
 export function generateMiddayCheckinVoiceText(params: MiddayCheckinVoiceParams): string {
   const {
@@ -440,9 +426,9 @@ export function generateMiddayCheckinVoiceText(params: MiddayCheckinVoiceParams)
  * 🌙 3. BILAN DU SOIR (20h00 - 22h00+)
  *
  * Analyse la journée entière :
- * - Félicitations pour ce qui a été terminé : "Bravo Monsieur Yannick ! Vous avez terminé avec succès..."
+ * - Félicitations pour ce qui a été terminé : "Bravo [prénom] ! Vous avez terminé avec succès..."
  * - Signalement des activités non complétées : "Il reste toutefois une activité que vous n’avez pas encore marquée comme terminée..."
- * - Si tout est complété : "Félicitations Monsieur Yannick ! Toutes vos activités prévues aujourd’hui sont terminées avec succès. Félicitations pour votre journée !"
+ * - Si tout est complété : "Félicitations [prénom] ! Toutes vos activités prévues aujourd’hui sont terminées avec succès. Félicitations pour votre journée !"
  * - Clôture chaleureuse : "Passez une très bonne soirée et à demain !"
  */
 export function generateEveningSummaryVoiceText(params: EveningSummaryVoiceParams): string {
@@ -699,11 +685,11 @@ export function generateIndividualReminderVoiceText(
 
     if (category === "expense" || category === "scheduled_expense") {
       const amountPart = (!hideAmount && formattedAmount) ? ` de ${formattedAmount}` : "";
-      return `${greeting} Recordatorio de tu gasto${amountPart}: ${activityTitle}${spokenTime ? ` previsto a las ${spokenTime}` : ""}. ¡Buen día!`;
+      return `${greeting} Recordatorio de tu gasto${amountPart}: ${activityTitle}${spokenTime ? ` previsto a ${spokenTime}` : ""}. ¡Buen día!`;
     }
 
     if (category === "task") {
-      return `${greeting} Recordatorio: tu tarea "${activityTitle}" vence pronto${spokenTime ? ` a las ${spokenTime}` : ""}. ¡Mucho éxito!`;
+      return `${greeting} Recordatorio: tu tarea "${activityTitle}" vence pronto${spokenTime ? ` a ${spokenTime}` : ""}. ¡Mucho éxito!`;
     }
 
     if (leadMinutes !== undefined && leadMinutes <= 2) {
@@ -715,11 +701,11 @@ export function generateIndividualReminderVoiceText(
     }
 
     if (leadMinutes && leadMinutes >= 35) {
-      const timePart = spokenTime ? `, a las ${spokenTime}` : "";
+      const timePart = spokenTime ? `, a ${spokenTime}` : "";
       return `${greeting} Tienes una sesión de "${activityTitle}" en una hora${timePart}. Prepárate con calma. ¡Buen trabajo!`;
     }
 
-    return `${greeting} Recordatorio: tu sesión de "${activityTitle}" está programada para hoy${spokenTime ? ` a las ${spokenTime}` : ""}. ¡Mucho éxito!`;
+    return `${greeting} Recordatorio: tu sesión de "${activityTitle}" está programada para hoy${spokenTime ? ` a ${spokenTime}` : ""}. ¡Mucho éxito!`;
   }
 
   // 4. Version Allemande

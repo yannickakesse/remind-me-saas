@@ -20,6 +20,8 @@ import {
   Sparkles,
   X,
   Search,
+  Repeat,
+  Star,
 } from "lucide-react";
 import {
   archiveActivity,
@@ -33,7 +35,6 @@ import {
   declineEvolutionSuggestion,
 } from "@/app/(app)/activities/actions";
 import { buttonClasses, Button } from "@/components/ui/button";
-import { formatAmount } from "@/lib/finances/format";
 import { ACTIVITY_TYPES } from "@/lib/validation/activities";
 import { useToast } from "@/components/ui/toast";
 import { useLanguage } from "@/components/i18n/language-provider";
@@ -87,7 +88,10 @@ export function ActivitiesClientView({
   initialRenewActivityId,
 }: ActivitiesClientViewProps) {
   const { push: toastPush } = useToast();
-  const { t , tr } = useLanguage();
+  const { t, tr, locale } = useLanguage();
+  // Montant compact : sans décimales (« 100 000 XOF »)
+  const compactAmount = (amount: number, currency: string) =>
+    `${new Intl.NumberFormat(locale || "fr", { maximumFractionDigits: 0 }).format(amount)} ${currency}`;
   const [activities, setActivities] = useState<ActivityViewItem[]>(initialActivities);
   const [suggestions, setSuggestions] = useState<RoutineSuggestionItem[]>(initialSuggestions);
   const [filterTab, setFilterTab] = useState<"all" | "active" | "expired" | "suspended" | "archived">("all");
@@ -411,9 +415,9 @@ export function ActivitiesClientView({
       >
         <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-signal/15 dark:bg-signal/20 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
+        <div className="relative z-10 flex flex-col items-center gap-4 text-center">
+          <div className="flex flex-col items-center">
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-1.5">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-signal/10 dark:bg-signal/20 text-signal text-[11px] font-bold border border-signal/20 shadow-2xs">
                 <Briefcase className="w-3 h-3" />
                 <span>{tr("Portefeuille d'activités")}</span>
@@ -422,14 +426,14 @@ export function ActivitiesClientView({
                 {activities.length} {tr("activité")}{activities.length > 1 ? "s" : ""} {tr("au total")}</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink-950 dark:text-white flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink-950 dark:text-white">
               {t("activities.title")}
             </h1>
-            <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 mt-1">
+            <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 mt-1 max-w-md">
               {tr("Pilotez vos différentes casquettes, contrats, tarifs et temps de mission en un seul endroit.")}</p>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+          <div className="flex items-center justify-center gap-2.5 flex-wrap">
             <SectionGuideTrigger section="activities" label={tr("Guide")} />
             <Link
               href="/activities/new"
@@ -444,9 +448,9 @@ export function ActivitiesClientView({
       </div>
 
       {/* Barre de navigation par onglets & Recherche */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* Onglets Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar p-1 rounded-2xl border border-ink-200/80 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-900/80 backdrop-blur-md shadow-2xs">
+      <div className="flex flex-col items-center gap-3">
+        {/* Onglets Pills (centrés) */}
+        <div className="mx-auto flex max-w-full items-center justify-center gap-1.5 overflow-x-auto no-scrollbar p-1 rounded-2xl border border-ink-200/80 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-900/80 backdrop-blur-md shadow-2xs">
           <button
             type="button"
             onClick={() => setFilterTab("all")}
@@ -553,7 +557,7 @@ export function ActivitiesClientView({
         </div>
 
         {/* Champ de recherche */}
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full sm:max-w-sm">
           <Search className="w-4 h-4 text-ink-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
@@ -662,13 +666,23 @@ export function ActivitiesClientView({
                       )}
 
                       {activity.engagement_nature === "routine" && (
-                        <span className="rounded-full bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 shrink-0">
-                          {tr("Routine")}</span>
+                        <span
+                          title={tr("Routine")}
+                          aria-label={tr("Routine")}
+                          className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 shrink-0"
+                        >
+                          <Repeat className="h-3.5 w-3.5" strokeWidth={2.4} />
+                        </span>
                       )}
 
                       {activity.engagement_nature === "important" && (
-                        <span className="rounded-full bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 text-[11px] font-bold text-purple-700 dark:text-purple-300 shrink-0">
-                          {tr("Important")}</span>
+                        <span
+                          title={tr("Important")}
+                          aria-label={tr("Important")}
+                          className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-500/15 border border-purple-500/25 text-purple-700 dark:text-purple-300 shrink-0"
+                        >
+                          <Star className="h-3.5 w-3.5 fill-current" />
+                        </span>
                       )}
 
                       {activity.validity_type === "permanent" ? (
@@ -681,7 +695,7 @@ export function ActivitiesClientView({
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ink-600 dark:text-ink-400">
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-xs text-ink-600 dark:text-ink-400">
                     {activity.organizationName ? (
                       <span className="inline-flex items-center gap-1.5 font-medium text-ink-800 dark:text-ink-200">
                         <Building2 className="h-3.5 w-3.5 text-ink-400" />
@@ -690,11 +704,11 @@ export function ActivitiesClientView({
                     ) : null}
 
                     {activity.compensation ? (
-                      <span className="inline-flex items-center gap-1.5 font-mono font-bold text-signal bg-signal/10 dark:bg-signal/20 px-2.5 py-0.5 rounded-lg border border-signal/20">
+                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap font-mono font-bold text-signal bg-signal/10 dark:bg-signal/20 px-2.5 py-0.5 rounded-lg border border-signal/20">
                         <Wallet className="h-3.5 w-3.5" />
-                        {formatAmount(activity.compensation.amount, activity.compensation.currency)} /{" "}
+                        {compactAmount(activity.compensation.amount, activity.compensation.currency)}/
                         {activity.compensation.frequency === "monthly"
-                          ? "mois"
+                          ? tr("mois")
                           : activity.compensation.frequency === "hourly"
                           ? "h"
                           : activity.compensation.frequency}
@@ -702,9 +716,9 @@ export function ActivitiesClientView({
                     ) : null}
 
                     {activity.endDate ? (
-                      <span className="inline-flex items-center gap-1 text-ink-500 font-medium">
+                      <span className="ml-auto inline-flex items-center gap-1 whitespace-nowrap text-ink-500 font-medium">
                         <Calendar className="h-3.5 w-3.5 text-ink-400" />
-                        {tr("Fin :")}{" "}{new Date(activity.endDate).toLocaleDateString("fr-FR")}
+                        {tr("Fin :")}{" "}{new Date(activity.endDate).toLocaleDateString(locale || "fr")}
                       </span>
                     ) : null}
 

@@ -1,3 +1,4 @@
+import { msg } from "@/lib/i18n/catalog";
 import { z } from "zod";
 import { DateTime } from "luxon";
 
@@ -54,18 +55,18 @@ export function financeStatusLabel(status: FinanceStatus, kind: "income" | "expe
 }
 
 export const EXPENSE_CATEGORIES = [
-  { value: "software", label: "Logiciels & Abonnements" },
-  { value: "equipment", label: "Matériel & Équipement" },
-  { value: "travel", label: "Déplacements & Transport" },
-  { value: "food", label: "Repas & Restauration" },
-  { value: "housing", label: "Logement & Bureaux" },
-  { value: "utilities", label: "Charges, Eau, Électricité, Internet" },
-  { value: "education", label: "Formation & Livres" },
-  { value: "marketing", label: "Marketing & Publicité" },
-  { value: "services", label: "Prestations & Sous-traitance" },
-  { value: "taxes", label: "Impôts, Taxes & Cotisations" },
-  { value: "health", label: "Santé & Assurances" },
-  { value: "other", label: "Autre dépense" },
+  { value: "software", label: msg("Logiciels & Abonnements") },
+  { value: "equipment", label: msg("Matériel & Équipement") },
+  { value: "travel", label: msg("Déplacements & Transport") },
+  { value: "food", label: msg("Repas & Restauration") },
+  { value: "housing", label: msg("Logement & Bureaux") },
+  { value: "utilities", label: msg("Charges, Eau, Électricité, Internet") },
+  { value: "education", label: msg("Formation & Livres") },
+  { value: "marketing", label: msg("Marketing & Publicité") },
+  { value: "services", label: msg("Prestations & Sous-traitance") },
+  { value: "taxes", label: msg("Impôts, Taxes & Cotisations") },
+  { value: "health", label: msg("Santé & Assurances") },
+  { value: "other", label: msg("Autre dépense") },
 ] as const;
 
 export function expenseCategoryLabel(cat?: string | null): string {

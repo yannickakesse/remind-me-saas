@@ -33,7 +33,7 @@ import {
   MoreHorizontal,
   ChevronDown,
 } from "lucide-react";
-import { playVoiceReminder, stopVoiceReminder, getLocalVoiceSettings } from "@/lib/voice";
+import { playReminderVoice, stopVoiceReminder, getLocalVoiceSettings } from "@/lib/voice";
 import type { Notification, NotificationPriority } from "@/types/database";
 import {
   markNotificationRead,
@@ -926,7 +926,9 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
     }
     setPlayingId(item.id);
     const prefs = getLocalVoiceSettings();
-    await playVoiceReminder({
+    await playReminderVoice({
+      alert: { kind: (item as any).kind, category: (item as any).category, metadata: (item as any).metadata },
+      priority: "preview",
       text: (item as any).metadata?.voice_text || `${item.title}. ${item.body}`,
       language: prefs.voice_language,
       voiceType: prefs.voice_type,

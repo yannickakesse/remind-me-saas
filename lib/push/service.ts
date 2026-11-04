@@ -68,6 +68,9 @@ export async function sendNotificationPush(
         category,
         voice_text: (options.metadata?.voice_text as string) || null,
         voice_reminder_enabled: options.metadata?.voice_reminder_enabled !== false,
+        // Type et délai du rappel : choix de la phrase de la voix standard
+        kind: (options.metadata?.kind as string) || null,
+        days: typeof options.metadata?.days === "number" ? options.metadata.days : null,
       },
     });
 
