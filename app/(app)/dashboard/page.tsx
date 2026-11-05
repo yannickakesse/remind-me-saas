@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getTr } from "@/lib/i18n/server";
 import { PageBackground } from "@/components/shared/page-background";
 import Link from "next/link";
@@ -16,6 +17,7 @@ import { DashboardKpis } from "@/components/dashboard/dashboard-kpis";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { AttentionRequired } from "@/components/dashboard/attention-required";
 import { TodayFocus } from "@/components/dashboard/today-focus";
+import { DashboardInsights } from "@/components/insights/dashboard-insights";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { ensureNotifications } from "@/lib/notifications/sync";
@@ -173,6 +175,11 @@ export default async function DashboardPage() {
           <AttentionRequired notifications={attentionNotifications as Notification[]} />
         </div>
       ) : null}
+
+      {/* B2. ANALYSES INTERNES (Pro / essai) — chargées en différé pour ne pas ralentir le tableau de bord */}
+      <Suspense fallback={null}>
+        <DashboardInsights userId={user!.id} />
+      </Suspense>
 
       {/* C. GRILLE PRINCIPALE RESPONSIVE (Asymétrique Desktop 8+4 & Mobile 1 colonne naturelle) */}
       <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">

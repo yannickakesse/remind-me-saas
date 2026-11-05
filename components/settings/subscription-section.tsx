@@ -3,8 +3,8 @@
 
 import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useTransition, useEffect } from "react";
-import { Check, X, Sparkles, ShieldCheck, Zap, ArrowRight } from "lucide-react";
-import { PLAN_ENTITLEMENTS, yearlyDiscountPercent, normalizePlan, type PlanType } from "@/lib/subscriptions/entitlements";
+import { Check, X, Sparkles, ShieldCheck, Zap, ArrowRight, Clock } from "lucide-react";
+import { PLAN_ENTITLEMENTS, PLAN_COMING_SOON, yearlyDiscountPercent, normalizePlan, type PlanType } from "@/lib/subscriptions/entitlements";
 import { updateSubscriptionPlan, initiateBictorysCheckoutAction } from "@/app/(app)/settings/actions";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
@@ -18,10 +18,12 @@ export interface SubscriptionSectionProps {
   status?: string;
   /** Mode démo (activation sans paiement) — uniquement si ENABLE_PLAN_DEMO=true côté serveur */
   demoEnabled?: boolean;
+  /** Essai gratuit en cours (droits Pro, calculés par le serveur). */
+  trial?: { daysLeft: number; endsAt: string } | null;
 }
 
-export function SubscriptionSection({ subscription, plan, status, demoEnabled = false }: SubscriptionSectionProps) {
-  const { tr } = useLanguage();
+export function SubscriptionSection({ subscription, plan, status, demoEnabled = false, trial = null }: SubscriptionSectionProps) {
+  const { tr, locale } = useLanguage();
   const { push } = useToast();
   const initialPlan = normalizePlan(plan ?? subscription?.plan);
   const [activePlan, setActivePlan] = useState<PlanType>(initialPlan);
@@ -92,6 +94,20 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
 
   return (
     <div className="w-full space-y-8">
+      {trial && (
+        <div role="status" className="rounded-2xl border border-signal/30 bg-signal/10 p-4 sm:p-5 text-center">
+          <p className="text-sm font-bold text-signal">
+            {trial.daysLeft > 1
+              ? tr("Essai Pro gratuit : encore {n} jours", { n: trial.daysLeft })
+              : tr("Essai Pro gratuit : dernier jour")}
+          </p>
+          <p className="mt-1 text-xs text-ink-700 dark:text-ink-300">
+            {tr("Jusqu'au {date}. Aucune carte, aucun prélèvement : à la fin, retour automatique au forfait Gratuit et toutes vos données sont conservées.", {
+              date: new Date(trial.endsAt).toLocaleDateString(locale || "fr", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }),
+            })}
+          </p>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-ink-950 flex items-center gap-2">
@@ -233,6 +249,15 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                       {tr("Rapports de rentabilité horaire")}</span>
                   </li>
                   <li className="flex items-center gap-2">
+                    {p.smartInsights ? (
+                      <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
+                    ) : (
+                      <X className="w-3.5 h-3.5 text-ink-300 shrink-0" />
+                    )}
+                    <span className={p.smartInsights ? "font-medium text-ink-900 dark:text-ink-100" : "text-ink-400"}>
+                      {tr("Analyses intelligentes (budgets, tendances, objectifs)")}</span>
+                  </li>
+                  <li className="flex items-center gap-2">
                     {p.multiCurrency ? (
                       <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
                     ) : (
@@ -241,15 +266,13 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                     <span className={p.multiCurrency ? tr("font-medium text-ink-900") : "text-ink-400"}>
                       {tr("Gestion multi-devises unifiée")}</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    {p.aiAssistant ? (
-                      <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
-                    ) : (
-                      <X className="w-3.5 h-3.5 text-ink-300 shrink-0" />
-                    )}
-                    <span className={p.aiAssistant ? tr("font-medium text-ink-900") : "text-ink-400"}>
-                      {tr("Assistant IA & Insights prédictifs")}</span>
-                  </li>
+                  {PLAN_COMING_SOON[pKey].map((label) => (
+                    <li key={label} className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <span className="text-ink-500">{tr(label)}</span>
+                      <span className="ml-auto shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-700">{tr("Bientôt")}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
@@ -343,7 +366,7 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                   <li className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
                     <span>
-                      {target.maxBudgets === Infinity ? tr("Budgets mensuels illimités") : `${target.maxBudgets} budgets mensuels`}
+                      {target.maxBudgets === Infinity ? tr("Budgets mensuels illimités") : tr("{maxBudgets} budgets mensuels", { maxBudgets: target.maxBudgets })}
                     </span>
                   </li>
                   {target.hourlyProfitability && (
@@ -358,12 +381,7 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                       <span>{tr("Gestion multi-devises unifiée")}</span>
                     </li>
                   )}
-                  {target.aiAssistant && (
-                    <li className="flex items-center gap-2">
-                      <Check className="w-3.5 h-3.5 text-positive shrink-0" strokeWidth={2.5} />
-                      <span>{tr("Assistant IA & insights prédictifs")}</span>
-                    </li>
-                  )}
+
                 </ul>
               </div>
 

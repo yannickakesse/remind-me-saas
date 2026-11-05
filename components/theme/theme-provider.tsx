@@ -5,7 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 export type ThemePreference = "light" | "dark" | "system";
 
 interface ThemeContextValue {
-  /** Préférence choisie par l'utilisateur (ou "system" par défaut). */
+  /** Préférence choisie par l'utilisateur (« light » par défaut). */
   theme: ThemePreference;
   /** Change et persiste la préférence, applique immédiatement l'attribut sur <html>. */
   setTheme: (theme: ThemePreference) => void;
@@ -15,13 +15,14 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = "theme";
 
+/** « system » est résolu en light/dark : l'attribut data-theme est TOUJOURS posé (un seul interrupteur). */
+function resolveTheme(theme: ThemePreference): "light" | "dark" {
+  if (theme !== "system") return theme;
+  return typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
 function applyThemeAttribute(theme: ThemePreference) {
-  const root = document.documentElement;
-  if (theme === "system") {
-    root.removeAttribute("data-theme");
-  } else {
-    root.setAttribute("data-theme", theme);
-  }
+  document.documentElement.setAttribute("data-theme", resolveTheme(theme));
 }
 
 /**
@@ -32,28 +33,34 @@ function applyThemeAttribute(theme: ThemePreference) {
  * Paramètres > Apparence, §70 du prompt maître).
  */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemePreference>("system");
+  const [theme, setThemeState] = useState<ThemePreference>("light");
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "light" || stored === "dark" || stored === "system") {
-        setThemeState(stored);
-      }
+      const pref: ThemePreference = stored === "light" || stored === "dark" || stored === "system" ? stored : "light";
+      setThemeState(pref);
+      // Sécurité : réapplique l'attribut si le rendu React l'a remis à sa valeur serveur
+      applyThemeAttribute(pref);
     } catch {
-      // localStorage indisponible — reste sur "system".
+      // localStorage indisponible — reste sur le thème clair.
     }
   }, []);
+
+  // « Système » : suivre en direct un changement de réglage du téléphone
+  useEffect(() => {
+    if (theme !== "system" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => applyThemeAttribute("system");
+    mq.addEventListener?.("change", onChange);
+    return () => mq.removeEventListener?.("change", onChange);
+  }, [theme]);
 
   const setTheme = useCallback((next: ThemePreference) => {
     setThemeState(next);
     applyThemeAttribute(next);
     try {
-      if (next === "system") {
-        localStorage.removeItem(STORAGE_KEY);
-      } else {
-        localStorage.setItem(STORAGE_KEY, next);
-      }
+      localStorage.setItem(STORAGE_KEY, next);
     } catch {
       // Rien à faire : le thème reste appliqué pour la session en cours.
     }

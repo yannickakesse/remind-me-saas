@@ -1,0 +1,216 @@
+{
+  "groups": {
+    "signup": {
+      "title": "Parcours d'inscription",
+      "ids": [
+        "journey_landing",
+        "journey_register",
+        "journey_verify_email",
+        "journey_login",
+        "journey_identity",
+        "journey_country",
+        "journey_currency",
+        "journey_timezone",
+        "journey_confirm",
+        "journey_welcome"
+      ]
+    },
+    "tour": {
+      "title": "Visite guidée et première activité",
+      "ids": [
+        "tour_welcome",
+        "tour_nav",
+        "tour_dashboard",
+        "tour_activities",
+        "tour_tasks",
+        "tour_finances",
+        "tour_inbox",
+        "tour_settings",
+        "tour_done",
+        "journey_first_activity",
+        "journey_activity_form",
+        "journey_activity_created",
+        "journey_notifications",
+        "journey_notifications_on",
+        "journey_end"
+      ]
+    }
+  },
+  "texts": {
+    "journey_landing": {
+      "fr": "Bienvenue sur Remind Me ! Touchez « Commencer gratuitement » pour créer votre compte en une minute.",
+      "en": "Welcome to Remind Me! Tap “Get Started for Free” to create your account in just one minute.",
+      "es": "¡Bienvenido a Remind Me! Pulse «Empezar gratis» para crear su cuenta en un minuto.",
+      "de": "Willkommen bei Remind Me! Tippen Sie auf „Kostenlos starten“, um Ihr Konto in nur einer Minute zu erstellen.",
+      "pt": "Bem-vindo ao Remind Me! Toque em “Começar gratuitamente” para criar sua conta em um minuto."
+    },
+    "journey_register": {
+      "fr": "Indiquez votre nom, votre adresse e-mail et choisissez un mot de passe, puis touchez « Créer mon compte ».",
+      "en": "Enter your name and email address, choose a password, and then tap “Create My Account.”",
+      "es": "Indique su nombre, su dirección de correo electrónico y elija una contraseña; a continuación, pulse «Crear mi cuenta».",
+      "de": "Geben Sie Ihren Namen und Ihre E-Mail-Adresse ein, wählen Sie ein Passwort aus und tippen Sie anschließend auf „Mein Konto erstellen“.",
+      "pt": "Insira seu nome, seu e-mail e escolha uma senha; em seguida, toque em “Criar minha conta”."
+    },
+    "journey_verify_email": {
+      "fr": "Votre compte est créé ! Ouvrez votre boîte mail, confirmez votre adresse, puis revenez ici pour continuer.",
+      "en": "Your account has been created! Open your email, confirm your address, then come back here to continue.",
+      "es": "¡Su cuenta ya está creada! Abra su correo electrónico, confirme su dirección y, a continuación, vuelva aquí para continuar.",
+      "de": "Ihr Konto wurde erstellt! Öffnen Sie Ihr E-Mail-Postfach, bestätigen Sie Ihre E-Mail-Adresse und kehren Sie anschließend hierher zurück, um fortzufahren.",
+      "pt": "Sua conta foi criada! Abra sua caixa de e-mail, confirme seu endereço e, em seguida, volte aqui para continuar."
+    },
+    "journey_login": {
+      "fr": "Content de vous revoir ! Saisissez votre e-mail et votre mot de passe pour vous connecter.",
+      "en": "Nice to see you again! Enter your email and password to log in.",
+      "es": "¡Me alegro de volver a verle! Introduzca su correo electrónico y su contraseña para iniciar sesión.",
+      "de": "Schön, Sie wiederzusehen! Geben Sie Ihre E-Mail-Adresse und Ihr Passwort ein, um sich anzumelden.",
+      "pt": "Que bom vê-los novamente! Digite seu e-mail e sua senha para fazer login."
+    },
+    "journey_identity": {
+      "fr": "Faisons connaissance : indiquez votre nom, puis touchez « Continuer ».",
+      "en": "Let’s get to know each other: enter your name, then tap “Continue.”",
+      "es": "Conozcámonos: introduzca su nombre y, a continuación, pulse «Continuar».",
+      "de": "Lernen wir uns kennen: Geben Sie Ihren Namen ein und tippen Sie anschließend auf „Weiter“.",
+      "pt": "Vamos nos conhecer: digite seu nome e, em seguida, toque em “Continuar”."
+    },
+    "journey_country": {
+      "fr": "Dans quel pays êtes-vous basé ? Choisissez-le dans la liste.",
+      "en": "In which country are you based? Select it from the list.",
+      "es": "¿En qué país reside? Seleccione uno de la lista.",
+      "de": "In welchem Land sind Sie ansässig? Wählen Sie es aus der Liste aus.",
+      "pt": "Em que país o(a) senhor(a) está? Selecione-o na lista."
+    },
+    "journey_currency": {
+      "fr": "Choisissez votre devise principale : elle servira pour vos revenus et vos dépenses.",
+      "en": "Choose your primary currency: it will be used for your income and expenses.",
+      "es": "Elija su moneda principal: se utilizará para sus ingresos y sus gastos.",
+      "de": "Wählen Sie Ihre Hauptwährung aus: Diese wird für Ihre Einnahmen und Ausgaben verwendet.",
+      "pt": "Escolha sua moeda principal: ela será utilizada para suas receitas e despesas."
+    },
+    "journey_timezone": {
+      "fr": "Vérifiez votre fuseau horaire : vos rappels arriveront ainsi à la bonne heure.",
+      "en": "Check your time zone: this will ensure your reminders arrive at the right time.",
+      "es": "Compruebe su zona horaria: así, sus recordatorios le llegarán a la hora correcta.",
+      "de": "Bitte überprüfen Sie Ihre Zeitzone: So erhalten Sie Ihre Erinnerungen zur richtigen Zeit.",
+      "pt": "Verifique seu fuso horário: assim, seus lembretes chegarão na hora certa."
+    },
+    "journey_confirm": {
+      "fr": "Tout est prêt ! Vérifiez vos informations et touchez « Terminer ».",
+      "en": "Everything is ready! Check your information and tap “Finish.”",
+      "es": "¡Ya está todo listo! Compruebe sus datos y pulse «Finalizar».",
+      "de": "Alles ist bereit! Bitte überprüfen Sie Ihre Angaben und tippen Sie auf „Fertigstellen“.",
+      "pt": "Está tudo pronto! Verifique suas informações e toque em “Concluir”."
+    },
+    "journey_welcome": {
+      "fr": "Bienvenue dans votre espace Remind Me ! Je vais vous faire découvrir l'essentiel en quelques étapes.",
+      "en": "Welcome to your Remind Me account! I’ll walk you through the basics in just a few steps.",
+      "es": "¡Bienvenido a su espacio Remind Me! Le mostraré lo más importante en unos pocos pasos.",
+      "de": "Willkommen in Ihrem Remind Me-Bereich! Ich werde Ihnen in wenigen Schritten die wichtigsten Funktionen vorstellen.",
+      "pt": "Bem-vindo ao seu espaço Remind Me! Vou apresentar a você o essencial em algumas etapas."
+    },
+    "tour_welcome": {
+      "fr": "Remind Me réunit vos activités, votre temps et votre argent au même endroit. Touchez « Suivant » pour commencer la visite.",
+      "en": "Remind Me brings your activities, time, and money all together in one place. Tap “Next” to start the tour.",
+      "es": "Remind Me reúne sus actividades, su tiempo y su dinero en un mismo lugar. Pulse «Siguiente» para comenzar el recorrido.",
+      "de": "Remind Me vereint Ihre Aktivitäten, Ihre Zeit und Ihr Geld an einem Ort. Tippen Sie auf „Weiter“, um die Tour zu starten.",
+      "pt": "O Remind Me reúne suas atividades, seu tempo e seu dinheiro em um só lugar. Toque em “Próximo” para iniciar o tour."
+    },
+    "tour_nav": {
+      "fr": "En bas de l'écran, la barre de navigation vous mène à l'accueil, au calendrier, aux finances et au menu. Le bouton plus permet d'ajouter rapidement.",
+      "en": "At the bottom of the screen, the navigation bar takes you to the home screen, calendar, finances, and menu. The plus button lets you add items quickly.",
+      "es": "En la parte inferior de la pantalla, la barra de navegación le lleva a la página de inicio, al calendario, a las finanzas y al menú. El botón «+» le permite añadir elementos rápidamente.",
+      "de": "Am unteren Bildschirmrand führt Sie die Navigationsleiste zur Startseite, zum Kalender, zu den Finanzen und zum Menü. Über die Plus-Schaltfläche können Sie schnell Einträge hinzufügen.",
+      "pt": "Na parte inferior da tela, a barra de navegação leva você à página inicial, ao calendário, às finanças e ao menu. O botão “mais” permite adicionar itens rapidamente."
+    },
+    "tour_dashboard": {
+      "fr": "Le tableau de bord résume votre mois : vos finances, vos séances du jour et vos tâches urgentes.",
+      "en": "The dashboard summarizes your month: your finances, your sessions for the day, and your urgent tasks.",
+      "es": "El panel de control resume su mes: sus finanzas, sus sesiones del día y sus tareas urgentes.",
+      "de": "Das Dashboard fasst Ihren Monat zusammen: Ihre Finanzen, Ihre Termine des Tages und Ihre dringenden Aufgaben.",
+      "pt": "O painel de controle resume o seu mês: suas finanças, suas atividades do dia e suas tarefas urgentes."
+    },
+    "tour_activities": {
+      "fr": "Dans Activités, enregistrez chacune de vos casquettes professionnelles. Leurs séances apparaissent automatiquement dans votre calendrier.",
+      "en": "In \"Activities,\" save each of your professional roles. Their sessions will automatically appear in your calendar.",
+      "es": "En «Actividades», registre cada una de sus funciones profesionales. Sus sesiones aparecerán automáticamente en su calendario.",
+      "de": "Tragen Sie unter „Aktivitäten“ jede Ihrer beruflichen Rollen ein. Die entsprechenden Termine erscheinen automatisch in Ihrem Kalender.",
+      "pt": "Em “Atividades”, registre cada uma de suas funções profissionais. As sessões relacionadas a elas aparecem automaticamente em sua agenda."
+    },
+    "tour_tasks": {
+      "fr": "Les tâches vous aident à ne rien oublier : chacune peut avoir une date, une priorité et un rappel.",
+      "en": "Tasks help you remember everything: each one can have a due date, a priority, and a reminder.",
+      "es": "Las tareas le ayudan a no olvidarse de nada: cada una puede tener una fecha, una prioridad y un recordatorio.",
+      "de": "Die Aufgaben helfen Ihnen dabei, nichts zu vergessen: Jede Aufgabe kann mit einem Datum, einer Priorität und einer Erinnerung versehen werden.",
+      "pt": "As tarefas ajudam a não esquecer nada: cada uma pode ter uma data, uma prioridade e um lembrete."
+    },
+    "tour_finances": {
+      "fr": "Dans Finances, suivez vos revenus, vos dépenses, vos budgets et votre épargne.",
+      "en": "In the \"Finances\" section, track your income, expenses, budgets, and savings.",
+      "es": "En la sección «Finanzas», realice un seguimiento de sus ingresos, sus gastos, sus presupuestos y sus ahorros.",
+      "de": "Im Bereich „Finanzen“ können Sie Ihre Einnahmen, Ausgaben, Budgets und Ersparnisse im Blick behalten.",
+      "pt": "Na seção “Finanças”, acompanhe suas receitas, despesas, orçamentos e poupanças."
+    },
+    "tour_inbox": {
+      "fr": "Vos rappels et vos messages importants sont réunis dans les notifications et dans l'Inbox.",
+      "en": "Your reminders and important messages are all gathered in the notifications and the Inbox.",
+      "es": "Sus recordatorios y mensajes importantes se recogen en las notificaciones y en la bandeja de entrada.",
+      "de": "Ihre Erinnerungen und wichtigen Nachrichten finden Sie in den Benachrichtigungen und im Posteingang.",
+      "pt": "Seus lembretes e mensagens importantes estão reunidos nas notificações e na Caixa de Entrada."
+    },
+    "tour_settings": {
+      "fr": "Dans les paramètres, réglez votre profil, la langue, le thème et vos rappels vocaux.",
+      "en": "In Settings, configure your profile, language, theme, and voice reminders.",
+      "es": "En los ajustes, configure su perfil, el idioma, el tema y sus recordatorios de voz.",
+      "de": "Passen Sie in den Einstellungen Ihr Profil, die Sprache, das Design und Ihre Sprach-Erinnerungen an.",
+      "pt": "Nas configurações, defina seu perfil, o idioma, o tema e seus lembretes de voz."
+    },
+    "tour_done": {
+      "fr": "La visite est terminée ! Créons maintenant votre première activité.",
+      "en": "The tour is over! Now let’s create your first activity.",
+      "es": "¡La visita ha terminado! Creemos ahora su primera actividad.",
+      "de": "Die Führung ist beendet! Lassen Sie uns nun Ihre erste Aktivität erstellen.",
+      "pt": "A visita chegou ao fim! Vamos agora criar sua primeira atividade."
+    },
+    "journey_first_activity": {
+      "fr": "Touchez « Nouvelle activité » pour créer votre première activité.",
+      "en": "Tap “New Activity” to create your first activity.",
+      "es": "Pulse «Nueva actividad» para crear su primera actividad.",
+      "de": "Tippen Sie auf „Neue Aktivität“, um Ihre erste Aktivität anzulegen.",
+      "pt": "Toque em “Nova atividade” para criar sua primeira atividade."
+    },
+    "journey_activity_form": {
+      "fr": "Donnez un nom à votre activité, choisissez son type, puis ajoutez vos horaires si vous en avez. Touchez « Créer l'activité » pour terminer.",
+      "en": "Give your activity a name, choose its type, then add your hours if you have any. Tap “Create Activity” to finish.",
+      "es": "Asigne un nombre a su actividad, seleccione su tipo y, a continuación, añada su horario si lo tiene. Pulse «Crear actividad» para finalizar.",
+      "de": "Geben Sie Ihrer Aktivität einen Namen, wählen Sie deren Art aus und fügen Sie gegebenenfalls Ihre Öffnungszeiten hinzu. Tippen Sie zum Abschluss auf „Aktivität erstellen“.",
+      "pt": "Dê um nome à sua atividade, escolha o tipo dela e, em seguida, adicione seus horários, se houver. Toque em “Criar a atividade” para concluir."
+    },
+    "journey_activity_created": {
+      "fr": "Bravo, votre première activité est créée ! Elle apparaît désormais dans votre calendrier.",
+      "en": "Congratulations, your first event has been created! It now appears in your calendar.",
+      "es": "¡Enhorabuena, ya ha creado su primera actividad! Ahora aparece en su calendario.",
+      "de": "Herzlichen Glückwunsch, Ihre erste Aktivität wurde erstellt! Sie erscheint nun in Ihrem Kalender.",
+      "pt": "Parabéns, sua primeira atividade foi criada! Ela agora aparece na sua agenda."
+    },
+    "journey_notifications": {
+      "fr": "Pour recevoir vos rappels, même quand l'application est fermée, activez les notifications.",
+      "en": "To receive your reminders, even when the app is closed, turn on notifications.",
+      "es": "Para recibir sus recordatorios, incluso cuando la aplicación esté cerrada, active las notificaciones.",
+      "de": "Um Ihre Erinnerungen auch dann zu erhalten, wenn die App geschlossen ist, aktivieren Sie bitte die Benachrichtigungen.",
+      "pt": "Para receber seus lembretes, mesmo quando o aplicativo estiver fechado, ative as notificações."
+    },
+    "journey_notifications_on": {
+      "fr": "C'est fait ! Remind Me vous préviendra au bon moment.",
+      "en": "All done! Remind Me will notify you at the right time.",
+      "es": "¡Ya está! Remind Me le avisará en el momento oportuno.",
+      "de": "Erledigt! Remind Me wird Sie zum richtigen Zeitpunkt benachrichtigen.",
+      "pt": "Pronto! O Remind Me irá avisá-lo na hora certa."
+    },
+    "journey_end": {
+      "fr": "Vous êtes prêt ! Je reste en bas de l'écran : touchez-moi si vous avez besoin d'aide.",
+      "en": "You’re all set! I’ll stay at the bottom of the screen: tap me if you need help.",
+      "es": "¡Ya está listo! Me quedaré en la parte inferior de la pantalla: tóqueme si necesita ayuda.",
+      "de": "Sie sind startklar! Ich bleibe am unteren Bildschirmrand: Tippen Sie mich an, wenn Sie Hilfe benötigen.",
+      "pt": "Você está pronto! Estou aqui na parte inferior da tela: toque em mim se precisar de ajuda."
+    }
+  }
+}

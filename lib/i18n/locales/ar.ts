@@ -7,6 +7,8 @@ export const ar: Record<TranslationKey, string> = {
   "nav.activities": "الأنشطة والمشاريع",
   "nav.calendar": "التقويم وتفادي التعارض",
   "nav.tasks": "المهام والواجبات",
+  "nav.goals": "أهدافي",
+  "nav.insights": "التحليلات",
   "nav.finances": "المالية والفواتير",
   "nav.inbox": "Inbox",
   "nav.clients": "العملاء وجهات الاتصال",

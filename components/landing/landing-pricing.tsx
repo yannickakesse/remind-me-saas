@@ -4,8 +4,8 @@
 import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import Link from "next/link";
-import { Check, X, Sparkles } from "lucide-react";
-import { PLAN_ENTITLEMENTS, yearlyDiscountPercent, type PlanType } from "@/lib/subscriptions/entitlements";
+import { Check, X, Sparkles, Clock } from "lucide-react";
+import { PLAN_ENTITLEMENTS, PLAN_COMING_SOON, yearlyDiscountPercent, type PlanType } from "@/lib/subscriptions/entitlements";
 import { msg } from "@/lib/i18n/catalog";
 
 // Mêmes forfaits, prix et droits que dans l'application (Paramètres → Abonnement) :
@@ -80,14 +80,16 @@ export function LandingPricing() {
                 ? `${Math.round(p.priceYearly / 12)} €`
                 : `${p.priceMonthly} €`;
 
-            const features: { ok: boolean; label: React.ReactNode }[] = [
+            const features: { ok: boolean; soon?: boolean; label: React.ReactNode }[] = [
+              { ok: true, label: tr("Voix standard, guides vocaux et rappels") },
               { ok: true, label: quota(p.maxActivities, tr("Activités illimitées"), (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("activités")}</>) },
               { ok: true, label: quota(p.maxClients, tr("Contacts & clients illimités"), (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("contacts & clients")}</>) },
               { ok: true, label: quota(p.maxGoals, tr("Objectifs d'épargne illimités"), (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("objectifs d'épargne")}</>) },
               { ok: true, label: quota(p.maxBudgets, tr("Budgets mensuels illimités"), (n) => <>{tr("Jusqu'à")}{" "}<strong>{n}</strong> {tr("budgets mensuels")}</>) },
               { ok: p.hourlyProfitability, label: tr("Rapports de rentabilité horaire") },
+              { ok: p.smartInsights, label: tr("Analyses intelligentes (budgets, tendances, objectifs)") },
               { ok: p.multiCurrency, label: tr("Gestion multi-devises unifiée") },
-              { ok: p.aiAssistant, label: tr("Assistant IA & Insights prédictifs") },
+              ...PLAN_COMING_SOON[key].map((label) => ({ ok: false, soon: true, label: tr(label) })),
             ];
 
             return (
@@ -128,10 +130,15 @@ export function LandingPricing() {
                       <li key={i} className="flex items-center gap-2.5">
                         {f.ok ? (
                           <Check className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                        ) : f.soon ? (
+                          <Clock className="w-4 h-4 text-amber-500 shrink-0" />
                         ) : (
                           <X className="w-4 h-4 text-ink-300 shrink-0" />
                         )}
-                        <span className={f.ok ? tr("text-ink-900 dark:text-ink-100") : "text-ink-400"}>{f.label}</span>
+                        <span className={f.ok ? "text-ink-900 dark:text-ink-100" : f.soon ? "text-ink-600 dark:text-ink-300" : "text-ink-400"}>{f.label}</span>
+                        {f.soon && (
+                          <span className="ml-auto shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">{tr("Bientôt")}</span>
+                        )}
                       </li>
                     ))}
                   </ul>

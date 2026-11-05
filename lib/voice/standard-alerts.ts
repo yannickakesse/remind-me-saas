@@ -29,7 +29,19 @@ export type StandardAlertKey =
   | "expense_today" | "expense_overdue" | "expense_soon"
   | "task_in_3d" | "task_in_2d" | "task_tomorrow" | "task_today" | "task_soon" | "task_overdue"
   | "contract_in_7d" | "contract_in_3d" | "contract_in_2d" | "contract_tomorrow" | "contract_expired"
-  | "morning_briefing" | "evening_checkin" | "generic";
+  | "morning_briefing" | "evening_checkin" | "generic"
+  | "goal_step_today" | "goal_step_overdue" | "goal_deadline_week" | "goal_deadline_tomorrow"
+  | "goal_inactive" | "goal_reminder" | "goal_milestone" | "goal_completed";
+
+/**
+ * Phrases écrites mais pas encore enregistrées (docs/voix-objectifs-a-coller.txt).
+ * Tant qu'elles sont ici, la phrase générale « nouveau rappel » est jouée à leur place (jamais de silence).
+ * Retirer une clé de cette liste une fois ses 5 fichiers déposés dans /public/voice/alerts.
+ */
+const NOT_YET_RECORDED = new Set<StandardAlertKey>([
+  "goal_step_today", "goal_step_overdue", "goal_deadline_week", "goal_deadline_tomorrow",
+  "goal_inactive", "goal_reminder", "goal_milestone", "goal_completed",
+]);
 
 /** Ce qu'il faut savoir d'un rappel pour choisir sa phrase (champs d'une notification). */
 export interface ReminderAlertInfo {
@@ -109,6 +121,20 @@ export function resolveStandardAlertKey(info?: ReminderAlertInfo | null): Standa
       return "morning_briefing";
     case "evening_checkin":
       return "evening_checkin";
+    case "goal_step_due_today":
+      return "goal_step_today";
+    case "goal_step_overdue":
+      return "goal_step_overdue";
+    case "goal_deadline_soon":
+      return Number(days) === 1 ? "goal_deadline_tomorrow" : "goal_deadline_week";
+    case "goal_inactive":
+      return "goal_inactive";
+    case "goal_reminder":
+      return "goal_reminder";
+    case "goal_milestone":
+      return "goal_milestone";
+    case "goal_completed":
+      return "goal_completed";
   }
   return "generic";
 }
@@ -118,7 +144,8 @@ export function getStandardAlertSrc(key: StandardAlertKey, language: string): st
   if (!STANDARD_ALERTS_READY) return null;
   const lang = (language || "").slice(0, 2).toLowerCase();
   if (!(STANDARD_ALERT_LANGUAGES as readonly string[]).includes(lang)) return null;
-  return `/voice/alerts/${key}-${lang}.mp3?v=${STANDARD_ALERTS_VERSION}`;
+  const file = NOT_YET_RECORDED.has(key) ? "generic" : key;
+  return `/voice/alerts/${file}-${lang}.mp3?v=${STANDARD_ALERTS_VERSION}`;
 }
 
 /**

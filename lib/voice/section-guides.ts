@@ -97,6 +97,13 @@ export const SECTION_VOICE_GUIDES: Record<string, SectionVoiceContent> = {
     de: "Kunden und Kontakte: Speichern Sie die Organisationen und Personen, mit denen Sie zusammenarbeiten, um sie mit Ihren Aktivitäten zu verknüpfen.",
     pt: "Clientes e contatos: registre as organizações e as pessoas com quem você trabalha, para vinculá-las às suas atividades.",
   },
+  goals: {
+    fr: "Mes Objectifs vous aide à atteindre ce qui compte pour vous, dans tous les domaines. Créez un objectif, notez pourquoi vous le voulez, puis découpez-le en étapes : par jour, par semaine ou par mois. Cochez les étapes au fil de l'eau : la progression se calcule toute seule, et Remind Me vous rappelle vos étapes et votre motivation.",
+    en: "My Goals helps you achieve what matters to you, in every area of your life. Create a goal, write down why you want it, then break it down into steps: daily, weekly, or monthly. Check off the steps as you go—your progress is tracked automatically, and Remind Me keeps you on track by reminding you of your steps and keeping you motivated.",
+    es: "«Mis objetivos» le ayuda a alcanzar lo que le importa, en todos los ámbitos. Cree un objetivo, anote por qué lo desea y, a continuación, divídalo en etapas: diarias, semanales o mensuales. Marque las etapas a medida que las vaya completando: el progreso se calcula automáticamente, y «Remind Me» le recordará sus etapas y le ayudará a mantener la motivación.",
+    de: "„Meine Ziele“ hilft Ihnen dabei, das zu erreichen, was Ihnen in allen Bereichen wichtig ist. Legen Sie ein Ziel fest, notieren Sie, warum Sie es erreichen möchten, und unterteilen Sie es dann in einzelne Schritte: täglich, wöchentlich oder monatlich. Haken Sie die Schritte nach und nach ab: Der Fortschritt wird automatisch berechnet, und „Remind Me“ erinnert Sie an Ihre Schritte und Ihre Motivation.",
+    pt: "O “Meus Objetivos” ajuda você a alcançar o que é importante para você, em todas as áreas. Crie uma meta, anote por que você a deseja e, em seguida, divida-a em etapas: diárias, semanais ou mensais. Marque as etapas à medida que for avançando: o progresso é calculado automaticamente, e o “Remind Me” lembra você das etapas e da sua motivação.",
+  },
 };
 
 /**

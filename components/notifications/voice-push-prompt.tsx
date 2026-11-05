@@ -5,7 +5,7 @@ import { useLanguage } from "@/components/i18n/language-provider";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Volume2, BellRing, Sparkles, X, ArrowRight, Check } from "lucide-react";
-import { playVoiceReminder, getLocalVoiceSettings } from "@/lib/voice";
+import { playReminderVoice, getLocalVoiceSettings } from "@/lib/voice";
 import { onWelcomeDone } from "@/lib/onboarding/welcome-sequence";
 
 const STORAGE_KEY = "remindme_voice_push_prompt_dismissed";
@@ -46,7 +46,9 @@ export function VoicePushPrompt() {
 
   const handleTestVoice = () => {
     const prefs = getLocalVoiceSettings();
-    playVoiceReminder({
+    playReminderVoice({
+      alert: { kind: "generic" },
+      priority: "preview",
       text: "Bonjour ! Vos notifications orales et vocales Remind Me sont prêtes. Activez les notifications push dans vos paramètres pour ne rien manquer !",
       language: prefs.voice_language,
       voiceType: prefs.voice_type,

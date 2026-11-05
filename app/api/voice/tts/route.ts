@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/security/rate-limit";
+import { getUserSubscription } from "@/lib/subscriptions/server";
 import { generateElevenLabsAudio } from "@/lib/voice/elevenlabs";
 import type { VoiceLanguage, VoiceType } from "@/lib/voice/types";
 
@@ -12,7 +13,8 @@ const VOICE_TYPES: VoiceType[] = ["system", "female", "male"];
 /**
  * Synthèse vocale ElevenLabs côté serveur.
  *
- * - Réservée aux utilisateurs connectés (protège les crédits ElevenLabs).
+ * - Réservée aux abonnés Premium payants (jamais Free, Pro ni essai) : chaque appel coûte des crédits ElevenLabs.
+ *   Les autres utilisateurs ont la voix standard enregistrée (aucun appel ici).
  * - Limite : 60 générations / 10 min par utilisateur (les phrases déjà générées sont en cache).
  * - La clé ELEVENLABS_API_KEY ne quitte jamais le serveur ; les erreurs détaillées restent dans les logs.
  * - En cas d'échec : réponse JSON `{ success: false, reason }`, le lecteur applique alors son secours.
@@ -28,6 +30,10 @@ export async function POST(request: Request) {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return unavailable("unauthorized", 401);
+
+    // Voix personnalisée = fonctionnalité Premium (contrôle serveur, l'interface ne suffit pas)
+    const subscription = await getUserSubscription(supabase, user.id);
+    if (subscription.plan !== "premium" || subscription.isTrial) return unavailable("premium-required", 403);
 
     const body = await request.json().catch(() => ({}));
     const text = typeof body.text === "string" ? body.text.trim().slice(0, 1000) : "";

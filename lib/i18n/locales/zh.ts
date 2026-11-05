@@ -7,6 +7,8 @@ export const zh: Record<TranslationKey, string> = {
   "nav.activities": "业务与项目",
   "nav.calendar": "日程与冲突",
   "nav.tasks": "任务与待办",
+  "nav.goals": "我的目标",
+  "nav.insights": "智能分析",
   "nav.finances": "财务与账单",
   "nav.inbox": "Inbox",
   "nav.clients": "客户与联系人",

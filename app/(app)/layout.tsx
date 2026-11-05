@@ -11,7 +11,6 @@ import { InteractiveProductTour } from "@/components/onboarding/interactive-prod
 import { SectionVoiceAssistant } from "@/components/onboarding/section-voice-assistant";
 import { VoiceRetryToast } from "@/components/notifications/voice-retry-toast";
 import { ScrollReset } from "@/components/navigation/scroll-reset";
-import { WelcomeVideoModal } from "@/components/motion/welcome-video-modal";
 import { HelpCenterButton } from "@/components/help/help-center-modal";
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { PwaRegistrar } from "@/components/pwa/pwa-registrar";
@@ -100,7 +99,6 @@ export default async function AppLayout({
       <PwaRegistrar />
       <OfflineSyncIndicator />
       <BackgroundPreloader />
-      <WelcomeVideoModal />
       <DailyWelcomeBanner
         userName={profile?.full_name}
         timezone={timezone}

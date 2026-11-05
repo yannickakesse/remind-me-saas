@@ -1,4 +1,7 @@
-name: Remind Me 24/7 Background Reminders Cron
+name: Remind Me Reminders Cron (secours)
+
+# Déclencheur principal : Supabase pg_cron chaque minute (migration 0025).
+# Ce workflow reste un SECOURS : le verrou partagé en base empêche tout chevauchement.
 
 on:
   schedule:
@@ -14,4 +17,5 @@ jobs:
           # Secret obligatoire : GitHub → Settings → Secrets and variables → Actions → CRON_SECRET
           curl -sf -X POST "https://remind-me-saas-ybkc.vercel.app/api/cron/reminders" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            -H "Content-Type: application/json"
+            -H "Content-Type: application/json" \
+            -H "X-Cron-Source: github"

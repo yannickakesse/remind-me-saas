@@ -57,6 +57,7 @@ function resolveSectionFromPath(pathname: string): string | null {
   if (pathname === "/messages" || pathname.startsWith("/messages/")) return "messages";
   if (pathname === "/settings" || pathname.startsWith("/settings/")) return "settings";
   if (pathname === "/clients" || pathname.startsWith("/clients/")) return "clients";
+  if (pathname === "/goals" || pathname.startsWith("/goals/")) return "goals";
   return null;
 }
 
@@ -71,6 +72,7 @@ const SECTION_LABELS: Record<string, Record<string, string>> = {
   messages: { fr: "Inbox", en: "Inbox", es: "Buzón", de: "Posteingang", pt: "Inbox" },
   settings: { fr: "Paramètres", en: "Settings", es: "Configuración", de: "Einstellungen", pt: "Configurações" },
   clients: { fr: "Clients", en: "Clients", es: "Clientes", de: "Kunden", pt: "Clientes" },
+  goals: { fr: "Mes Objectifs", en: "My Goals", es: "Mis objetivos", de: "Meine Ziele", pt: "Meus objetivos" },
 };
 
 /**

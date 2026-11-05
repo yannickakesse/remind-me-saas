@@ -20,6 +20,7 @@ import {
   Clock,
   PiggyBank,
   Target,
+  Flag,
   Users,
   BarChart3,
   Bell,
@@ -31,6 +32,7 @@ import {
   ChevronRight,
   Plus,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { openQuickTransaction } from "@/components/finances/quick-transaction-modal";
@@ -79,6 +81,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
     { href: "/calendar", labelKey: "nav.calendar", icon: Calendar, tourKey: "nav-calendar-mobile" },
     { href: "/activities", labelKey: "nav.activities", icon: Briefcase, tourKey: "nav-activities" },
     { href: "/tasks", labelKey: "nav.tasks", icon: CheckSquare, tourKey: "nav-tasks-mobile" },
+    { href: "/goals", labelKey: "nav.goals", icon: Flag, tourKey: "nav-goals-mobile" },
   ];
 
   const financeSubLinks: { href: string; labelKey: TranslationKey; icon: any }[] = [
@@ -94,6 +97,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
     { href: "/messages", labelKey: "nav.inbox", icon: Inbox, tourKey: "nav-inbox-mobile" },
     { href: "/clients", labelKey: "nav.clients", icon: Users, tourKey: "nav-clients-mobile" },
     { href: "/reports", labelKey: "nav.reports", icon: BarChart3, tourKey: "nav-reports-mobile" },
+    { href: "/insights", labelKey: "nav.insights", icon: Sparkles, tourKey: "nav-insights-mobile" },
     { href: "/notifications", labelKey: "nav.notifications", icon: Bell, badge: unreadCount, tourKey: "nav-notifications-mobile" },
     { href: "/settings", labelKey: "nav.settings", icon: Settings, tourKey: "nav-settings-mobile" },
   ];

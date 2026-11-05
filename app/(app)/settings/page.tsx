@@ -9,11 +9,12 @@ import { SecuritySection } from "@/components/settings/security-section";
 import { NotificationsSection } from "@/components/settings/notifications-section";
 import { SessionsSection } from "@/components/settings/sessions-section";
 import { SubscriptionSection } from "@/components/settings/subscription-section";
+import { getUserSubscription } from "@/lib/subscriptions/server";
 import { DataSection } from "@/components/settings/data-section";
 import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
 import type { NotificationPreference } from "@/types/database";
 
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: { searchParams?: { tab?: string } }) {
   const tr = await getTr();
   const user = await requireCurrentUser();
   const supabase = createClient();
@@ -22,7 +23,6 @@ export default async function SettingsPage() {
     { data: profile },
     { data: userSettings },
     { data: notificationPreferences },
-    { data: subscription },
     { data: countries },
     { data: currencies },
   ] = await Promise.all([
@@ -33,10 +33,12 @@ export default async function SettingsPage() {
       .single(),
     supabase.from("user_settings").select("notif_prefs").eq("user_id", user!.id).maybeSingle(),
     supabase.from("notification_preferences").select("*").eq("user_id", user!.id).maybeSingle(),
-    supabase.from("subscriptions").select("plan, status").eq("user_id", user!.id).maybeSingle(),
     supabase.from("countries").select("code, name").order("name"),
     supabase.from("currencies").select("code, name, symbol").order("name"),
   ]);
+
+  // Forfait payé + essai éventuel, calculés par le serveur (source unique)
+  const subscription = await getUserSubscription(supabase, user!.id);
 
   if (!profile) {
     return <p className="text-sm text-danger">{tr("Impossible de charger votre profil.")}</p>;
@@ -60,6 +62,7 @@ export default async function SettingsPage() {
 
       <div data-tour="settings-tabs">
         <Tabs
+          defaultTabId={searchParams?.tab}
           items={[
           {
             id: "profile",
@@ -96,9 +99,10 @@ export default async function SettingsPage() {
             label: "Abonnement",
             content: (
               <SubscriptionSection
-                plan={subscription?.plan ?? "free"}
+                plan={subscription.paidPlan}
                 demoEnabled={process.env.ENABLE_PLAN_DEMO === "true"}
-                status={subscription?.status ?? "active"}
+                status={subscription.status}
+                trial={subscription.isTrial && subscription.trialEndsAt ? { daysLeft: subscription.trialDaysLeft, endsAt: subscription.trialEndsAt } : null}
               />
             ),
           },

@@ -7,6 +7,8 @@ export const ja: Record<TranslationKey, string> = {
   "nav.activities": "案件・業務",
   "nav.calendar": "カレンダー・重複防止",
   "nav.tasks": "タスク・To-Do",
+  "nav.goals": "マイ目標",
+  "nav.insights": "分析",
   "nav.finances": "財務・請求書",
   "nav.inbox": "Inbox",
   "nav.clients": "クライアント・連絡先",

@@ -47,6 +47,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
+  const [showDetails, setShowDetails] = useState(false);
   const [isContextual, setIsContextual] = useState(false);
   const [viewport, setViewport] = useState({ width: 1920, height: 1080 });
   const [isVoiceMuted, setIsVoiceMuted] = useState(false);
@@ -166,6 +167,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
         left: "50%",
         transform: "translate(-50%, -50%)",
         width: `${popoverWidth}px`,
+        maxHeight: "min(85vh, calc(100dvh - 32px))",
       });
       return;
     }
@@ -214,18 +216,28 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       let left = 0;
 
       if (isMobile) {
-        // Sur mobile : centrage horizontal, placement au-dessus ou en-dessous selon l'espace disponible
-        left = (viewportWidth - popoverWidth) / 2;
-        if (rect.top > viewportHeight / 2) {
-          // Si l'élément cible est dans la moitié inférieure de l'écran, placer le popover en haut
-          top = Math.max(16, rect.top - 360);
-          if (top + 280 > rect.top) {
-            top = 16;
-          }
+        // Mobile : fiche pleine largeur collée en haut ou en bas, du côté opposé à l'élément montré,
+        // avec une hauteur limitée à la place libre → le bouton « Suivant » reste toujours visible.
+        const sideLeft = (viewportWidth - popoverWidth) / 2;
+        const MIN = 260;
+        if (rect.top + rect.height / 2 > viewportHeight / 2) {
+          setPopoverStyle({
+            top: "calc(12px + env(safe-area-inset-top, 0px))",
+            left: `${sideLeft}px`,
+            width: `${popoverWidth}px`,
+            maxHeight: `${Math.max(MIN, rect.top - 24)}px`,
+            transform: "none",
+          });
         } else {
-          // Si l'élément cible est dans la moitié supérieure, placer le popover en dessous
-          top = Math.min(viewportHeight - 320, rect.bottom + 14);
+          setPopoverStyle({
+            bottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
+            left: `${sideLeft}px`,
+            width: `${popoverWidth}px`,
+            maxHeight: `${Math.max(MIN, viewportHeight - rect.bottom - 24)}px`,
+            transform: "none",
+          });
         }
+        return;
       } else {
         // Sur desktop : positionnement selon le placement souhaité avec bascule anti-chevauchement
         if (currentStep.placement === "right") {
@@ -261,6 +273,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
         top: `${top}px`,
         left: `${left}px`,
         width: `${popoverWidth}px`,
+        maxHeight: `${Math.max(280, viewportHeight - top - 16)}px`,
         transform: "none",
       });
     } else {
@@ -273,6 +286,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
         left: "50%",
         transform: "translate(-50%, -50%)",
         width: `${popoverWidth}px`,
+        maxHeight: "min(85vh, calc(100dvh - 32px))",
       });
     }
   }, [isActive, currentStep]);
@@ -471,6 +485,8 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
     if (!isContextual && typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY, "completed");
       await saveTourState({ completed: true, lastStep: currentSteps.length });
+      // Fin de la visite : on enchaîne directement sur la création de la première activité
+      router.push("/activities/new");
     }
   };
 
@@ -478,6 +494,13 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
 
   const Icon = currentStep.icon;
   const isLastStep = currentStepIndex === currentSteps.length - 1;
+  const hasDetails = Boolean(
+    currentStep.purpose ||
+      currentStep.interpretation ||
+      currentStep.commonMistakes ||
+      (currentStep.keyActions && currentStep.keyActions.length) ||
+      (currentStep.points && currentStep.points.length)
+  );
 
   // Calcul géométrique du trou Spotlight SVG (avec padding sécurisé)
   const isTargetValid = targetRect !== null && targetRect.width > 0 && targetRect.height > 0;
@@ -537,7 +560,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
 
       {/* Popover Carte Flottante Élégante */}
       <div
-        className="fixed z-50 flex flex-col rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 p-5 sm:p-6 shadow-2xl backdrop-blur-md transition-all duration-200 max-h-[88vh] overflow-y-auto pointer-events-auto select-text"
+        className="fixed z-50 flex flex-col overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-5 pt-5 pb-4 sm:px-6 sm:pt-6 shadow-2xl transition-all duration-200 pointer-events-auto select-text"
         style={popoverStyle}
         onClick={(e) => e.stopPropagation()}
       >
@@ -550,7 +573,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
         </div>
 
         {/* En-tête avec étape & bouton fermer */}
-        <div className="flex items-center justify-between gap-2 border-b border-ink-100 dark:border-ink-800 pb-3 mt-1">
+        <div className="shrink-0 flex items-center justify-between gap-2 border-b border-ink-100 dark:border-white/10 pb-3 mt-1">
           <div className="flex items-center gap-2.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 via-amber-400/15 to-yellow-500/10 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/25 shrink-0">
               <Icon className="h-4 w-4" />
@@ -639,8 +662,8 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
           </div>
         </div>
 
-        {/* Corps pédagogique du message */}
-        <div className="py-3.5 space-y-3">
+        {/* Corps pédagogique du message (défile à l'intérieur de la fiche si besoin) */}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-3.5 space-y-3">
           <h3 className="text-base sm:text-lg font-black text-ink-950 dark:text-white tracking-tight leading-snug">
             {currentStep.title}
           </h3>
@@ -649,8 +672,18 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
             {currentStep.description}
           </p>
 
+          {hasDetails && (
+            <button
+              type="button"
+              onClick={() => setShowDetails((v) => !v)}
+              className="text-xs font-bold text-signal hover:underline"
+            >
+              {showDetails ? tr("Moins de détails") : tr("Plus de détails")}
+            </button>
+          )}
+
           {/* Rôle / Finalité si précisée */}
-          {currentStep.purpose && (
+          {showDetails && currentStep.purpose && (
             <div className="p-2.5 rounded-xl bg-signal-soft/20 border border-signal/20 text-[11px] text-ink-800 dark:text-ink-200 leading-relaxed flex items-start gap-2">
               <Sparkles className="w-3.5 h-3.5 text-signal shrink-0 mt-0.5" />
               <div>
@@ -661,7 +694,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
           )}
 
           {/* Opérations clés */}
-          {currentStep.keyActions && currentStep.keyActions.length > 0 && (
+          {showDetails && currentStep.keyActions && currentStep.keyActions.length > 0 && (
             <div className="space-y-1.5 pt-1">
               <span className="text-[11px] font-bold text-ink-800 dark:text-ink-200 uppercase tracking-wider block">
                 {t("tour.key_actions_title")} :
@@ -680,7 +713,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
           )}
 
           {/* Comment interpréter */}
-          {currentStep.interpretation && (
+          {showDetails && currentStep.interpretation && (
             <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-800 dark:text-emerald-300 leading-relaxed flex items-start gap-2">
               <Info className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               <div>
@@ -691,7 +724,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
           )}
 
           {/* Erreurs courantes à éviter */}
-          {currentStep.commonMistakes && (
+          {showDetails && currentStep.commonMistakes && (
             <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-800 dark:text-rose-300 leading-relaxed flex items-start gap-2">
               <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
               <div>
@@ -702,7 +735,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
           )}
 
           {/* Puces de synthèse */}
-          {currentStep.points && currentStep.points.length > 0 && (
+          {showDetails && currentStep.points && currentStep.points.length > 0 && (
             <ul className="space-y-1.5 pt-1">
               {currentStep.points.map((pt, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-[11px] text-ink-600 dark:text-ink-300">
@@ -715,7 +748,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
         </div>
 
         {/* Pied de carte : Navigation Précédent / Suivant / Passer */}
-        <div className="flex items-center justify-between pt-3 border-t border-ink-100 dark:border-ink-800 mt-1">
+        <div className="shrink-0 flex items-center justify-between gap-2 pt-3 border-t border-ink-100 dark:border-white/10">
           <button
             type="button"
             onClick={handleSkip}
@@ -729,7 +762,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
               <button
                 type="button"
                 onClick={handlePrev}
-                className="flex items-center gap-1 rounded-xl border border-ink-200 dark:border-ink-700 bg-canvas dark:bg-ink-800 px-3 py-1.5 text-xs font-bold text-ink-800 dark:text-ink-200 hover:bg-canvas-subtle dark:hover:bg-ink-700 transition-colors cursor-pointer"
+                className="flex items-center gap-1 rounded-xl border border-ink-200 dark:border-white/15 bg-canvas dark:bg-slate-800 px-3 py-2.5 text-xs font-bold text-ink-800 dark:text-ink-200 transition-colors cursor-pointer"
               >
                 <ArrowLeft className="h-3.5 w-3.5" /> {t("tour.btn_prev")}
               </button>
@@ -738,7 +771,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
             <button
               type="button"
               onClick={handleNext}
-              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 px-3.5 py-1.5 text-xs font-black text-slate-950 shadow-md shadow-amber-500/20 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 px-4 py-2.5 text-sm font-black text-slate-950 shadow-md shadow-amber-500/20 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
             >
               {isLastStep ? (
                 <>

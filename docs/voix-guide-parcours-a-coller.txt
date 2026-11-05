@@ -1,0 +1,278 @@
+﻿Parcours d'inscription — Français — fichier : guide-signup-fr.mp3 (10 phrases, 1227 caractères)
+
+Bienvenue sur Remind Me ! Touchez « Commencer gratuitement » pour créer votre compte en une minute.
+<break time="3s" /> <break time="2s" />
+Indiquez votre nom, votre adresse e-mail et choisissez un mot de passe, puis touchez « Créer mon compte ».
+<break time="3s" /> <break time="2s" />
+Votre compte est créé ! Ouvrez votre boîte mail, confirmez votre adresse, puis revenez ici pour continuer.
+<break time="3s" /> <break time="2s" />
+Content de vous revoir ! Saisissez votre e-mail et votre mot de passe pour vous connecter.
+<break time="3s" /> <break time="2s" />
+Faisons connaissance : indiquez votre nom, puis touchez « Continuer ».
+<break time="3s" /> <break time="2s" />
+Dans quel pays êtes-vous basé ? Choisissez-le dans la liste.
+<break time="3s" /> <break time="2s" />
+Choisissez votre devise principale : elle servira pour vos revenus et vos dépenses.
+<break time="3s" /> <break time="2s" />
+Vérifiez votre fuseau horaire : vos rappels arriveront ainsi à la bonne heure.
+<break time="3s" /> <break time="2s" />
+Tout est prêt ! Vérifiez vos informations et touchez « Terminer ».
+<break time="3s" /> <break time="2s" />
+Bienvenue dans votre espace Remind Me ! Je vais vous faire découvrir l'essentiel en quelques étapes.
+
+
+Parcours d'inscription — Anglais — fichier : guide-signup-en.mp3 (10 phrases, 1138 caractères)
+
+Welcome to Remind Me! Tap “Get Started for Free” to create your account in just one minute.
+<break time="3s" /> <break time="2s" />
+Enter your name and email address, choose a password, and then tap “Create My Account.”
+<break time="3s" /> <break time="2s" />
+Your account has been created! Open your email, confirm your address, then come back here to continue.
+<break time="3s" /> <break time="2s" />
+Nice to see you again! Enter your email and password to log in.
+<break time="3s" /> <break time="2s" />
+Let’s get to know each other: enter your name, then tap “Continue.”
+<break time="3s" /> <break time="2s" />
+In which country are you based? Select it from the list.
+<break time="3s" /> <break time="2s" />
+Choose your primary currency: it will be used for your income and expenses.
+<break time="3s" /> <break time="2s" />
+Check your time zone: this will ensure your reminders arrive at the right time.
+<break time="3s" /> <break time="2s" />
+Everything is ready! Check your information and tap “Finish.”
+<break time="3s" /> <break time="2s" />
+Welcome to your Remind Me account! I’ll walk you through the basics in just a few steps.
+
+
+Parcours d'inscription — Espagnol — fichier : guide-signup-es.mp3 (10 phrases, 1210 caractères)
+
+¡Bienvenido a Remind Me! Pulse «Empezar gratis» para crear su cuenta en un minuto.
+<break time="3s" /> <break time="2s" />
+Indique su nombre, su dirección de correo electrónico y elija una contraseña; a continuación, pulse «Crear mi cuenta».
+<break time="3s" /> <break time="2s" />
+¡Su cuenta ya está creada! Abra su correo electrónico, confirme su dirección y, a continuación, vuelva aquí para continuar.
+<break time="3s" /> <break time="2s" />
+¡Me alegro de volver a verle! Introduzca su correo electrónico y su contraseña para iniciar sesión.
+<break time="3s" /> <break time="2s" />
+Conozcámonos: introduzca su nombre y, a continuación, pulse «Continuar».
+<break time="3s" /> <break time="2s" />
+¿En qué país reside? Seleccione uno de la lista.
+<break time="3s" /> <break time="2s" />
+Elija su moneda principal: se utilizará para sus ingresos y sus gastos.
+<break time="3s" /> <break time="2s" />
+Compruebe su zona horaria: así, sus recordatorios le llegarán a la hora correcta.
+<break time="3s" /> <break time="2s" />
+¡Ya está todo listo! Compruebe sus datos y pulse «Finalizar».
+<break time="3s" /> <break time="2s" />
+¡Bienvenido a su espacio Remind Me! Le mostraré lo más importante en unos pocos pasos.
+
+
+Parcours d'inscription — Allemand — fichier : guide-signup-de.mp3 (10 phrases, 1395 caractères)
+
+Willkommen bei Remind Me! Tippen Sie auf „Kostenlos starten“, um Ihr Konto in nur einer Minute zu erstellen.
+<break time="3s" /> <break time="2s" />
+Geben Sie Ihren Namen und Ihre E-Mail-Adresse ein, wählen Sie ein Passwort aus und tippen Sie anschließend auf „Mein Konto erstellen“.
+<break time="3s" /> <break time="2s" />
+Ihr Konto wurde erstellt! Öffnen Sie Ihr E-Mail-Postfach, bestätigen Sie Ihre E-Mail-Adresse und kehren Sie anschließend hierher zurück, um fortzufahren.
+<break time="3s" /> <break time="2s" />
+Schön, Sie wiederzusehen! Geben Sie Ihre E-Mail-Adresse und Ihr Passwort ein, um sich anzumelden.
+<break time="3s" /> <break time="2s" />
+Lernen wir uns kennen: Geben Sie Ihren Namen ein und tippen Sie anschließend auf „Weiter“.
+<break time="3s" /> <break time="2s" />
+In welchem Land sind Sie ansässig? Wählen Sie es aus der Liste aus.
+<break time="3s" /> <break time="2s" />
+Wählen Sie Ihre Hauptwährung aus: Diese wird für Ihre Einnahmen und Ausgaben verwendet.
+<break time="3s" /> <break time="2s" />
+Bitte überprüfen Sie Ihre Zeitzone: So erhalten Sie Ihre Erinnerungen zur richtigen Zeit.
+<break time="3s" /> <break time="2s" />
+Alles ist bereit! Bitte überprüfen Sie Ihre Angaben und tippen Sie auf „Fertigstellen“.
+<break time="3s" /> <break time="2s" />
+Willkommen in Ihrem Remind Me-Bereich! Ich werde Ihnen in wenigen Schritten die wichtigsten Funktionen vorstellen.
+
+
+Parcours d'inscription — Portugais — fichier : guide-signup-pt.mp3 (10 phrases, 1165 caractères)
+
+Bem-vindo ao Remind Me! Toque em “Começar gratuitamente” para criar sua conta em um minuto.
+<break time="3s" /> <break time="2s" />
+Insira seu nome, seu e-mail e escolha uma senha; em seguida, toque em “Criar minha conta”.
+<break time="3s" /> <break time="2s" />
+Sua conta foi criada! Abra sua caixa de e-mail, confirme seu endereço e, em seguida, volte aqui para continuar.
+<break time="3s" /> <break time="2s" />
+Que bom vê-los novamente! Digite seu e-mail e sua senha para fazer login.
+<break time="3s" /> <break time="2s" />
+Vamos nos conhecer: digite seu nome e, em seguida, toque em “Continuar”.
+<break time="3s" /> <break time="2s" />
+Em que país o(a) senhor(a) está? Selecione-o na lista.
+<break time="3s" /> <break time="2s" />
+Escolha sua moeda principal: ela será utilizada para suas receitas e despesas.
+<break time="3s" /> <break time="2s" />
+Verifique seu fuso horário: assim, seus lembretes chegarão na hora certa.
+<break time="3s" /> <break time="2s" />
+Está tudo pronto! Verifique suas informações e toque em “Concluir”.
+<break time="3s" /> <break time="2s" />
+Bem-vindo ao seu espaço Remind Me! Vou apresentar a você o essencial em algumas etapas.
+
+
+Visite guidée et première activité — Français — fichier : guide-tour-fr.mp3 (15 phrases, 2015 caractères)
+
+Remind Me réunit vos activités, votre temps et votre argent au même endroit. Touchez « Suivant » pour commencer la visite.
+<break time="3s" /> <break time="2s" />
+En bas de l'écran, la barre de navigation vous mène à l'accueil, au calendrier, aux finances et au menu. Le bouton plus permet d'ajouter rapidement.
+<break time="3s" /> <break time="2s" />
+Le tableau de bord résume votre mois : vos finances, vos séances du jour et vos tâches urgentes.
+<break time="3s" /> <break time="2s" />
+Dans Activités, enregistrez chacune de vos casquettes professionnelles. Leurs séances apparaissent automatiquement dans votre calendrier.
+<break time="3s" /> <break time="2s" />
+Les tâches vous aident à ne rien oublier : chacune peut avoir une date, une priorité et un rappel.
+<break time="3s" /> <break time="2s" />
+Dans Finances, suivez vos revenus, vos dépenses, vos budgets et votre épargne.
+<break time="3s" /> <break time="2s" />
+Vos rappels et vos messages importants sont réunis dans les notifications et dans l'Inbox.
+<break time="3s" /> <break time="2s" />
+Dans les paramètres, réglez votre profil, la langue, le thème et vos rappels vocaux.
+<break time="3s" /> <break time="2s" />
+La visite est terminée ! Créons maintenant votre première activité.
+<break time="3s" /> <break time="2s" />
+Touchez « Nouvelle activité » pour créer votre première activité.
+<break time="3s" /> <break time="2s" />
+Donnez un nom à votre activité, choisissez son type, puis ajoutez vos horaires si vous en avez. Touchez « Créer l'activité » pour terminer.
+<break time="3s" /> <break time="2s" />
+Bravo, votre première activité est créée ! Elle apparaît désormais dans votre calendrier.
+<break time="3s" /> <break time="2s" />
+Pour recevoir vos rappels, même quand l'application est fermée, activez les notifications.
+<break time="3s" /> <break time="2s" />
+C'est fait ! Remind Me vous préviendra au bon moment.
+<break time="3s" /> <break time="2s" />
+Vous êtes prêt ! Je reste en bas de l'écran : touchez-moi si vous avez besoin d'aide.
+
+
+Visite guidée et première activité — Anglais — fichier : guide-tour-en.mp3 (15 phrases, 1891 caractères)
+
+Remind Me brings your activities, time, and money all together in one place. Tap “Next” to start the tour.
+<break time="3s" /> <break time="2s" />
+At the bottom of the screen, the navigation bar takes you to the home screen, calendar, finances, and menu. The plus button lets you add items quickly.
+<break time="3s" /> <break time="2s" />
+The dashboard summarizes your month: your finances, your sessions for the day, and your urgent tasks.
+<break time="3s" /> <break time="2s" />
+In "Activities," save each of your professional roles. Their sessions will automatically appear in your calendar.
+<break time="3s" /> <break time="2s" />
+Tasks help you remember everything: each one can have a due date, a priority, and a reminder.
+<break time="3s" /> <break time="2s" />
+In the "Finances" section, track your income, expenses, budgets, and savings.
+<break time="3s" /> <break time="2s" />
+Your reminders and important messages are all gathered in the notifications and the Inbox.
+<break time="3s" /> <break time="2s" />
+In Settings, configure your profile, language, theme, and voice reminders.
+<break time="3s" /> <break time="2s" />
+The tour is over! Now let’s create your first activity.
+<break time="3s" /> <break time="2s" />
+Tap “New Activity” to create your first activity.
+<break time="3s" /> <break time="2s" />
+Give your activity a name, choose its type, then add your hours if you have any. Tap “Create Activity” to finish.
+<break time="3s" /> <break time="2s" />
+Congratulations, your first event has been created! It now appears in your calendar.
+<break time="3s" /> <break time="2s" />
+To receive your reminders, even when the app is closed, turn on notifications.
+<break time="3s" /> <break time="2s" />
+All done! Remind Me will notify you at the right time.
+<break time="3s" /> <break time="2s" />
+You’re all set! I’ll stay at the bottom of the screen: tap me if you need help.
+
+
+Visite guidée et première activité — Espagnol — fichier : guide-tour-es.mp3 (15 phrases, 2079 caractères)
+
+Remind Me reúne sus actividades, su tiempo y su dinero en un mismo lugar. Pulse «Siguiente» para comenzar el recorrido.
+<break time="3s" /> <break time="2s" />
+En la parte inferior de la pantalla, la barra de navegación le lleva a la página de inicio, al calendario, a las finanzas y al menú. El botón «+» le permite añadir elementos rápidamente.
+<break time="3s" /> <break time="2s" />
+El panel de control resume su mes: sus finanzas, sus sesiones del día y sus tareas urgentes.
+<break time="3s" /> <break time="2s" />
+En «Actividades», registre cada una de sus funciones profesionales. Sus sesiones aparecerán automáticamente en su calendario.
+<break time="3s" /> <break time="2s" />
+Las tareas le ayudan a no olvidarse de nada: cada una puede tener una fecha, una prioridad y un recordatorio.
+<break time="3s" /> <break time="2s" />
+En la sección «Finanzas», realice un seguimiento de sus ingresos, sus gastos, sus presupuestos y sus ahorros.
+<break time="3s" /> <break time="2s" />
+Sus recordatorios y mensajes importantes se recogen en las notificaciones y en la bandeja de entrada.
+<break time="3s" /> <break time="2s" />
+En los ajustes, configure su perfil, el idioma, el tema y sus recordatorios de voz.
+<break time="3s" /> <break time="2s" />
+¡La visita ha terminado! Creemos ahora su primera actividad.
+<break time="3s" /> <break time="2s" />
+Pulse «Nueva actividad» para crear su primera actividad.
+<break time="3s" /> <break time="2s" />
+Asigne un nombre a su actividad, seleccione su tipo y, a continuación, añada su horario si lo tiene. Pulse «Crear actividad» para finalizar.
+<break time="3s" /> <break time="2s" />
+¡Enhorabuena, ya ha creado su primera actividad! Ahora aparece en su calendario.
+<break time="3s" /> <break time="2s" />
+Para recibir sus recordatorios, incluso cuando la aplicación esté cerrada, active las notificaciones.
+<break time="3s" /> <break time="2s" />
+¡Ya está! Remind Me le avisará en el momento oportuno.
+<break time="3s" /> <break time="2s" />
+¡Ya está listo! Me quedaré en la parte inferior de la pantalla: tóqueme si necesita ayuda.
+
+
+Visite guidée et première activité — Allemand — fichier : guide-tour-de.mp3 (15 phrases, 2265 caractères)
+
+Remind Me vereint Ihre Aktivitäten, Ihre Zeit und Ihr Geld an einem Ort. Tippen Sie auf „Weiter“, um die Tour zu starten.
+<break time="3s" /> <break time="2s" />
+Am unteren Bildschirmrand führt Sie die Navigationsleiste zur Startseite, zum Kalender, zu den Finanzen und zum Menü. Über die Plus-Schaltfläche können Sie schnell Einträge hinzufügen.
+<break time="3s" /> <break time="2s" />
+Das Dashboard fasst Ihren Monat zusammen: Ihre Finanzen, Ihre Termine des Tages und Ihre dringenden Aufgaben.
+<break time="3s" /> <break time="2s" />
+Tragen Sie unter „Aktivitäten“ jede Ihrer beruflichen Rollen ein. Die entsprechenden Termine erscheinen automatisch in Ihrem Kalender.
+<break time="3s" /> <break time="2s" />
+Die Aufgaben helfen Ihnen dabei, nichts zu vergessen: Jede Aufgabe kann mit einem Datum, einer Priorität und einer Erinnerung versehen werden.
+<break time="3s" /> <break time="2s" />
+Im Bereich „Finanzen“ können Sie Ihre Einnahmen, Ausgaben, Budgets und Ersparnisse im Blick behalten.
+<break time="3s" /> <break time="2s" />
+Ihre Erinnerungen und wichtigen Nachrichten finden Sie in den Benachrichtigungen und im Posteingang.
+<break time="3s" /> <break time="2s" />
+Passen Sie in den Einstellungen Ihr Profil, die Sprache, das Design und Ihre Sprach-Erinnerungen an.
+<break time="3s" /> <break time="2s" />
+Die Führung ist beendet! Lassen Sie uns nun Ihre erste Aktivität erstellen.
+<break time="3s" /> <break time="2s" />
+Tippen Sie auf „Neue Aktivität“, um Ihre erste Aktivität anzulegen.
+<break time="3s" /> <break time="2s" />
+Geben Sie Ihrer Aktivität einen Namen, wählen Sie deren Art aus und fügen Sie gegebenenfalls Ihre Öffnungszeiten hinzu. Tippen Sie zum Abschluss auf „Aktivität erstellen“.
+<break time="3s" /> <break time="2s" />
+Herzlichen Glückwunsch, Ihre erste Aktivität wurde erstellt! Sie erscheint nun in Ihrem Kalender.
+<break time="3s" /> <break time="2s" />
+Um Ihre Erinnerungen auch dann zu erhalten, wenn die App geschlossen ist, aktivieren Sie bitte die Benachrichtigungen.
+<break time="3s" /> <break time="2s" />
+Erledigt! Remind Me wird Sie zum richtigen Zeitpunkt benachrichtigen.
+<break time="3s" /> <break time="2s" />
+Sie sind startklar! Ich bleibe am unteren Bildschirmrand: Tippen Sie mich an, wenn Sie Hilfe benötigen.
+
+
+Visite guidée et première activité — Portugais — fichier : guide-tour-pt.mp3 (15 phrases, 2012 caractères)
+
+O Remind Me reúne suas atividades, seu tempo e seu dinheiro em um só lugar. Toque em “Próximo” para iniciar o tour.
+<break time="3s" /> <break time="2s" />
+Na parte inferior da tela, a barra de navegação leva você à página inicial, ao calendário, às finanças e ao menu. O botão “mais” permite adicionar itens rapidamente.
+<break time="3s" /> <break time="2s" />
+O painel de controle resume o seu mês: suas finanças, suas atividades do dia e suas tarefas urgentes.
+<break time="3s" /> <break time="2s" />
+Em “Atividades”, registre cada uma de suas funções profissionais. As sessões relacionadas a elas aparecem automaticamente em sua agenda.
+<break time="3s" /> <break time="2s" />
+As tarefas ajudam a não esquecer nada: cada uma pode ter uma data, uma prioridade e um lembrete.
+<break time="3s" /> <break time="2s" />
+Na seção “Finanças”, acompanhe suas receitas, despesas, orçamentos e poupanças.
+<break time="3s" /> <break time="2s" />
+Seus lembretes e mensagens importantes estão reunidos nas notificações e na Caixa de Entrada.
+<break time="3s" /> <break time="2s" />
+Nas configurações, defina seu perfil, o idioma, o tema e seus lembretes de voz.
+<break time="3s" /> <break time="2s" />
+A visita chegou ao fim! Vamos agora criar sua primeira atividade.
+<break time="3s" /> <break time="2s" />
+Toque em “Nova atividade” para criar sua primeira atividade.
+<break time="3s" /> <break time="2s" />
+Dê um nome à sua atividade, escolha o tipo dela e, em seguida, adicione seus horários, se houver. Toque em “Criar a atividade” para concluir.
+<break time="3s" /> <break time="2s" />
+Parabéns, sua primeira atividade foi criada! Ela agora aparece na sua agenda.
+<break time="3s" /> <break time="2s" />
+Para receber seus lembretes, mesmo quando o aplicativo estiver fechado, ative as notificações.
+<break time="3s" /> <break time="2s" />
+Pronto! O Remind Me irá avisá-lo na hora certa.
+<break time="3s" /> <break time="2s" />
+Você está pronto! Estou aqui na parte inferior da tela: toque em mim se precisar de ajuda.

@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { THEME_INIT_SCRIPT } from "@/lib/theme/theme-script";
@@ -62,7 +61,7 @@ export default async function RootLayout({
   const catalog = await loadCatalog(locale);
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-theme="light" suppressHydrationWarning>
       <head>
         {/* Apple Touch Icon explicit links for iOS Safari Home Screen */}
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -74,11 +73,9 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Remind Me" />
 
-        {/* beforeInteractive : s'exécute avant l'hydratation, évite tout
-            flash d'un thème incorrect (voir lib/theme/theme-script.ts). */}
-        <Script id="theme-init" strategy="beforeInteractive">
-          {THEME_INIT_SCRIPT}
-        </Script>
+        {/* Script synchrone dans <head> : applique le thème avant le premier affichage
+            (thème clair par défaut, voir lib/theme/theme-script.ts). */}
+        <script id="theme-init" dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
         <LanguageProvider initialLocale={locale} initialCatalog={catalog}>

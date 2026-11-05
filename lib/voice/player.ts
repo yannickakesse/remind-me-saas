@@ -337,7 +337,7 @@ function fallbackSpeak(options: VoiceSpeakOptions, reason: string): Promise<bool
   }
   currentPlayingPriority = null;
   const priority = options.priority || "normal";
-  if (priority !== "greeting" && priority !== "section") playNotificationChime(0.4);
+  if (priority === "normal" || priority === "high" || priority === "critical") playNotificationChime(0.4);
   if (typeof window !== "undefined") {
     window.dispatchEvent(
       new CustomEvent("remindme:voice-unavailable", {

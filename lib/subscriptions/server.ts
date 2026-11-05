@@ -1,17 +1,25 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import {
-  normalizePlan,
+  resolveEffectivePlan,
   getPlanEntitlements,
   type PlanType,
   type PlanEntitlements,
 } from "./entitlements";
+import { getTr } from "@/lib/i18n/server";
 
 export interface UserSubscriptionInfo {
+  /** Forfait qui détermine les droits (Pro pendant l'essai). */
   plan: PlanType;
+  /** Forfait réellement payé. */
+  paidPlan: PlanType;
   status: string;
   currentPeriodEnd: string | null;
   entitlements: PlanEntitlements;
+  isTrial: boolean;
+  trialStartedAt: string | null;
+  trialEndsAt: string | null;
+  trialDaysLeft: number;
 }
 
 /**
@@ -22,24 +30,35 @@ export async function getUserSubscription(
   supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<UserSubscriptionInfo> {
-  const { data: sub } = await supabase
+  let { data: sub, error } = await (supabase as any)
     .from("subscriptions")
-    .select("plan, status, current_period_end")
+    .select("plan, status, current_period_end, trial_started_at, trial_ends_at")
     .eq("user_id", userId)
     .maybeSingle();
 
+  // Colonnes d'essai absentes (migration 0026 pas encore appliquée) : lecture sans l'essai
+  if (error) {
+    ({ data: sub } = await supabase
+      .from("subscriptions")
+      .select("plan, status, current_period_end")
+      .eq("user_id", userId)
+      .maybeSingle());
+  }
+
   // Pas de repli sur user_metadata : ce champ est modifiable par l'utilisateur lui-même.
-  const status = sub?.status ?? "active";
-  const currentPeriodEnd = sub?.current_period_end ?? null;
-  // Un forfait payant expiré ou inactif repasse automatiquement au forfait gratuit
-  const isExpired = currentPeriodEnd !== null && new Date(currentPeriodEnd).getTime() < Date.now();
-  const plan = status !== "active" || isExpired ? "free" : normalizePlan(sub?.plan);
+  // Un forfait payant expiré ou inactif repasse automatiquement au gratuit ; l'essai donne les droits Pro.
+  const effective = resolveEffectivePlan(sub);
 
   return {
-    plan,
-    status,
-    currentPeriodEnd,
-    entitlements: getPlanEntitlements(plan),
+    plan: effective.plan,
+    paidPlan: effective.paidPlan,
+    status: sub?.status ?? "active",
+    currentPeriodEnd: sub?.current_period_end ?? null,
+    entitlements: getPlanEntitlements(effective.plan),
+    isTrial: effective.isTrial,
+    trialStartedAt: effective.trialStartedAt,
+    trialEndsAt: effective.trialEndsAt,
+    trialDaysLeft: effective.trialDaysLeft,
   };
 }
 
@@ -50,6 +69,7 @@ export async function assertCanCreateActivity(
   supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<void> {
+  const tr = await getTr();
   const sub = await getUserSubscription(supabase, userId);
   const max = sub.entitlements.maxActivities;
 
@@ -71,18 +91,14 @@ export async function assertCanCreateActivity(
 
   if (activeCount > max) {
     throw new Error(
-      `Votre plan ${sub.entitlements.planName} permet jusqu'à ${max} activités actives. Vous avez actuellement ${activeCount} activités actives. Vos données et activités historiques restent conservées, mais vous devrez renouveler ou libérer un créneau avant de pouvoir en créer de nouvelles.`
+      tr("Votre plan {plan} permet jusqu'à {max} activités actives. Vous avez actuellement {activeCount} activités actives. Vos données et activités historiques restent conservées, mais vous devrez renouveler ou libérer un créneau avant de pouvoir en créer de nouvelles.", { plan: tr(sub.entitlements.planName), max, activeCount })
     );
   }
   if (activeCount >= max) {
     if (sub.plan === "free") {
-      throw new Error(
-        "Vous avez atteint la limite de votre plan Free (3 activités actives). Passez au plan Pro pour gérer jusqu'à 15 activités."
-      );
+      throw new Error(tr("Vous avez atteint la limite de votre plan Free (3 activités actives). Passez au plan Pro pour gérer jusqu'à 15 activités."));
     }
-    throw new Error(
-      "Vous avez atteint la limite de votre plan Pro (15 activités actives). Passez au plan Premium pour gérer des activités illimitées."
-    );
+    throw new Error(tr("Vous avez atteint la limite de votre plan Pro (15 activités actives). Passez au plan Premium pour gérer des activités illimitées."));
   }
 }
 
@@ -93,6 +109,7 @@ export async function assertCanCreateContact(
   supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<void> {
+  const tr = await getTr();
   const sub = await getUserSubscription(supabase, userId);
   const max = sub.entitlements.maxClients;
 
@@ -113,19 +130,15 @@ export async function assertCanCreateContact(
 
   if (total > max) {
     throw new Error(
-      `Votre plan ${sub.entitlements.planName} permet jusqu'à ${max} contacts et clients. Vous en avez actuellement ${total}. Vos données existantes restent conservées, mais vous devrez revenir sous la limite avant de pouvoir en créer de nouveaux.`
+      tr("Votre plan {plan} permet jusqu'à {max} contacts et clients. Vous en avez actuellement {total}. Vos données existantes restent conservées, mais vous devrez revenir sous la limite avant de pouvoir en créer de nouveaux.", { plan: tr(sub.entitlements.planName), max, total })
     );
   }
 
   if (total >= max) {
     if (sub.plan === "free") {
-      throw new Error(
-        "Vous avez atteint la limite de votre plan Free (5 contacts & clients). Passez au plan Pro pour gérer jusqu'à 50 contacts et clients."
-      );
+      throw new Error(tr("Vous avez atteint la limite de votre plan Free (5 contacts & clients). Passez au plan Pro pour gérer jusqu'à 50 contacts et clients."));
     }
-    throw new Error(
-      "Vous avez atteint la limite de votre plan Pro (50 contacts & clients). Passez au plan Premium pour des contacts et clients illimités."
-    );
+    throw new Error(tr("Vous avez atteint la limite de votre plan Pro (50 contacts & clients). Passez au plan Premium pour des contacts et clients illimités."));
   }
 }
 
@@ -136,6 +149,7 @@ export async function assertCanCreateBudget(
   supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<void> {
+  const tr = await getTr();
   const sub = await getUserSubscription(supabase, userId);
   const max = sub.entitlements.maxBudgets;
 
@@ -151,18 +165,14 @@ export async function assertCanCreateBudget(
   if (typeof count === "number") {
     if (count > max) {
       throw new Error(
-        `Votre plan ${sub.entitlements.planName} permet jusqu'à ${max} budgets mensuels. Vous en avez actuellement ${count} budgets. Vos données existantes restent conservées, mais vous devrez revenir sous la limite avant de pouvoir en créer de nouveaux.`
-      );
+      tr("Votre plan {plan} permet jusqu'à {max} budgets mensuels. Vous en avez actuellement {count} budgets. Vos données existantes restent conservées, mais vous devrez revenir sous la limite avant de pouvoir en créer de nouveaux.", { plan: tr(sub.entitlements.planName), max, count })
+    );
     }
     if (count >= max) {
       if (sub.plan === "free") {
-        throw new Error(
-          "Vous avez atteint la limite de votre plan Free (3 budgets mensuels). Passez au plan Pro pour créer jusqu'à 15 budgets mensuels."
-        );
+        throw new Error(tr("Vous avez atteint la limite de votre plan Free (3 budgets mensuels). Passez au plan Pro pour créer jusqu'à 15 budgets mensuels."));
       }
-      throw new Error(
-        "Vous avez atteint la limite de votre plan Pro (15 budgets mensuels). Passez au plan Premium pour des budgets mensuels illimités."
-      );
+      throw new Error(tr("Vous avez atteint la limite de votre plan Pro (15 budgets mensuels). Passez au plan Premium pour des budgets mensuels illimités."));
     }
   }
 }
@@ -174,6 +184,7 @@ export async function assertCanCreateSavingsGoal(
   supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<void> {
+  const tr = await getTr();
   const sub = await getUserSubscription(supabase, userId);
   const max = sub.entitlements.maxGoals;
 
@@ -189,18 +200,14 @@ export async function assertCanCreateSavingsGoal(
   if (typeof count === "number") {
     if (count > max) {
       throw new Error(
-        `Votre plan ${sub.entitlements.planName} permet jusqu'à ${max} objectifs d'épargne. Vous en avez actuellement ${count}. Vos données existantes restent conservées, mais vous devrez revenir sous la limite avant de pouvoir en créer de nouveaux.`
-      );
+      tr("Votre plan {plan} permet jusqu'à {max} objectifs d'épargne. Vous en avez actuellement {count}. Vos données existantes restent conservées, mais vous devrez revenir sous la limite avant de pouvoir en créer de nouveaux.", { plan: tr(sub.entitlements.planName), max, count })
+    );
     }
     if (count >= max) {
       if (sub.plan === "free") {
-        throw new Error(
-          "Vous avez atteint la limite de votre plan Free (2 objectifs d'épargne). Passez au plan Pro pour créer jusqu'à 10 objectifs d'épargne."
-        );
+        throw new Error(tr("Vous avez atteint la limite de votre plan Free (2 objectifs d'épargne). Passez au plan Pro pour créer jusqu'à 10 objectifs d'épargne."));
       }
-      throw new Error(
-        "Vous avez atteint la limite de votre plan Pro (10 objectifs d'épargne). Passez au plan Premium pour des objectifs d'épargne illimités."
-      );
+      throw new Error(tr("Vous avez atteint la limite de votre plan Pro (10 objectifs d'épargne). Passez au plan Premium pour des objectifs d'épargne illimités."));
     }
   }
 }
@@ -252,10 +259,37 @@ export async function assertFeatureAllowed(
   feature: "hourlyProfitability" | "multiCurrency" | "aiAssistant" | "predictiveInsights",
   featureLabel: string
 ): Promise<void> {
+  const tr = await getTr();
   const sub = await getUserSubscription(supabase, userId);
   if (!sub.entitlements[feature]) {
     throw new Error(
-      `La fonctionnalité "${featureLabel}" n'est pas incluse dans votre forfait actuel (${sub.entitlements.planName}). Mettez à niveau votre abonnement pour y accéder.`
+      tr("La fonctionnalité \"{feature}\" n'est pas incluse dans votre forfait actuel ({plan}). Mettez à niveau votre abonnement pour y accéder.", { feature: featureLabel, plan: tr(sub.entitlements.planName) })
     );
   }
+}
+
+/**
+ * Quota « Mes Objectifs » : objectifs en cours ou en pause (terminés, abandonnés et archivés exclus).
+ * Renvoie le message à afficher si la limite est atteinte, sinon null.
+ * Les objectifs existants ne sont jamais supprimés : seule la création est bloquée.
+ */
+export async function checkPersonalGoalQuota(
+  supabase: SupabaseClient<Database>,
+  userId: string
+): Promise<string | null> {
+  const tr = await getTr();
+  const sub = await getUserSubscription(supabase, userId);
+  const max = sub.entitlements.maxPersonalGoals;
+  if (max === Infinity) return null;
+
+  const { count, error } = await (supabase as any)
+    .from("goals")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .in("status", ["active", "paused"]);
+  if (error || typeof count !== "number" || count < max) return null;
+
+  return sub.plan === "free"
+    ? tr("Vous avez atteint la limite du forfait Gratuit ({max} objectifs en cours). Terminez ou archivez un objectif, ou passez au forfait Pro pour en suivre jusqu'à 25.", { max })
+    : tr("Vous avez atteint la limite de votre forfait ({max} objectifs en cours). Terminez ou archivez un objectif, ou passez au forfait Premium pour des objectifs illimités.", { max });
 }

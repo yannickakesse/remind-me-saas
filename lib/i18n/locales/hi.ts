@@ -7,6 +7,8 @@ export const hi: Record<TranslationKey, string> = {
   "nav.activities": "कार्य व परियोजनाएं",
   "nav.calendar": "कैलेंडर व टकराव रोकथाम",
   "nav.tasks": "कार्य और टू-डू",
+  "nav.goals": "मेरे लक्ष्य",
+  "nav.insights": "विश्लेषण",
   "nav.finances": "वित्त व बिल",
   "nav.inbox": "Inbox",
   "nav.clients": "ग्राहक व संपर्क",

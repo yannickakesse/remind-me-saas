@@ -7,6 +7,8 @@ export const it: Record<TranslationKey, string> = {
   "nav.activities": "Attività e Incarichi",
   "nav.calendar": "Calendario e Conflitti",
   "nav.tasks": "Attività e To-Do",
+  "nav.goals": "I miei obiettivi",
+  "nav.insights": "Analisi",
   "nav.finances": "Finanze e Fatture",
   "nav.inbox": "Inbox",
   "nav.clients": "Clienti e Contatti",

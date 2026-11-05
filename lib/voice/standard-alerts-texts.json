@@ -70,6 +70,19 @@
         "evening_checkin",
         "generic"
       ]
+    },
+    "goals": {
+      "title": "Mes Objectifs",
+      "ids": [
+        "goal_step_today",
+        "goal_step_overdue",
+        "goal_deadline_week",
+        "goal_deadline_tomorrow",
+        "goal_inactive",
+        "goal_reminder",
+        "goal_milestone",
+        "goal_completed"
+      ]
     }
   },
   "texts": {
@@ -359,6 +372,62 @@
       "es": "Tiene un nuevo recordatorio en Remind Me.",
       "de": "Sie haben eine neue Erinnerung in Remind Me.",
       "pt": "Você tem um novo lembrete no Remind Me."
+    },
+    "goal_step_today": {
+      "fr": "Une étape de votre objectif vous attend aujourd'hui.",
+      "en": "A step toward your goal awaits you today.",
+      "es": "Hoy le espera un paso más hacia su objetivo.",
+      "de": "Heute erwartet Sie ein Schritt auf dem Weg zu Ihrem Ziel.",
+      "pt": "Hoje, uma etapa do seu objetivo está à sua espera."
+    },
+    "goal_step_overdue": {
+      "fr": "Une étape de votre objectif est en retard. Vous pouvez la terminer ou réorganiser votre programme.",
+      "en": "One step toward your goal is behind schedule. You can complete it or rearrange your schedule.",
+      "es": "Una de las etapas de su objetivo lleva retraso. Puede completarla o reorganizar su programa.",
+      "de": "Ein Schritt Ihres Ziels ist im Rückstand. Sie können ihn abschließen oder Ihren Zeitplan neu organisieren.",
+      "pt": "Uma etapa da sua meta está atrasada. O(a) senhor(a) pode concluí-la ou reorganizar seu plano."
+    },
+    "goal_deadline_week": {
+      "fr": "Plus qu'une semaine pour atteindre votre objectif. Faites le point sur votre progression.",
+      "en": "You have just one week left to reach your goal. Take a moment to check in on your progress.",
+      "es": "Solo queda una semana para alcanzar su objetivo. Haga balance de su progreso.",
+      "de": "Nur noch eine Woche, um Ihr Ziel zu erreichen. Machen Sie eine Bestandsaufnahme Ihrer Fortschritte.",
+      "pt": "Falta apenas uma semana para atingir sua meta. Faça um balanço do seu progresso."
+    },
+    "goal_deadline_tomorrow": {
+      "fr": "Votre objectif arrive à échéance demain.",
+      "en": "Your goal is due tomorrow.",
+      "es": "Su objetivo vence mañana.",
+      "de": "Die Frist für Ihr Ziel endet morgen.",
+      "pt": "Sua meta vence amanhã."
+    },
+    "goal_inactive": {
+      "fr": "Votre objectif n'a pas avancé depuis quelques jours. Une petite étape aujourd'hui suffit pour repartir.",
+      "en": "You haven't made any progress on your goal in the last few days. Just one small step today is all it takes to get back on track.",
+      "es": "Su objetivo no ha avanzado en los últimos días. Basta con dar un pequeño paso hoy para retomar el camino.",
+      "de": "Ihr Ziel hat sich seit einigen Tagen nicht weiterentwickelt. Ein kleiner Schritt heute reicht aus, um wieder in Schwung zu kommen.",
+      "pt": "Sua meta não avançou nos últimos dias. Basta dar um pequeno passo hoje para retomar o caminho."
+    },
+    "goal_reminder": {
+      "fr": "C'est le moment d'avancer sur votre objectif.",
+      "en": "It's time to make progress toward your goal.",
+      "es": "Es el momento de avanzar hacia su objetivo.",
+      "de": "Es ist an der Zeit, Ihrem Ziel einen Schritt näher zu kommen.",
+      "pt": "É hora de avançar em direção à sua meta."
+    },
+    "goal_milestone": {
+      "fr": "Bravo, vous progressez ! Vous venez de franchir un nouveau palier de votre objectif.",
+      "en": "Great job—you’re making progress! You’ve just reached a new milestone toward your goal.",
+      "es": "¡Enhorabuena, está progresando! Acaba de alcanzar una nueva etapa en su objetivo.",
+      "de": "Herzlichen Glückwunsch, Sie machen Fortschritte! Sie haben gerade eine neue Etappe Ihres Ziels erreicht.",
+      "pt": "Parabéns, o(a) senhor(a) está progredindo! O(a) senhor(a) acaba de alcançar uma nova etapa em sua meta."
+    },
+    "goal_completed": {
+      "fr": "Félicitations ! Vous avez atteint votre objectif.",
+      "en": "Congratulations! You’ve reached your goal.",
+      "es": "¡Enhorabuena! Ha alcanzado su objetivo.",
+      "de": "Herzlichen Glückwunsch! Sie haben Ihr Ziel erreicht.",
+      "pt": "Parabéns! O senhor atingiu sua meta."
     }
   }
 }

@@ -14,6 +14,8 @@ import {
   Users,
   BarChart3,
   Settings,
+  Target,
+  Sparkles,
 } from "lucide-react";
 
 interface NavItemDef {
@@ -29,10 +31,12 @@ const NAV_ITEMS: NavItemDef[] = [
   { href: "/activities", labelKey: "nav.activities", icon: Briefcase, tourKey: "nav-activities" },
   { href: "/calendar", labelKey: "nav.calendar", icon: Calendar, tourKey: "nav-calendar" },
   { href: "/tasks", labelKey: "nav.tasks", icon: CheckSquare, tourKey: "nav-tasks" },
+  { href: "/goals", labelKey: "nav.goals", icon: Target, tourKey: "nav-goals" },
   { href: "/finances", labelKey: "nav.finances", icon: Wallet, tourKey: "nav-finances" },
   { href: "/messages", labelKey: "nav.inbox", icon: Inbox, tourKey: "nav-inbox" },
   { href: "/clients", labelKey: "nav.clients", icon: Users, tourKey: "nav-clients" },
   { href: "/reports", labelKey: "nav.reports", icon: BarChart3, tourKey: "nav-reports" },
+  { href: "/insights", labelKey: "nav.insights", icon: Sparkles, tourKey: "nav-insights" },
   { href: "/settings", labelKey: "nav.settings", icon: Settings, tourKey: "nav-settings" },
 ];
 

@@ -38,10 +38,10 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
   ];
 
   return (
-    <header className="fixed top-[max(0.6rem,env(safe-area-inset-top,0px))] sm:top-4 left-0 right-0 z-50 px-3 sm:px-6 pointer-events-none transition-all duration-300">
+    <header className="fixed top-[max(0.6rem,env(safe-area-inset-top,0px))] sm:top-4 left-0 right-0 z-50 px-2 sm:px-6 pointer-events-none transition-all duration-300">
       <div className="max-w-6xl mx-auto pointer-events-auto">
         <div
-          className={`flex items-center justify-between gap-1.5 sm:gap-2 px-2.5 sm:px-6 py-2 sm:py-2.5 rounded-full transition-all duration-300 ${
+          className={`flex items-center justify-between gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-2.5 rounded-full transition-all duration-300 ${
             scrolled
               ? "bg-canvas/90 dark:bg-canvas-raised/90 backdrop-blur-xl border border-ink-200/80 dark:border-ink-800/80 shadow-lg shadow-black/5"
               : "bg-canvas/75 dark:bg-canvas-raised/75 backdrop-blur-md border border-ink-200/50 dark:border-ink-800/50 shadow-sm"
@@ -79,20 +79,20 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
               </Link>
             ) : (
               <>
+                {/* Nouveau visiteur : « Commencer » en bouton principal, « Connexion » en lien discret */}
                 <Link
                   href="/login"
                   prefetch={true}
-                  className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold bg-[#00875A] hover:bg-emerald-700 text-white transition-colors shadow-xs shrink-0"
+                  className="px-1 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold text-ink-700 dark:text-ink-200 hover:text-signal transition-colors shrink-0"
                 >
                   {tr("Connexion")}</Link>
-                {/* Masqué sur mobile : le CTA « Commencer gratuitement » du hero prend le relais */}
                 <Link
                   href="/register"
                   prefetch={true}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#F59E0B] hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#F59E0B] hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
                 >
                   <span>{tr("Commencer")}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="hidden sm:block w-3.5 h-3.5" />
                 </Link>
               </>
             )}

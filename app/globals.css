@@ -40,42 +40,8 @@
   --info-soft: 240 249 255;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-
-    --ink-950: 248 250 252;
-    --ink-700: 203 213 225;
-    --ink-500: 148 163 184;
-    --ink-300: 71 85 105;
-    --ink-100: 30 41 59;
-
-    --canvas: 11 15 23;
-    --canvas-raised: 18 24 38;
-
-    --signal: 245 158 11;
-    --signal-soft: 69 38 12;
-    --signal-dark: 217 119 6;
-
-    --gold: 245 158 11;
-    --gold-dark: 217 119 6;
-    --gold-light: 252 211 77;
-    --gold-soft: 69 38 12;
-
-    --positive: 16 185 129;
-    --positive-soft: 6 78 59;
-
-    --warning: 245 158 11;
-    --warning-soft: 69 38 12;
-
-    --danger: 239 68 68;
-    --danger-soft: 69 10 10;
-
-    --info: 56 189 248;
-    --info-soft: 12 74 96;
-  }
-}
-
+/* Thème sombre : uniquement via data-theme="dark" (posé par le script de thème), le même
+   interrupteur que les classes dark: de Tailwind — jamais de mélange clair/sombre. */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
@@ -344,12 +310,9 @@ button, a, input, select, textarea {
   background: radial-gradient(circle at top left, rgba(254, 243, 199, 0.6) 0%, rgba(255, 255, 255, 0.95) 100%);
 }
 
-[data-theme="dark"] .card-gold,
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .card-gold {
-    border: 1px solid rgba(245, 158, 11, 0.25);
-    background: radial-gradient(circle at top left, rgba(69, 38, 12, 0.4) 0%, rgba(18, 24, 38, 0.95) 100%);
-  }
+[data-theme="dark"] .card-gold {
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: radial-gradient(circle at top left, rgba(69, 38, 12, 0.4) 0%, rgba(18, 24, 38, 0.95) 100%);
 }
 
 .glow-gold {
@@ -362,13 +325,10 @@ button, a, input, select, textarea {
   border: 1px solid rgba(229, 169, 30, 0.25);
 }
 
-[data-theme="dark"] .badge-gold,
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .badge-gold {
-    background-color: rgba(245, 158, 11, 0.15);
-    color: rgb(252, 211, 77);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-  }
+[data-theme="dark"] .badge-gold {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: rgb(252, 211, 77);
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 /* 5. Accessibility: Prefers Reduced Motion */
@@ -499,4 +459,109 @@ button, a, input, select, textarea {
   html:has(main [role="dialog"][aria-modal="true"]) [data-tour="mobile-nav-bar"] {
     display: none;
   }
+}
+
+/* ============================================================================
+   Mode sombre — lisibilité garantie
+   ----------------------------------------------------------------------------
+   Les nuances ink-100 / ink-300 sont inversées en mode sombre (elles deviennent
+   foncées). Or les composants écrivent « dark:text-ink-300 / dark:text-ink-100 »
+   en attendant un texte CLAIR : on leur rend leur sens attendu. Les textes foncés
+   fixes sans variante sombre sont aussi éclaircis.
+   ============================================================================ */
+html[data-theme="dark"] .dark\:text-ink-100 { color: rgb(241 245 249); }
+html[data-theme="dark"] .dark\:text-ink-300 { color: rgb(203 213 225); }
+html[data-theme="dark"] .dark\:hover\:text-ink-300:hover { color: rgb(203 213 225); }
+
+html[data-theme="dark"] :is(.text-ink-900, .text-ink-800, .text-black, .text-slate-900, .text-gray-900, .text-zinc-900):not([class*="dark:text-"]) {
+  color: rgb(241 245 249);
+}
+html[data-theme="dark"] :is(.text-ink-600, .text-slate-600, .text-gray-600, .text-zinc-600, .text-slate-700, .text-gray-700):not([class*="dark:text-"]) {
+  color: rgb(203 213 225);
+}
+/* Textes secondaires (ink-500) : un cran plus clair pour rester lisibles sur les cartes */
+html[data-theme="dark"] .text-ink-500:not([class*="dark:text-"]) { color: rgb(170 182 199); }
+/* Surfaces restées blanches en mode sombre : leur texte reste foncé */
+html[data-theme="dark"] .bg-white .text-ink-900:not([class*="dark:text-"]),
+html[data-theme="dark"] .bg-white .text-ink-950:not([class*="dark:text-"]),
+html[data-theme="dark"] .bg-white .text-black:not([class*="dark:text-"]),
+html[data-theme="dark"] .bg-white.text-ink-900:not([class*="dark:text-"]),
+html[data-theme="dark"] .bg-white.text-ink-950:not([class*="dark:text-"]) {
+  color: rgb(18 18 20);
+}
+/* Badges et pastilles orange à texte blanc : orange plus profond en mode sombre pour rester lisibles */
+html[data-theme="dark"] .bg-signal.text-white { background-color: rgb(180 83 9); }
+
+/* Encarts pastel clairs sans version sombre : teinte translucide en mode sombre */
+html[data-theme="dark"] .bg-ink-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-ink-200:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-slate-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-slate-100:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-zinc-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-gray-50:not([class*="dark:bg-"]) {
+  background-color: rgb(255 255 255 / 0.05);
+}
+html[data-theme="dark"] .bg-amber-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-amber-100:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-orange-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-yellow-50:not([class*="dark:bg-"]) {
+  background-color: rgb(245 158 11 / 0.14);
+}
+html[data-theme="dark"] .text-amber-700:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-amber-800:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-amber-900:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-orange-700:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-orange-800:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-yellow-800:not([class*="dark:text-"]) {
+  color: rgb(252 211 77);
+}
+html[data-theme="dark"] .bg-emerald-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-emerald-100:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-emerald-200:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-green-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-teal-50:not([class*="dark:bg-"]) {
+  background-color: rgb(16 185 129 / 0.14);
+}
+html[data-theme="dark"] .text-emerald-700:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-emerald-800:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-emerald-900:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-green-700:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-green-800:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-teal-700:not([class*="dark:text-"]) {
+  color: rgb(110 231 183);
+}
+html[data-theme="dark"] .bg-rose-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-red-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-pink-50:not([class*="dark:bg-"]) {
+  background-color: rgb(244 63 94 / 0.14);
+}
+html[data-theme="dark"] .text-rose-700:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-rose-800:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-red-700:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-red-800:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-pink-700:not([class*="dark:text-"]) {
+  color: rgb(253 164 175);
+}
+html[data-theme="dark"] .bg-sky-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-blue-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-cyan-50:not([class*="dark:bg-"]) {
+  background-color: rgb(14 165 233 / 0.14);
+}
+html[data-theme="dark"] .text-sky-700:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-sky-800:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-blue-700:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-blue-800:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-cyan-700:not([class*="dark:text-"]) {
+  color: rgb(125 211 252);
+}
+html[data-theme="dark"] .bg-purple-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-indigo-50:not([class*="dark:bg-"]),
+html[data-theme="dark"] .bg-violet-50:not([class*="dark:bg-"]) {
+  background-color: rgb(168 85 247 / 0.14);
+}
+html[data-theme="dark"] .text-purple-700:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-purple-800:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-indigo-700:not([class*="dark:text-"]),
+html[data-theme="dark"] .text-violet-700:not([class*="dark:text-"]) {
+  color: rgb(216 180 254);
 }

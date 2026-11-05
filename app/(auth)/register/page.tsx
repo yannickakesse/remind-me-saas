@@ -27,6 +27,9 @@ export default function RegisterPage() {
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -106,6 +109,28 @@ export default function RegisterPage() {
     setCooldown(60);
   }
 
+  /**
+   * Confirmation par code (dans le MÊME navigateur) : évite que le lien de l'e-mail ouvre
+   * l'inscription dans un autre navigateur (Gmail → Chrome au lieu de Safari, par exemple).
+   */
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault();
+    const token = code.replace(/D/g, "");
+    if (token.length < 6) {
+      setCodeError(tr("Saisissez le code à 6 chiffres reçu par e-mail."));
+      return;
+    }
+    setVerifying(true);
+    setCodeError(null);
+    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token, type: "signup" });
+    if (error) {
+      setVerifying(false);
+      setCodeError(tr("Code incorrect ou expiré. Vérifiez-le, ou demandez un nouvel e-mail."));
+      return;
+    }
+    window.location.href = "/onboarding";
+  }
+
   async function handleResendEmail() {
     if (cooldown > 0 || resending || !email) return;
     setResending(true);
@@ -179,6 +204,34 @@ export default function RegisterPage() {
                 <li>{t("auth.verify_email_step3")}</li>
               </ol>
             </div>
+
+            {/* Saisie du code : la confirmation se fait ici, sans changer de navigateur */}
+            <form onSubmit={handleVerifyCode} className="rounded-2xl border border-signal/30 bg-signal/5 p-4 space-y-3">
+              <label htmlFor="signup-code" className="block text-xs font-bold text-ink-950 dark:text-white">
+                {tr("Saisissez le code reçu par e-mail")}
+              </label>
+              <input
+                id="signup-code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={8}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
+                placeholder="123456"
+                className="w-full h-12 rounded-xl border border-ink-200 dark:border-white/15 bg-canvas-raised text-center font-mono text-xl tracking-[0.4em] text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
+              />
+              {codeError && <p role="alert" className="text-xs font-medium text-danger">{codeError}</p>}
+              <button
+                type="submit"
+                disabled={verifying}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-signal px-4 py-3 text-xs font-bold text-white disabled:opacity-60"
+              >
+                {verifying ? tr("Vérification…") : tr("Valider le code")}
+              </button>
+              <p className="text-[11px] text-ink-600 dark:text-ink-400">
+                {tr("Vous pouvez aussi toucher le lien de confirmation de l'e-mail.")}
+              </p>
+            </form>
 
             {/* Raccourci direct boîte mail */}
             <div className="space-y-2">

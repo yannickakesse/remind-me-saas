@@ -19,7 +19,7 @@ import { evaluateActivityEvolutionSuggestions } from "@/lib/activities/evolution
 
 export interface ReminderCandidate {
   user_id: string;
-  category: "activity" | "task" | "payment" | "expense" | "scheduled_expense" | "finance" | "security" | "summary" | "system";
+  category: "activity" | "task" | "payment" | "expense" | "scheduled_expense" | "finance" | "security" | "summary" | "system" | "goal";
   kind: string;
   priority: NotificationPriority;
   status: "unread";
@@ -41,6 +41,8 @@ export interface ReminderEngineResult {
   inserted: number;
   emailCount: number;
   pushCount: number;
+  /** Rappels dont le push n'a atteint aucun appareil (relancés au cycle suivant). */
+  pushFailedCount?: number;
   resolvedCleanups: number;
   errors?: string[];
 }
@@ -232,7 +234,7 @@ export async function evaluateSmartReminders(
       .maybeSingle(),
     supabase
       .from("profiles")
-      .select("full_name, default_currency, timezone, country_code, locale")
+      .select("full_name, default_currency, timezone, country_code, locale, created_at")
       .eq("id", userId)
       .maybeSingle(),
   ]);
@@ -1180,6 +1182,124 @@ export async function evaluateSmartReminders(
   }
 
   // ==========================================================================
+  // 6.5 MES OBJECTIFS (étapes du jour, retards, échéances, inactivité, rappel planifié)
+  //     Encouragements sobres : au plus un rappel par type et par période, jamais pour un objectif en pause.
+  // ==========================================================================
+  try {
+    const goalsDb = supabase as any;
+    const { data: goalRows, error: goalsErr } = await goalsDb
+      .from("goals")
+      .select("id, title, motivation, due_date, status, created_at, last_progress_at, reminder_frequency, reminder_time, reminder_weekday")
+      .eq("user_id", userId)
+      .eq("status", "active");
+
+    if (!goalsErr && goalRows?.length) {
+      const goalIds = goalRows.map((g: any) => g.id);
+      const { data: openSteps } = await goalsDb
+        .from("goal_steps")
+        .select("id, goal_id, title, due_date, status")
+        .eq("user_id", userId)
+        .in("goal_id", goalIds)
+        .in("status", ["todo", "in_progress"])
+        .not("due_date", "is", null);
+
+      const goalTitle = (id: string) => goalRows.find((g: any) => g.id === id)?.title ?? "";
+
+      // Étapes du jour et étapes en retard (une notification par étape et par jour maximum)
+      for (const st of openSteps ?? []) {
+        const stepDue = DateTime.fromISO(st.due_date, { zone: userTimezone });
+        const diff = Math.floor(stepDue.startOf("day").diff(userNow.startOf("day"), "days").days);
+        if (diff === 0 && userNow.hour >= 8) {
+          candidates.push({
+            user_id: userId, category: "goal", kind: "goal_step_due_today", priority: "normal", status: "unread",
+            entity_type: "goal_step", entity_id: st.id,
+            title: tr("Étape du jour : {title}", { title: st.title }),
+            body: tr("Une étape de votre objectif « {goal} » est prévue aujourd'hui.", { goal: goalTitle(st.goal_id) }),
+            metadata: { goal_id: st.goal_id, step_id: st.id },
+            link: `/goals/${st.goal_id}`, scheduled_at: userNow.toISO()!,
+            idempotency_key: `goal_step:${st.id}:due_today`,
+          });
+        } else if (diff < 0 && diff >= -14) {
+          candidates.push({
+            user_id: userId, category: "goal", kind: "goal_step_overdue", priority: "normal", status: "unread",
+            entity_type: "goal_step", entity_id: st.id,
+            title: tr("Étape en retard : {title}", { title: st.title }),
+            body: tr("Cette étape de « {goal} » était prévue le {date}. Vous pouvez la terminer, la décaler ou réorganiser votre programme.", {
+              goal: goalTitle(st.goal_id),
+              date: formatDateLocale(st.due_date, locale, userTimezone),
+            }),
+            metadata: { goal_id: st.goal_id, step_id: st.id },
+            link: `/goals/${st.goal_id}`, scheduled_at: userNow.toISO()!,
+            idempotency_key: `goal_step:${st.id}:overdue`,
+          });
+        }
+      }
+
+      for (const g of goalRows) {
+        // Échéance de l'objectif proche (J-7, J-1)
+        if (g.due_date) {
+          const daysLeft = Math.floor(DateTime.fromISO(g.due_date, { zone: userTimezone }).startOf("day").diff(userNow.startOf("day"), "days").days);
+          if (daysLeft === 7 || daysLeft === 1) {
+            candidates.push({
+              user_id: userId, category: "goal", kind: "goal_deadline_soon", priority: daysLeft === 1 ? "high" : "normal", status: "unread",
+              entity_type: "goal", entity_id: g.id,
+              title: daysLeft === 1
+                ? tr("Objectif à atteindre demain : {title}", { title: g.title })
+                : tr("Plus qu'une semaine pour votre objectif : {title}", { title: g.title }),
+              body: tr("Faites le point sur votre progression et, si besoin, réorganisez vos étapes."),
+              metadata: { goal_id: g.id, days: daysLeft },
+              link: `/goals/${g.id}`, scheduled_at: userNow.toISO()!,
+              idempotency_key: `goal:${g.id}:deadline_minus_${daysLeft}`,
+            });
+          }
+        }
+
+        // Inactivité : aucune progression depuis 7 jours → rappel de la motivation (au plus une fois par semaine)
+        const lastMove = DateTime.fromISO(g.last_progress_at || g.created_at).setZone(userTimezone);
+        const idleDays = Math.floor(userNow.diff(lastMove, "days").days);
+        if (idleDays >= 7 && userNow.hour >= 9 && userNow.hour < 21) {
+          candidates.push({
+            user_id: userId, category: "goal", kind: "goal_inactive", priority: "low", status: "unread",
+            entity_type: "goal", entity_id: g.id,
+            title: tr("Votre objectif vous attend : {title}", { title: g.title }),
+            body: g.motivation
+              ? tr("Aucune progression depuis {n} jours. Souvenez-vous : « {motivation} »", { n: idleDays, motivation: String(g.motivation).slice(0, 160) })
+              : tr("Aucune progression depuis {n} jours. Une petite étape aujourd'hui suffit pour repartir.", { n: idleDays }),
+            metadata: { goal_id: g.id, idle_days: idleDays },
+            link: `/goals/${g.id}`, scheduled_at: userNow.toISO()!,
+            idempotency_key: `goal:${g.id}:inactive_${userNow.toFormat("kkkk-'W'WW")}`,
+          });
+        }
+
+        // Rappel planifié par l'utilisateur (quotidien, hebdomadaire, mensuel), à partir de l'heure choisie
+        if (g.reminder_frequency && g.reminder_time) {
+          const [hh, mm] = String(g.reminder_time).split(":").map(Number);
+          const at = userNow.set({ hour: hh || 0, minute: mm || 0, second: 0, millisecond: 0 });
+          const dayMatches =
+            g.reminder_frequency === "daily" ||
+            (g.reminder_frequency === "weekly" && userNow.weekday % 7 === Number(g.reminder_weekday ?? 1)) ||
+            (g.reminder_frequency === "monthly" && userNow.day === DateTime.fromISO(g.created_at).setZone(userTimezone).day);
+          if (dayMatches && userNow >= at && userNow.diff(at, "minutes").minutes <= 60) {
+            candidates.push({
+              user_id: userId, category: "goal", kind: "goal_reminder", priority: "normal", status: "unread",
+              entity_type: "goal", entity_id: g.id,
+              title: tr("Rappel : {title}", { title: g.title }),
+              body: g.motivation
+                ? tr("C'est le moment d'avancer sur votre objectif. Votre motivation : « {motivation} »", { motivation: String(g.motivation).slice(0, 160) })
+                : tr("C'est le moment d'avancer sur votre objectif."),
+              metadata: { goal_id: g.id },
+              link: `/goals/${g.id}`, scheduled_at: userNow.toISO()!,
+              idempotency_key: `goal:${g.id}:reminder_${todayISO}`,
+            });
+          }
+        }
+      }
+    }
+  } catch (goalErr) {
+    console.warn("[evaluateSmartReminders] Section objectifs ignorée :", (goalErr as any)?.message);
+  }
+
+  // ==========================================================================
   // 7. RAPPEL DU DÉBUT DE MOIS (Le 1er, 2e ou 3e jour du mois)
   // ==========================================================================
   if (userNow.day >= 1 && userNow.day <= 3) {
@@ -1714,6 +1834,27 @@ export async function evaluateSmartReminders(
   }
 
   // ==========================================================================
+  // 8.9 PAS DE BILANS NI DE BRIEFINGS POUR UN COMPTE TOUT JUSTE CRÉÉ
+  //     (le jour de l'inscription, ou tant qu'aucune activité n'existe : rien à résumer)
+  // ==========================================================================
+  {
+    const DIGEST_KINDS = new Set(["morning_briefing", "midday_checkin", "evening_checkin", "evening_summary", "weekly_summary", "month_start_summary"]);
+    if (candidates.some((c) => DIGEST_KINDS.has(c.kind))) {
+      const createdAt = (profileData as any)?.created_at ? DateTime.fromISO((profileData as any).created_at).setZone(userTimezone) : null;
+      const signedUpToday = createdAt ? createdAt.hasSame(userNow, "day") || userNow.diff(createdAt, "hours").hours < 12 : false;
+      const { count: activityCount } = await supabase
+        .from("activities")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId);
+      if (signedUpToday || !activityCount) {
+        for (let i = candidates.length - 1; i >= 0; i--) {
+          if (DIGEST_KINDS.has(candidates[i]!.kind)) candidates.splice(i, 1);
+        }
+      }
+    }
+  }
+
+  // ==========================================================================
   // 9. ENREGISTREMENT IDEMPOTENT DANS LA TABLE NOTIFICATIONS
   // ==========================================================================
   let insertedCount = 0;
@@ -1731,10 +1872,7 @@ export async function evaluateSmartReminders(
     newCandidates = candidates.filter((c) => !existingKeySet.has(c.idempotency_key));
 
     if (newCandidates.length > 0) {
-      const { data: insertedRows, error } = await supabase
-        .from("notifications")
-        .insert(
-          newCandidates.map((c) => ({
+      const rows = newCandidates.map((c) => ({
             user_id: c.user_id,
             category: c.category,
             kind: c.kind,
@@ -1750,13 +1888,38 @@ export async function evaluateSmartReminders(
             link: c.link,
             scheduled_at: c.scheduled_at,
             idempotency_key: c.idempotency_key,
-          }))
-        )
+          }));
+
+      // Clé (user_id, idempotency_key) unique depuis la migration 0025 : si deux exécutions
+      // (cron + application ouverte) traitent le même rappel, une seule l'enregistre.
+      let { data: insertedRows, error } = await supabase
+        .from("notifications")
+        .upsert(rows as any, { onConflict: "user_id,idempotency_key", ignoreDuplicates: true })
         .select("id, kind, idempotency_key");
 
+      // Avant la migration 0025 (pas d'index unique) : insertion classique
+      if (error && (error as any).code === "42P10") {
+        ({ data: insertedRows, error } = await supabase.from("notifications").insert(rows as any).select("id, kind, idempotency_key"));
+      }
+
+      // Conflit sur un autre index unique (ex. ancien index (user_id, kind, entity_id) de la migration 0006) :
+      // un seul rappel en conflit ne doit pas faire perdre tout le lot → insertion ligne par ligne.
+      if (error && (error as any).code === "23505") {
+        const kept: { id: string; kind: string; idempotency_key: string | null }[] = [];
+        for (const row of rows) {
+          const { data: one, error: oneErr } = await supabase.from("notifications").insert(row as any).select("id, kind, idempotency_key");
+          if (!oneErr && one?.length) kept.push(...(one as any));
+        }
+        insertedRows = kept as any;
+        error = null;
+      }
+
       if (error) {
-        console.error("[evaluateSmartReminders] Notification insertion error:", error);
+        console.error("[evaluateSmartReminders] Notification insertion error:", error.message);
+        newCandidates = []; // rien d'enregistré : rien à envoyer
       } else {
+        const insertedKeys = new Set((insertedRows ?? []).map((r) => r.idempotency_key));
+        newCandidates = newCandidates.filter((c) => insertedKeys.has(c.idempotency_key));
         insertedCount = insertedRows?.length ?? 0;
 
         // Archiver les résumés et notifications financières importantes dans la messagerie interne
@@ -1796,6 +1959,7 @@ export async function evaluateSmartReminders(
   // ==========================================================================
   let emailCount = 0;
   let pushCount = 0;
+  let pushFailedCount = 0;
 
   if (newCandidates.length > 0) {
     let userEmail: string | undefined;
@@ -1852,6 +2016,7 @@ export async function evaluateSmartReminders(
         if (pushRes.success && pushRes.deliveredCount > 0) {
           pushCount += pushRes.deliveredCount;
         }
+        if (pushRes.failed) pushFailedCount++;
       }
     }
   }
@@ -1861,50 +2026,80 @@ export async function evaluateSmartReminders(
     inserted: insertedCount,
     emailCount,
     pushCount,
+    pushFailedCount,
     resolvedCleanups,
   };
 }
 
+export interface ProcessAllOptions {
+  /** Heure limite (ms epoch) : on s'arrête avant pour laisser la place à l'exécution suivante. */
+  deadlineMs?: number;
+  /** Reprendre après cet utilisateur (curseur de l'exécution précédente interrompue). */
+  startAfterUserId?: string | null;
+  /** Utilisateurs traités en parallèle. */
+  concurrency?: number;
+}
+
+export interface ProcessAllResult {
+  totalUsers: number;
+  processedUsers: number;
+  totalInserted: number;
+  totalEmails: number;
+  totalPushes: number;
+  totalPushFailures: number;
+  /** Dernier utilisateur traité si l'exécution a été interrompue par la limite de temps, sinon null. */
+  nextCursor: string | null;
+}
+
 /**
  * Traitement en lot pour le Cron Scheduler d'arrière-plan.
- * Parcourt tous les profils actifs et déclenche l'évaluation des rappels.
+ * Parcourt les profils actifs (fuseau horaire de chacun respecté), par lots parallèles.
+ * Si la limite de temps approche, s'arrête proprement et renvoie un curseur : la minute
+ * suivante reprend là où celle-ci s'est arrêtée, sans retraiter (ni renvoyer) les autres.
  */
 export async function processAllUsersReminders(
-  supabaseAdmin: SupabaseClient<Database>
-): Promise<{ totalUsers: number; totalInserted: number; totalEmails: number; totalPushes: number }> {
-  const { data: activeProfiles, error } = await supabaseAdmin
+  supabaseAdmin: SupabaseClient<Database>,
+  { deadlineMs = Date.now() + 45_000, startAfterUserId = null, concurrency = 5 }: ProcessAllOptions = {}
+): Promise<ProcessAllResult> {
+  const { data: profiles, error } = await supabaseAdmin
     .from("profiles")
     .select("id, timezone")
-    .eq("onboarding_completed", true);
+    .eq("onboarding_completed", true)
+    .order("id", { ascending: true });
 
-  if (error || !activeProfiles) {
-    console.error("[processAllUsersReminders] Erreur récupération des profils:", error);
-    return { totalUsers: 0, totalInserted: 0, totalEmails: 0, totalPushes: 0 };
-  }
-
-  let totalInserted = 0;
-  let totalEmails = 0;
-  let totalPushes = 0;
-
-  for (const profile of activeProfiles) {
-    try {
-      const res = await evaluateSmartReminders(
-        supabaseAdmin,
-        profile.id,
-        profile.timezone || "UTC"
-      );
-      totalInserted += res.inserted;
-      totalEmails += res.emailCount;
-      totalPushes += res.pushCount;
-    } catch (userErr) {
-      console.error(`[processAllUsersReminders] Erreur pour l'utilisateur ${profile.id}:`, userErr);
-    }
-  }
-
-  return {
-    totalUsers: activeProfiles.length,
-    totalInserted,
-    totalEmails,
-    totalPushes,
+  const empty: ProcessAllResult = {
+    totalUsers: 0, processedUsers: 0, totalInserted: 0, totalEmails: 0, totalPushes: 0, totalPushFailures: 0, nextCursor: null,
   };
+  if (error || !profiles) {
+    console.error("[processAllUsersReminders] Erreur récupération des profils:", error?.message);
+    return empty;
+  }
+
+  // Reprise : d'abord les utilisateurs après le curseur, puis ceux d'avant (ordre circulaire)
+  const pivot = startAfterUserId ? profiles.findIndex((p) => p.id > startAfterUserId) : 0;
+  const ordered = pivot > 0 ? [...profiles.slice(pivot), ...profiles.slice(0, pivot)] : profiles;
+
+  const result: ProcessAllResult = { ...empty, totalUsers: profiles.length };
+  for (let i = 0; i < ordered.length; i += concurrency) {
+    if (Date.now() > deadlineMs) {
+      result.nextCursor = ordered[i - 1]?.id ?? null;
+      break;
+    }
+    const batch = ordered.slice(i, i + concurrency);
+    const settled = await Promise.allSettled(
+      batch.map((profile) => evaluateSmartReminders(supabaseAdmin, profile.id, profile.timezone || "UTC"))
+    );
+    settled.forEach((r, k) => {
+      result.processedUsers++;
+      if (r.status === "fulfilled") {
+        result.totalInserted += r.value.inserted;
+        result.totalEmails += r.value.emailCount;
+        result.totalPushes += r.value.pushCount;
+        result.totalPushFailures += r.value.pushFailedCount ?? 0;
+      } else {
+        console.error(`[processAllUsersReminders] Erreur pour l'utilisateur ${batch[k]?.id}:`, r.reason?.message ?? r.reason);
+      }
+    });
+  }
+  return result;
 }

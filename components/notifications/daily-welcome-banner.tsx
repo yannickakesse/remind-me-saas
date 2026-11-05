@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { DateTime } from "luxon";
 import { Sunrise, Sun, Moon, Sparkles, Volume2, X } from "lucide-react";
 import {
-  playVoiceReminder,
+  playReminderVoice,
   stopVoiceReminder,
   getLocalVoiceSettings,
   isVoicePlaying,
@@ -25,6 +25,15 @@ interface DailyWelcomeBannerProps {
 
 const SESSION_STORAGE_KEY = "remindme_session_welcome_shown";
 const VISITED_BEFORE_KEY = "remindme_visited_before";
+
+/**
+ * Phrase standard enregistrée pour l'accueil : « Bonjour ! Voici votre programme de la journée. » le matin.
+ * Plus tard dans la journée, l'accueil reste écrit (une phrase « bilan du soir » n'aurait pas de sens
+ * pour quelqu'un qui vient d'arriver).
+ */
+function greetingKind(): "morning_briefing" | null {
+  return new Date().getHours() < 12 ? "morning_briefing" : null;
+}
 
 export function DailyWelcomeBanner({
   userName,
@@ -393,8 +402,9 @@ export function DailyWelcomeBanner({
 
       // Déclencher la voix si les paramètres de l'utilisateur l'autorisent et aucun rappel n'est en cours
       const localPrefs = getLocalVoiceSettings();
-      if (localPrefs.voice_reminders && spokenText && !isVoicePlaying()) {
-        playVoiceReminder({
+      if (localPrefs.voice_reminders && spokenText && greetingKind() && !isVoicePlaying()) {
+        playReminderVoice({
+          alert: { kind: greetingKind() ?? "generic" },
           text: spokenText,
           language: localPrefs.voice_language,
           voiceType: localPrefs.voice_type,
@@ -452,9 +462,10 @@ export function DailyWelcomeBanner({
   };
 
   const handleManualSpeak = () => {
-    if (!voiceTextState) return;
+    if (!voiceTextState || !greetingKind()) return;
     const localPrefs = getLocalVoiceSettings();
-    playVoiceReminder({
+    playReminderVoice({
+      alert: { kind: greetingKind() ?? "generic" },
       text: voiceTextState,
       language: localPrefs.voice_language,
       voiceType: localPrefs.voice_type,

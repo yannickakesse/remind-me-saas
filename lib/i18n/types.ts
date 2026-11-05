@@ -43,6 +43,8 @@ export type TranslationKey =
   | "nav.activities"
   | "nav.calendar"
   | "nav.tasks"
+  | "nav.goals"
+  | "nav.insights"
   | "nav.finances"
   | "nav.inbox"
   | "nav.clients"

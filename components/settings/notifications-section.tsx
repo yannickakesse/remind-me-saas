@@ -44,6 +44,7 @@ import {
   initVoiceEngine,
   speakVoiceReminder,
   playVoiceReminder,
+  playReminderVoice,
   stopVoiceReminder,
   generateVoiceMessage,
   saveLocalVoiceSettings,
@@ -259,7 +260,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
         voice_playback_rate: voicePlaybackRate,
       });
 
-      await playVoiceReminder({
+      await playReminderVoice({
+        alert: { kind: "activity_reminder_15m" },
         text: sampleText,
         language: voiceLanguage,
         voiceType,
