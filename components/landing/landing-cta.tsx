@@ -30,15 +30,15 @@ export function LandingCTA() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4">
               <Link
                 href="/register"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-base shadow-xl hover:shadow-2xl hover:scale-[1.01] transition-all duration-150 group cursor-pointer"
+                className="w-full max-w-xs sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-sm tracking-tight shadow-lg shadow-amber-500/25 hover:shadow-xl transition-all duration-150 group cursor-pointer"
               >
                 <span>{tr("Commencer gratuitement")}</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </Link>
 
               <Link
                 href="/login"
-                className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-4 rounded-full bg-white/10 hover:bg-white/15 text-white font-semibold text-base border border-white/20 backdrop-blur-sm transition-colors cursor-pointer"
+                className="w-full max-w-xs sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-full bg-white/10 hover:bg-white/15 text-white font-medium text-sm border border-white/25 backdrop-blur-sm transition-colors cursor-pointer"
               >
                 {tr("Se connecter")}</Link>
             </div>

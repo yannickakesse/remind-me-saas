@@ -1,4 +1,5 @@
 "use client";
+import { usePopupSlot } from "@/lib/ui/popup-queue";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
@@ -48,6 +49,8 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
   const [showDetails, setShowDetails] = useState(false);
+  // Priorité absolue dans la file des fenêtres (les autres attendent la fin de la visite)
+  const tourSlot = usePopupSlot("tour", isActive);
   const [isContextual, setIsContextual] = useState(false);
   const [viewport, setViewport] = useState({ width: 1920, height: 1080 });
   const [isVoiceMuted, setIsVoiceMuted] = useState(false);
@@ -490,7 +493,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
     }
   };
 
-  if (!isActive || !currentStep) return null;
+  if (!isActive || !currentStep || !tourSlot) return null;
 
   const Icon = currentStep.icon;
   const isLastStep = currentStepIndex === currentSteps.length - 1;

@@ -23,12 +23,12 @@ export async function DashboardInsights({ userId }: { userId: string }) {
 
   return (
     <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 p-4 sm:p-6 shadow-xs backdrop-blur-xl space-y-3">
-      <div className="relative text-center">
+      <div className="relative px-10 text-center">
         <h2 className="inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-[0.12em] text-signal">
           <Sparkles className="h-4 w-4" /> {tr("Analyses")}
         </h2>
-        <Link href="/insights" className="absolute right-0 top-0 inline-flex items-center gap-1 text-xs font-semibold text-signal hover:underline">
-          {tr("Voir")} <ArrowRight className="h-3.5 w-3.5" />
+        <Link href="/insights" aria-label={tr("Voir")} title={tr("Voir")} className="absolute right-0 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-signal hover:bg-signal/10">
+          <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
       <div className="grid gap-2.5 md:grid-cols-3">

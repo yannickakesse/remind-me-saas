@@ -32,7 +32,7 @@ export function InsightCard({ insight, compact = false }: { insight: Insight; co
   const st = STYLE[insight.level];
   const Icon = st.icon;
   return (
-    <article className={`rounded-2xl border p-4 ${st.ring}`}>
+    <article className={`rounded-2xl border bg-canvas-raised/90 dark:bg-slate-900/85 p-4 backdrop-blur-md ${st.ring}`}>
       <div className="flex items-start gap-3">
         <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${st.iconColor}`} />
         <div className="min-w-0 flex-1">
@@ -59,7 +59,7 @@ export function InsightCard({ insight, compact = false }: { insight: Insight; co
 export function InsightsLocked({ counts }: { counts: { urgent: number; attention: number; info: number; total: number } }) {
   const { tr } = useLanguage();
   return (
-    <div className="rounded-2xl border border-signal/30 bg-signal/5 p-5 text-center">
+    <div className="mx-auto max-w-lg rounded-3xl border border-white/60 dark:border-white/10 bg-canvas-raised/85 dark:bg-slate-900/85 p-6 text-center shadow-xl backdrop-blur-md">
       <Lock className="mx-auto h-6 w-6 text-signal" />
       <p className="mt-2 text-sm font-bold text-ink-950 dark:text-white">
         {counts.total > 0

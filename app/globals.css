@@ -565,3 +565,30 @@ html[data-theme="dark"] .text-indigo-700:not([class*="dark:text-"]),
 html[data-theme="dark"] .text-violet-700:not([class*="dark:text-"]) {
   color: rgb(216 180 254);
 }
+
+/* Variantes sombres écrites avec des nuances ink pensées « fixes » (ink-950 = noir, ink-700 = gris foncé).
+   En mode sombre ces nuances sont inversées : on rétablit l'intention (fonds foncés, texte foncé sur fond blanc). */
+html[data-theme="dark"] [class~="dark:bg-ink-950"] { background-color: rgb(11 15 23); }
+html[data-theme="dark"] [class~="dark:bg-ink-950/60"] { background-color: rgb(11 15 23 / 0.6); }
+html[data-theme="dark"] [class~="dark:bg-ink-950/80"] { background-color: rgb(11 15 23 / 0.8); }
+html[data-theme="dark"] [class~="dark:bg-ink-700"] { background-color: rgb(51 65 85); }
+html[data-theme="dark"] [class~="dark:bg-ink-700/80"] { background-color: rgb(51 65 85 / 0.8); }
+html[data-theme="dark"] [class~="dark:bg-ink-700/90"] { background-color: rgb(51 65 85 / 0.9); }
+html[data-theme="dark"] [class~="dark:border-ink-700"] { border-color: rgb(51 65 85); }
+html[data-theme="dark"] [class~="dark:border-ink-700/80"] { border-color: rgb(51 65 85 / 0.8); }
+html[data-theme="dark"] [class~="dark:ring-ink-700"] { --tw-ring-color: rgb(51 65 85); }
+html[data-theme="dark"] [class~="dark:text-ink-950"] { color: rgb(18 18 20); }
+/* Pastilles « noires » sans variante sombre (ex. boutons d'arrêt) : restent foncées et lisibles */
+html[data-theme="dark"] [class~="bg-ink-950"]:not([class*="dark:bg-"]) { background-color: rgb(30 41 59); }
+
+/* Langues aux mots longs (allemand, russe…) : retour à la ligne propre plutôt que débordement */
+:is(h1, h2, h3, h4, h5, h6, p, li, label, button, a) { overflow-wrap: break-word; }
+html:is([lang="de"], [lang="nl"], [lang="ru"], [lang="pt"]) :is(h1, h2, h3, h4) { hyphens: auto; }
+
+/* Cloche qui sonne (invitation aux rappels vocaux) */
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30%, 50% { transform: rotate(14deg); }
+  20%, 40%, 60% { transform: rotate(-14deg); }
+  70% { transform: rotate(0deg); }
+}

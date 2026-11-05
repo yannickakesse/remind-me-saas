@@ -29,7 +29,7 @@ export function LandingFeatures() {
               (séances du jour, tâches urgentes, paiements en attente) */}
           <div className="p-4 sm:p-10 rounded-3xl bg-canvas border border-ink-200/80 dark:border-ink-800 shadow-sm">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              <div className="lg:col-span-5 space-y-4">
+              <div className="lg:col-span-5 space-y-4 text-center flex flex-col items-center">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                   <LayoutDashboard className="w-3.5 h-3.5" />
                   <span>{tr("Tableau de bord")}</span>
@@ -59,7 +59,7 @@ export function LandingFeatures() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
               {/* Volet Activités */}
               <div className="p-6 sm:p-8 rounded-3xl bg-canvas border border-ink-200/80 dark:border-ink-800 shadow-sm flex flex-col justify-between space-y-6">
-                <div className="space-y-3">
+                <div className="space-y-3 text-center flex flex-col items-center">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20">
                     <Layers className="w-3.5 h-3.5" />
                     <span>{tr("Pluriactivité structurée")}</span>
@@ -102,7 +102,7 @@ export function LandingFeatures() {
 
               {/* Volet Finances */}
               <div className="p-6 sm:p-8 rounded-3xl bg-canvas border border-ink-200/80 dark:border-ink-800 shadow-sm flex flex-col justify-between space-y-6">
-                <div className="space-y-3">
+                <div className="space-y-3 text-center flex flex-col items-center">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                     <Wallet className="w-3.5 h-3.5" />
                     <span>{tr("Trésorerie & Rentabilité")}</span>

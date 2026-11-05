@@ -1,117 +1,99 @@
 "use client";
 
-
-import { useLanguage } from "@/components/i18n/language-provider";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Volume2, BellRing, Sparkles, X, ArrowRight, Check } from "lucide-react";
-import { playReminderVoice, getLocalVoiceSettings } from "@/lib/voice";
+import { BellRing, X } from "lucide-react";
+import { useLanguage } from "@/components/i18n/language-provider";
 import { onWelcomeDone } from "@/lib/onboarding/welcome-sequence";
+import { usePopupSlot } from "@/lib/ui/popup-queue";
+import { playNotificationChime } from "@/lib/notifications/sound";
+import { playAudioFile, getLocalVoiceSettings } from "@/lib/voice";
+import { getJourneyAudioSrc } from "@/lib/voice/journey-audio";
 
 const STORAGE_KEY = "remindme_voice_push_prompt_dismissed";
 
+/**
+ * Invitation à activer les rappels vocaux : une cloche qui sonne, une phrase courte,
+ * un seul bouton. La voix du robot la lit (audio enregistré) quand il est disponible.
+ * Passe dans la file des fenêtres : jamais en même temps qu'une autre.
+ */
 export function VoicePushPrompt() {
-  const { tr } = useLanguage();
-  const [isVisible, setIsVisible] = useState(false);
-  const [tested, setTested] = useState(false);
+  const { tr, locale } = useLanguage();
+  const [wanted, setWanted] = useState(false);
+  const visible = usePopupSlot("voicePush", wanted);
+  const rang = useRef(false);
 
   useEffect(() => {
     try {
-      const dismissed = localStorage.getItem(STORAGE_KEY);
-      if (!dismissed) {
-        // Dernier pop-up d'accueil : attendre la vidéo puis la salutation,
-        // puis une courte pause avant d'afficher l'invitation aux rappels vocaux
-        let timer: ReturnType<typeof setTimeout> | undefined;
-        const cancelWait = onWelcomeDone(() => {
-          timer = setTimeout(() => setIsVisible(true), 1500);
-        });
-        return () => {
-          cancelWait();
-          if (timer) clearTimeout(timer);
-        };
-      }
+      if (localStorage.getItem(STORAGE_KEY)) return;
     } catch {
-      // no-op
+      return;
     }
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const cancelWait = onWelcomeDone(() => {
+      timer = setTimeout(() => setWanted(true), 2500);
+    });
+    return () => {
+      cancelWait();
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
-  const handleDismiss = () => {
+  // La cloche sonne à l'apparition, puis la voix explique (si l'audio enregistré existe)
+  useEffect(() => {
+    if (!visible || rang.current) return;
+    rang.current = true;
+    playNotificationChime(0.35);
+    const prefs = getLocalVoiceSettings();
+    const src = getJourneyAudioSrc("journey_notifications", (locale || prefs.voice_language || "fr").slice(0, 2));
+    if (prefs.voice_reminders && src) {
+      setTimeout(() => void playAudioFile({ src, priority: "preview", rate: prefs.voice_playback_rate || 1 }), 900);
+    }
+  }, [visible, locale]);
+
+  const dismiss = () => {
     try {
       localStorage.setItem(STORAGE_KEY, "true");
-    } catch {
-      // no-op
-    }
-    setIsVisible(false);
+    } catch {}
+    setWanted(false);
   };
 
-  const handleTestVoice = () => {
-    const prefs = getLocalVoiceSettings();
-    playReminderVoice({
-      alert: { kind: "generic" },
-      priority: "preview",
-      text: "Bonjour ! Vos notifications orales et vocales Remind Me sont prêtes. Activez les notifications push dans vos paramètres pour ne rien manquer !",
-      language: prefs.voice_language,
-      voiceType: prefs.voice_type,
-      repeat: 0,
-    });
-    setTested(true);
-  };
-
-  if (!isVisible) return null;
+  if (!visible) return null;
 
   return (
-    <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-50 max-w-sm w-[92%] sm:w-full animate-in fade-in slide-in-from-bottom-5 duration-300 select-none">
-      <div className="relative overflow-hidden rounded-3xl bg-canvas-raised/95 dark:bg-zinc-900/95 backdrop-blur-xl border-2 border-signal/40 shadow-2xl p-4 sm:p-5 ring-1 ring-signal/20">
-        {/* Lueur d'ambiance */}
-        <div className="absolute -top-10 -right-10 w-28 h-28 bg-signal/20 rounded-full blur-2xl pointer-events-none" />
+    <div
+      role="dialog"
+      aria-live="polite"
+      className="fixed inset-x-0 bottom-[calc(6.25rem+env(safe-area-inset-bottom,0px))] md:bottom-6 z-50 flex justify-center px-4 md:justify-end md:px-6 animate-in fade-in slide-in-from-bottom-4 duration-300"
+    >
+      <div className="relative w-full max-w-sm rounded-3xl border border-signal/30 bg-canvas-raised/95 dark:bg-slate-900/95 p-5 text-center shadow-2xl backdrop-blur-xl">
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label={tr("Fermer")}
+          className="absolute right-3 top-3 rounded-full p-1 text-ink-400 hover:text-ink-900 dark:hover:text-white"
+        >
+          <X className="h-4 w-4" />
+        </button>
 
-        <div className="relative flex items-start gap-3">
-          {/* Icône Vocale Animée */}
-          <div className="w-10 h-10 rounded-2xl bg-signal text-white flex items-center justify-center shrink-0 shadow-md animate-pulse">
-            <Volume2 className="w-5 h-5" strokeWidth={2.2} />
-          </div>
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-signal text-white shadow-lg shadow-signal/30">
+          <BellRing className="h-7 w-7 origin-top animate-[bell-ring_1.2s_ease-in-out_2]" strokeWidth={2.2} />
+        </div>
+        <p className="text-base font-bold text-ink-950 dark:text-white">{tr("Activez vos rappels vocaux")}</p>
+        <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-ink-600 dark:text-ink-300">
+          {tr("Remind Me vous prévient au bon moment, même quand l'application est fermée. Activez les notifications dans vos paramètres.")}
+        </p>
 
-          <div className="flex-1 min-w-0 pr-5">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-signal/15 text-signal">
-                {tr("Nouveau • Rappels Vocaux")}</span>
-            </div>
-
-            <h4 className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white mt-1">
-              {tr("Activez vos notifications qui parlent ! 🔊")}</h4>
-
-            <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed">
-              {tr("Pour entendre vos rappels oraux à chaque tâche ou activité, activez le bouton")}{" "}<strong>{tr("Push & Synthèse Vocale")}</strong> {tr("dans vos Paramètres.")}</p>
-
-            <div className="flex items-center gap-2 mt-3 flex-wrap">
-              <button
-                type="button"
-                onClick={handleTestVoice}
-                className="px-3 py-1.5 rounded-xl bg-signal/15 hover:bg-signal/25 text-signal text-xs font-bold transition-all flex items-center gap-1 cursor-pointer tap-active"
-              >
-                {tested ? <Check className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                <span>{tested ? tr("Voix testée !") : tr("Tester la voix")}</span>
-              </button>
-
-              <Link
-                href="/settings"
-                onClick={handleDismiss}
-                className="px-3 py-1.5 rounded-xl bg-signal hover:bg-signal-dark text-white text-xs font-bold transition-all flex items-center gap-1 shadow-xs cursor-pointer tap-active"
-              >
-                <span>{tr("Paramètres")}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </div>
-
-          {/* Bouton Fermer */}
-          <button
-            type="button"
-            onClick={handleDismiss}
-            aria-label={tr("Fermer cette note")}
-            className="absolute top-2 right-2 p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <Link
+            href="/settings?tab=notifications"
+            onClick={dismiss}
+            className="inline-flex items-center justify-center rounded-full bg-signal px-5 py-2.5 text-xs font-bold text-white shadow-xs"
           >
-            <X className="w-4 h-4" />
+            {tr("Activer")}
+          </Link>
+          <button type="button" onClick={dismiss} className="rounded-full px-4 py-2.5 text-xs font-semibold text-ink-600 dark:text-ink-300">
+            {tr("Plus tard")}
           </button>
         </div>
       </div>

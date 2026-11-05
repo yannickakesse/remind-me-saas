@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Check, Sparkles } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
+import { getTr } from "@/lib/i18n/server";
 
 interface ChecklistItem {
   label: string;
@@ -13,43 +14,42 @@ interface OnboardingChecklistProps {
 }
 
 /**
- * §143 du prompt maître — "un nouvel utilisateur ne doit jamais voir un
- * dashboard mort". Affichée tant que toutes les étapes ne sont pas
- * complétées ; remplace l'ancien bloc "vous n'avez pas d'activité" par une
- * checklist qui montre explicitement quoi faire ensuite.
+ * « Un nouvel utilisateur ne doit jamais voir un tableau de bord vide » : checklist centrée
+ * affichée tant que les premières étapes ne sont pas faites, avec l'action suivante bien visible.
  */
-export function OnboardingChecklist({ items }: OnboardingChecklistProps) {
+export async function OnboardingChecklist({ items }: OnboardingChecklistProps) {
+  const tr = await getTr();
   const firstPending = items.find((item) => !item.done);
 
   return (
-    <div className="rounded-xl border border-ink-200 bg-canvas-raised px-6 py-6 shadow-xs">
-      <div className="flex items-center gap-2 mb-1">
+    <div className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 px-6 py-6 shadow-xs backdrop-blur-xl text-center">
+      <div className="mb-1 flex items-center justify-center gap-2">
         <Sparkles className="h-5 w-5 text-signal" />
-        <p className="text-lg font-semibold text-ink-950">Bienvenue sur Remind Me</p>
+        <p className="text-lg font-bold text-ink-950 dark:text-white">{tr("Bienvenue sur Remind Me")}</p>
       </div>
-      <p className="mb-5 text-sm text-ink-500">
-        Quelques étapes pour configurer votre espace et voir apparaître votre planning et vos revenus.
+      <p className="mx-auto mb-5 max-w-sm text-sm text-ink-600 dark:text-ink-300">
+        {tr("Quelques étapes pour configurer votre espace et voir apparaître votre planning et vos revenus.")}
       </p>
 
-      <ul className="mb-5 flex flex-col gap-2.5">
+      <ul className="mx-auto mb-5 flex w-fit flex-col items-start gap-2.5">
         {items.map((item) => (
           <li key={item.label} className="flex items-center gap-3 text-sm">
             <span
               aria-hidden="true"
               className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                item.done ? "border-positive bg-positive text-white" : "border-ink-300 bg-canvas text-transparent"
+                item.done ? "border-positive bg-positive text-white" : "border-ink-300 dark:border-white/30 bg-canvas text-transparent"
               }`}
             >
               <Check className="h-3 w-3" strokeWidth={3} />
             </span>
-            <span className={item.done ? "text-ink-500 line-through" : "text-ink-950 font-medium"}>{item.label}</span>
+            <span className={item.done ? "text-ink-500 line-through" : "font-medium text-ink-950 dark:text-white"}>{tr(item.label)}</span>
           </li>
         ))}
       </ul>
 
       {firstPending?.href ? (
-        <Link href={firstPending.href} className={buttonClasses("primary", "md")}>
-          {firstPending.label}
+        <Link href={firstPending.href} className={`${buttonClasses("primary", "md")} mx-auto`}>
+          {tr(firstPending.label)}
         </Link>
       ) : null}
     </div>

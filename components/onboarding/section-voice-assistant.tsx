@@ -20,15 +20,20 @@ import {
 } from "@/lib/voice";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { GuideMascot } from "@/components/onboarding/guide-mascot";
+import Link from "next/link";
+import { pickSectionTip, markTipShown, TIPS_DISABLED_KEY, type SectionTip } from "@/lib/voice/section-tips";
+import { getJourneyAudioSrc } from "@/lib/voice/journey-audio";
+import { usePopupSlot } from "@/lib/ui/popup-queue";
 
-const SESSION_VISITED_KEY = "remindme_voice_visited_sections";
+// Sections déjà présentées : mémorisées sur l'appareil → la présentation ne se répète pas d'une visite à l'autre
+const SESSION_VISITED_KEY = "remindme_voice_heard_sections";
 
 const ASSISTANT_PREF_KEY = "remindme_voice_assistant_auto";
 
 function getVisitedSections(): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
-    const raw = sessionStorage.getItem(SESSION_VISITED_KEY);
+    const raw = localStorage.getItem(SESSION_VISITED_KEY);
     if (!raw) return new Set();
     return new Set(JSON.parse(raw));
   } catch {
@@ -41,7 +46,7 @@ function markSectionVisited(section: string) {
   try {
     const set = getVisitedSections();
     set.add(section);
-    sessionStorage.setItem(SESSION_VISITED_KEY, JSON.stringify(Array.from(set)));
+    localStorage.setItem(SESSION_VISITED_KEY, JSON.stringify(Array.from(set)));
   } catch {}
 }
 
@@ -94,6 +99,34 @@ export function SectionVoiceAssistant() {
   const assistantTokenRef = useRef(0);
   const statusRef = useRef<GuideStatus>("idle");
   statusRef.current = status;
+  const [tip, setTip] = useState<{ section: string; tip: SectionTip } | null>(null);
+  const tipSlot = usePopupSlot("tip", Boolean(tip));
+  const tipDoneForPath = useRef<string | null>(null);
+
+  // Recommandation : quelques secondes après la présentation (ou à l'arrivée si elle est déjà connue),
+  // une seule par visite de page, jamais pendant que le robot parle.
+  useEffect(() => {
+    const section = resolveSectionFromPath(pathname);
+    if (!section || status !== "idle" || tipDoneForPath.current === pathname) return;
+    const timer = setTimeout(() => {
+      if (statusRef.current !== "idle" || isVoicePlaying()) return;
+      const next = pickSectionTip(section);
+      tipDoneForPath.current = pathname;
+      if (!next) return;
+      markTipShown(next.id);
+      setTip({ section, tip: next });
+      const prefs = getLocalVoiceSettings();
+      const src = getJourneyAudioSrc(next.id, (locale || "fr").slice(0, 2));
+      if (prefs.voice_reminders && src) void playAudioFile({ src, priority: "section", rate: prefs.voice_playback_rate || 1 });
+    }, 6000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, status]);
+
+  // Changement de page : la recommandation de la page précédente disparaît
+  useEffect(() => {
+    setTip((t) => (t && t.section !== resolveSectionFromPath(pathname) ? null : t));
+  }, [pathname]);
   const isSpeaking = status !== "idle";
 
   const announce = (section: string | null, isPlaying: boolean) => {
@@ -279,6 +312,40 @@ export function SectionVoiceAssistant() {
 
   return (
     <>
+      {tip && tipSlot && tip.section === pageSection && !fallback && (
+        <div
+          role="status"
+          className="fixed right-4 sm:right-6 bottom-[calc(10rem+env(safe-area-inset-bottom,0px))] md:bottom-24 z-40 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-signal/30 bg-canvas-raised/95 dark:bg-slate-900/95 p-4 shadow-xl backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-300 print:hidden"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-[11px] font-extrabold uppercase tracking-wider text-signal">{tr("Conseil de Remind Me")}</p>
+            <button type="button" onClick={() => setTip(null)} aria-label={tr("Fermer")} className="-mr-1 -mt-1 rounded-full p-1 text-ink-400 hover:text-ink-900 dark:hover:text-white">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <p className="mt-1.5 text-sm leading-relaxed text-ink-800 dark:text-ink-200">{tr(tip.tip.text)}</p>
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  localStorage.setItem(TIPS_DISABLED_KEY, "1");
+                } catch {}
+                setTip(null);
+              }}
+              className="text-[11px] font-medium text-ink-500 hover:underline"
+            >
+              {tr("Ne plus afficher de conseils")}
+            </button>
+            {tip.tip.href && tip.tip.cta && (
+              <Link href={tip.tip.href} onClick={() => setTip(null)} className="rounded-full bg-signal px-3.5 py-1.5 text-xs font-bold text-white">
+                {tr(tip.tip.cta)}
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+
       {fallback && fallback.section === pageSection && (
         <div
           role="status"

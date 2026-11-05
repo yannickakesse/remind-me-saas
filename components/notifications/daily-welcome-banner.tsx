@@ -1,4 +1,5 @@
 "use client";
+import { usePopupSlot } from "@/lib/ui/popup-queue";
 
 import { useEffect, useState, useRef } from "react";
 import { DateTime } from "luxon";
@@ -50,6 +51,8 @@ export function DailyWelcomeBanner({
   const [audioPlayed, setAudioPlayed] = useState(false);
   const [voiceTextState, setVoiceTextState] = useState<string>("");
   const dismissedRef = useRef(false);
+  // File des fenêtres : jamais en même temps qu'une autre fenêtre d'accueil
+  const slotGranted = usePopupSlot("welcome", mounted);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -476,7 +479,7 @@ export function DailyWelcomeBanner({
     }).catch(() => {});
   };
 
-  if (!mounted) return null;
+  if (!mounted || !slotGranted) return null;
 
   return (
     <div

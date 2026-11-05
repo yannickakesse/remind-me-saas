@@ -79,17 +79,17 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
               </Link>
             ) : (
               <>
-                {/* Nouveau visiteur : « Commencer » en bouton principal, « Connexion » en lien discret */}
+                {/* Nouveau visiteur : seulement « Connexion » en haut ; « Commencer gratuitement » est au centre de la page */}
                 <Link
                   href="/login"
                   prefetch={true}
-                  className="px-1 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold text-ink-700 dark:text-ink-200 hover:text-signal transition-colors shrink-0"
+                  className="inline-flex h-9 items-center px-4 rounded-full text-xs font-semibold bg-[#00875A] hover:bg-emerald-700 text-white transition-colors shadow-xs shrink-0"
                 >
                   {tr("Connexion")}</Link>
                 <Link
                   href="/register"
                   prefetch={true}
-                  className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#F59E0B] hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
+                  className="hidden lg:inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#F59E0B] hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm shadow-amber-500/20 hover:shadow transition-all duration-150 tap-active shrink-0"
                 >
                   <span>{tr("Commencer")}</span>
                   <ArrowRight className="hidden sm:block w-3.5 h-3.5" />
@@ -98,7 +98,7 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             )}
 
             {/* Language Selector — pastille drapeau unique (desktop & mobile) */}
-            <LanguageSelector />
+            <LanguageSelector className="!h-9 !w-9 sm:!w-auto" />
 
             {/* Theme Toggle Button — déplacé dans le menu déroulant sous md */}
             <button
@@ -117,14 +117,14 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
             {/* Mobile Menu Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-1 sm:p-2 rounded-full text-ink-700 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors shrink-0 cursor-pointer"
+              className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 dark:border-ink-800 bg-canvas-raised text-ink-800 dark:text-ink-200 shadow-2xs transition-colors shrink-0 cursor-pointer"
               aria-label={mobileMenuOpen ? tr("Fermer le menu") : tr("Ouvrir le menu")}
               aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? (
-                <X className="w-5 h-5" />
+                <X className="w-[18px] h-[18px]" />
               ) : (
-                <Menu className="w-5 h-5" />
+                <Menu className="w-[18px] h-[18px]" strokeWidth={2.2} />
               )}
             </button>
           </div>

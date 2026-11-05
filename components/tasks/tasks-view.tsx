@@ -140,15 +140,15 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
       {/* En-tête principal */}
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md p-5 sm:p-6 shadow-xs" data-tour="tasks-header">
 
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="relative z-10 flex flex-col items-center gap-3 text-center">
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center gap-2 truncate">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-950 dark:text-ink-50 flex items-center justify-center gap-2">
               <span className="p-1.5 rounded-xl bg-signal text-white shadow-xs">
                 <CheckSquare className="h-4 w-4" />
               </span>
               {t("tasks.title")}
             </h1>
-            <p className="text-xs text-ink-500 mt-1 truncate">
+            <p className="text-xs text-ink-500 mt-1">
               {t("tasks.count_active", { count: counts.all })}
               {counts.overdue > 0 ? (
                 <span className="ml-2 font-semibold text-danger">
@@ -163,7 +163,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
             <SectionGuideTrigger section="tasks" label={tr("Guide des tâches")} />
             <Link href="/tasks/new" data-tour="task-create" className={buttonClasses("primary", "sm")}>
               <Plus className="mr-1 h-3.5 w-3.5" />
@@ -175,7 +175,7 @@ export function TasksView({ tasks, activities }: TasksViewProps) {
 
       {/* Onglets de navigation temporelle défilables sans scrollbar */}
       <div className="w-full max-w-full overflow-x-auto no-scrollbar border-b border-ink-200 pb-1" data-tour="task-tabs">
-        <nav className="flex space-x-1.5 min-w-max py-0.5" aria-label={tr("Tabs")}>
+        <nav className="mx-auto flex w-max space-x-1.5 py-0.5" aria-label={tr("Tabs")}>
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (

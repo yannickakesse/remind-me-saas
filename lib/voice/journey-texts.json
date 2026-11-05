@@ -34,6 +34,30 @@
         "journey_notifications_on",
         "journey_end"
       ]
+    },
+    "tips": {
+      "title": "Conseils du robot",
+      "ids": [
+        "tip_dashboard_1",
+        "tip_dashboard_2",
+        "tip_activities_1",
+        "tip_activities_2",
+        "tip_calendar_1",
+        "tip_calendar_2",
+        "tip_tasks_1",
+        "tip_tasks_2",
+        "tip_finances_1",
+        "tip_finances_2",
+        "tip_reports_1",
+        "tip_reports_2",
+        "tip_notifications_1",
+        "tip_messages_1",
+        "tip_settings_1",
+        "tip_settings_2",
+        "tip_clients_1",
+        "tip_goals_1",
+        "tip_goals_2"
+      ]
     }
   },
   "texts": {
@@ -211,6 +235,139 @@
       "es": "¡Ya está listo! Me quedaré en la parte inferior de la pantalla: tóqueme si necesita ayuda.",
       "de": "Sie sind startklar! Ich bleibe am unteren Bildschirmrand: Tippen Sie mich an, wenn Sie Hilfe benötigen.",
       "pt": "Você está pronto! Estou aqui na parte inferior da tela: toque em mim se precisar de ajuda."
+    },
+    "tip_dashboard_1": {
+      "fr": "Ajoutez vos dépenses programmées, comme le loyer ou les abonnements : le tableau de bord vous montrera ce qui reste vraiment à payer ce mois-ci.",
+      "en": "Add your recurring expenses, such as rent or subscriptions: the dashboard will show you what you actually have left to pay this month.",
+      "es": "Añada sus gastos programados, como el alquiler o las suscripciones: el panel de control le mostrará lo que realmente le queda por pagar este mes.",
+      "de": "Fügen Sie Ihre geplanten Ausgaben wie Miete oder Abonnements hinzu: Das Dashboard zeigt Ihnen, was in diesem Monat tatsächlich noch zu bezahlen ist.",
+      "pt": "Adicione suas despesas programadas, como aluguel ou assinaturas: o painel de controle mostrará o que realmente resta para pagar neste mês."
+    },
+    "tip_dashboard_2": {
+      "fr": "Touchez une séance du programme du jour pour la marquer terminée : vos rapports de rentabilité seront plus justes.",
+      "en": "Tap a session in today’s schedule to mark it as completed: your profitability reports will be more accurate.",
+      "es": "Toque una sesión del programa del día para marcarla como completada: sus informes de rentabilidad serán más precisos.",
+      "de": "Tippen Sie auf eine Trainingseinheit im Tagesprogramm, um sie als abgeschlossen zu markieren: Ihre Rentabilitätsberichte werden dadurch genauer.",
+      "pt": "Toque em uma sessão do programa do dia para marcá-la como concluída: seus relatórios de rentabilidade ficarão mais precisos."
+    },
+    "tip_activities_1": {
+      "fr": "Renseignez la rémunération de chaque activité : Remind Me calculera ce que vous gagnez réellement par heure.",
+      "en": "Enter the pay rate for each activity: Remind Me will calculate your actual hourly earnings.",
+      "es": "Introduzca la remuneración de cada actividad: Remind Me calculará lo que gana realmente por hora.",
+      "de": "Geben Sie das Entgelt für jede Tätigkeit ein: Remind Me berechnet dann, wie viel Sie tatsächlich pro Stunde verdienen.",
+      "pt": "Informe a remuneração de cada atividade: o Remind Me calculará quanto você ganha realmente por hora."
+    },
+    "tip_activities_2": {
+      "fr": "Ajoutez les horaires habituels de vos activités : vos séances apparaîtront toutes seules dans le calendrier.",
+      "en": "Add the usual times for your activities: your sessions will automatically appear in the calendar.",
+      "es": "Añada los horarios habituales de sus actividades: sus sesiones aparecerán automáticamente en el calendario.",
+      "de": "Fügen Sie die üblichen Zeiten Ihrer Aktivitäten hinzu: Ihre Termine werden dann automatisch im Kalender angezeigt.",
+      "pt": "Adicione os horários habituais de suas atividades: suas sessões aparecerão automaticamente no calendário."
+    },
+    "tip_calendar_1": {
+      "fr": "Ajoutez des horaires à vos activités pour remplir votre calendrier automatiquement.",
+      "en": "Add times to your activities to automatically fill in your calendar.",
+      "es": "Añada horarios a sus actividades para que su agenda se complete automáticamente.",
+      "de": "Fügen Sie Ihren Aktivitäten Zeitangaben hinzu, um Ihren Kalender automatisch zu füllen.",
+      "pt": "Adicione horários às suas atividades para preencher sua agenda automaticamente."
+    },
+    "tip_calendar_2": {
+      "fr": "Quand une séance est terminée, marquez-la : vous saurez exactement combien d'heures vous avez travaillé.",
+      "en": "When a session is over, mark it as complete: you’ll know exactly how many hours you’ve worked.",
+      "es": "Cuando finalice una sesión, márquela: así sabrá exactamente cuántas horas ha trabajado.",
+      "de": "Wenn eine Sitzung beendet ist, markieren Sie sie: So wissen Sie genau, wie viele Stunden Sie gearbeitet haben.",
+      "pt": "Quando uma sessão terminar, marque-a: assim, você saberá exatamente quantas horas trabalhou."
+    },
+    "tip_tasks_1": {
+      "fr": "Donnez une date à vos tâches importantes : Remind Me vous les rappellera au bon moment.",
+      "en": "Set a date for your important tasks: Remind Me will remind you at the right time.",
+      "es": "Asigne una fecha a sus tareas importantes: Remind Me se las recordará en el momento oportuno.",
+      "de": "Legen Sie für Ihre wichtigen Aufgaben ein Datum fest: Remind Me wird Sie zum richtigen Zeitpunkt daran erinnern.",
+      "pt": "Defina uma data para suas tarefas importantes: o Remind Me irá lembrá-lo delas no momento certo."
+    },
+    "tip_tasks_2": {
+      "fr": "Liez une tâche à une activité pour retrouver facilement tout ce qui concerne un même client.",
+      "en": "Link a task to an activity to easily find everything related to a single client.",
+      "es": "Vincule una tarea a una actividad para localizar fácilmente toda la información relacionada con un mismo cliente.",
+      "de": "Verknüpfen Sie eine Aufgabe mit einer Aktivität, um alles, was einen bestimmten Kunden betrifft, leicht wiederzufinden.",
+      "pt": "Vincule uma tarefa a uma atividade para localizar facilmente tudo o que diz respeito a um mesmo cliente."
+    },
+    "tip_finances_1": {
+      "fr": "Fixez un budget pour votre plus grosse catégorie de dépenses : Remind Me vous préviendra avant le dépassement.",
+      "en": "Set a budget for your largest expense category: Remind Me will alert you before you go over it.",
+      "es": "Establezca un presupuesto para su categoría de gastos más importante: Remind Me le avisará antes de que se supere dicho límite.",
+      "de": "Legen Sie ein Budget für Ihre größte Ausgabenkategorie fest: Remind Me warnt Sie, bevor dieses überschritten wird.",
+      "pt": "Defina um orçamento para sua maior categoria de despesas: o Remind Me irá avisá-lo antes que o limite seja ultrapassado."
+    },
+    "tip_finances_2": {
+      "fr": "Enregistrez un revenu dès qu'il est reçu : votre solde du mois restera toujours exact.",
+      "en": "Record income as soon as you receive it: your monthly balance will always be accurate.",
+      "es": "Registre un ingreso en cuanto lo reciba: su saldo mensual se mantendrá siempre exacto.",
+      "de": "Erfassen Sie Einnahmen sofort nach Erhalt: So bleibt Ihr Monatssaldo stets korrekt.",
+      "pt": "Registre uma receita assim que ela for recebida: seu saldo mensal permanecerá sempre correto."
+    },
+    "tip_reports_1": {
+      "fr": "Comparez vos activités sur un mois complet pour voir laquelle vous rapporte le plus par heure.",
+      "en": "Compare your activities over a full month to see which one earns you the most per hour.",
+      "es": "Compare sus actividades a lo largo de un mes completo para ver cuál le reporta más ingresos por hora.",
+      "de": "Vergleichen Sie Ihre Tätigkeiten über einen ganzen Monat hinweg, um festzustellen, welche Ihnen den höchsten Stundenverdienst einbringt.",
+      "pt": "Compare suas atividades ao longo de um mês inteiro para verificar qual delas lhe rende mais por hora."
+    },
+    "tip_reports_2": {
+      "fr": "Téléchargez votre bilan en PDF pour le partager ou l'archiver.",
+      "en": "Download your report as a PDF to share or save it.",
+      "es": "Descargue su informe en formato PDF para compartirlo o archivarlo.",
+      "de": "Laden Sie Ihre Bilanz als PDF herunter, um sie weiterzugeben oder zu archivieren.",
+      "pt": "Baixe seu relatório em PDF para compartilhá-lo ou arquivá-lo."
+    },
+    "tip_notifications_1": {
+      "fr": "Traitez vos rappels au fur et à mesure : une liste à jour vous évite d'oublier un paiement.",
+      "en": "Take care of your reminders as they come up: an up-to-date list helps you avoid missing a payment.",
+      "es": "Gestione sus recordatorios a medida que surjan: una lista actualizada le evitará olvidarse de algún pago.",
+      "de": "Erledigen Sie Ihre Erinnerungen nach und nach: Eine aktuelle Liste verhindert, dass Sie eine Zahlung vergessen.",
+      "pt": "Resolva seus lembretes à medida que forem surgindo: uma lista atualizada evita que você se esqueça de um pagamento."
+    },
+    "tip_messages_1": {
+      "fr": "Consultez l'Inbox chaque semaine : vos bilans et vos alertes importantes y sont gardés.",
+      "en": "Check your Inbox every week: your summaries and important alerts are stored there.",
+      "es": "Consulte la bandeja de entrada cada semana: allí se guardan sus resúmenes y sus alertas importantes.",
+      "de": "Schauen Sie jede Woche in Ihren Posteingang: Dort werden Ihre Übersichten und wichtigen Benachrichtigungen gespeichert.",
+      "pt": "Consulte a Caixa de Entrada semanalmente: seus balanços e alertas importantes ficam armazenados lá."
+    },
+    "tip_settings_1": {
+      "fr": "Activez les notifications push pour recevoir vos rappels même quand l'application est fermée.",
+      "en": "Turn on push notifications to receive your reminders even when the app is closed.",
+      "es": "Active las notificaciones push para recibir sus recordatorios incluso cuando la aplicación esté cerrada.",
+      "de": "Aktivieren Sie Push-Benachrichtigungen, um Ihre Erinnerungen auch dann zu erhalten, wenn die App geschlossen ist.",
+      "pt": "Ative as notificações push para receber seus lembretes mesmo quando o aplicativo estiver fechado."
+    },
+    "tip_settings_2": {
+      "fr": "Ajoutez votre prénom à votre profil : vos rappels vocaux pourront vous saluer.",
+      "en": "Add your first name to your profile: your voice reminders will be able to greet you by name.",
+      "es": "Añada su nombre de pila a su perfil: así, sus recordatorios de voz podrán saludarle.",
+      "de": "Fügen Sie Ihren Vornamen zu Ihrem Profil hinzu: Ihre Sprach-Erinnerungen können Sie dann mit Ihrem Namen ansprechen.",
+      "pt": "Adicione seu nome ao seu perfil: seus lembretes de voz poderão cumprimentá-lo."
+    },
+    "tip_clients_1": {
+      "fr": "Reliez vos clients à vos activités : vous verrez en un coup d'œil qui vous paie quoi.",
+      "en": "Link your customers to your activities: you’ll see at a glance who’s paying you what.",
+      "es": "Relacione a sus clientes con sus actividades: verá de un solo vistazo quién le paga qué.",
+      "de": "Verknüpfen Sie Ihre Kunden mit Ihren Geschäftsvorgängen: So sehen Sie auf einen Blick, wer Ihnen welche Zahlungen leistet.",
+      "pt": "Relacione seus clientes às suas atividades: você verá rapidamente quem está pagando o quê."
+    },
+    "tip_goals_1": {
+      "fr": "Découpez votre objectif en petites étapes : on avance plus facilement un pas à la fois.",
+      "en": "Break your goal down into small steps: it’s easier to make progress one step at a time.",
+      "es": "Divida su objetivo en pequeños pasos: es más fácil avanzar paso a paso.",
+      "de": "Teilen Sie Ihr Ziel in kleine Schritte auf: Schritt für Schritt kommt man leichter voran.",
+      "pt": "Divida sua meta em pequenas etapas: é mais fácil avançar um passo de cada vez."
+    },
+    "tip_goals_2": {
+      "fr": "Notez pourquoi vous voulez l'atteindre : Remind Me vous le rappellera dans les moments de doute.",
+      "en": "Write down why you want to achieve this: Remind Me will remind you when you’re feeling unsure.",
+      "es": "Anote por qué quiere lograrlo: Remind Me se lo recordará en los momentos de duda.",
+      "de": "Notieren Sie sich, warum Sie dieses Ziel erreichen möchten: Remind Me wird Sie in Momenten des Zweifels daran erinnern.",
+      "pt": "Anote por que deseja alcançar esse objetivo: o Remind Me irá lembrá-lo disso nos momentos de dúvida."
     }
   }
 }

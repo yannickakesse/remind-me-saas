@@ -18,6 +18,7 @@ import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist
 import { AttentionRequired } from "@/components/dashboard/attention-required";
 import { TodayFocus } from "@/components/dashboard/today-focus";
 import { DashboardInsights } from "@/components/insights/dashboard-insights";
+import { msg } from "@/lib/i18n/catalog";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
 import { ensureNotifications } from "@/lib/notifications/sync";
@@ -149,8 +150,8 @@ export default async function DashboardPage() {
   const hasActivities = (activities?.length ?? 0) > 0;
 
   const checklistItems = [
-    { label: "Créer votre première activité", done: hasActivities, href: "/activities/new" },
-    { label: "Configurer votre profil", done: !!profile?.full_name, href: "/settings" },
+    { label: msg("Créer votre première activité"), done: hasActivities, href: "/activities/new" },
+    { label: msg("Configurer votre profil"), done: !!profile?.full_name, href: "/settings" },
   ];
   const onboardingComplete = checklistItems.every((item) => item.done);
 
@@ -213,7 +214,7 @@ export default async function DashboardPage() {
         <div className="lg:col-span-6 order-3" data-tour="dashboard-scheduled-expenses">
           <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-4 sm:p-5 shadow-xs space-y-4">
             <div className="relative px-12 text-center">
-              <h3 className="inline-flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
+              <h3 className="inline-flex flex-wrap items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white [overflow-wrap:anywhere] hyphens-auto">
                 <span className="text-amber-600 dark:text-amber-400"><Clock className="w-3.5 h-3.5" /></span>
                     {t("dashboard.scheduled_expenses_title", locale)}
               </h3>
@@ -222,10 +223,11 @@ export default async function DashboardPage() {
               </span>
               <Link
                 href="/finances?tab=scheduled"
-                className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-signal font-semibold hover:underline flex items-center gap-1 group"
+                aria-label={t("dashboard.manage", locale)}
+                title={t("dashboard.manage", locale)}
+                className="absolute right-0 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-signal hover:bg-signal/10 group"
               >
-                <span>{t("dashboard.manage", locale)}</span>
-                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
 
@@ -305,7 +307,7 @@ export default async function DashboardPage() {
         <div className="lg:col-span-6 order-4" data-tour="dashboard-late-income">
           <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-4 sm:p-5 shadow-xs space-y-4">
             <div className="relative px-12 text-center">
-              <h3 className="inline-flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
+              <h3 className="inline-flex flex-wrap items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white [overflow-wrap:anywhere] hyphens-auto">
                 <span className="text-emerald-600 dark:text-emerald-400"><TrendingUp className="w-3.5 h-3.5" /></span>
                     {tr("Encaissements attendus")}
               </h3>
@@ -314,10 +316,11 @@ export default async function DashboardPage() {
               </span>
               <Link
                 href="/finances?tab=income"
-                className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-signal font-semibold hover:underline flex items-center gap-1 group"
+                aria-label={t("dashboard.see_all", locale)}
+                title={t("dashboard.see_all", locale)}
+                className="absolute right-0 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-signal hover:bg-signal/10 group"
               >
-                <span>{locale === "fr" ? "Voir" : t("dashboard.see_all", locale)}</span>
-                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
 

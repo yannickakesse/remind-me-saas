@@ -1,4 +1,5 @@
 "use client";
+import { usePopupSlot } from "@/lib/ui/popup-queue";
 
 
 import { useLanguage } from "@/components/i18n/language-provider";
@@ -42,6 +43,8 @@ export function PwaInstallPrompt() {
   const [isAndroid, setIsAndroid] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  // File des fenêtres : l'invitation à installer passe après les autres
+  const installSlot = usePopupSlot("install", isVisible);
   const [showGuideModal, setShowGuideModal] = useState(false);
   const [activeGuideTab, setActiveGuideTab] = useState<"ios" | "android" | "desktop">("ios");
 
@@ -171,7 +174,7 @@ export function PwaInstallPrompt() {
   return (
     <>
       {/* 1. Bannière Flottante Discrète en Bas d'Écran */}
-      {isVisible && (
+      {isVisible && installSlot && (
         <aside
           aria-label={tr("Invitation d'installation de l'application")}
           className={`fixed z-40 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md transition-all duration-500 ease-out ${
