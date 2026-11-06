@@ -349,6 +349,15 @@ function createMockSupabase(initialState: Partial<MockDatabaseState> = {}) {
           pendingInsert = rows;
           return chain;
         },
+        // Le moteur de rappels enregistre avec upsert (ignoreDuplicates) : simulé comme un insert
+        upsert(rowsOrRow: any, _opts?: any) {
+          const rows = Array.isArray(rowsOrRow) ? rowsOrRow : [rowsOrRow];
+          pendingInsert = rows;
+          return chain;
+        },
+        limit(_n: number) {
+          return chain;
+        },
         eq(col: string, val: any) {
           filters.push((r) => r[col] === val);
           return chain;

@@ -89,13 +89,13 @@ export default async function DashboardPage() {
       .limit(5),
     supabase
       .from("income")
-      .select("amount, received")
+      .select("amount, received, currency")
       .eq("user_id", user.id)
       .gte("due_date", startOfMonth)
       .lte("due_date", endOfMonth),
     supabase
       .from("expenses")
-      .select("amount, paid")
+      .select("amount, paid, currency")
       .eq("user_id", user.id)
       .gte("due_date", startOfMonth)
       .lte("due_date", endOfMonth),
@@ -136,13 +136,16 @@ export default async function DashboardPage() {
     activity: Array.isArray(e.activities) ? e.activities[0] ?? null : e.activities,
   }));
 
-  const incomeReceived = (monthIncome ?? [])
+  // Devise principale uniquement : 100 € et 50 000 FCFA ne s'additionnent jamais
+  const mainIncome = (monthIncome ?? []).filter((i) => (i.currency || currency) === currency);
+  const mainExpenses = (monthExpenses ?? []).filter((e) => (e.currency || currency) === currency);
+  const incomeReceived = mainIncome
     .filter((i) => i.received)
     .reduce((acc, i) => acc + Number(i.amount), 0);
-  const incomeExpected = (monthIncome ?? [])
+  const incomeExpected = mainIncome
     .filter((i) => !i.received)
     .reduce((acc, i) => acc + Number(i.amount), 0);
-  const expensesPaid = (monthExpenses ?? [])
+  const expensesPaid = mainExpenses
     .filter((e) => e.paid)
     .reduce((acc, e) => acc + Number(e.amount), 0);
 
