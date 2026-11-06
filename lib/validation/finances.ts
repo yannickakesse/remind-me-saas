@@ -99,9 +99,12 @@ export const incomeFormSchema = z.object({
   label: z.string().min(1, "Le libellé est requis"),
   amount: z.coerce.number().positive("Le montant doit être strictement positif"),
   currency: z.string().min(1, "La devise est requise"),
-  incomeType: z.enum(["salary", "contract", "freelance", "sales", "coaching", "dividend", "other"]).default("contract"),
-  paymentMethod: z.string().optional(),
-  reference: z.string().optional(),
+  incomeType: z
+    .enum(["salary", "contract", "freelance", "sales", "coaching", "dividend", "other", "bonus", "windfall", "gift", "refund", "exceptional_other"])
+    .default("contract"),
+  paymentMethod: z.string().max(60).optional(),
+  // Provenance d'un revenu exceptionnel (ou référence d'un paiement)
+  reference: z.string().max(160).optional(),
   dueDate: z.string().optional().or(z.literal("")),
   notes: z.string().optional(),
 });

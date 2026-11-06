@@ -2,6 +2,7 @@
 
 
 import { useLanguage } from "@/components/i18n/language-provider";
+import { EXCEPTIONAL_INCOME_CATEGORIES } from "@/lib/finances/income-kinds";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
@@ -10,7 +11,7 @@ import { PAYMENT_METHODS } from "@/lib/validation/finances";
 interface IncomeFormProps {
   activities: { id: string; name: string; color: string | null }[];
   currencies: { code: string; symbol: string }[];
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<void | { error: string }>;
   initial?: {
     activityId?: string;
     label?: string;
@@ -46,7 +47,12 @@ export function IncomeForm({
     const formData = new FormData(e.currentTarget);
 
     try {
-      await action(formData);
+      const result = await action(formData);
+      if (result && "error" in result) {
+        setSubmitting(false);
+        setError(result.error);
+        return;
+      }
     } catch (err: any) {
       if (err?.digest?.startsWith("NEXT_REDIRECT") || err?.message === "NEXT_REDIRECT") {
         return;
@@ -83,6 +89,13 @@ export function IncomeForm({
             <option value="coaching">{tr("Coaching / Formation")}</option>
             <option value="dividend">{tr("Dividendes / Placements")}</option>
             <option value="other">{tr("Autre source")}</option>
+            <optgroup label={tr("Revenus exceptionnels")}>
+              {EXCEPTIONAL_INCOME_CATEGORIES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.emoji} {tr(c.label)}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </Field>
 

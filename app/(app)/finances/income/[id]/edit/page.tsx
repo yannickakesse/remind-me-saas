@@ -44,6 +44,8 @@ export default async function EditIncomePage({ params }: { params: { id: string 
           currency: income.currency,
           dueDate: income.due_date,
           notes: income.notes ?? "",
+          incomeType: (income as any).income_type ?? "contract",
+          reference: (income as any).reference ?? "",
         }}
       />
     </div>

@@ -29,6 +29,7 @@ import { useLanguage } from "@/components/i18n/language-provider";
 import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
 import { setIncomeReceived, postponeIncomeAction, setExpensePaid } from "@/app/(app)/finances/actions";
 import { openQuickTransaction } from "@/components/finances/quick-transaction-modal";
+import { incomeKindOf, exceptionalCategory } from "@/lib/finances/income-kinds";
 
 interface FinancesViewProps {
   initialTab: FinanceTab;
@@ -76,6 +77,8 @@ export function FinancesView({
   const { t , tr } = useLanguage();
   const [activeTab, setActiveTab] = useState<FinanceTab>(initialTab);
   const [incomes, setIncomes] = useState<any[]>(initialIncomeRows);
+  // Revenus : tous / réguliers / ponctuels / exceptionnels (remboursements inclus, affichés à part)
+  const [incomeFilter, setIncomeFilter] = useState<"all" | "regular" | "ponctual" | "exceptional">("all");
   const [expenses, setExpenses] = useState<any[]>(initialExpenseRows ?? []);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
@@ -470,6 +473,13 @@ export function FinancesView({
             <h3 className="text-lg sm:text-xl font-extrabold tracking-tight text-signal">{tr("Revenus du mois")}</h3>
             <p className="text-xs sm:text-sm text-ink-600 dark:text-ink-400 max-w-md mx-auto">
               {tr("Encaissez vos paiements reçus pour les intégrer à votre Total reçu et Solde net.")}</p>
+            <button
+              type="button"
+              onClick={() => openQuickTransaction("income", "exceptional")}
+              className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-positive/30 bg-positive/10 px-3.5 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300"
+            >
+              <Plus className="h-3.5 w-3.5" /> {tr("Revenu exceptionnel")}
+            </button>
           </div>
 
           {(incomes ?? []).length === 0 ? (
@@ -494,6 +504,35 @@ export function FinancesView({
             </div>
           ) : (
             <div className="space-y-3">
+              {/* Filtres : réguliers / ponctuels / exceptionnels */}
+              <div className="flex justify-center">
+                <div className="flex max-w-full gap-1 overflow-x-auto no-scrollbar rounded-2xl bg-ink-100 dark:bg-slate-800 p-1">
+                  {([
+                    ["all", tr("Tous")],
+                    ["regular", tr("Réguliers")],
+                    ["ponctual", tr("Ponctuels")],
+                    ["exceptional", tr("Exceptionnels")],
+                  ] as const).map(([key, text]) => {
+                    const count = key === "all" ? incomes.length : incomes.filter((i) => {
+                      const k = incomeKindOf(i);
+                      return key === "exceptional" ? k === "exceptional" || k === "refund" : k === key;
+                    }).length;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setIncomeFilter(key)}
+                        className={`whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                          incomeFilter === key ? "bg-canvas-raised dark:bg-slate-950 text-ink-950 dark:text-white shadow-xs" : "text-ink-600 dark:text-ink-300"
+                        }`}
+                      >
+                        {text} <span className="ml-0.5 text-[10px] opacity-70">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* En-tête de colonnes alignées sur tablette & desktop */}
               <div className="hidden md:grid grid-cols-12 gap-3 px-4 pb-1 text-[11px] font-bold uppercase tracking-wider text-ink-500">
                 <div className="col-span-5">{tr("Libellé & Activité")}</div>
@@ -502,8 +541,15 @@ export function FinancesView({
                 <div className="col-span-2 text-right">{tr("Actions")}</div>
               </div>
 
-              {(incomes ?? []).map((inc) => {
+              {(incomes ?? [])
+                .filter((inc) => {
+                  if (incomeFilter === "all") return true;
+                  const k = incomeKindOf(inc);
+                  return incomeFilter === "exceptional" ? k === "exceptional" || k === "refund" : k === incomeFilter;
+                })
+                .map((inc) => {
                 const isLoading = actionLoadingId === inc.id;
+                const category = exceptionalCategory(inc.income_type);
                 return (
                   <div key={inc.id} className="p-4 rounded-2xl border border-ink-200/80 dark:border-ink-800 bg-canvas dark:bg-ink-950/60 shadow-2xs flex flex-col md:grid md:grid-cols-12 md:gap-3 md:items-center min-w-0">
                     {/* Colonne 1 : Libellé & Activité */}
@@ -521,7 +567,24 @@ export function FinancesView({
                         </span>
                       </div>
                       <div className="text-xs text-ink-500 truncate mt-0.5">
-                        {inc.activity?.name ? tr("Activité : {name}", { name: inc.activity.name }) : tr("Revenu direct")}
+                        {category ? (
+                          <span className="inline-flex items-center gap-1">
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                inc.income_type === "refund"
+                                  ? "bg-sky-500/10 text-sky-700 dark:text-sky-300"
+                                  : "bg-positive/10 text-emerald-700 dark:text-emerald-300"
+                              }`}
+                            >
+                              {category.emoji} {tr(category.label)}
+                            </span>
+                            {inc.reference ? <span className="truncate">· {inc.reference}</span> : null}
+                          </span>
+                        ) : inc.activity?.name ? (
+                          tr("Activité : {name}", { name: inc.activity.name })
+                        ) : (
+                          tr("Revenu direct")
+                        )}
                       </div>
                     </div>
 

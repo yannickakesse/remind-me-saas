@@ -39,7 +39,7 @@ returns table (acquired boolean, cursor_user_id uuid)
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 #variable_conflict use_column
 begin
   insert into public.cron_locks (name) values (p_name) on conflict (name) do nothing;

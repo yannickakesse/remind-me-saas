@@ -1,5 +1,8 @@
 "use server";
 
+import { getTr } from "@/lib/i18n/server";
+import { CHECK_VIOLATION, exceptionalCategory, isExceptionalType } from "@/lib/finances/income-kinds";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { DateTime } from "luxon";
@@ -33,6 +36,26 @@ async function requireUser() {
 // ----------------------------------------------------------------------------
 // REVENUS (Income)
 // ----------------------------------------------------------------------------
+
+/**
+ * Message explicite si la base refuse la catégorie (migration 0029 non appliquée).
+ * Jamais de repli silencieux : rien n'est enregistré avec une autre catégorie que celle choisie.
+ */
+async function incomeSaveError(error: { code?: string; message?: string } | null, incomeType: string): Promise<string> {
+  const tr = await getTr();
+  if (error?.code === CHECK_VIOLATION && isExceptionalType(incomeType)) {
+    return tr("La catégorie « {category} » n'est pas encore activée dans la base de données (mise à jour 0029 à appliquer). Rien n'a été enregistré.", {
+      category: tr(exceptionalCategory(incomeType)?.label ?? incomeType),
+    });
+  }
+  return tr("Impossible d'enregistrer le revenu. Vérifiez les champs et réessayez.");
+}
+
+/** Date du jour dans le fuseau de l'utilisateur (« aujourd'hui » ne dépend pas de l'heure du serveur). */
+async function userTodayISO(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string): Promise<string> {
+  const { data } = await supabase.from("profiles").select("timezone").eq("id", userId).maybeSingle();
+  return DateTime.now().setZone(data?.timezone || "UTC").toISODate()!;
+}
 export async function createIncome(formData: FormData) {
   const { supabase, user } = await requireUser();
   const parsed = incomeFormSchema.parse({
@@ -53,11 +76,14 @@ export async function createIncome(formData: FormData) {
     label: parsed.label,
     amount: parsed.amount,
     currency: parsed.currency,
-    due_date: parsed.dueDate || new Date().toISOString().slice(0, 10),
+    due_date: parsed.dueDate || (await userTodayISO(supabase, user.id)),
     notes: parsed.notes || null,
-  });
+    income_type: parsed.incomeType,
+    payment_method: parsed.paymentMethod || null,
+    reference: parsed.reference || null,
+  } as any);
 
-  if (error) throw new Error("Impossible d'ajouter le revenu.");
+  if (error) return { error: await incomeSaveError(error, parsed.incomeType) };
 
   // Évaluation immédiate des rappels pour le nouveau paiement
   await triggerProactiveReminders(supabase, user.id);
@@ -90,13 +116,17 @@ export async function updateIncome(id: string, formData: FormData) {
       label: parsed.label,
       amount: parsed.amount,
       currency: parsed.currency,
-      due_date: parsed.dueDate || new Date().toISOString().slice(0, 10),
+      due_date: parsed.dueDate || (await userTodayISO(supabase, user.id)),
       notes: parsed.notes || null,
-    })
+      income_type: parsed.incomeType,
+      // Champs absents du formulaire : valeur actuelle conservée (jamais effacée)
+      ...(formData.has("paymentMethod") ? { payment_method: parsed.paymentMethod || null } : {}),
+      ...(formData.has("reference") ? { reference: parsed.reference || null } : {}),
+    } as any)
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) throw new Error("Impossible de mettre à jour le revenu.");
+  if (error) return { error: await incomeSaveError(error, parsed.incomeType) };
 
   await invalidateOutdatedEntityReminders(supabase, id, user.id);
   await triggerProactiveReminders(supabase, user.id);
@@ -317,6 +347,7 @@ export async function createQuickIncomeAction(
       formData.get("dueDate")?.toString().trim() || new Date().toISOString().slice(0, 10);
     const rawIncomeType = (formData.get("incomeType")?.toString().trim() || "contract") as any;
     const rawPaymentMethod = formData.get("paymentMethod")?.toString().trim() || undefined;
+    const rawReference = formData.get("reference")?.toString().trim() || undefined;
     const rawNotes = formData.get("notes")?.toString().trim() || undefined;
     const isReceived = formData.get("received") === "true" || formData.get("received") === "on";
 
@@ -328,10 +359,18 @@ export async function createQuickIncomeAction(
       dueDate: rawDueDate,
       incomeType: rawIncomeType,
       paymentMethod: rawPaymentMethod,
+      reference: rawReference,
       notes: rawNotes,
     });
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = await userTodayISO(supabase, user.id);
+    const tr = await getTr();
+    // Un revenu « déjà reçu » ne peut pas l'être dans le futur
+    if (isReceived && parsed.dueDate && parsed.dueDate > today) {
+      return { success: false, error: tr("Un revenu déjà reçu ne peut pas avoir une date dans le futur.") };
+    }
+    // Date de réception réelle : même enregistré plus tard, le revenu compte dans le mois où il a été reçu
+    const effectiveDate = parsed.dueDate || today;
     const { data: inserted, error } = await supabase
       .from("income")
       .insert({
@@ -340,17 +379,20 @@ export async function createQuickIncomeAction(
         label: parsed.label,
         amount: parsed.amount,
         currency: parsed.currency,
-        due_date: parsed.dueDate || today,
+        due_date: effectiveDate,
         received: isReceived,
-        received_at: isReceived ? today : null,
+        received_at: isReceived ? effectiveDate : null,
         notes: parsed.notes || null,
-      })
+        income_type: parsed.incomeType,
+        payment_method: parsed.paymentMethod || null,
+        reference: parsed.reference || null,
+      } as any)
       .select("id")
       .single();
 
     if (error) {
-      console.error("Erreur insertion revenu rapide :", error);
-      return { success: false, error: error.message || "Impossible d'enregistrer le revenu." };
+      console.error("Erreur insertion revenu rapide :", error.code, error.message);
+      return { success: false, error: await incomeSaveError(error, parsed.incomeType) };
     }
 
     if (!isReceived) {

@@ -55,10 +55,11 @@ export async function getFinancesForRange(
   todayISO: string
 ): Promise<FinancesForRange> {
   const [{ data: rawIncome, error: incomeError }, { data: rawExpenses, error: expensesError }] = await Promise.all([
-    supabase
+    // colonnes income_type / reference absentes des types générés
+    (supabase as any)
       .from("income")
       .select(
-        "id, label, amount, currency, due_date, received, received_at, compensation_id, notes, activity_id, activities(name, color)"
+        "id, label, amount, currency, due_date, received, received_at, compensation_id, income_type, reference, notes, activity_id, activities(name, color)"
       )
       .eq("user_id", userId)
       .gte("due_date", rangeStartISO)
@@ -76,7 +77,7 @@ export async function getFinancesForRange(
   if (incomeError) throw incomeError;
   if (expensesError) throw expensesError;
 
-  const income: IncomeRow[] = (rawIncome ?? []).map((i) => ({
+  const income: IncomeRow[] = (rawIncome ?? []).map((i: any) => ({
     ...i,
     activity: Array.isArray(i.activities) ? i.activities[0] ?? null : i.activities,
     status: deriveFinanceStatus(i.received, i.due_date, todayISO),

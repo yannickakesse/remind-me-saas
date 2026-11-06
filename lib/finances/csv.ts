@@ -1,4 +1,5 @@
 import { DateTime } from "luxon";
+import { exceptionalCategory } from "@/lib/finances/income-kinds";
 import { financeStatusLabel } from "@/lib/validation/finances";
 import type { IncomeRow, ExpenseRow } from "./aggregate";
 
@@ -101,7 +102,7 @@ export function buildFinancesCsv(
         "Revenu",
         i.label,
         i.activity?.name ?? "Général",
-        "",
+        exceptionalCategory((i as any).income_type)?.label ?? "",
         formatAmount(i.amount),
         i.currency,
         formatDate(i.due_date, timezone),
