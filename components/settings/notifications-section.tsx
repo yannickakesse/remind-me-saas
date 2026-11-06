@@ -53,6 +53,7 @@ import {
 } from "@/lib/voice";
 import type { VoiceType, VoiceLanguage, RepeatVoice } from "@/lib/voice";
 import type { NotificationPreference } from "@/types/database";
+import { playJourneyVoice } from "@/components/onboarding/journey-voice";
 
 const VAPID_PUBLIC_KEY = DEFAULT_VAPID_PUBLIC_KEY;
 
@@ -73,7 +74,7 @@ export type PushState =
   | "error";
 
 export function NotificationsSection({ notifPrefs, notificationPreferences, userFullName = null }: NotificationsSectionProps) {
-  const { tr } = useLanguage();
+  const { tr, locale } = useLanguage();
   const { push } = useToast();
 
   const [emailEnabled, setEmailEnabled] = useState(
@@ -484,6 +485,10 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
       setPushState("active");
       setPushEnabled(true);
       push(tr("Notifications push activées avec succès sur cet appareil !"), "success");
+      // Fin du parcours : le robot confirme, puis rappelle qu'il reste disponible
+      void playJourneyVoice("journey_notifications_on", locale, {
+        onEnd: () => void playJourneyVoice("journey_end", locale),
+      });
     } catch (err: any) {
       console.error("[Push] Erreur activation:", err);
       setPushState("error");

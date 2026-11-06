@@ -11,7 +11,7 @@
         "journey_country",
         "journey_currency",
         "journey_timezone",
-        "journey_confirm",
+        "journey_activity_count",
         "journey_welcome"
       ]
     },
@@ -76,9 +76,9 @@
       "pt": "Insira seu nome, seu e-mail e escolha uma senha; em seguida, toque em “Criar minha conta”."
     },
     "journey_verify_email": {
-      "fr": "Votre compte est créé ! Ouvrez votre boîte mail, confirmez votre adresse, puis revenez ici pour continuer.",
-      "en": "Your account has been created! Open your email, confirm your address, then come back here to continue.",
-      "es": "¡Su cuenta ya está creada! Abra su correo electrónico, confirme su dirección y, a continuación, vuelva aquí para continuar.",
+      "fr": "Votre compte est créé ! Ouvrez l'e-mail que nous venons de vous envoyer, puis saisissez ici le code à six chiffres, ou touchez le lien de confirmation.",
+      "en": "Your account has been created! Open the email we just sent you, then enter the six-digit code here, or tap the confirmation link.",
+      "es": "¡Su cuenta ya está creada! Abra el correo que acabamos de enviarle y, a continuación, introduzca aquí el código de seis cifras o pulse el enlace de confirmación.",
       "de": "Ihr Konto wurde erstellt! Öffnen Sie Ihr E-Mail-Postfach, bestätigen Sie Ihre E-Mail-Adresse und kehren Sie anschließend hierher zurück, um fortzufahren.",
       "pt": "Sua conta foi criada! Abra sua caixa de e-mail, confirme seu endereço e, em seguida, volte aqui para continuar."
     },
@@ -203,14 +203,14 @@
     },
     "journey_activity_form": {
       "fr": "Donnez un nom à votre activité, choisissez son type, puis ajoutez vos horaires si vous en avez. Touchez « Créer l'activité » pour terminer.",
-      "en": "Give your activity a name, choose its type, then add your hours if you have any. Tap “Create Activity” to finish.",
-      "es": "Asigne un nombre a su actividad, seleccione su tipo y, a continuación, añada su horario si lo tiene. Pulse «Crear actividad» para finalizar.",
+      "en": "Give your activity a name, choose its type, then add your hours if you have any. Tap “Create an activity” to finish.",
+      "es": "Asigne un nombre a su actividad, seleccione su tipo y, a continuación, añada su horario si lo tiene. Pulse «Crear la actividad» para finalizar.",
       "de": "Geben Sie Ihrer Aktivität einen Namen, wählen Sie deren Art aus und fügen Sie gegebenenfalls Ihre Öffnungszeiten hinzu. Tippen Sie zum Abschluss auf „Aktivität erstellen“.",
       "pt": "Dê um nome à sua atividade, escolha o tipo dela e, em seguida, adicione seus horários, se houver. Toque em “Criar a atividade” para concluir."
     },
     "journey_activity_created": {
       "fr": "Bravo, votre première activité est créée ! Elle apparaît désormais dans votre calendrier.",
-      "en": "Congratulations, your first event has been created! It now appears in your calendar.",
+      "en": "Congratulations, your first activity has been created! It now appears in your calendar.",
       "es": "¡Enhorabuena, ya ha creado su primera actividad! Ahora aparece en su calendario.",
       "de": "Herzlichen Glückwunsch, Ihre erste Aktivität wurde erstellt! Sie erscheint nun in Ihrem Kalender.",
       "pt": "Parabéns, sua primeira atividade foi criada! Ela agora aparece na sua agenda."
@@ -244,9 +244,9 @@
       "pt": "Adicione suas despesas programadas, como aluguel ou assinaturas: o painel de controle mostrará o que realmente resta para pagar neste mês."
     },
     "tip_dashboard_2": {
-      "fr": "Touchez une séance du programme du jour pour la marquer terminée : vos rapports de rentabilité seront plus justes.",
-      "en": "Tap a session in today’s schedule to mark it as completed: your profitability reports will be more accurate.",
-      "es": "Toque una sesión del programa del día para marcarla como completada: sus informes de rentabilidad serán más precisos.",
+      "fr": "Touchez une séance du programme du jour pour la marquer terminée : vos statistiques de rentabilité seront plus justes.",
+      "en": "Tap a session in today’s schedule to mark it as completed: your profitability statistics will be more accurate.",
+      "es": "Toque una sesión del programa del día para marcarla como completada: sus estadísticas de rentabilidad serán más precisas.",
       "de": "Tippen Sie auf eine Trainingseinheit im Tagesprogramm, um sie als abgeschlossen zu markieren: Ihre Rentabilitätsberichte werden dadurch genauer.",
       "pt": "Toque em uma sessão do programa do dia para marcá-la como concluída: seus relatórios de rentabilidade ficarão mais precisos."
     },
@@ -307,16 +307,16 @@
       "pt": "Registre uma receita assim que ela for recebida: seu saldo mensal permanecerá sempre correto."
     },
     "tip_reports_1": {
-      "fr": "Comparez vos activités sur un mois complet pour voir laquelle vous rapporte le plus par heure.",
-      "en": "Compare your activities over a full month to see which one earns you the most per hour.",
-      "es": "Compare sus actividades a lo largo de un mes completo para ver cuál le reporta más ingresos por hora.",
+      "fr": "Comparez ce mois-ci au mois précédent dans vos statistiques : vous verrez tout de suite ce qui progresse et ce qui recule.",
+      "en": "Compare this month with last month in your statistics: you’ll see right away what is growing and what is slipping.",
+      "es": "Compare este mes con el anterior en sus estadísticas: verá enseguida lo que progresa y lo que retrocede.",
       "de": "Vergleichen Sie Ihre Tätigkeiten über einen ganzen Monat hinweg, um festzustellen, welche Ihnen den höchsten Stundenverdienst einbringt.",
       "pt": "Compare suas atividades ao longo de um mês inteiro para verificar qual delas lhe rende mais por hora."
     },
     "tip_reports_2": {
-      "fr": "Téléchargez votre bilan en PDF pour le partager ou l'archiver.",
-      "en": "Download your report as a PDF to share or save it.",
-      "es": "Descargue su informe en formato PDF para compartirlo o archivarlo.",
+      "fr": "Téléchargez votre rapport en PDF : un document A4 clair, prêt à partager ou à archiver.",
+      "en": "Download your report as a PDF: a clear A4 document, ready to share or to file away.",
+      "es": "Descargue su informe en PDF: un documento A4 claro, listo para compartir o archivar.",
       "de": "Laden Sie Ihre Bilanz als PDF herunter, um sie weiterzugeben oder zu archivieren.",
       "pt": "Baixe seu relatório em PDF para compartilhá-lo ou arquivá-lo."
     },
@@ -350,7 +350,7 @@
     },
     "tip_clients_1": {
       "fr": "Reliez vos clients à vos activités : vous verrez en un coup d'œil qui vous paie quoi.",
-      "en": "Link your customers to your activities: you’ll see at a glance who’s paying you what.",
+      "en": "Link your clients to your activities: you’ll see at a glance who pays you for what.",
       "es": "Relacione a sus clientes con sus actividades: verá de un solo vistazo quién le paga qué.",
       "de": "Verknüpfen Sie Ihre Kunden mit Ihren Geschäftsvorgängen: So sehen Sie auf einen Blick, wer Ihnen welche Zahlungen leistet.",
       "pt": "Relacione seus clientes às suas atividades: você verá rapidamente quem está pagando o quê."
@@ -368,6 +368,13 @@
       "es": "Anote por qué quiere lograrlo: Remind Me se lo recordará en los momentos de duda.",
       "de": "Notieren Sie sich, warum Sie dieses Ziel erreichen möchten: Remind Me wird Sie in Momenten des Zweifels daran erinnern.",
       "pt": "Anote por que deseja alcançar esse objetivo: o Remind Me irá lembrá-lo disso nos momentos de dúvida."
+    },
+    "journey_activity_count": {
+      "fr": "Dernière question : combien d'activités ou de sources de revenus gérez-vous ? Choisissez votre réponse, puis touchez « Terminer ».",
+      "en": "One last question: how many activities or sources of income do you manage? Choose your answer, then tap “Finish.”",
+      "es": "Última pregunta: ¿cuántas actividades o fuentes de ingresos gestiona? Elija su respuesta y, a continuación, pulse «Finalizar».",
+      "de": "Letzte Frage: Wie viele Tätigkeiten oder Einkommensquellen verwalten Sie? Wählen Sie Ihre Antwort und tippen Sie dann auf „Fertig“.",
+      "pt": "Última pergunta: quantas atividades ou fontes de renda você administra? Escolha sua resposta e toque em “Concluir”."
     }
   }
 }

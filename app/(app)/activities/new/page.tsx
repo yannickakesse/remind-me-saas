@@ -5,6 +5,7 @@ import { ActivityForm } from "@/components/shared/activity-form";
 import { createActivity } from "../actions";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { Copy, ArrowLeft, Plus, Sparkles } from "lucide-react";
+import { JourneyVoice } from "@/components/onboarding/journey-voice";
 
 export default async function NewActivityPage({
   searchParams,
@@ -121,6 +122,7 @@ export default async function NewActivityPage({
 
   return (
     <div className="relative isolate min-h-full w-full space-y-6 max-w-4xl">
+      {!searchParams.duplicate_from && <JourneyVoice id="journey_activity_form" delay={900} />}
       {/* Auras d'ambiance en arrière-plan */}
       <div className="absolute top-0 -left-12 w-64 h-64 rounded-full bg-signal/10 dark:bg-signal/5 blur-3xl pointer-events-none" />
       <div className="absolute top-1/3 -right-12 w-72 h-72 rounded-full bg-purple-500/10 dark:bg-purple-500/5 blur-3xl pointer-events-none" />

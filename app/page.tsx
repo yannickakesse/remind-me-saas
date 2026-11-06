@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { LandingView } from "@/components/landing/landing-view";
 import type { Metadata } from "next";
+import { JourneyVoice } from "@/components/onboarding/journey-voice";
 
 export const dynamic = "force-dynamic";
 
@@ -52,5 +53,10 @@ export default async function HomePage() {
     }
   }
 
-  return <LandingView user={user} />;
+  return (
+    <>
+      <LandingView user={user} />
+      {!user && <JourneyVoice id="journey_landing" delay={1200} />}
+    </>
+  );
 }

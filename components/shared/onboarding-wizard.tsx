@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
 import { completeOnboarding } from "@/app/(onboarding)/onboarding/actions";
 import { TIMEZONE_OPTIONS, resolveAppropriateTimezone } from "@/lib/time/timezones";
+import { JourneyVoice } from "@/components/onboarding/journey-voice";
 
 interface OnboardingWizardProps {
   countries: { code: string; name: string }[];
@@ -14,6 +15,8 @@ interface OnboardingWizardProps {
 }
 
 const STEPS = ["Identité", "Pays", "Devise", "Fuseau horaire", "Vos activités"] as const;
+/** Phrase du robot pour chaque étape (même ordre que STEPS). */
+const STEP_VOICES = ["journey_identity", "journey_country", "journey_currency", "journey_timezone", "journey_activity_count"] as const;
 
 const ACTIVITY_COUNT_OPTIONS = [
   { value: "one", label: "Une seule activité" },
@@ -85,6 +88,7 @@ export function OnboardingWizard({
 
   return (
     <div className="w-full max-w-md">
+      <JourneyVoice key={step} id={STEP_VOICES[step] ?? STEP_VOICES[0]} once={false} delay={step === 0 ? 900 : 350} />
       <ol className="mb-8 flex gap-2" aria-label={tr("Étapes de configuration")}>
         {STEPS.map((label, i) => (
           <li
@@ -227,7 +231,7 @@ export function OnboardingWizard({
 
           {isLastStep ? (
             <PrimaryButton type="submit" loading={submitting} disabled={submitting}>
-              {submitting ? "Enregistrement..." : "Terminer"}
+              {submitting ? tr("Enregistrement...") : tr("Terminer")}
             </PrimaryButton>
           ) : (
             <PrimaryButton type="button" onClick={goNext}>

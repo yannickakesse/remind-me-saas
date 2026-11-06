@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireCurrentUser } from "@/lib/supabase/auth";
 import { ActivitiesClientView, ActivityViewItem } from "@/components/shared/activities-client-view";
+import { JourneyVoice } from "@/components/onboarding/journey-voice";
 
 export default async function ActivitiesPage({
   searchParams,
@@ -76,10 +77,17 @@ export default async function ActivitiesPage({
   });
 
   return (
-    <ActivitiesClientView
-      initialActivities={initialActivities}
-      initialSuggestions={routineSuggestions}
-      initialRenewActivityId={renewActivityId}
-    />
+    <>
+      <ActivitiesClientView
+        initialActivities={initialActivities}
+        initialSuggestions={routineSuggestions}
+        initialRenewActivityId={renewActivityId}
+      />
+      {initialActivities.length === 0 ? (
+        <JourneyVoice id="journey_first_activity" />
+      ) : (
+        <JourneyVoice id="journey_activity_created" after="journey_activity_form" />
+      )}
+    </>
   );
 }

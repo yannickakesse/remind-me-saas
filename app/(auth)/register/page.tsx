@@ -10,6 +10,7 @@ import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { getAuthRedirectUrl } from "@/lib/auth/url";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { LanguageSelector } from "@/components/ui/language-selector";
+import { JourneyVoice } from "@/components/onboarding/journey-voice";
 
 export default function RegisterPage() {
   const supabase = createClient();
@@ -161,6 +162,7 @@ export default function RegisterPage() {
 
     return (
       <main className="flex min-h-screen flex-col items-center justify-center px-4 py-12 bg-canvas">
+        <JourneyVoice id="journey_verify_email" delay={500} />
         <div className="w-full max-w-md space-y-6">
           {/* Logo & Lang Selector */}
           <div className="flex items-center justify-between">
@@ -312,6 +314,7 @@ export default function RegisterPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-12 bg-canvas">
+      <JourneyVoice id="journey_register" />
       <div className="w-full max-w-sm space-y-6">
         {/* Logo & Lang Selector */}
         <div className="flex items-center justify-between">

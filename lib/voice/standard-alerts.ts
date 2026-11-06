@@ -38,10 +38,13 @@ export type StandardAlertKey =
  * Tant qu'elles sont ici, la phrase générale « nouveau rappel » est jouée à leur place (jamais de silence).
  * Retirer une clé de cette liste une fois ses 5 fichiers déposés dans /public/voice/alerts.
  */
-const NOT_YET_RECORDED = new Set<StandardAlertKey>([
+const GOAL_ALERT_KEYS: StandardAlertKey[] = [
   "goal_step_today", "goal_step_overdue", "goal_deadline_week", "goal_deadline_tomorrow",
   "goal_inactive", "goal_reminder", "goal_milestone", "goal_completed",
-]);
+];
+/** Langues dont les rappels « Mes objectifs » sont enregistrés (ajouter la langue quand ses 8 fichiers sont déposés). */
+const GOAL_ALERT_LANGUAGES = new Set<string>(["fr", "en", "es"]);
+const NOT_YET_RECORDED = new Set<StandardAlertKey>(GOAL_ALERT_KEYS);
 
 /** Ce qu'il faut savoir d'un rappel pour choisir sa phrase (champs d'une notification). */
 export interface ReminderAlertInfo {
@@ -144,7 +147,7 @@ export function getStandardAlertSrc(key: StandardAlertKey, language: string): st
   if (!STANDARD_ALERTS_READY) return null;
   const lang = (language || "").slice(0, 2).toLowerCase();
   if (!(STANDARD_ALERT_LANGUAGES as readonly string[]).includes(lang)) return null;
-  const file = NOT_YET_RECORDED.has(key) ? "generic" : key;
+  const file = NOT_YET_RECORDED.has(key) && !GOAL_ALERT_LANGUAGES.has(lang) ? "generic" : key;
   return `/voice/alerts/${file}-${lang}.mp3?v=${STANDARD_ALERTS_VERSION}`;
 }
 

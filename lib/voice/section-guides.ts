@@ -21,15 +21,15 @@ export const SECTION_VOICE_GUIDES: Record<string, SectionVoiceContent> = {
   dashboard: {
     fr: "Bienvenue sur votre tableau de bord. En haut, vos finances du mois : ce que vous avez reçu, ce que vous avez payé, votre solde et ce qui reste à encaisser. Juste en dessous, le focus de la journée avec vos séances prévues, puis vos tâches urgentes. Plus bas, vos dépenses programmées et les paiements que vous attendez. Touchez une flèche pour voir le détail.",
     en: "Welcome to your dashboard. At the top, your monthly finances: what you’ve received, what you’ve paid, your balance, and what’s still coming in. Just below that, today’s focus with your scheduled sessions, followed by your urgent tasks. Further down, your scheduled expenses and payments you’re expecting. Tap an arrow to view the details.",
-    es: "Bienvenido a tu panel de control. En la parte superior, tus finanzas del mes: lo que has recibido, lo que has pagado, tu saldo y lo que te queda por cobrar. Justo debajo, lo más destacado del día con tus sesiones programadas y, a continuación, tus tareas urgentes. Más abajo, tus gastos programados y los pagos que esperas recibir. Toca una flecha para ver los detalles.",
+    es: "Bienvenido a su panel de control. En la parte superior, sus finanzas del mes: lo que ha recibido, lo que ha pagado, su saldo y lo que le queda por cobrar. Justo debajo, lo más destacado del día con sus sesiones programadas y, a continuación, sus tareas urgentes. Más abajo, sus gastos programados y los pagos que espera recibir. Toque una flecha para ver los detalles.",
     de: "Willkommen auf Ihrem Dashboard. Oben sehen Sie Ihre Finanzen des Monats: was Sie erhalten haben, was Sie bezahlt haben, Ihren Kontostand und was noch einzugehen ist. Direkt darunter der Schwerpunkt des Tages mit Ihren geplanten Terminen, gefolgt von Ihren dringenden Aufgaben. Weiter unten Ihre geplanten Ausgaben und die Zahlungen, auf die Sie warten. Tippen Sie auf einen Pfeil, um die Details anzuzeigen.",
     pt: "Bem-vindo ao seu painel de controle. Na parte superior, suas finanças do mês: o que você recebeu, o que pagou, seu saldo e o que ainda está por receber. Logo abaixo, o destaque do dia com suas sessões agendadas e, em seguida, suas tarefas urgentes. Mais abaixo, suas despesas programadas e os pagamentos que você aguarda. Toque em uma seta para ver os detalhes.",
   },
 
   activities: {
     fr: "Voici vos activités : chacune de vos casquettes professionnelles, avec sa rémunération et ses horaires. Touchez le crayon pour la modifier, les deux traits pour la mettre en pause, et le carton pour l'archiver. Pour en créer une nouvelle, utilisez le bouton plus, en bas de l'écran.",
-    en: "Here are your activities: each of your professional roles, along with their pay and schedules. Tap the pencil to edit it, the two lines to pause it, and the card to archive it. To create a new one, use the plus button at the bottom of the screen.",
-    es: "Estas son tus actividades: cada una de tus funciones profesionales, con su remuneración y sus horarios. Toca el lápiz para modificarla, las dos líneas para ponerla en pausa y la tarjeta para archivarla. Para crear una nueva, utiliza el botón «más», en la parte inferior de la pantalla.",
+    en: "Here are your activities: each of your professional roles, with its pay and its schedule. Tap the pencil to edit it, the two lines to pause it, and the box to archive it. To create a new one, use the plus button at the bottom of the screen.",
+    es: "Estas son sus actividades: cada una de sus funciones profesionales, con su remuneración y sus horarios. Toque el lápiz para modificarla, las dos líneas para ponerla en pausa y la caja para archivarla. Para crear una nueva, utilice el botón «más», en la parte inferior de la pantalla.",
     de: "Hier sind Ihre Aktivitäten: jede Ihrer beruflichen Funktionen mit der entsprechenden Vergütung und den Arbeitszeiten. Tippen Sie auf den Bleistift, um sie zu bearbeiten, auf die beiden Striche, um sie zu pausieren, und auf das Karton-Symbol, um sie zu archivieren. Um eine neue Aktivität anzulegen, nutzen Sie die Plus-Schaltfläche am unteren Bildschirmrand.",
     pt: "Aqui estão suas atividades: cada uma de suas funções profissionais, com sua remuneração e horários. Toque no lápis para editá-la, nas duas linhas para colocá-la em pausa e no cartão para arquivá-la. Para criar uma nova, use o botão “mais”, na parte inferior da tela.",
   },
@@ -37,7 +37,7 @@ export const SECTION_VOICE_GUIDES: Record<string, SectionVoiceContent> = {
   calendar: {
     fr: "Votre calendrier rassemble vos séances et vos échéances. Choisissez la vue jour, semaine, mois ou agenda. Chaque couleur correspond à une activité, et un conflit d'horaire s'affiche en rouge. Touchez une séance pour la marquer terminée, la reporter ou l'annuler.",
     en: "Your calendar lists your sessions and deadlines. Choose the day, week, month, or agenda view. Each color corresponds to an activity, and schedule conflicts are displayed in red. Tap a session to mark it as completed, reschedule it, or cancel it.",
-    es: "Tu calendario reúne tus sesiones y tus fechas límite. Elige la vista diaria, semanal, mensual o de agenda. Cada color corresponde a una actividad, y los conflictos de horario se muestran en rojo. Toca una sesión para marcarla como completada, aplazarla o cancelarla.",
+    es: "Su calendario reúne sus sesiones y sus fechas límite. Elija la vista de día, semana, mes o agenda. Cada color corresponde a una actividad, y los conflictos de horario se muestran en rojo. Toque una sesión para marcarla como completada, aplazarla o cancelarla.",
     de: "Ihr Kalender fasst Ihre Termine und Fristen zusammen. Wählen Sie die Tages-, Wochen-, Monats- oder Agenda-Ansicht. Jede Farbe steht für eine Aktivität, und Terminüberschneidungen werden rot angezeigt. Tippen Sie auf einen Termin, um ihn als erledigt zu markieren, zu verschieben oder zu löschen.",
     pt: "Sua agenda reúne suas sessões e prazos. Escolha a visualização por dia, semana, mês ou agenda. Cada cor corresponde a uma atividade, e um conflito de horário é exibido em vermelho. Toque em uma sessão para marcá-la como concluída, adiá-la ou cancelá-la.",
   },
@@ -45,23 +45,23 @@ export const SECTION_VOICE_GUIDES: Record<string, SectionVoiceContent> = {
   tasks: {
     fr: "Vos tâches sont rangées par onglets : en retard, aujourd'hui, à venir, sans date et terminées. Touchez une tâche pour la cocher ou la modifier. Les tâches urgentes apparaissent aussi sur votre tableau de bord.",
     en: "Your tasks are organized into tabs: Overdue, Today, Upcoming, Undated, and Completed. Tap a task to check it off or edit it. Urgent tasks also appear on your dashboard.",
-    es: "Tus tareas están organizadas en pestañas: pendientes, de hoy, futuras, sin fecha y completadas. Toca una tarea para marcarla como completada o modificarla. Las tareas urgentes también aparecen en tu panel de control.",
+    es: "Sus tareas están organizadas en pestañas: atrasadas, hoy, próximas, sin fecha y completadas. Toque una tarea para marcarla o modificarla. Las tareas urgentes también aparecen en su panel de control.",
     de: "Ihre Aufgaben sind in Registerkarten sortiert: überfällig, heute, anstehend, ohne Datum und erledigt. Tippen Sie auf eine Aufgabe, um sie abzuhaken oder zu bearbeiten. Dringende Aufgaben werden auch auf Ihrem Dashboard angezeigt.",
     pt: "Suas tarefas estão organizadas em abas: atrasadas, hoje, futuras, sem data e concluídas. Toque em uma tarefa para marcá-la como concluída ou editá-la. As tarefas urgentes também aparecem no seu painel de controle.",
   },
 
   finances: {
-    fr: "Dans Finances, vous suivez votre argent réel. La vue globale résume le mois. Dans Revenus, touchez Encaisser quand un paiement arrive. Ajoutez vos dépenses, programmez les charges qui reviennent chaque mois, et fixez vos budgets et vos objectifs d'épargne.",
-    en: "In Finance, you track your real money. The overview summarizes the month. In Income, tap “Collect” when a payment comes in. Add your expenses, set up recurring monthly bills, and set your budgets and savings goals.",
-    es: "En «Finanzas», puedes llevar un control de tu dinero real. La vista general resume el mes. En «Ingresos», pulsa «Cobrar» cuando recibas un pago. Añade tus gastos, programa los gastos recurrentes mensuales y establece tus presupuestos y objetivos de ahorro.",
+    fr: "Dans Finances, vous suivez votre argent réel. Dans Revenus, touchez « Encaisser » quand un paiement arrive ; un bonus, un cadeau ou un remboursement se note comme revenu exceptionnel. Ajoutez vos dépenses, programmez les charges mensuelles, et fixez vos budgets et votre épargne.",
+    en: "In Finances, you track your real money. The overview sums up the month. In Income, tap “Collect Payments” when a payment arrives; a bonus, a gift or a refund is recorded as exceptional income. Add your expenses, schedule the bills that come back every month, and set your budgets and savings goals.",
+    es: "En Finanzas, usted sigue su dinero real. La vista general resume el mes. En Ingresos, pulse «Cobrar» cuando llegue un pago; una prima, un regalo o un reembolso se registra como ingreso extraordinario. Añada sus gastos, programe los cargos que se repiten cada mes y fije sus presupuestos y sus objetivos de ahorro.",
     de: "In „Finanzen“ behalten Sie Ihren tatsächlichen Geldfluss im Blick. Die Gesamtansicht fasst den Monat zusammen. Tippen Sie unter „Einnahmen“ auf „Einnahme verbuchen“, sobald eine Zahlung eingeht. Fügen Sie Ihre Ausgaben hinzu, planen Sie wiederkehrende monatliche Kosten ein und legen Sie Ihre Budgets und Sparziele fest.",
     pt: "Na seção Finanças, você acompanha seu dinheiro de verdade. A visão geral resume o mês. Na seção Receitas, toque em “Receber” quando um pagamento chegar. Adicione suas despesas, programe os gastos recorrentes mensais e defina seus orçamentos e metas de poupança.",
   },
 
   reports: {
-    fr: "Les rapports vous montrent ce que chaque activité vous rapporte vraiment : revenus, dépenses, solde et rentabilité par heure. Choisissez la période, puis téléchargez votre bilan en PDF.",
-    en: "The reports show you what each activity actually brings in: income, expenses, balance, and hourly profit. Select the time period, then download your report as a PDF.",
-    es: "Los informes te muestran lo que realmente te reporta cada actividad: ingresos, gastos, saldo y rentabilidad por hora. Elige el periodo y, a continuación, descarga tu balance en formato PDF.",
+    fr: "Vos statistiques financières en un coup d'œil : votre solde net, la comparaison avec la période précédente, l'évolution mois par mois, vos dépenses par catégorie et ce que chaque activité vous rapporte par heure. Choisissez la période, puis téléchargez votre rapport en PDF.",
+    en: "Your financial statistics at a glance: your net balance, the comparison with the previous period, the month-by-month trend, your expenses by category and what each activity earns you per hour. Choose the period, then download your report as a PDF.",
+    es: "Sus estadísticas financieras de un vistazo: su saldo neto, la comparación con el periodo anterior, la evolución mes a mes, sus gastos por categoría y lo que cada actividad le reporta por hora. Elija el periodo y, a continuación, descargue su informe en PDF.",
     de: "Die Berichte zeigen Ihnen, was Ihnen jede Tätigkeit wirklich einbringt: Einnahmen, Ausgaben, Saldo und Rentabilität pro Stunde. Wählen Sie den Zeitraum aus und laden Sie dann Ihre Bilanz als PDF herunter.",
     pt: "Os relatórios mostram o que cada atividade realmente rende para você: receitas, despesas, saldo e rentabilidade por hora. Escolha o período e, em seguida, baixe seu balanço em PDF.",
   },
@@ -69,7 +69,7 @@ export const SECTION_VOICE_GUIDES: Record<string, SectionVoiceContent> = {
   notifications: {
     fr: "Vos notifications sont rangées par jour. Les rappels du même type sont regroupés : touchez la ligne pour les déplier. Le bouton principal traite le rappel, et les trois petits points proposent les autres choix.",
     en: "Your notifications are organized by day. Reminders of the same type are grouped together: tap the line to expand them. The main button handles the reminder, and the three dots offer other options.",
-    es: "Tus notificaciones están ordenadas por día. Los recordatorios del mismo tipo se agrupan: toca la línea para desplegarlos. El botón principal gestiona el recordatorio, y los tres puntitos ofrecen otras opciones.",
+    es: "Sus notificaciones están ordenadas por día. Los recordatorios del mismo tipo se agrupan: toque la línea para desplegarlos. El botón principal gestiona el recordatorio, y los tres puntitos ofrecen las demás opciones.",
     de: "Ihre Benachrichtigungen sind nach Tagen sortiert. Erinnerungen derselben Art sind zusammengefasst: Tippen Sie auf die Zeile, um sie aufzuklappen. Mit der Hauptschaltfläche bearbeiten Sie die Erinnerung, und die drei kleinen Punkte bieten weitere Optionen an.",
     pt: "Suas notificações estão organizadas por dia. Os lembretes do mesmo tipo estão agrupados: toque na linha para expandi-los. O botão principal processa o lembrete, e os três pontinhos oferecem outras opções.",
   },
@@ -77,7 +77,7 @@ export const SECTION_VOICE_GUIDES: Record<string, SectionVoiceContent> = {
   messages: {
     fr: "L'Inbox réunit au même endroit vos messages officiels et vos alertes importantes de Remind Me.",
     en: "The Inbox brings together your official messages and important alerts from Remind Me in one place.",
-    es: "La bandeja de entrada reúne en un mismo lugar tus mensajes oficiales y tus alertas importantes de Remind Me.",
+    es: "La bandeja de entrada reúne en un mismo lugar sus mensajes oficiales y sus alertas importantes de Remind Me.",
     de: "Der Posteingang fasst Ihre offiziellen Nachrichten und wichtigen Benachrichtigungen von Remind Me an einem Ort zusammen.",
     pt: "A Caixa de Entrada reúne em um único lugar suas mensagens oficiais e seus alertas importantes do Remind Me.",
   },
@@ -85,7 +85,7 @@ export const SECTION_VOICE_GUIDES: Record<string, SectionVoiceContent> = {
   settings: {
     fr: "Dans les paramètres, réglez votre profil, la langue et le thème, vos notifications et vos rappels vocaux, la sécurité de votre compte et votre abonnement.",
     en: "In Settings, customize your profile, language, and theme; manage your notifications and voice reminders; and configure your account security and subscription.",
-    es: "En los ajustes, configura tu perfil, el idioma y el tema, tus notificaciones y recordatorios de voz, la seguridad de tu cuenta y tu suscripción.",
+    es: "En los ajustes, configure su perfil, el idioma y el tema, sus notificaciones y recordatorios de voz, la seguridad de su cuenta y su suscripción.",
     de: "Passen Sie in den Einstellungen Ihr Profil, die Sprache und das Design, Ihre Benachrichtigungen und Sprach-Erinnerungen, die Sicherheit Ihres Kontos sowie Ihr Abonnement an.",
     pt: "Nas configurações, defina seu perfil, o idioma e o tema, suas notificações e lembretes de voz, a segurança da sua conta e sua assinatura.",
   },
@@ -93,7 +93,7 @@ export const SECTION_VOICE_GUIDES: Record<string, SectionVoiceContent> = {
   clients: {
     fr: "Clients et contacts : enregistrez les organisations et les personnes avec qui vous travaillez, pour les relier à vos activités.",
     en: "Clients and contacts: Save the organizations and people you work with to link them to your activities.",
-    es: "Clientes y contactos: registra las organizaciones y las personas con las que trabajas para vincularlas a tus actividades.",
+    es: "Clientes y contactos: registre las organizaciones y las personas con las que trabaja para vincularlas a sus actividades.",
     de: "Kunden und Kontakte: Speichern Sie die Organisationen und Personen, mit denen Sie zusammenarbeiten, um sie mit Ihren Aktivitäten zu verknüpfen.",
     pt: "Clientes e contatos: registre as organizações e as pessoas com quem você trabalha, para vinculá-las às suas atividades.",
   },

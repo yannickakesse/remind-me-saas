@@ -17,7 +17,10 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { saveTourState } from "@/lib/onboarding/tour-actions";
+import { getJourneyAudioSrc } from "@/lib/voice/journey-audio";
+import { playJourneyVoice } from "@/components/onboarding/journey-voice";
 import {
+  playAudioFile,
   playVoiceReminder,
   stopVoiceReminder,
   getLocalVoiceSettings,
@@ -31,6 +34,34 @@ import {
 } from "./tour-data";
 
 export type { TourStep };
+
+/** Étapes de la visite principale → phrase enregistrée du robot (lib/voice/journey-texts.json). */
+const TOUR_STEP_AUDIO_KEYS: Record<string, string> = {
+  welcome: "tour_welcome",
+  "nav-general": "tour_nav",
+  dashboard: "tour_dashboard",
+  "activities-and-calendar": "tour_activities",
+  "tasks-and-commitments": "tour_tasks",
+  "finances-real-cashflow": "tour_finances",
+  "inbox-and-notifications": "tour_inbox",
+  "settings-and-customization": "tour_settings",
+  "tour-completed": "tour_done",
+};
+
+/** Voix enregistrée de l'étape si elle existe ; sinon `false` (la voix de synthèse prend le relais). */
+async function playRecordedTourStep(stepId: string, language: string, rate: number, onEnd: () => void): Promise<boolean> {
+  const key = TOUR_STEP_AUDIO_KEYS[stepId];
+  const src = key ? getJourneyAudioSrc(key, language) : null;
+  if (!src) return false;
+  if (stepId === "welcome") {
+    // Première arrivée : « Bienvenue dans votre espace Remind Me ! », puis la présentation de la visite
+    const intro = await playJourneyVoice("journey_welcome", language, {
+      onEnd: () => void playAudioFile({ src, priority: "tour", rate, onEnd }),
+    });
+    if (intro) return true;
+  }
+  return playAudioFile({ src, priority: "tour", rate, onEnd });
+}
 export { MAIN_TOUR_STEPS, CONTEXTUAL_TOURS };
 
 const STORAGE_KEY = "remindme_tour_status";
@@ -386,6 +417,10 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
 
       setIsSpeakingStep(true);
       try {
+        const recorded = await playRecordedTourStep(currentStep.id, voiceLang, prefs.voice_playback_rate || 1.0, () => {
+          if (speechTokenRef.current === currentToken) setIsSpeakingStep(false);
+        });
+        if (recorded || speechTokenRef.current !== currentToken) return;
         await playVoiceReminder({
           text: voiceText,
           language: voiceLang,
@@ -618,7 +653,12 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
                   const voiceText = getTourStepVoiceText(currentStep, voiceLang);
                   if (voiceText) {
                     setIsSpeakingStep(true);
-                    playVoiceReminder({
+                    const onDone = () => {
+                      if (speechTokenRef.current === currentToken) setIsSpeakingStep(false);
+                    };
+                    void playRecordedTourStep(currentStep.id, voiceLang, prefs.voice_playback_rate || 1.0, onDone).then((recorded) => {
+                      if (recorded || speechTokenRef.current !== currentToken) return;
+                      playVoiceReminder({
                       text: voiceText,
                       language: voiceLang,
                       voiceType: prefs.voice_type,
@@ -630,6 +670,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
                       onError: () => {
                         if (speechTokenRef.current === currentToken) setIsSpeakingStep(false);
                       },
+                    });
                     });
                   }
                 }

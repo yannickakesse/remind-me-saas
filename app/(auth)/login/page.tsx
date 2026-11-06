@@ -10,6 +10,7 @@ import { Field, TextInput, PasswordInput, PrimaryButton } from "@/components/ui/
 import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { LanguageSelector } from "@/components/ui/language-selector";
+import { JourneyVoice } from "@/components/onboarding/journey-voice";
 
 function LoginForm() {
   const router = useRouter();
@@ -67,6 +68,7 @@ function LoginForm() {
 
   return (
     <div className="w-full max-w-sm space-y-6">
+      <JourneyVoice id="journey_login" />
       {/* Top bar with Logo & Language Selector */}
       <div className="flex items-center justify-between">
         <Link href="/" className="inline-flex items-center group">

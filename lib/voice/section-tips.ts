@@ -17,7 +17,7 @@ export interface SectionTip {
 export const SECTION_TIPS: Record<string, SectionTip[]> = {
   dashboard: [
     { id: "tip_dashboard_1", text: msg("Ajoutez vos dépenses programmées, comme le loyer ou les abonnements : le tableau de bord vous montrera ce qui reste vraiment à payer ce mois-ci."), href: "/finances?tab=scheduled", cta: msg("Ajouter") },
-    { id: "tip_dashboard_2", text: msg("Touchez une séance du programme du jour pour la marquer terminée : vos rapports de rentabilité seront plus justes.") },
+    { id: "tip_dashboard_2", text: msg("Touchez une séance du programme du jour pour la marquer terminée : vos statistiques de rentabilité seront plus justes.") },
   ],
   activities: [
     { id: "tip_activities_1", text: msg("Renseignez la rémunération de chaque activité : Remind Me calculera ce que vous gagnez réellement par heure.") },
@@ -36,8 +36,8 @@ export const SECTION_TIPS: Record<string, SectionTip[]> = {
     { id: "tip_finances_2", text: msg("Enregistrez un revenu dès qu'il est reçu : votre solde du mois restera toujours exact.") },
   ],
   reports: [
-    { id: "tip_reports_1", text: msg("Comparez vos activités sur un mois complet pour voir laquelle vous rapporte le plus par heure.") },
-    { id: "tip_reports_2", text: msg("Téléchargez votre bilan en PDF pour le partager ou l'archiver.") },
+    { id: "tip_reports_1", text: msg("Comparez ce mois-ci au mois précédent dans vos statistiques : vous verrez tout de suite ce qui progresse et ce qui recule.") },
+    { id: "tip_reports_2", text: msg("Téléchargez votre rapport en PDF : un document A4 clair, prêt à partager ou à archiver.") },
   ],
   notifications: [
     { id: "tip_notifications_1", text: msg("Traitez vos rappels au fur et à mesure : une liste à jour vous évite d'oublier un paiement.") },
