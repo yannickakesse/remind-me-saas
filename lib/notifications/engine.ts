@@ -16,6 +16,19 @@ import {
 } from "@/lib/voice";
 import { createInternalMessage } from "@/lib/messages/service";
 import { evaluateActivityEvolutionSuggestions } from "@/lib/activities/evolution";
+import {
+  isInQuietHours,
+  activitySlotKey,
+  legacyActivitySlotKey,
+  isTaskDueSoon,
+  shouldDeferPush,
+  isDeferredPushStillRelevant,
+  pushTagFor,
+  resolveActivityLeads,
+  LEAD_LATE_TOLERANCE_MINUTES,
+} from "@/lib/notifications/reminder-rules";
+
+export { isInQuietHours };
 
 export interface ReminderCandidate {
   user_id: string;
@@ -33,6 +46,8 @@ export interface ReminderCandidate {
   link: string;
   scheduled_at: string;
   idempotency_key: string;
+  /** Anciennes formes de la même clé : si l'une existe déjà, le rappel est considéré comme envoyé. */
+  legacy_keys?: string[];
   email_template?: string;
 }
 
@@ -45,34 +60,6 @@ export interface ReminderEngineResult {
   pushFailedCount?: number;
   resolvedCleanups: number;
   errors?: string[];
-}
-
-/**
- * Vérifie si l'heure actuelle dans le fuseau horaire de l'utilisateur
- * se situe dans sa plage d'heures silencieuses (Quiet Hours).
- */
-export function isInQuietHours(
-  now: DateTime,
-  enabled: boolean,
-  startStr = "22:00",
-  endStr = "07:00"
-): boolean {
-  if (!enabled) return false;
-
-  const currentMinutes = now.hour * 60 + now.minute;
-  const [startH, startM] = startStr.split(":").map(Number);
-  const [endH, endM] = endStr.split(":").map(Number);
-
-  const startMinutes = (startH || 22) * 60 + (startM || 0);
-  const endMinutes = (endH || 7) * 60 + (endM || 0);
-
-  if (startMinutes > endMinutes) {
-    // Traverse minuit (ex: 22:00 -> 07:00)
-    return currentMinutes >= startMinutes || currentMinutes < endMinutes;
-  } else {
-    // Plage dans la même journée (ex: 13:00 -> 14:00)
-    return currentMinutes >= startMinutes && currentMinutes < endMinutes;
-  }
 }
 
 /**
@@ -204,6 +191,78 @@ export function triggerProactiveReminders(
     pushCount: 0,
     resolvedCleanups: 0,
   });
+}
+
+/**
+ * Envoie, à la fin des heures silencieuses, les push qui avaient été reportés.
+ * - Seuls les rappels encore utiles partent (pas un « dans 10 minutes » dont l'heure est passée).
+ * - Au plus 2 push individuels ; au-delà, un seul récapitulatif pour ne pas réveiller le téléphone en rafale.
+ * - Chaque rappel n'est traité qu'une fois (indicateur retiré, idempotence des push conservée).
+ */
+async function flushDeferredPushes(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  userNow: DateTime,
+  tr: (s: string, p?: Record<string, string | number>) => string,
+  actionLabels: { read: string; listen: string; open: string }
+): Promise<number> {
+  const since = userNow.minus({ hours: 14 }).toUTC().toISO()!;
+  const { data: deferred } = await supabase
+    .from("notifications")
+    .select("id, kind, category, title, body, link, metadata, created_at, idempotency_key, status")
+    .eq("user_id", userId)
+    .gte("created_at", since)
+    .contains("metadata", { push_deferred: true } as any)
+    .order("created_at", { ascending: true })
+    .limit(50);
+  if (!deferred || deferred.length === 0) return 0;
+
+  const useful = deferred.filter(
+    (n: any) => (n.status === "unread" || n.status === "read") && isDeferredPushStillRelevant(n, userNow)
+  );
+  let sent = 0;
+  if (useful.length > 0 && useful.length <= 2) {
+    for (const n of useful as any[]) {
+      const res = await sendNotificationPush(
+        {
+          userId,
+          title: n.title,
+          body: n.body,
+          link: n.link,
+          category: n.category,
+          idempotencyKey: `push:${n.idempotency_key}`,
+          metadata: { ...(n.metadata ?? {}), kind: n.kind, notificationId: n.id },
+          tag: pushTagFor(n.idempotency_key, n.category),
+          actionLabels,
+        },
+        supabase
+      );
+      if (res.success) sent += res.deliveredCount;
+    }
+  } else if (useful.length > 2) {
+    const res = await sendNotificationPush(
+      {
+        userId,
+        title: tr("{count} rappels pendant vos heures silencieuses", { count: useful.length }),
+        body: tr("Touchez pour les consulter."),
+        link: "/notifications",
+        category: "summary",
+        idempotencyKey: `push:quiet_digest:${userId}:${userNow.toISODate()}:${useful.length}:${(useful[useful.length - 1] as any).id}`,
+        metadata: { kind: "quiet_hours_digest", voice_reminder_enabled: false },
+        tag: `quiet_digest_${userNow.toISODate()}`,
+        actionLabels,
+      },
+      supabase
+    );
+    if (res.success) sent += res.deliveredCount;
+  }
+
+  // Indicateur retiré pour tous (envoyés, récapitulés ou devenus inutiles) : jamais traités deux fois
+  for (const n of deferred as any[]) {
+    const { push_deferred: _drop, ...rest } = (n.metadata ?? {}) as Record<string, any>;
+    await supabase.from("notifications").update({ metadata: rest } as any).eq("id", n.id).eq("user_id", userId);
+  }
+  return sent;
 }
 
 /**
@@ -685,14 +744,20 @@ export async function evaluateSmartReminders(
     const past7daysIso = userNow.minus({ days: 7 }).toUTC().toISO()!;
     // Horizon strict de 3 jours max pour les activités futures (règle standard 3 jours)
     const next3daysIso = userNow.plus({ days: 3 }).endOf("day").toUTC().toISO()!;
-    const { data: eventList } = await supabase
-      .from("calendar_events")
-      .select("id, title, starts_at, ends_at, status, activity_id, activities(id, name, voice_reminder_enabled, reminder_preference, engagement_nature, validity_type, start_date, end_date, status)")
-      .eq("user_id", userId)
-      .neq("status", "cancelled")
-      .gte("starts_at", past7daysIso)
-      .lte("starts_at", next3daysIso)
-      .order("starts_at", { ascending: true });
+    // Délai propre à l'activité (colonne de la migration 0030) : si elle n'existe pas encore, requête sans elle
+    const eventQuery = (withLead: boolean) =>
+      supabase
+        .from("calendar_events")
+        .select(
+          `id, title, starts_at, ends_at, status, activity_id, activities(id, name, voice_reminder_enabled, reminder_preference, engagement_nature, validity_type, start_date, end_date, status${withLead ? ", reminder_lead_minutes" : ""})`
+        )
+        .eq("user_id", userId)
+        .neq("status", "cancelled")
+        .gte("starts_at", past7daysIso)
+        .lte("starts_at", next3daysIso)
+        .order("starts_at", { ascending: true });
+    let { data: eventList, error: eventErr } = await eventQuery(true);
+    if (eventErr) ({ data: eventList } = await eventQuery(false));
 
     for (const evt of eventList ?? []) {
       if (
@@ -713,6 +778,7 @@ export async function evaluateSmartReminders(
         start_date?: string | null;
         end_date?: string | null;
         status?: string;
+        reminder_lead_minutes?: number | null;
       } | null;
 
       // 1. Activité parente inactive, expirée ou archivée -> stopper les rappels de séance
@@ -753,8 +819,12 @@ export async function evaluateSmartReminders(
       const isRoutine = actData?.engagement_nature === "routine";
       const isRecommended = actData?.reminder_preference === "recommended";
 
-      const firstLead = (prefsData as any)?.first_reminder_minutes ?? 60;
-      const secondLead = (prefsData as any)?.second_reminder_minutes ?? 10;
+      // Délai de l'activité, sinon délai général ; un seul rappel si les deux seraient presque simultanés
+      const { first: firstLead, second: secondLead } = resolveActivityLeads(
+        actData?.reminder_lead_minutes,
+        (prefsData as any)?.first_reminder_minutes,
+        (prefsData as any)?.second_reminder_minutes
+      );
 
       const voiceReminderEnabled = (evt as any).activities?.voice_reminder_enabled !== false;
       const voiceText = generateVoiceMessage({
@@ -794,8 +864,9 @@ export async function evaluateSmartReminders(
           idempotency_key: `activity:${evt.id}:passed_${eventStart.toISODate()}`,
         });
       } else if (eventStart.hasSame(userNow, "day") && !isPast) {
-        if (minutesUntil <= firstLead + 5 && minutesUntil >= Math.max(secondLead + 10, firstLead - 10)) {
-          // 1er rappel vocal (par défaut 60 min avant)
+        // Fenêtre : à partir de N minutes avant (jamais en avance), rattrapage possible pendant 10 minutes
+        if (firstLead > 0 && minutesUntil <= firstLead && minutesUntil >= Math.max(secondLead + 1, firstLead - LEAD_LATE_TOLERANCE_MINUTES)) {
+          // 1er rappel vocal (par défaut 30 min avant)
           const voiceText1 = generateVoiceMessage({
             userName: profileData?.full_name,
             activityTitle: evt.title,
@@ -826,9 +897,10 @@ export async function evaluateSmartReminders(
             },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
-            idempotency_key: `activity:${evt.id}:m${firstLead}_${eventStart.toISODate()}`,
+            idempotency_key: activitySlotKey(evt.id, `m${firstLead}`, eventStart),
+            legacy_keys: [legacyActivitySlotKey(evt.id, `m${firstLead}`, eventStart)],
           });
-        } else if (minutesUntil <= secondLead + 5 && minutesUntil >= 3) {
+        } else if (minutesUntil <= secondLead && minutesUntil >= 3) {
           // 2nd rappel vocal (par défaut 10 min avant)
           const voiceText2 = generateVoiceMessage({
             userName: profileData?.full_name,
@@ -860,7 +932,8 @@ export async function evaluateSmartReminders(
             },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
-            idempotency_key: `activity:${evt.id}:m${secondLead}_${eventStart.toISODate()}`,
+            idempotency_key: activitySlotKey(evt.id, `m${secondLead}`, eventStart),
+            legacy_keys: [legacyActivitySlotKey(evt.id, `m${secondLead}`, eventStart)],
           });
         } else if (minutesUntil < 3 && minutesUntil >= -15) {
           // Rappel à l'heure exacte (T - 0 min)
@@ -894,9 +967,10 @@ export async function evaluateSmartReminders(
             },
             link: `/calendar/${evt.id}`,
             scheduled_at: userNow.toISO()!,
-            idempotency_key: `activity:${evt.id}:now_${eventStart.toISODate()}`,
+            idempotency_key: activitySlotKey(evt.id, "now", eventStart),
+            legacy_keys: [legacyActivitySlotKey(evt.id, "now", eventStart)],
           });
-        } else if (minutesUntil > firstLead + 5) {
+        } else if (minutesUntil > Math.max(firstLead, secondLead)) {
           candidates.push({
             user_id: userId,
             category: "activity",
@@ -1121,7 +1195,7 @@ export async function evaluateSmartReminders(
       } else if (userNow >= reminderTriggerDT || dueDT.hasSame(userNow, "day")) {
         const minutesUntil = Math.floor(dueDT.diff(userNow, "minutes").minutes);
 
-        if (minutesUntil <= 120 && minutesUntil >= -15) {
+        if (isTaskDueSoon(minutesUntil, tsk.reminder_minutes_before, Boolean(tsk.due_time))) {
           candidates.push({
             user_id: userId,
             category: "task",
@@ -1859,9 +1933,10 @@ export async function evaluateSmartReminders(
   // ==========================================================================
   let insertedCount = 0;
   let newCandidates: ReminderCandidate[] = [];
+  const insertedIdByKey = new Map<string, string>();
 
   if (candidates.length > 0) {
-    const candidateKeys = candidates.map((c) => c.idempotency_key);
+    const candidateKeys = candidates.flatMap((c) => [c.idempotency_key, ...(c.legacy_keys ?? [])]);
     const { data: existingRows } = await supabase
       .from("notifications")
       .select("idempotency_key")
@@ -1869,7 +1944,9 @@ export async function evaluateSmartReminders(
       .in("idempotency_key", candidateKeys);
 
     const existingKeySet = new Set((existingRows ?? []).map((r) => r.idempotency_key));
-    newCandidates = candidates.filter((c) => !existingKeySet.has(c.idempotency_key));
+    newCandidates = candidates.filter(
+      (c) => !existingKeySet.has(c.idempotency_key) && !(c.legacy_keys ?? []).some((k) => existingKeySet.has(k))
+    );
 
     if (newCandidates.length > 0) {
       const rows = newCandidates.map((c) => ({
@@ -1884,7 +1961,7 @@ export async function evaluateSmartReminders(
             body: c.body,
             title_key: c.title_key,
             body_key: c.body_key,
-            metadata: c.metadata,
+            metadata: shouldDeferPush(quietHoursActive, c.priority) && pushEnabled ? { ...c.metadata, push_deferred: true } : c.metadata,
             link: c.link,
             scheduled_at: c.scheduled_at,
             idempotency_key: c.idempotency_key,
@@ -1920,6 +1997,7 @@ export async function evaluateSmartReminders(
       } else {
         const insertedKeys = new Set((insertedRows ?? []).map((r) => r.idempotency_key));
         newCandidates = newCandidates.filter((c) => insertedKeys.has(c.idempotency_key));
+        for (const r of insertedRows ?? []) insertedIdByKey.set(r.idempotency_key as string, r.id as string);
         insertedCount = insertedRows?.length ?? 0;
 
         // Archiver les résumés et notifications financières importantes dans la messagerie interne
@@ -1960,6 +2038,16 @@ export async function evaluateSmartReminders(
   let emailCount = 0;
   let pushCount = 0;
   let pushFailedCount = 0;
+  const pushActionLabels = { read: tr("Lu"), listen: tr("Écouter"), open: tr("Ouvrir") };
+
+  // Fin des heures silencieuses : envoi des push reportés encore utiles (au plus 2, sinon un seul récapitulatif)
+  if (pushEnabled && !quietHoursActive) {
+    try {
+      pushCount += await flushDeferredPushes(supabase, userId, userNow, tr, pushActionLabels);
+    } catch (err) {
+      console.warn("[evaluateSmartReminders] Push reportés : envoi impossible", err);
+    }
+  }
 
   if (newCandidates.length > 0) {
     let userEmail: string | undefined;
@@ -1976,7 +2064,7 @@ export async function evaluateSmartReminders(
     }
 
     for (const cand of newCandidates) {
-      const allowImmediateExternal = !quietHoursActive || cand.priority === "critical";
+      const allowImmediateExternal = !shouldDeferPush(quietHoursActive, cand.priority);
 
       // 1. Envoi E-mail (avec idempotence via notification_logs)
       if (emailEnabled && allowImmediateExternal && cand.email_template && userEmail) {
@@ -2009,7 +2097,9 @@ export async function evaluateSmartReminders(
             link: cand.link,
             category: cand.category,
             idempotencyKey: `push:${cand.idempotency_key}`,
-            metadata: { ...cand.metadata, kind: cand.kind },
+            metadata: { ...cand.metadata, kind: cand.kind, notificationId: insertedIdByKey.get(cand.idempotency_key) },
+            tag: pushTagFor(cand.idempotency_key, cand.category),
+            actionLabels: pushActionLabels,
           },
           supabase
         );

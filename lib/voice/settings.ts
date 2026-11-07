@@ -11,10 +11,12 @@ export const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
   voice_category_tasks: true,
   voice_category_finances: true,
   voice_category_briefings: true,
+  voice_category_goals: true,
   voice_hide_financial_amounts: false,
   voice_include_user_name: true,
   custom_voice_reminder_text: "",
   voice_playback_rate: 1.0,
+  voice_volume: 1.0,
 };
 
 const VOICE_LANGUAGES: VoiceLanguage[] = ["fr", "en", "es", "de", "pt"];
@@ -52,10 +54,12 @@ export function getLocalVoiceSettings(): VoiceSettings {
       voice_category_tasks: typeof parsed.voice_category_tasks === "boolean" ? parsed.voice_category_tasks : true,
       voice_category_finances: typeof parsed.voice_category_finances === "boolean" ? parsed.voice_category_finances : true,
       voice_category_briefings: typeof parsed.voice_category_briefings === "boolean" ? parsed.voice_category_briefings : true,
+      voice_category_goals: typeof parsed.voice_category_goals === "boolean" ? parsed.voice_category_goals : true,
       voice_hide_financial_amounts: typeof parsed.voice_hide_financial_amounts === "boolean" ? parsed.voice_hide_financial_amounts : false,
       voice_include_user_name: typeof parsed.voice_include_user_name === "boolean" ? parsed.voice_include_user_name : true,
       custom_voice_reminder_text: typeof parsed.custom_voice_reminder_text === "string" ? parsed.custom_voice_reminder_text : "",
       voice_playback_rate: typeof parsed.voice_playback_rate === "number" && parsed.voice_playback_rate >= 0.7 && parsed.voice_playback_rate <= 1.5 ? parsed.voice_playback_rate : 1.0,
+      voice_volume: typeof parsed.voice_volume === "number" && parsed.voice_volume >= 0.2 && parsed.voice_volume <= 1 ? parsed.voice_volume : 1.0,
     };
   } catch {
     return DEFAULT_VOICE_SETTINGS;

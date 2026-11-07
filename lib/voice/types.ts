@@ -15,10 +15,14 @@ export interface VoiceSettings {
   voice_category_tasks?: boolean;
   voice_category_finances?: boolean;
   voice_category_briefings?: boolean;
+  /** Rappels vocaux « Mes objectifs ». */
+  voice_category_goals?: boolean;
   voice_hide_financial_amounts?: boolean;
   voice_include_user_name?: boolean;
   custom_voice_reminder_text?: string;
   voice_playback_rate?: number;
+  /** Volume de la voix (0.2 à 1). Le volume du téléphone reste le réglage principal. */
+  voice_volume?: number;
 }
 
 export interface DailyActivityItem {

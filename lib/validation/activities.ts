@@ -67,6 +67,11 @@ export const activityInfoSchema = z.object({
   engagementNature: z.enum(["routine", "temporary_engagement", "important", "one_time"]).default("routine"),
   reminderPreference: z.enum(["enabled", "disabled", "recommended"]).default("recommended"),
   voiceReminderEnabled: z.boolean().default(true),
+  /** Délai du 1er rappel avant chaque séance (minutes) ; vide = délai général des paramètres. */
+  reminderLeadMinutes: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? null : Number(v)),
+    z.number().int().min(5).max(240).nullable()
+  ).default(null),
 });
 
 // ---- Organisation -----------------------------------------------------------
@@ -207,6 +212,7 @@ export function parseActivityFormData(formData: FormData): ActivityFormInput {
       validityType: formData.get("validityType") || "permanent",
       engagementNature: formData.get("engagementNature") || "routine",
       reminderPreference: formData.get("reminderPreference") || "recommended",
+      reminderLeadMinutes: formData.get("reminderLeadMinutes"),
       voiceReminderEnabled:
         formData.get("voiceReminderEnabled") === "on" ||
         formData.get("voiceReminderEnabled") === "true" ||
@@ -263,6 +269,7 @@ export function buildActivityPayload(
     engagement_nature: parsed.info.engagementNature,
     reminder_preference: parsed.info.reminderPreference,
     voice_reminder_enabled: parsed.info.voiceReminderEnabled,
+    reminder_lead_minutes: parsed.info.reminderLeadMinutes ?? null,
   };
 
   if (options?.userId) payload.user_id = options.userId;

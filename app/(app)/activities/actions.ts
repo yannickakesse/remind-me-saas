@@ -15,6 +15,17 @@ import { assertCanCreateActivity } from "@/lib/subscriptions/server";
 import { resolveEntityNotifications, invalidateOutdatedEntityReminders, triggerProactiveReminders } from "@/lib/notifications/engine";
 import { DateTime } from "luxon";
 
+/** Colonnes ajoutées par des migrations récentes : retirées de l'enregistrement si la base ne les a pas encore. */
+const OPTIONAL_ACTIVITY_COLUMNS = ["voice_reminder_enabled", "reminder_lead_minutes"] as const;
+function stripMissingOptionalColumn(payload: Record<string, any>, error: { message?: string } | null): boolean {
+  const msg = (error?.message || "").toLowerCase();
+  const col = OPTIONAL_ACTIVITY_COLUMNS.find((c) => msg.includes(c) && c in payload);
+  if (!col) return false;
+  delete payload[col];
+  return true;
+}
+
+
 /**
  * Trouve une organisation existante par nom exact pour cet utilisateur,
  * ou la crée. Retourne null si aucun nom n'est fourni (activité sans
@@ -162,8 +173,7 @@ export async function createActivity(formData: FormData) {
       .select("id")
       .single();
 
-    if (activityError && activityError.message?.toLowerCase().includes("voice_reminder_enabled")) {
-      delete activityPayload.voice_reminder_enabled;
+    while (activityError && stripMissingOptionalColumn(activityPayload, activityError)) {
       const retryResult = await supabase
         .from("activities")
         .insert(activityPayload as any)
@@ -283,8 +293,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
       .eq("id", activityId)
       .eq("user_id", user.id);
 
-    if (activityError && activityError.message?.toLowerCase().includes("voice_reminder_enabled")) {
-      delete updatePayload.voice_reminder_enabled;
+    while (activityError && stripMissingOptionalColumn(updatePayload, activityError)) {
       const retryResult = await supabase
         .from("activities")
         .update(updatePayload as any)

@@ -116,6 +116,7 @@ export default async function NewActivityPage({
         validityType: (sourceActivity.validity_type as any) ?? "permanent",
         engagementNature: (sourceActivity.engagement_nature as any) ?? "routine",
         reminderPreference: (sourceActivity.reminder_preference as any) ?? "recommended",
+        reminderLeadMinutes: (sourceActivity as any).reminder_lead_minutes ?? null,
         voiceReminderEnabled: sourceActivity.voice_reminder_enabled ?? true,
       }
     : undefined;

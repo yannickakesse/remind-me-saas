@@ -54,6 +54,7 @@ interface ActivityFormProps {
     validityType?: ValidityType;
     engagementNature?: EngagementNature;
     reminderPreference?: ReminderPreference;
+    reminderLeadMinutes?: number | null;
     variableHours: boolean;
     schedules: ScheduleRow[];
     amount: string;
@@ -93,6 +94,9 @@ export function ActivityForm({
   );
   const [reminderPreference, setReminderPreference] = useState<ReminderPreference>(
     initial?.reminderPreference ?? "recommended"
+  );
+  const [reminderLeadMinutes, setReminderLeadMinutes] = useState<string>(
+    initial?.reminderLeadMinutes ? String(initial.reminderLeadMinutes) : ""
   );
   const [startDate, setStartDate] = useState(initial?.startDate ?? "");
   const [endDate, setEndDate] = useState(initial?.endDate ?? "");
@@ -199,6 +203,7 @@ export function ActivityForm({
     formData.set("validityType", validityType);
     formData.set("engagementNature", engagementNature);
     formData.set("reminderPreference", reminderPreference);
+    formData.set("reminderLeadMinutes", reminderPreference === "disabled" ? "" : reminderLeadMinutes);
     formData.set("startDate", startDate);
     formData.set("endDate", validityType === "permanent" ? "" : endDate);
     formData.set("schedulesJson", JSON.stringify(schedules));
@@ -402,6 +407,25 @@ export function ActivityForm({
                   {p.label}
                 </option>
               ))}
+            </select>
+          </Field>
+
+          <Field label={tr("Rappel avant chaque séance")} htmlFor="reminderLeadMinutes">
+            <select
+              id="reminderLeadMinutes"
+              name="reminderLeadMinutes"
+              value={reminderPreference === "disabled" ? "" : reminderLeadMinutes}
+              disabled={reminderPreference === "disabled"}
+              onChange={(e) => setReminderLeadMinutes(e.target.value)}
+              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal text-sm shadow-2xs cursor-pointer transition-colors disabled:opacity-60"
+            >
+              <option value="">{tr("Délai général (paramètres)")}</option>
+              <option value="15">{tr("15 minutes avant")}</option>
+              <option value="30">{tr("30 minutes avant")}</option>
+              <option value="45">{tr("45 minutes avant")}</option>
+              <option value="60">{tr("1 heure avant")}</option>
+              <option value="90">{tr("1 h 30 avant")}</option>
+              <option value="120">{tr("2 heures avant")}</option>
             </select>
           </Field>
         </div>

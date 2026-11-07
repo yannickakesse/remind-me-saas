@@ -121,6 +121,6 @@ create policy "update_own_notif_prefs" on notification_preferences
 -- 2. Sécurisation du Bucket Supabase Storage "avatars"
 -- Restreint les fichiers à 2 Mo max et uniquement aux types d'images autorisés (évite l'upload de HTML/SVG/exécutables).
 update storage.buckets
-set max_file_size = 2097152, -- 2 Mo
+set file_size_limit = 2097152, -- 2 Mo (colonne Supabase : file_size_limit)
     allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 where id = 'avatars';

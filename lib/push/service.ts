@@ -23,6 +23,10 @@ export interface SendPushOptions {
   category?: string;
   idempotencyKey?: string;
   metadata?: Record<string, any>;
+  /** Étiquette système : une par rappel (un même rappel relancé remplace sa version précédente). */
+  tag?: string;
+  /** Libellés des boutons de la notification, dans la langue de l'utilisateur. */
+  actionLabels?: { read: string; listen: string; open: string };
 }
 
 export interface PushProviderResult {
@@ -49,6 +53,8 @@ function buildPayload(options: SendPushOptions): WebPushPayload {
       // Type et délai du rappel : choix de la phrase de la voix standard
       kind: (options.metadata?.kind as string) || null,
       days: typeof options.metadata?.days === "number" ? options.metadata.days : null,
+      tag: options.tag || null,
+      action_labels: options.actionLabels || null,
     },
   };
 }

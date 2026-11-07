@@ -1,5 +1,5 @@
 // Service Worker — Remind Me PWA, Push Notifications & Offline Mode
-const CACHE_NAME = "remindme-v2.1.0";
+const CACHE_NAME = "remindme-v2.2.0";
 const OFFLINE_URL = "/offline.html";
 
 const PRECACHE_ASSETS = [
@@ -158,13 +158,15 @@ self.addEventListener("push", (event) => {
     badge: data.badge,
     data: data.data,
     vibrate: [200, 100, 200, 100, 200],
-    tag: (data.data && data.data.category) || "remindme-alert",
+    // Une notification par rappel : deux rappels proches ne s'écrasent plus (le même rappel relancé, lui, se remplace)
+    tag: (data.data && (data.data.tag || data.data.id || data.data.category)) || "remindme-alert",
     renotify: true,
     requireInteraction: true, // Reste visible dans la barre de notifications système jusqu'à ce que l'utilisateur l'écarte
+    // Libellés dans la langue de l'utilisateur (envoyés par le serveur), français par défaut
     actions: [
-      { action: "mark_read", title: "✓ Lu" },
-      { action: "listen", title: "🔊 Écouter" },
-      { action: "open", title: "Ouvrir" },
+      { action: "mark_read", title: "✓ " + ((data.data && data.data.action_labels && data.data.action_labels.read) || "Lu") },
+      { action: "listen", title: "🔊 " + ((data.data && data.data.action_labels && data.data.action_labels.listen) || "Écouter") },
+      { action: "open", title: (data.data && data.data.action_labels && data.data.action_labels.open) || "Ouvrir" },
     ],
   };
 
@@ -218,9 +220,11 @@ self.addEventListener("notificationclick", (event) => {
   const isActionListen = event.action === "listen";
 
   let targetUrl = baseUrl;
+  // Seul l'identifiant du rappel passe dans l'adresse (jamais son texte : prénom, montant…)
+  const notifId = event.notification.data && event.notification.data.id;
   if (voiceText || isActionListen) {
     const sep = targetUrl.includes("?") ? "&" : "?";
-    targetUrl = `${targetUrl}${sep}speak_voice=1${voiceText ? `&voice_msg=${encodeURIComponent(voiceText)}` : ""}`;
+    targetUrl = `${targetUrl}${sep}speak_voice=1${notifId ? `&notif=${encodeURIComponent(notifId)}` : ""}`;
   }
 
   event.waitUntil(

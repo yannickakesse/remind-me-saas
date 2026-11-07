@@ -30,6 +30,7 @@ import {
   Sparkles,
   Info,
   RefreshCw,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
@@ -54,6 +55,7 @@ import {
 import type { VoiceType, VoiceLanguage, RepeatVoice } from "@/lib/voice";
 import type { NotificationPreference } from "@/types/database";
 import { playJourneyVoice } from "@/components/onboarding/journey-voice";
+import { ClosedAppVoiceInfo } from "@/components/settings/closed-app-voice-info";
 
 const VAPID_PUBLIC_KEY = DEFAULT_VAPID_PUBLIC_KEY;
 
@@ -151,6 +153,12 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
   const [voiceCategoryBriefings, setVoiceCategoryBriefings] = useState<boolean>(
     (notificationPreferences as any)?.voice_category_briefings ?? ((notifPrefs as any)?.voice_category_briefings as boolean ?? true)
   );
+  const [voiceCategoryGoals, setVoiceCategoryGoals] = useState<boolean>(
+    ((notifPrefs as any)?.voice_category_goals as boolean) ?? true
+  );
+  const [voiceVolume, setVoiceVolume] = useState<number>(
+    ((notifPrefs as any)?.voice_volume as number) ?? 1.0
+  );
   const [voiceHideFinancialAmounts, setVoiceHideFinancialAmounts] = useState<boolean>(
     (notificationPreferences as any)?.voice_hide_financial_amounts ?? ((notifPrefs as any)?.voice_hide_financial_amounts as boolean ?? false)
   );
@@ -167,7 +175,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
 
   // Délais personnalisables des rappels vocaux d'activités & heure du résumé quotidien
   const [firstReminderMinutes, setFirstReminderMinutes] = useState<number>(
-    notificationPreferences?.first_reminder_minutes ?? ((notifPrefs as any)?.first_reminder_minutes as number ?? 60)
+    notificationPreferences?.first_reminder_minutes ?? ((notifPrefs as any)?.first_reminder_minutes as number ?? 30)
   );
   const [secondReminderMinutes, setSecondReminderMinutes] = useState<number>(
     notificationPreferences?.second_reminder_minutes ?? ((notifPrefs as any)?.second_reminder_minutes as number ?? 10)
@@ -210,6 +218,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
       setVoiceIncludeUserName(local.voice_include_user_name ?? true);
       setCustomVoiceReminderText(local.custom_voice_reminder_text ?? "");
       setVoicePlaybackRate(local.voice_playback_rate ?? 1.0);
+      setVoiceCategoryGoals(local.voice_category_goals ?? true);
+      setVoiceVolume(local.voice_volume ?? 1.0);
     }
   }, [notificationPreferences, notifPrefs]);
 
@@ -259,16 +269,20 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
         voice_include_user_name: voiceIncludeUserName,
         custom_voice_reminder_text: customVoiceReminderText,
         voice_playback_rate: voicePlaybackRate,
+        voice_category_goals: voiceCategoryGoals,
+        voice_volume: voiceVolume,
       });
 
+      // Même phrase que le vrai rappel « N minutes avant » (délai réglé ci-dessous), au volume choisi
       await playReminderVoice({
-        alert: { kind: "activity_reminder_15m" },
+        alert: { kind: `activity_reminder_${firstReminderMinutes}m` },
         text: sampleText,
         language: voiceLanguage,
         voiceType,
         priority: "preview",
         repeat: repeatVoice,
         rate: voicePlaybackRate,
+        volume: voiceVolume,
       });
       push(tr("🔊 Synthèse vocale exécutée avec succès !"), "success");
     } catch {
@@ -576,6 +590,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
       if (voiceIncludeUserName) formData.set("voice_include_user_name", "on"); else formData.set("voice_include_user_name", "off");
       formData.set("custom_voice_reminder_text", customVoiceReminderText);
       formData.set("voice_playback_rate", String(voicePlaybackRate));
+      formData.set("voice_category_goals", voiceCategoryGoals ? "on" : "off");
+      formData.set("voice_volume", String(voiceVolume));
       formData.set("first_reminder_minutes", String(firstReminderMinutes));
       formData.set("second_reminder_minutes", String(secondReminderMinutes));
       formData.set("daily_summary_time", dailySummaryTime);
@@ -594,6 +610,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
         voice_include_user_name: voiceIncludeUserName,
         custom_voice_reminder_text: customVoiceReminderText,
         voice_playback_rate: voicePlaybackRate,
+        voice_category_goals: voiceCategoryGoals,
+        voice_volume: voiceVolume,
       });
 
       await updateNotificationPrefs(formData);
@@ -1001,6 +1019,27 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
                   </select>
                 </div>
 
+                {/* 3b. Volume */}
+                <div>
+                  <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
+                    <Volume2 className="w-3.5 h-3.5 text-signal" />
+                    {tr("🔉 Volume de la voix")}</label>
+                  <select
+                    value={voiceVolume}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setVoiceVolume(val);
+                      saveLocalVoiceSettings({ voice_volume: val });
+                    }}
+                    className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-signal"
+                  >
+                    <option value={0.4}>{tr("Doux")}</option>
+                    <option value={0.7}>{tr("Moyen")}</option>
+                    <option value={1}>{tr("Fort (recommandé)")}</option>
+                  </select>
+                  <p className="mt-1 text-[10px] text-ink-500">{tr("Le volume de votre téléphone reste le réglage principal.")}</p>
+                </div>
+
                 {/* 4. Répétition */}
                 <div>
                   <label className="block text-xs font-black text-zinc-950 dark:text-white mb-1.5 flex items-center gap-1.5">
@@ -1102,6 +1141,23 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
                     <div className="text-xs">
                       <span className="font-bold text-zinc-950 dark:text-white block">{tr("Briefings & Bilans quotidiens")}</span>
                       <span className="text-[10px] text-ink-500">{tr("Matin, point de mi-journée et résumé du soir")}</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-canvas cursor-pointer hover:border-signal/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={voiceCategoryGoals}
+                      onChange={(e) => {
+                        setVoiceCategoryGoals(e.target.checked);
+                        saveLocalVoiceSettings({ voice_category_goals: e.target.checked });
+                      }}
+                      className="rounded text-signal focus:ring-signal"
+                    />
+                    <Target className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <div className="text-xs">
+                      <span className="font-bold text-zinc-950 dark:text-white block">{tr("Mes objectifs")}</span>
+                      <span className="text-[10px] text-ink-500">{tr("Étapes du jour, échéances et encouragements")}</span>
                     </div>
                   </label>
                 </div>
@@ -1233,9 +1289,9 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
                       onChange={(e) => setFirstReminderMinutes(Number(e.target.value))}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-ink-200 bg-canvas text-ink-950 focus:outline-none focus:ring-2 focus:ring-signal font-semibold"
                     >
-                      <option value={30}>{tr("30 minutes avant")}</option>
+                      <option value={30}>{tr("30 minutes avant (Recommandé)")}</option>
                       <option value={45}>{tr("45 minutes avant")}</option>
-                      <option value={60}>{tr("60 minutes avant (Recommandé)")}</option>
+                      <option value={60}>{tr("60 minutes avant")}</option>
                       <option value={90}>{tr("90 minutes avant")}</option>
                       <option value={120}>{tr("2 heures avant")}</option>
                     </select>
@@ -1270,6 +1326,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
                   </div>
                 </div>
               </div>
+
+              <ClosedAppVoiceInfo />
 
               {/* Barre de test interactif & Aperçu */}
               <div className="p-3 rounded-xl bg-canvas border border-ink-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1312,7 +1370,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
                     onClick={handleTestVoice}
                     className="text-xs py-1.5"
                   >
-                    <Play className="w-3.5 h-3.5 mr-1.5 fill-current" /> {tr("Tester la voix")}</Button>
+                    <Play className="w-3.5 h-3.5 mr-1.5 fill-current" /> {tr("Tester mon rappel")}</Button>
                 </div>
               </div>
             </div>

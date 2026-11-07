@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { evaluateSmartReminders } from "@/lib/notifications/engine";
 import { getUserTimezone } from "@/lib/time/timezones";
+import { isInQuietHours } from "@/lib/notifications/reminder-rules";
+import { DateTime } from "luxon";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +61,7 @@ export async function GET() {
     // 1. Récupérer les notifications non lues actives
     const { data: unread } = await supabase
       .from("notifications")
-      .select("id, title, body, category, kind, link, priority, metadata, created_at")
+      .select("id, title, body, category, kind, link, priority, metadata, created_at, idempotency_key")
       .eq("user_id", user.id)
       .is("read_at", null)
       .neq("status", "resolved")
@@ -73,6 +75,13 @@ export async function GET() {
       unread: unread || [],
       count: unread?.length || 0,
       userName: profile?.full_name || null,
+      // Heures silencieuses en cours (fuseau de l'utilisateur) : la voix se tait, sauf rappel critique
+      quietHoursActive: isInQuietHours(
+        DateTime.now().setZone(timezone),
+        mergedPrefs.quiet_hours_enabled ?? false,
+        mergedPrefs.quiet_hours_start ?? "22:00",
+        mergedPrefs.quiet_hours_end ?? "07:00"
+      ),
       voicePrefs: {
         voice_reminders: mergedPrefs.voice_reminders ?? true,
         voice_type: mergedPrefs.voice_type ?? "system",
@@ -82,10 +91,12 @@ export async function GET() {
         voice_category_tasks: mergedPrefs.voice_category_tasks ?? true,
         voice_category_finances: mergedPrefs.voice_category_finances ?? true,
         voice_category_briefings: mergedPrefs.voice_category_briefings ?? true,
+        voice_category_goals: (mergedPrefs as Record<string, any>).voice_category_goals ?? true,
         voice_hide_financial_amounts: mergedPrefs.voice_hide_financial_amounts ?? false,
         voice_include_user_name: mergedPrefs.voice_include_user_name ?? true,
         custom_voice_reminder_text: mergedPrefs.custom_voice_reminder_text ?? "",
         voice_playback_rate: mergedPrefs.voice_playback_rate ?? 1.0,
+        voice_volume: (mergedPrefs as Record<string, any>).voice_volume ?? 1.0,
       },
     });
   } catch (error: any) {

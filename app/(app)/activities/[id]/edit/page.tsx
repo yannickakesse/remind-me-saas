@@ -152,6 +152,7 @@ export default async function EditActivityPage({
           validityType: activity.validity_type,
           engagementNature: activity.engagement_nature,
           reminderPreference: activity.reminder_preference,
+          reminderLeadMinutes: (activity as any).reminder_lead_minutes ?? null,
           variableHours: schedules?.[0]?.variable_hours ?? false,
           schedules: (schedules ?? []).map((s) => ({
             weekday: s.weekday,
