@@ -6,17 +6,18 @@ import { useTheme } from "@/components/theme/theme-provider";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import { Moon, Sun } from "lucide-react";
+import { FOUNDER } from "./landing-founder";
 
 // Pied de page compact (esprit Stripe / Linear) : marque + liens essentiels sur une ligne,
 // préférences (langue, thème) à droite, mentions sur une seconde ligne discrète.
 export function LandingFooter() {
   const { theme, setTheme } = useTheme();
-  const { t } = useLanguage();
+  const { t, tr } = useLanguage();
 
   const links = [
-    { href: "#features", label: t("landing.nav_features") },
-    { href: "#pricing", label: t("landing.nav_pricing") },
-    { href: "#faq", label: t("landing.nav_faq") },
+    { href: "/#features", label: t("landing.nav_features") },
+    { href: "/#pricing", label: t("landing.nav_pricing") },
+    { href: "/#faq", label: t("landing.nav_faq") },
     { href: "/login", label: t("landing.nav_login") },
   ];
 
@@ -30,7 +31,7 @@ export function LandingFooter() {
             </Link>
             <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-600 dark:text-ink-400">
               {links.map((l) =>
-                l.href.startsWith("#") ? (
+                l.href.startsWith("/#") ? (
                   <a key={l.href} href={l.href} className="hover:text-ink-950 dark:hover:text-white transition-colors">
                     {l.label}
                   </a>
@@ -57,8 +58,12 @@ export function LandingFooter() {
           </div>
         </div>
 
-        <div className="mt-6 pt-5 border-t border-ink-200/60 dark:border-ink-800/60 text-xs text-ink-500">
-          &copy; {new Date().getFullYear()} Remind Me
+        <div className="mt-6 pt-5 border-t border-ink-200/60 dark:border-ink-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-ink-500">
+          <span>&copy; {new Date().getFullYear()} Remind Me</span>
+          <Link href="/fondateur" className="hover:text-ink-950 dark:hover:text-white transition-colors">
+            {tr("Fondé par")}{" "}<strong className="font-semibold text-ink-700 dark:text-ink-300">{FOUNDER.name}</strong>
+            {" · "}{tr("Fondateur de Speak Pro Academy")}
+          </Link>
         </div>
       </div>
     </footer>

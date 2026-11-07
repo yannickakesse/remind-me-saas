@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/auth"];
+const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/auth", "/fondateur"];
 const RECOVERY_ROUTE = "/reset-password";
 
 export async function middleware(request: NextRequest) {

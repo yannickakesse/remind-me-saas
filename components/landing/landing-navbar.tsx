@@ -32,9 +32,9 @@ export function LandingNavbar({ user }: LandingNavbarProps) {
   };
 
   const navLinks = [
-    { href: "#features", label: tr("Fonctionnalités") },
-    { href: "#pricing", label: tr("Tarifs") },
-    { href: "#faq", label: "FAQ" },
+    { href: "/#features", label: tr("Fonctionnalités") },
+    { href: "/#pricing", label: tr("Tarifs") },
+    { href: "/#faq", label: "FAQ" },
   ];
 
   return (
