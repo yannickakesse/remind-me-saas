@@ -6,12 +6,9 @@ const BICTORYS_API_KEY = process.env.BICTORYS_API_KEY || "";
 // Aucun secret par défaut : sans BICTORYS_WEBHOOK_SECRET configuré, tous les webhooks sont refusés.
 const BICTORYS_WEBHOOK_SECRET = process.env.BICTORYS_WEBHOOK_SECRET || "";
 
-// Tarification en FCFA (XOF) adaptée au marché ivoirien / UEMOA
-export const PLAN_PRICES_XOF: Record<PlanType, { monthly: number; yearly: number }> = {
-  free: { monthly: 0, yearly: 0 },
-  pro: { monthly: 5900, yearly: 59000 },
-  premium: { monthly: 12500, yearly: 125000 },
-};
+// Tarification prélevée en FCFA (XOF) : montants définis dans lib/subscriptions/pricing.ts (affichage en dollars)
+import { PLAN_PRICES_XOF } from "@/lib/subscriptions/pricing";
+export { PLAN_PRICES_XOF };
 
 export interface CreateCheckoutParams {
   userId: string;

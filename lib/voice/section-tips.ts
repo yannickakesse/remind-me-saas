@@ -16,6 +16,7 @@ export interface SectionTip {
 
 export const SECTION_TIPS: Record<string, SectionTip[]> = {
   dashboard: [
+    { id: "tip_dashboard_plans", text: msg("Remind Me est gratuit, et le restera. Pour aller plus loin, touchez la pastille de votre forfait : les offres Pro et Premium y sont présentées."), href: "/settings?tab=subscription", cta: msg("Voir les offres") },
     { id: "tip_dashboard_1", text: msg("Ajoutez vos dépenses programmées, comme le loyer ou les abonnements : le tableau de bord vous montrera ce qui reste vraiment à payer ce mois-ci."), href: "/finances?tab=scheduled", cta: msg("Ajouter") },
     { id: "tip_dashboard_2", text: msg("Touchez une séance du programme du jour pour la marquer terminée : vos statistiques de rentabilité seront plus justes.") },
   ],

@@ -3,7 +3,7 @@ export type PlanType = "free" | "pro" | "premium";
 
 export interface PlanEntitlements {
   planName: string;
-  priceMonthly: number; // in EUR
+  priceMonthly: number; // en dollars (USD), affiché partout ; prélèvement en FCFA (lib/subscriptions/pricing.ts)
   priceYearly: number;
   maxActivities: number;
   maxClients: number;

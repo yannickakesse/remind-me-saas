@@ -39,6 +39,8 @@ import { openQuickTransaction } from "@/components/finances/quick-transaction-mo
 
 interface MobileNavProps {
   unreadCount?: number | null;
+  /** Pastille du forfait (raccourci vers les abonnements). */
+  planBadge?: React.ReactNode;
 }
 
 const TAB =
@@ -46,7 +48,7 @@ const TAB =
 const TAB_ACTIVE = "text-ink-950 dark:text-white";
 const TAB_IDLE = "text-ink-700 dark:text-ink-300";
 
-export function MobileNav({ unreadCount }: MobileNavProps) {
+export function MobileNav({ unreadCount, planBadge }: MobileNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t , tr } = useLanguage();
@@ -123,6 +125,7 @@ export function MobileNav({ unreadCount }: MobileNavProps) {
 
         <div className="flex items-center gap-1.5">
           <LanguageSelector variant="pill" />
+          {planBadge}
           <HelpCenterButton />
           <button
             type="button"

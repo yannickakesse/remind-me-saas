@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
  * Les autres attendent qu'elle se ferme, puis s'affichent dans l'ordre de priorité
  * (plus le nombre est petit, plus la fenêtre passe tôt).
  *
- *   0 visite guidée · 1 accueil du jour · 2 invitation aux rappels vocaux · 3 installation de l'app · 4 conseil du robot
+ *   0 visite guidée · 1 accueil du jour · 2 invitation aux rappels vocaux · 3 installation de l'app · 4 conseil du robot · 5 offre
  */
 export const POPUP_PRIORITY = {
   tour: 0,
@@ -15,6 +15,7 @@ export const POPUP_PRIORITY = {
   voicePush: 2,
   install: 3,
   tip: 4,
+  offer: 5,
 } as const;
 
 type PopupId = keyof typeof POPUP_PRIORITY;

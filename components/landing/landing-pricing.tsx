@@ -6,6 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Check, X, Sparkles, Clock } from "lucide-react";
 import { PLAN_ENTITLEMENTS, PLAN_COMING_SOON, yearlyDiscountPercent, type PlanType } from "@/lib/subscriptions/entitlements";
+import { formatUsd } from "@/lib/subscriptions/pricing";
 import { msg } from "@/lib/i18n/catalog";
 
 // Mêmes forfaits, prix et droits que dans l'application (Paramètres → Abonnement) :
@@ -75,10 +76,10 @@ export function LandingPricing() {
             const featured = key === "premium";
             const price =
               p.priceMonthly === 0
-                ? "0 €"
+                ? formatUsd(0)
                 : yearly
-                ? `${Math.round(p.priceYearly / 12)} €`
-                : `${p.priceMonthly} €`;
+                ? formatUsd(Math.round(p.priceYearly / 12))
+                : formatUsd(p.priceMonthly);
 
             const features: { ok: boolean; soon?: boolean; label: React.ReactNode }[] = [
               { ok: true, label: tr("Voix standard, guides vocaux et rappels") },
@@ -119,7 +120,7 @@ export function LandingPricing() {
                       <span className="text-xs text-ink-500">{tr("/ mois")}</span>
                     </div>
                     {yearly && p.priceYearly > 0 ? (
-                      <p className="text-[11px] text-ink-500 font-medium mt-1">{tr("Facturé")}{" "}{p.priceYearly} {tr("€ par an")}</p>
+                      <p className="text-[11px] text-ink-500 font-medium mt-1">{tr("Facturé {amount} par an", { amount: formatUsd(p.priceYearly) })}</p>
                     ) : p.priceMonthly === 0 ? (
                       <p className="text-[11px] text-ink-500 font-medium mt-1">{tr("Sans engagement")}</p>
                     ) : null}

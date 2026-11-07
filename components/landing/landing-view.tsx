@@ -33,7 +33,7 @@ export function LandingView({ user }: LandingViewProps) {
         {/* SECTION 3, 4 & 5 : Fonctionnalités clés validées (Montrer n'est pas seulement décrire, Vision centralisée, Activités & Finances) */}
         <LandingFeatures />
 
-        {/* SECTION 6 : Des forfaits clairs, sans surprise (Tarifs réels 0€, 9€, 19€) */}
+        {/* SECTION 6 : Des forfaits clairs, sans surprise (tarifs réels 0 $, 9 $, 19 $) */}
         <LandingPricing />
 
         {/* SECTION 7 : Tout ce que vous devez savoir (FAQ) */}

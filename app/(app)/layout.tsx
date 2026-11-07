@@ -30,6 +30,10 @@ import { getUserTimezone } from "@/lib/time/timezones";
 import { DateTime } from "luxon";
 
 import { QuickTransactionModal } from "@/components/finances/quick-transaction-modal";
+import { Suspense } from "react";
+import { getUserSubscription } from "@/lib/subscriptions/server";
+import { OfferSheet, type PlanInfo } from "@/components/subscriptions/offer-sheet";
+import { PlanBadge } from "@/components/subscriptions/plan-badge";
 
 export default async function AppLayout({
   children,
@@ -52,6 +56,7 @@ export default async function AppLayout({
     { data: userSettings },
     { count: eventsTodayCount },
     { data: userActivities },
+    subscription,
   ] = await Promise.all([
     supabase
       .from("notifications")
@@ -87,7 +92,18 @@ export default async function AppLayout({
       .eq("user_id", user.id)
       .eq("status", "active")
       .order("name", { ascending: true }),
+    getUserSubscription(supabase, user.id),
   ]);
+
+  // Forfait de l'utilisateur : pastille permanente et fenêtres d'offre (jamais de prix inventé)
+  const planInfo: PlanInfo = {
+    plan: subscription.plan,
+    paidPlan: subscription.paidPlan,
+    isTrial: subscription.isTrial,
+    trialDaysLeft: subscription.trialDaysLeft,
+    trialEndsAt: subscription.trialEndsAt,
+    periodEnd: subscription.paidPlan !== "free" ? subscription.currentPeriodEnd : null,
+  };
 
   const tourState = (userSettings?.ui_prefs as any)?.tour_state;
   const tourCompleted = Boolean(tourState?.completed || tourState?.skipped);
@@ -106,6 +122,11 @@ export default async function AppLayout({
         tourCompleted={tourCompleted}
       />
       <VoicePushPrompt />
+      {tourCompleted && (
+        <Suspense fallback={null}>
+          <OfferSheet info={planInfo} />
+        </Suspense>
+      )}
       <NotificationSyncTrigger />
       <TaskSoundWatcher userId={user.id} />
       <InteractiveProductTour initialCompleted={tourCompleted} />
@@ -118,7 +139,7 @@ export default async function AppLayout({
       />
 
       {/* Header & Bottom Nav Mobile (< 768px) */}
-      <MobileNav unreadCount={unreadCount} />
+      <MobileNav unreadCount={unreadCount} planBadge={<PlanBadge info={planInfo} compact />} />
 
       {/* Sidebar Desktop (>= 768px) — Toujours fixe, propre et jamais coupée */}
       <aside className="hidden md:flex w-64 shrink-0 flex-col justify-between border-r border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md px-4 py-6 h-screen z-30 shadow-xs print:hidden">
@@ -153,6 +174,7 @@ export default async function AppLayout({
 
         {/* Profil utilisateur & Sélecteur de Langue en bas */}
         <div className="border-t border-ink-200/80 dark:border-ink-800/80 pt-3 px-2 space-y-1.5 shrink-0">
+          <PlanBadge info={planInfo} />
           <div className="flex items-center justify-between px-2">
             <span className="text-[11px] font-medium text-ink-500">{tr("Langue")}</span>
             <LanguageSelector variant="pill" />

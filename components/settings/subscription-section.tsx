@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { getAppUrl } from "@/lib/auth/url";
 import type { Subscription } from "@/types/database";
+import { formatUsd, formatXof, PLAN_PRICES_XOF } from "@/lib/subscriptions/pricing";
 
 export interface SubscriptionSectionProps {
   subscription?: Subscription | null;
@@ -157,11 +158,11 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
           const priceDisplay =
             billingCycle === "monthly"
               ? p.priceMonthly === 0
-                ? "0 €"
-                : `${p.priceMonthly} €`
+                ? formatUsd(0)
+                : formatUsd(p.priceMonthly)
               : p.priceYearly === 0
-              ? "0 €"
-              : `${Math.round(p.priceYearly / 12)} €`;
+              ? formatUsd(0)
+              : formatUsd(Math.round(p.priceYearly / 12));
 
           return (
             <div
@@ -194,7 +195,7 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                 </div>
                 {billingCycle === "yearly" && p.priceYearly > 0 && (
                   <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    {tr("Facturé")}{" "}{p.priceYearly} {tr("€ par an")}</p>
+                    {tr("Facturé {amount} par an", { amount: formatUsd(p.priceYearly) })}</p>
                 )}
 
                 {/* Liste des quotas et droits */}
@@ -320,8 +321,8 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
           <Modal
             open={modalOpen}
             onClose={() => setModalOpen(false)}
-            title={`Passer au forfait ${tr(target.planName)} ?`}
-            description={tr("En mode test, aucun paiement réel ne sera prélevé.")}
+            title={tr("Passer au forfait {plan} ?", { plan: tr(target.planName) })}
+            description={demoEnabled ? tr("En mode test, aucun paiement réel ne sera prélevé.") : undefined}
           >
             <div className="space-y-4 my-2">
               {/* Carte Récapitulative */}
@@ -331,13 +332,26 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                   <span className="font-bold text-ink-950 text-base">{tr(target.planName)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-ink-600 font-medium">{tr("Tarif (Mode Test) :")}</span>
+                  <span className="text-ink-600 font-medium">{tr("Tarif :")}</span>
                   <span className="font-extrabold text-ink-950 text-base">
                     {billingCycle === "monthly"
-                      ? tr("{priceMonthly} € / mois", { priceMonthly: target.priceMonthly })
-                      : `${target.priceYearly} € / an`}
+                      ? tr("{amount} / mois", { amount: formatUsd(target.priceMonthly) })
+                      : tr("{amount} / an", { amount: formatUsd(target.priceYearly) })}
                   </span>
                 </div>
+                {selectedTargetPlan && selectedTargetPlan !== "free" && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-ink-600">{tr("Montant prélevé via Bictorys :")}</span>
+                    <span className="font-bold text-ink-950">
+                      {formatXof(PLAN_PRICES_XOF[selectedTargetPlan][billingCycle])}
+                    </span>
+                  </div>
+                )}
+                <p className="text-[11px] leading-relaxed text-ink-500">
+                  {billingCycle === "monthly"
+                    ? tr("Paiement unique pour 1 mois, sans renouvellement automatique. Si vous payez avant la fin, la nouvelle période s'ajoute à la suite.")
+                    : tr("Paiement unique pour 1 an, sans renouvellement automatique. Si vous payez avant la fin, la nouvelle période s'ajoute à la suite.")}
+                </p>
               </div>
 
               {/* Droits inclus */}
@@ -424,7 +438,7 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                 </Button>
                 )}
 
-                {selectedTargetPlan !== "free" && (
+                {selectedTargetPlan && selectedTargetPlan !== "free" && (
                   <Button
                     type="button"
                     variant="primary"

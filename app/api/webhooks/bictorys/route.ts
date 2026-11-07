@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyBictorysWebhookSecret, expectedAmountXof } from "@/lib/payments/bictorys";
 import { normalizePlan } from "@/lib/subscriptions/entitlements";
 import { notifyAdmin } from "@/lib/admin/notifier";
+import { computePaidPeriod } from "@/lib/subscriptions/pricing";
 
 const SUCCESS_STATUSES = new Set(["succeeded", "completed", "paid", "successful"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -77,11 +78,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, warning: "Utilisateur introuvable" });
     }
 
-    // 6. Activation : la table subscriptions (écrite uniquement côté serveur) fait foi
+    // 6. Activation : la table subscriptions (écrite uniquement côté serveur) fait foi.
+    // Paiement anticipé du même forfait : la nouvelle période s'ajoute à la suite (aucun jour perdu).
     const now = new Date();
-    const periodEnd = new Date(now);
-    if (billingCycle === "yearly") periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-    else periodEnd.setMonth(periodEnd.getMonth() + 1);
+    const { data: currentSub } = await adminSupabase
+      .from("subscriptions")
+      .select("plan, status, current_period_end")
+      .eq("user_id", userId)
+      .maybeSingle();
+    const { end: periodEnd } = computePaidPeriod(currentSub as any, plan, billingCycle === "yearly" ? "yearly" : "monthly", now);
 
     const { error: subError } = await adminSupabase.from("subscriptions").upsert(
       {
