@@ -15,6 +15,31 @@ export const PLAN_PRICES_XOF: Record<PlanType, { monthly: number; yearly: number
   premium: { monthly: 12500, yearly: 125000 },
 };
 
+/**
+ * Offre de bienvenue : premier mois à prix réduit (abonnement mensuel uniquement, une seule fois par compte).
+ * Pro : $9 → $4 · Premium : $19 → $9. Les mois suivants reviennent au prix normal.
+ */
+export const FIRST_MONTH_PRICE_USD: Record<PlanType, number> = { free: 0, pro: 4, premium: 9 };
+/** Montants réellement prélevés en FCFA pour ce premier mois. */
+export const FIRST_MONTH_PRICES_XOF: Record<PlanType, number> = { free: 0, pro: 2600, premium: 5900 };
+
+/**
+ * Le compte a-t-il droit au premier mois réduit ? Oui tant qu'aucun paiement réel n'a jamais été enregistré
+ * (l'essai gratuit et le forfait gratuit n'y comptent pas).
+ */
+export function isFirstMonthEligible(
+  sub: { provider?: string | null; provider_subscription_id?: string | null } | null | undefined
+): boolean {
+  if (!sub) return true;
+  return (sub.provider || "").toLowerCase() !== "bictorys" && !sub.provider_subscription_id;
+}
+
+/** Montant à prélever (FCFA) pour un forfait, une périodicité et l'éligibilité à l'offre de bienvenue. */
+export function checkoutAmountXof(plan: PlanType, billingCycle: "monthly" | "yearly", firstMonth: boolean): number {
+  if (billingCycle === "monthly" && firstMonth && FIRST_MONTH_PRICES_XOF[plan] > 0) return FIRST_MONTH_PRICES_XOF[plan];
+  return PLAN_PRICES_XOF[plan][billingCycle];
+}
+
 /** « $9 », « $16 », « $9.50 » : format universel du dollar. */
 export function formatUsd(amount: number): string {
   return Number.isInteger(amount) ? `$${amount}` : `$${amount.toFixed(2)}`;

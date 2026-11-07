@@ -2,7 +2,7 @@
 
 /**
  * Présentation des offres Remind Me : une fenêtre premium, honnête et facile à fermer.
- * - Prix réels (dollars, montants de PLAN_ENTITLEMENTS), aucune réduction inventée.
+ * - Prix réels (dollars, montants de PLAN_ENTITLEMENTS) ; seule remise : l'offre de bienvenue du 1er mois, réellement appliquée au paiement.
  * - Conditions claires : paiement unique, sans renouvellement automatique.
  * - Rythme et moments : lib/subscriptions/offer-rules.ts (jour 1, puis tous les 2 jours ; fin d'essai ; fin de période).
  */
@@ -14,7 +14,7 @@ import { useLanguage } from "@/components/i18n/language-provider";
 import { GuideMascot } from "@/components/onboarding/guide-mascot";
 import { usePopupSlot } from "@/lib/ui/popup-queue";
 import { PLAN_ENTITLEMENTS, yearlyDiscountPercent } from "@/lib/subscriptions/entitlements";
-import { formatUsd } from "@/lib/subscriptions/pricing";
+import { formatUsd, FIRST_MONTH_PRICE_USD } from "@/lib/subscriptions/pricing";
 import { pickOffer, isOfferBlockedPath, type OfferVariant, type OfferMemory } from "@/lib/subscriptions/offer-rules";
 
 export interface PlanInfo {
@@ -24,6 +24,8 @@ export interface PlanInfo {
   trialDaysLeft: number;
   trialEndsAt: string | null;
   periodEnd: string | null;
+  /** Offre de bienvenue : premier mois réduit (compte n'ayant jamais payé). */
+  firstMonthOffer?: boolean;
 }
 
 const STORAGE_KEY = "remindme_offer_memory";
@@ -104,6 +106,7 @@ export function OfferSheet({ info, forceVariant }: { info: PlanInfo; /** Aperçu
 
   const target = variant === "premium" || (variant === "renew" && info.paidPlan === "premium") ? "premium" : "pro";
   const p = target === "premium" ? premium : pro;
+  const intro = Boolean(info.firstMonthOffer) && variant !== "renew";
 
   const content: Record<OfferVariant, { eyebrow: string; title: string; subtitle: string; benefits: string[]; cta: string }> = {
     welcome: {
@@ -204,10 +207,16 @@ export function OfferSheet({ info, forceVariant }: { info: PlanInfo; /** Aperçu
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-xs font-semibold text-ink-600 dark:text-ink-300">{tr(p.planName)}</p>
             <p className="tabular-nums">
-              <span className="text-2xl font-extrabold text-ink-950 dark:text-white">{formatUsd(p.priceMonthly)}</span>
+              {intro && <span className="mr-2 text-base font-bold text-ink-400 line-through decoration-2">{formatUsd(p.priceMonthly)}</span>}
+              <span className="text-2xl font-extrabold text-ink-950 dark:text-white">{formatUsd(intro ? FIRST_MONTH_PRICE_USD[target] : p.priceMonthly)}</span>
               <span className="ml-1 text-xs text-ink-500">{tr("/ mois")}</span>
             </p>
           </div>
+          {intro && (
+            <p className="mt-1 text-right text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+              {tr("1er mois à {amount}", { amount: formatUsd(FIRST_MONTH_PRICE_USD[target]) })} · {tr("Puis {amount} / mois", { amount: formatUsd(p.priceMonthly) })}
+            </p>
+          )}
           <p className="mt-0.5 text-right text-[11px] text-ink-500">
             {tr("ou {amount} par an (−{d} %)", { amount: formatUsd(p.priceYearly), d: discount })}
           </p>

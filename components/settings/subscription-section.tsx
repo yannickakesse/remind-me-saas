@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { getAppUrl } from "@/lib/auth/url";
 import type { Subscription } from "@/types/database";
-import { formatUsd, formatXof, PLAN_PRICES_XOF } from "@/lib/subscriptions/pricing";
+import { formatUsd, formatXof, checkoutAmountXof, FIRST_MONTH_PRICE_USD } from "@/lib/subscriptions/pricing";
 
 export interface SubscriptionSectionProps {
   subscription?: Subscription | null;
@@ -21,9 +21,11 @@ export interface SubscriptionSectionProps {
   demoEnabled?: boolean;
   /** Essai gratuit en cours (droits Pro, calculés par le serveur). */
   trial?: { daysLeft: number; endsAt: string } | null;
+  /** Offre de bienvenue : premier mois réduit (le compte n'a encore jamais payé). */
+  firstMonthOffer?: boolean;
 }
 
-export function SubscriptionSection({ subscription, plan, status, demoEnabled = false, trial = null }: SubscriptionSectionProps) {
+export function SubscriptionSection({ subscription, plan, status, demoEnabled = false, trial = null, firstMonthOffer = false }: SubscriptionSectionProps) {
   const { tr, locale } = useLanguage();
   const { push } = useToast();
   const initialPlan = normalizePlan(plan ?? subscription?.plan);
@@ -164,6 +166,8 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
               ? formatUsd(0)
               : formatUsd(Math.round(p.priceYearly / 12));
 
+          const intro = billingCycle === "monthly" && firstMonthOffer && !isCurrent && FIRST_MONTH_PRICE_USD[pKey] > 0;
+
           return (
             <div
               key={pKey}
@@ -189,10 +193,22 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                   )}
                 </div>
 
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-3xl font-black text-zinc-950 dark:text-white">{priceDisplay}</span>
-                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 ml-1">{tr("/ mois")}</span>
+                {intro && (
+                  <span className="mt-3 inline-flex rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                    {tr("1er mois à {amount}", { amount: formatUsd(FIRST_MONTH_PRICE_USD[pKey]) })}
+                  </span>
+                )}
+                <div className={`${intro ? "mt-2" : "mt-4"} flex items-baseline gap-2`}>
+                  {intro && (
+                    <span className="text-xl font-bold text-zinc-400 line-through decoration-2">{priceDisplay}</span>
+                  )}
+                  <span className="text-3xl font-black text-zinc-950 dark:text-white">{intro ? formatUsd(FIRST_MONTH_PRICE_USD[pKey]) : priceDisplay}</span>
+                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 -ml-1">{tr("/ mois")}</span>
                 </div>
+                {intro && (
+                  <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    {tr("Puis {amount} / mois", { amount: priceDisplay })}</p>
+                )}
                 {billingCycle === "yearly" && p.priceYearly > 0 && (
                   <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">
                     {tr("Facturé {amount} par an", { amount: formatUsd(p.priceYearly) })}</p>
@@ -335,7 +351,9 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                   <span className="text-ink-600 font-medium">{tr("Tarif :")}</span>
                   <span className="font-extrabold text-ink-950 text-base">
                     {billingCycle === "monthly"
-                      ? tr("{amount} / mois", { amount: formatUsd(target.priceMonthly) })
+                      ? firstMonthOffer && FIRST_MONTH_PRICE_USD[selectedTargetPlan] > 0
+                        ? tr("{amount} le 1er mois", { amount: formatUsd(FIRST_MONTH_PRICE_USD[selectedTargetPlan]) })
+                        : tr("{amount} / mois", { amount: formatUsd(target.priceMonthly) })
                       : tr("{amount} / an", { amount: formatUsd(target.priceYearly) })}
                   </span>
                 </div>
@@ -343,9 +361,14 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-ink-600">{tr("Montant prélevé via Bictorys :")}</span>
                     <span className="font-bold text-ink-950">
-                      {formatXof(PLAN_PRICES_XOF[selectedTargetPlan][billingCycle])}
+                      {formatXof(checkoutAmountXof(selectedTargetPlan, billingCycle, firstMonthOffer))}
                     </span>
                   </div>
+                )}
+                {billingCycle === "monthly" && firstMonthOffer && FIRST_MONTH_PRICE_USD[selectedTargetPlan] > 0 && (
+                  <p className="rounded-lg bg-emerald-500/10 px-2.5 py-1.5 text-[11px] font-semibold leading-relaxed text-emerald-700 dark:text-emerald-300">
+                    {tr("Offre de bienvenue : premier mois à {intro} au lieu de {price}. Ensuite {price} / mois si vous renouvelez.", { intro: formatUsd(FIRST_MONTH_PRICE_USD[selectedTargetPlan]), price: formatUsd(target.priceMonthly) })}
+                  </p>
                 )}
                 <p className="text-[11px] leading-relaxed text-ink-500">
                   {billingCycle === "monthly"

@@ -31,7 +31,7 @@ import { DateTime } from "luxon";
 
 import { QuickTransactionModal } from "@/components/finances/quick-transaction-modal";
 import { Suspense } from "react";
-import { getUserSubscription } from "@/lib/subscriptions/server";
+import { getUserSubscription, getFirstMonthOfferEligible } from "@/lib/subscriptions/server";
 import { OfferSheet, type PlanInfo } from "@/components/subscriptions/offer-sheet";
 import { PlanBadge } from "@/components/subscriptions/plan-badge";
 
@@ -96,7 +96,10 @@ export default async function AppLayout({
   ]);
 
   // Forfait de l'utilisateur : pastille permanente et fenêtres d'offre (jamais de prix inventé)
+  // Offre de bienvenue (1er mois réduit) : seulement pour un compte qui n'a encore jamais payé
+  const firstMonthOffer = subscription.paidPlan === "free" ? await getFirstMonthOfferEligible(supabase, user.id) : false;
   const planInfo: PlanInfo = {
+    firstMonthOffer,
     plan: subscription.plan,
     paidPlan: subscription.paidPlan,
     isTrial: subscription.isTrial,

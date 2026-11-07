@@ -1,0 +1,23 @@
+REMIND ME — MUSIQUE DE FOND DE LA PUBLICITÉ (ElevenLabs Music)
+Durée : 66 secondes · instrumental · calée sur la voix « VOIX LAUREN POUR COVER VIDEO »
+Nom du fichier à me renvoyer : rm_landing_musique.mp3
+
+----- TEXTE À COLLER DANS ELEVENLABS MUSIC -----
+
+Instrumental background music for a premium productivity app commercial, 66 seconds, no vocals, mixed to sit softly under a French voice-over. Modern, elegant, warm, cinematic but understated. Key of D major, around 96 BPM.
+
+Structure with exact timing:
+0:00–0:09 — Problem: solo felt piano, sparse and intimate, a soft ticking clock texture, slightly uneasy.
+0:09–0:18 — Rising tension: low pulsing strings and a subtle heartbeat-like pulse join the piano, building steadily, slightly dissonant, getting busier and more urgent.
+0:18–0:19 — Sudden stop: half a second of near silence.
+0:19–0:23 — Reveal: a bright, warm, open major chord with an airy pad and a gentle bell chime, a feeling of relief and clarity.
+0:23–0:49 — Demonstration: light, optimistic, modern groove; piano, soft plucked synths and light percussion; positive and confident but never loud, leaving space for the voice.
+0:49–0:55 — Transformation: the music opens up, warm strings swell gently, calm and satisfying resolution.
+0:55–1:06 — Call to action: confident, uplifting finale with the full theme, ending on a clean resolved chord at 1:04 and a short natural tail.
+
+Style references: Apple and Notion product films, calm premium tech, no EDM drops, no aggressive drums, no vocals, no choir.
+
+----- CONSEILS -----
+- Génère 2 ou 3 versions et garde celle dont les changements tombent le plus près des temps indiqués : je recalerai de toute façon la musique sous la voix au montage.
+- Si le résultat est trop chargé, ajoute à la fin du texte : « very minimal, sparse arrangement ».
+- Vérifie que ton forfait ElevenLabs autorise l'usage commercial de la musique générée.

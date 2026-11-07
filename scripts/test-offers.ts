@@ -3,7 +3,8 @@
  * Lancer : npx tsx scripts/test-offers.ts
  */
 import { pickOffer, isOfferBlockedPath, type OfferContext } from "../lib/subscriptions/offer-rules";
-import { computePaidPeriod, formatUsd, formatXof, PLAN_PRICES_XOF } from "../lib/subscriptions/pricing";
+import { computePaidPeriod, formatUsd, formatXof, PLAN_PRICES_XOF, FIRST_MONTH_PRICE_USD, isFirstMonthEligible, checkoutAmountXof } from "../lib/subscriptions/pricing";
+import { expectedAmountXof } from "../lib/payments/bictorys";
 import { PLAN_ENTITLEMENTS } from "../lib/subscriptions/entitlements";
 
 let ok = 0;
@@ -67,6 +68,19 @@ check("Prix affichés en dollars : Pro $9, Premium $19", formatUsd(PLAN_ENTITLEM
 check("Annuel en dollars : $90 et $190", formatUsd(PLAN_ENTITLEMENTS.pro.priceYearly) === "$90" && formatUsd(PLAN_ENTITLEMENTS.premium.priceYearly) === "$190");
 check("Montants prélevés en FCFA inchangés", PLAN_PRICES_XOF.pro.monthly === 5900 && PLAN_PRICES_XOF.premium.yearly === 125000);
 check("Format FCFA lisible", formatXof(12500) === "12 500 FCFA");
+
+// ---------------------------------------------------------------- Offre de bienvenue (1er mois)
+check("1er mois affiché : Pro $4, Premium $9", FIRST_MONTH_PRICE_USD.pro === 4 && FIRST_MONTH_PRICE_USD.premium === 9);
+check("Nouveau compte (aucune ligne) : éligible", isFirstMonthEligible(null));
+check("Essai ou forfait gratuit : éligible", isFirstMonthEligible({ provider: "manual", provider_subscription_id: null }));
+check("Mode démo (sans paiement réel) : éligible", isFirstMonthEligible({ provider: "demo", provider_subscription_id: null }));
+check("Déjà payé via Bictorys : plus éligible", !isFirstMonthEligible({ provider: "bictorys", provider_subscription_id: "ch_1" }));
+check("Charge enregistrée : plus éligible", !isFirstMonthEligible({ provider: null, provider_subscription_id: "ch_1" }));
+check("Prélèvement 1er mois : 2 600 et 5 900 FCFA", checkoutAmountXof("pro", "monthly", true) === 2600 && checkoutAmountXof("premium", "monthly", true) === 5900);
+check("Sans offre : prix normal mensuel", checkoutAmountXof("pro", "monthly", false) === 5900 && checkoutAmountXof("premium", "monthly", false) === 12500);
+check("Annuel : jamais de remise du 1er mois", checkoutAmountXof("pro", "yearly", true) === 59000 && checkoutAmountXof("premium", "yearly", true) === 125000);
+check("Webhook : montant attendu réduit seulement si éligible", expectedAmountXof("pro", "monthly", true) === 2600 && expectedAmountXof("pro", "monthly", false) === 5900);
+check("Webhook : périodicité inconnue refusée", expectedAmountXof("pro", "weekly", true) === null && expectedAmountXof("free", "monthly", true) === null);
 
 console.log(`\n${ok}/${total} tests réussis`);
 if (ok !== total) process.exit(1);

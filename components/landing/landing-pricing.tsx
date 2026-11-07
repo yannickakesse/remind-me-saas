@@ -6,7 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Check, X, Sparkles, Clock } from "lucide-react";
 import { PLAN_ENTITLEMENTS, PLAN_COMING_SOON, yearlyDiscountPercent, type PlanType } from "@/lib/subscriptions/entitlements";
-import { formatUsd } from "@/lib/subscriptions/pricing";
+import { formatUsd, FIRST_MONTH_PRICE_USD } from "@/lib/subscriptions/pricing";
 import { msg } from "@/lib/i18n/catalog";
 
 // Mêmes forfaits, prix et droits que dans l'application (Paramètres → Abonnement) :
@@ -80,6 +80,8 @@ export function LandingPricing() {
                 : yearly
                 ? formatUsd(Math.round(p.priceYearly / 12))
                 : formatUsd(p.priceMonthly);
+            // Offre de bienvenue (mensuel) : prix barré + premier mois réduit
+            const intro = !yearly && FIRST_MONTH_PRICE_USD[key] > 0;
 
             const features: { ok: boolean; soon?: boolean; label: React.ReactNode }[] = [
               { ok: true, label: tr("Voix standard, guides vocaux et rappels") },
@@ -109,17 +111,29 @@ export function LandingPricing() {
                 )}
 
                 <div className="space-y-6">
-                  <div>
-                    <h3 className="text-xl font-bold text-ink-950 dark:text-white">{tr(p.planName)}</h3>
-                    <p className="text-xs text-ink-500 mt-0.5">{tr(PLAN_TAGLINES[key])}</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-xl font-bold text-ink-950 dark:text-white">{tr(p.planName)}</h3>
+                      <p className="text-xs text-ink-500 mt-0.5">{tr(PLAN_TAGLINES[key])}</p>
+                    </div>
+                    {intro && (
+                      <span className="shrink-0 rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 whitespace-nowrap">
+                        {tr("1er mois à {amount}", { amount: formatUsd(FIRST_MONTH_PRICE_USD[key]) })}
+                      </span>
+                    )}
                   </div>
 
                   <div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl sm:text-5xl font-extrabold font-mono text-ink-950 dark:text-white">{price}</span>
-                      <span className="text-xs text-ink-500">{tr("/ mois")}</span>
+                    <div className="flex items-baseline gap-2">
+                      {intro && (
+                        <span className="text-2xl sm:text-3xl font-bold font-mono text-ink-400 line-through decoration-2">{price}</span>
+                      )}
+                      <span className="text-4xl sm:text-5xl font-extrabold font-mono text-ink-950 dark:text-white">{intro ? formatUsd(FIRST_MONTH_PRICE_USD[key]) : price}</span>
+                      <span className="text-xs text-ink-500 -ml-1">{tr("/ mois")}</span>
                     </div>
-                    {yearly && p.priceYearly > 0 ? (
+                    {intro ? (
+                      <p className="text-[11px] text-ink-500 font-medium mt-1">{tr("Puis {amount} / mois", { amount: price })}</p>
+                    ) : yearly && p.priceYearly > 0 ? (
                       <p className="text-[11px] text-ink-500 font-medium mt-1">{tr("Facturé {amount} par an", { amount: formatUsd(p.priceYearly) })}</p>
                     ) : p.priceMonthly === 0 ? (
                       <p className="text-[11px] text-ink-500 font-medium mt-1">{tr("Sans engagement")}</p>

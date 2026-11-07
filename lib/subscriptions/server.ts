@@ -7,6 +7,7 @@ import {
   type PlanEntitlements,
 } from "./entitlements";
 import { getTr } from "@/lib/i18n/server";
+import { isFirstMonthEligible } from "./pricing";
 
 export interface UserSubscriptionInfo {
   /** Forfait qui détermine les droits (Pro pendant l'essai). */
@@ -60,6 +61,20 @@ export async function getUserSubscription(
     trialEndsAt: effective.trialEndsAt,
     trialDaysLeft: effective.trialDaysLeft,
   };
+}
+
+/**
+ * Offre de bienvenue (premier mois réduit) : disponible tant qu'aucun paiement réel n'a été enregistré.
+ * En cas de lecture impossible, l'offre n'est pas proposée (jamais de remise par erreur).
+ */
+export async function getFirstMonthOfferEligible(supabase: SupabaseClient<Database>, userId: string): Promise<boolean> {
+  const { data, error } = await (supabase as any)
+    .from("subscriptions")
+    .select("provider, provider_subscription_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) return false;
+  return isFirstMonthEligible(data);
 }
 
 /**

@@ -7,7 +7,7 @@ const BICTORYS_API_KEY = process.env.BICTORYS_API_KEY || "";
 const BICTORYS_WEBHOOK_SECRET = process.env.BICTORYS_WEBHOOK_SECRET || "";
 
 // Tarification prélevée en FCFA (XOF) : montants définis dans lib/subscriptions/pricing.ts (affichage en dollars)
-import { PLAN_PRICES_XOF } from "@/lib/subscriptions/pricing";
+import { PLAN_PRICES_XOF, checkoutAmountXof } from "@/lib/subscriptions/pricing";
 export { PLAN_PRICES_XOF };
 
 export interface CreateCheckoutParams {
@@ -17,6 +17,8 @@ export interface CreateCheckoutParams {
   plan: PlanType;
   billingCycle: "monthly" | "yearly";
   baseUrl: string;
+  /** Premier mois à prix réduit (calculé côté serveur, jamais transmis par le navigateur). */
+  firstMonthOffer?: boolean;
 }
 
 export interface CheckoutResult {
@@ -42,8 +44,8 @@ export async function createBictorysCheckoutSession(
 
   const { userId, userEmail, userName, plan, billingCycle, baseUrl } = params;
   const planInfo = PLAN_ENTITLEMENTS[plan];
-  const prices = PLAN_PRICES_XOF[plan];
-  const amount = billingCycle === "monthly" ? prices.monthly : prices.yearly;
+  const amount = checkoutAmountXof(plan, billingCycle, Boolean(params.firstMonthOffer));
+  const intro = billingCycle === "monthly" && Boolean(params.firstMonthOffer);
 
   if (amount <= 0) {
     return {
@@ -53,7 +55,7 @@ export async function createBictorysCheckoutSession(
   }
 
   const timestamp = Date.now();
-  const merchantReference = `remindme_${userId}_${plan}_${billingCycle}_${timestamp}`;
+  const merchantReference = `remindme_${userId}_${plan}_${billingCycle}_${timestamp}${intro ? "_intro" : ""}`;
   const successRedirectUrl = `${baseUrl}/settings?payment=success&plan=${plan}`;
   const errorRedirectUrl = `${baseUrl}/settings?payment=cancelled`;
 
@@ -61,7 +63,7 @@ export async function createBictorysCheckoutSession(
     amount,
     currency: "XOF",
     merchantReference,
-    paymentReference: `Remind Me - Forfait ${planInfo.planName} (${billingCycle === "monthly" ? "Mensuel" : "Annuel"})`,
+    paymentReference: `Remind Me - Forfait ${planInfo.planName} (${billingCycle === "monthly" ? (intro ? "1er mois offre de bienvenue" : "Mensuel") : "Annuel"})`,
     successRedirectUrl,
     errorRedirectUrl,
     orderDetails: [
@@ -136,8 +138,9 @@ export function verifyBictorysWebhookSecret(receivedSecret: string | null): bool
 }
 
 /** Montant attendu (XOF) pour un forfait et une périodicité, ou null si invalide. */
-export function expectedAmountXof(plan: PlanType, billingCycle: string): number | null {
+export function expectedAmountXof(plan: PlanType, billingCycle: string, firstMonth = false): number | null {
   if (billingCycle !== "monthly" && billingCycle !== "yearly") return null;
-  const amount = PLAN_PRICES_XOF[plan]?.[billingCycle];
+  if (!PLAN_PRICES_XOF[plan]) return null;
+  const amount = checkoutAmountXof(plan, billingCycle, firstMonth);
   return amount && amount > 0 ? amount : null;
 }

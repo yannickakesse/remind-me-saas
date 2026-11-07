@@ -290,7 +290,12 @@ export async function initiateBictorysCheckoutAction(params: {
       .eq("id", user.id)
       .maybeSingle();
 
+    // Offre de bienvenue : décidée ici, côté serveur, d'après l'historique de paiement du compte
+    const { getFirstMonthOfferEligible } = await import("@/lib/subscriptions/server");
+    const firstMonthOffer = params.billingCycle === "monthly" && (await getFirstMonthOfferEligible(supabase, user.id));
+
     const result = await createBictorysCheckoutSession({
+      firstMonthOffer,
       userId: user.id,
       userEmail: user.email || "",
       userName: profile?.full_name || undefined,

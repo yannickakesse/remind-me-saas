@@ -22,7 +22,7 @@ export function LandingHero() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(45);
+  const [duration, setDuration] = useState(68);
   const [showControls, setShowControls] = useState(true);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   // Horodatage du geste qui a activé le son : évite que ce même toucher mette la vidéo en pause
@@ -35,11 +35,15 @@ export function LandingHero() {
     video.muted = true;
     setIsMuted(true);
 
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => setIsPlaying(true))
-        .catch(() => setIsPlaying(false));
+    // « Moins d'animations » demandé par l'utilisateur : pas de lecture automatique (bouton Lecture affiché)
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (!reduceMotion) {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsPlaying(true))
+          .catch(() => setIsPlaying(false));
+      }
     }
 
     const onTimeUpdate = () => {
@@ -86,6 +90,7 @@ export function LandingHero() {
     // Lecture automatique (muette) garantie : relancée dès que la vidéo est visible
     // et au premier défilement / toucher (mode économie d'énergie iOS, onglet en arrière-plan…)
     const ensurePlaying = () => {
+      if (reduceMotion) return;
       if (video.paused && !video.ended) {
         video.play().then(() => setIsPlaying(true)).catch(() => {});
       }
@@ -117,6 +122,12 @@ export function LandingHero() {
       video.removeEventListener("ended", onEnded);
     };
   }, []);
+
+  // Sous-titres français visibles tant que la vidéo est muette, masqués quand le son est activé
+  useEffect(() => {
+    const track = videoRef.current?.textTracks?.[0];
+    if (track) track.mode = isMuted ? "showing" : "hidden";
+  }, [isMuted]);
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -244,9 +255,12 @@ export function LandingHero() {
                 loop
                 preload="metadata"
                 className="w-full h-full object-contain bg-white"
-                poster="/brand/hero-reference.jpg"
+                poster="/videos/remindme-ad-poster.jpg"
               >
-                <source src="/remindme-intro.mp4" type="video/mp4" />
+                {/* Ordinateur et tablette : 1080p ; téléphone : version 720p plus légère */}
+                <source src="/videos/remindme-ad-1080.mp4" type="video/mp4" media="(min-width: 768px)" />
+                <source src="/videos/remindme-ad-720.mp4" type="video/mp4" />
+                <track kind="subtitles" srcLang="fr" label="Français" src="/videos/remindme-ad.fr.vtt" default />
                 {tr("Votre navigateur ne prend pas en charge la lecture de vidéos HTML5.")}</video>
 
               {/* Bouton de lecture central visible si en pause */}
@@ -264,7 +278,7 @@ export function LandingHero() {
                     <Play className="w-8 h-8 sm:w-9 sm:h-9 ml-1 fill-white" />
                   </button>
                   <span className="mt-3.5 text-xs sm:text-sm font-medium text-white/90 drop-shadow">
-                    {tr("Découvrir Remind Me en 45 secondes")}</span>
+                    {tr("Découvrir Remind Me en 1 minute")}</span>
                 </div>
               )}
 
@@ -308,7 +322,7 @@ export function LandingHero() {
                 <input
                   type="range"
                   min="0"
-                  max={duration || 45}
+                  max={duration || 68}
                   step="0.1"
                   value={currentTime}
                   onChange={handleSeek}

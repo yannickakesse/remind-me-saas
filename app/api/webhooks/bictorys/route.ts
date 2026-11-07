@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyBictorysWebhookSecret, expectedAmountXof } from "@/lib/payments/bictorys";
 import { normalizePlan } from "@/lib/subscriptions/entitlements";
 import { notifyAdmin } from "@/lib/admin/notifier";
-import { computePaidPeriod } from "@/lib/subscriptions/pricing";
+import { computePaidPeriod, isFirstMonthEligible } from "@/lib/subscriptions/pricing";
 
 const SUCCESS_STATUSES = new Set(["succeeded", "completed", "paid", "successful"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -43,8 +43,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, warning: "Référence non reconnue" });
     }
 
-    // 4. Montant et devise conformes au tarif du forfait
-    const expected = expectedAmountXof(plan, billingCycle ?? "");
+    const adminSupabase = createAdminClient();
+
+    // 4. Abonnement actuel (lu avant toute écriture) : sert à l'anti-rejeu, à l'offre de bienvenue et à la période
+    let { data: currentSub, error: subReadError } = await (adminSupabase as any)
+      .from("subscriptions")
+      .select("plan, status, current_period_end, provider, provider_subscription_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (subReadError) {
+      ({ data: currentSub } = await adminSupabase
+        .from("subscriptions")
+        .select("plan, status, current_period_end")
+        .eq("user_id", userId)
+        .maybeSingle());
+    }
+
+    // 5. Anti-rejeu : une même charge n'est appliquée qu'une seule fois
+    if (chargeId && (currentSub as any)?.provider_subscription_id === chargeId) {
+      return NextResponse.json({ received: true, status: "already_processed" });
+    }
+
+    // 6. Montant et devise conformes au tarif du forfait
+    // (premier mois réduit accepté seulement si le compte n'a jamais payé : décision serveur, pas la référence)
+    const firstMonth = billingCycle === "monthly" && !subReadError && isFirstMonthEligible(currentSub as any);
+    const expected = expectedAmountXof(plan, billingCycle ?? "", firstMonth);
     const paidAmount = Number(chargeData?.amount);
     const currency = String(chargeData?.currency || "XOF").toUpperCase();
     if (!expected || currency !== "XOF" || !Number.isFinite(paidAmount) || paidAmount < expected) {
@@ -58,34 +81,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, warning: "Montant non conforme" });
     }
 
-    const adminSupabase = createAdminClient();
-
-    // 5. Anti-rejeu : une même charge n'est appliquée qu'une seule fois
-    if (chargeId) {
-      const { data: existing } = await adminSupabase
-        .from("subscriptions")
-        .select("provider_subscription_id")
-        .eq("user_id", userId)
-        .maybeSingle();
-      if ((existing as any)?.provider_subscription_id === chargeId) {
-        return NextResponse.json({ received: true, status: "already_processed" });
-      }
-    }
-
     const { data: userRes, error: userErr } = await adminSupabase.auth.admin.getUserById(userId);
     if (userErr || !userRes?.user) {
       console.warn("[Bictorys Webhook] Utilisateur introuvable pour la référence.");
       return NextResponse.json({ received: true, warning: "Utilisateur introuvable" });
     }
 
-    // 6. Activation : la table subscriptions (écrite uniquement côté serveur) fait foi.
+    // 7. Activation : la table subscriptions (écrite uniquement côté serveur) fait foi.
     // Paiement anticipé du même forfait : la nouvelle période s'ajoute à la suite (aucun jour perdu).
     const now = new Date();
-    const { data: currentSub } = await adminSupabase
-      .from("subscriptions")
-      .select("plan, status, current_period_end")
-      .eq("user_id", userId)
-      .maybeSingle();
     const { end: periodEnd } = computePaidPeriod(currentSub as any, plan, billingCycle === "yearly" ? "yearly" : "monthly", now);
 
     const { error: subError } = await adminSupabase.from("subscriptions").upsert(
@@ -114,7 +118,7 @@ export async function POST(request: NextRequest) {
       fullName: `Client ${plan.toUpperCase()}`,
       details: {
         plan,
-        billingCycle: billingCycle === "yearly" ? "Annuel" : "Mensuel",
+        billingCycle: billingCycle === "yearly" ? "Annuel" : firstMonth ? "Mensuel (1er mois offre de bienvenue)" : "Mensuel",
         amount: `${paidAmount} ${currency}`,
         merchantReference,
       },
