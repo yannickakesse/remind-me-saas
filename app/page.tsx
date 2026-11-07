@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: "https://remind-me-saas-ybkc.vercel.app",
+      url: "https://tryremind-me.vercel.app",
       siteName: "Remind Me",
       locale: getServerLocale(),
       type: "website",

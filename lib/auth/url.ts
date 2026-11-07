@@ -1,6 +1,6 @@
 /**
  * Retourne l'URL racine publique de l'application.
- * Privilégie l'URL de production Vercel (https://remind-me-saas.vercel.app)
+ * Privilégie l'URL de production Vercel (https://tryremind-me.vercel.app)
  * ou l'origin du navigateur s'il est valide et en ligne.
  */
 export function getAppUrl(): string {
@@ -23,7 +23,7 @@ export function getAppUrl(): string {
   }
 
   // 4. URL de production officielle Remind Me
-  return "https://remind-me-saas.vercel.app";
+  return "https://tryremind-me.vercel.app";
 }
 
 /**
