@@ -90,7 +90,7 @@ async function runTests() {
   assert(free.maxGoals === 2, "Free: maxGoals === 2");
   assert(free.maxBudgets === 3, "Free: maxBudgets === 3");
   assert(free.hourlyProfitability === false, "Free: hourlyProfitability === false");
-  assert(free.multiCurrency === false, "Free: multiCurrency === false");
+  assert(free.multiCurrency === true, "Free: multiCurrency === true (multi-devises offert à tous)");
   assert(free.aiAssistant === false, "Free: aiAssistant === false");
 
   const pro = PLAN_ENTITLEMENTS.pro;
@@ -109,7 +109,7 @@ async function runTests() {
   assert(premium.maxBudgets === Infinity, "Premium: maxBudgets === Infinity");
   assert(premium.hourlyProfitability === true, "Premium: hourlyProfitability === true");
   assert(premium.multiCurrency === true, "Premium: multiCurrency === true");
-  assert(premium.aiAssistant === true, "Premium: aiAssistant === true");
+  assert(premium.aiAssistant === false, "Premium: aiAssistant === false (assistant IA marqué « Bientôt »)");
 
   // ----------------------------------------------------------------------------
   // TEST 2: Limites et blocage - Plan FREE
@@ -238,12 +238,12 @@ async function runTests() {
     await assertCanCreateSavingsGoal(premiumClient, "test-user-123");
     await assertFeatureAllowed(premiumClient, "test-user-123", "hourlyProfitability", "Rentabilité horaire");
     await assertFeatureAllowed(premiumClient, "test-user-123", "multiCurrency", "Multi-devises");
-    await assertFeatureAllowed(premiumClient, "test-user-123", "aiAssistant", "Assistant IA");
+    // Assistant IA : pas encore disponible (« Bientôt »), donc non testé ici
   } catch (err: any) {
     premiumAllOk = false;
     console.error(err);
   }
-  assert(premiumAllOk, "Premium : 100 activités, 600 clients, rentabilité, devises et IA 100% autorisés");
+  assert(premiumAllOk, "Premium : 100 activités, 600 clients, rentabilité et devises autorisés");
 
   // ----------------------------------------------------------------------------
   // TEST 5: Downgrade sans suppression de données

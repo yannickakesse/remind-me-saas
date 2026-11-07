@@ -2,7 +2,7 @@
 
 
 import { useLanguage } from "@/components/i18n/language-provider";
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
@@ -50,6 +50,9 @@ const DEFAULT_DURATION_MS = 4000;
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const { tr } = useLanguage();
   const [toasts, setToasts] = useState<Toast[]>([]);
+  // Zone des notifications créée après le chargement : le HTML du serveur et du navigateur restent identiques (pas d'erreur d'hydratation)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const nextId = useRef(0);
 
   const remove = useCallback((id: string) => {
@@ -99,7 +102,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {typeof document !== "undefined"
+      {mounted
         ? createPortal(
             <div
               className="fixed bottom-20 sm:bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-[70] flex flex-col gap-2.5 sm:max-w-md pointer-events-none"

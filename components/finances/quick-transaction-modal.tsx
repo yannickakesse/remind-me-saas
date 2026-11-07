@@ -19,6 +19,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/validation/finances";
+import { frequencyLabel } from "@/lib/validation/scheduled-expenses";
 import {
   createQuickExpenseAction,
   createQuickIncomeAction,
@@ -248,7 +249,7 @@ export function QuickTransactionModal({
         }
 
         toast.push(
-          tr("Dépense programmée ({frequency}) enregistrée avec succès.", { frequency }),
+          tr("Dépense programmée ({frequency}) enregistrée avec succès.", { frequency: tr(frequencyLabel(frequency)) }),
           "success"
         );
       }

@@ -89,7 +89,20 @@ async function sendDiscordAlert(title: string, description: string, fields: { na
 /**
  * Notifie l'admin d'un nouvel événement
  */
-export async function notifyAdmin(event: AdminEventData): Promise<{ telegram: boolean; discord: boolean }> {
+/** Échappe le texte saisi par les utilisateurs (nom, e-mail) : Telegram refuse un message HTML mal formé. */
+function escapeHtml(v: unknown): string {
+  return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+export async function notifyAdmin(rawEvent: AdminEventData): Promise<{ telegram: boolean; discord: boolean }> {
+  const event: AdminEventData = {
+    ...rawEvent,
+    email: rawEvent.email === undefined ? undefined : escapeHtml(rawEvent.email),
+    fullName: rawEvent.fullName === undefined ? undefined : escapeHtml(rawEvent.fullName),
+    details: rawEvent.details
+      ? Object.fromEntries(Object.entries(rawEvent.details).map(([k, v]) => [k, typeof v === "string" ? escapeHtml(v) : v]))
+      : undefined,
+  };
   const now = new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" });
   let telegramMessage = "";
   let discordTitle = "";

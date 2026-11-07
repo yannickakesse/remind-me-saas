@@ -347,6 +347,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
     }
 
     // PROPAGATION IMMÉDIATE : Mettre à jour tous les revenus NON ENCAISSÉS de cette activité
+    // (le libellé d’origine, ex. « Nom — novembre 2026 », est conservé : plus de code brut type « per_session »)
     // pour que les nouvelles valeurs (ex: 20 000 FCFA au lieu de 375 000 FCFA) soient immédiatement
     // répercutées dans la table income sans aucune valeur résiduelle obsolète.
     await Promise.allSettled([
@@ -355,7 +356,6 @@ export async function updateActivity(activityId: string, formData: FormData) {
         .update({
           amount: parsed.compensation.amount,
           currency: parsed.compensation.currency,
-          label: `${parsed.info.name} — ${parsed.compensation.frequency}`,
         })
         .eq("activity_id", activityId)
         .eq("received", false)
@@ -365,7 +365,6 @@ export async function updateActivity(activityId: string, formData: FormData) {
         .update({
           amount: parsed.compensation.amount,
           currency: parsed.compensation.currency,
-          label: `${parsed.info.name} — ${parsed.compensation.frequency}`,
         })
         .eq("activity_id", activityId)
         .eq("received", false)

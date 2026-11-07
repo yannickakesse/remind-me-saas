@@ -7,13 +7,14 @@ export async function GET(request: Request) {
   const supabase = createClient();
   const requestUrl = new URL(request.url);
   const secretParam = requestUrl.searchParams.get("secret");
-  const adminSecret = process.env.ADMIN_SECRET_KEY || "remindme2026";
+  // Aucun secret par défaut : sans ADMIN_SECRET_KEY configuré, l'accès par code est désactivé
+  const adminSecret = process.env.ADMIN_SECRET_KEY || "";
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isSecretValid = secretParam === adminSecret;
+  const isSecretValid = Boolean(adminSecret) && secretParam === adminSecret;
 
   if (!user && !isSecretValid) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });

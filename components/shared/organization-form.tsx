@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
 
 interface OrganizationFormProps {
-  action: (formData: FormData) => Promise<void>;
+  /** Peut renvoyer { error } (limite du forfait, saisie invalide) : le message est affiché tel quel. */
+  action: (formData: FormData) => Promise<{ error?: string } | void>;
   initial?: {
     name: string;
     contactName: string;
@@ -32,7 +33,12 @@ export function OrganizationForm({ action, initial, submitLabel = "Créer l'orga
 
     const formData = new FormData(e.currentTarget);
     try {
-      await action(formData);
+      const result = await action(formData);
+      if (result && result.error) {
+        setSubmitting(false);
+        setError(result.error);
+        return;
+      }
     } catch (err: any) {
       if (err?.digest?.startsWith("NEXT_REDIRECT") || err?.message === "NEXT_REDIRECT") {
         return;

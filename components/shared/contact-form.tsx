@@ -8,7 +8,8 @@ import { Field, TextInput, PrimaryButton } from "@/components/ui/field";
 
 interface ContactFormProps {
   organizations: { id: string; name: string }[];
-  action: (formData: FormData) => Promise<void>;
+  /** Peut renvoyer { error } (limite du forfait, saisie invalide) : le message est affiché tel quel. */
+  action: (formData: FormData) => Promise<{ error?: string } | void>;
   initial?: {
     name: string;
     organizationId: string;
@@ -38,7 +39,12 @@ export function ContactForm({
 
     const formData = new FormData(e.currentTarget);
     try {
-      await action(formData);
+      const result = await action(formData);
+      if (result && result.error) {
+        setSubmitting(false);
+        setError(result.error);
+        return;
+      }
     } catch (err: any) {
       if (err?.digest?.startsWith("NEXT_REDIRECT") || err?.message === "NEXT_REDIRECT") {
         return;

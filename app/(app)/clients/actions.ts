@@ -15,6 +15,13 @@ async function requireUser() {
   return { supabase, user };
 }
 
+/** Message lisible pour le formulaire (limite du forfait, saisie invalide). */
+function formError(err: unknown): string {
+  const issues = (err as any)?.issues;
+  if (Array.isArray(issues) && issues[0]?.message) return String(issues[0].message);
+  return err instanceof Error && err.message ? err.message : "Une erreur est survenue.";
+}
+
 function parseOrganizationForm(formData: FormData) {
   return organizationFormSchema.parse({
     name: formData.get("name"),
@@ -38,10 +45,15 @@ function parseContactForm(formData: FormData) {
 // ----------------------------------------------------------------------------
 // Organisations
 // ----------------------------------------------------------------------------
-export async function createOrganization(formData: FormData) {
+export async function createOrganization(formData: FormData): Promise<{ error?: string } | void> {
   const { supabase, user } = await requireUser();
-  await assertCanCreateContact(supabase, user.id);
-  const parsed = parseOrganizationForm(formData);
+  let parsed: ReturnType<typeof parseOrganizationForm>;
+  try {
+    await assertCanCreateContact(supabase, user.id);
+    parsed = parseOrganizationForm(formData);
+  } catch (err) {
+    return { error: formError(err) };
+  }
 
   const { error } = await supabase.from("organizations").insert({
     user_id: user.id,
@@ -52,7 +64,7 @@ export async function createOrganization(formData: FormData) {
     address: parsed.address || null,
   });
 
-  if (error) throw new Error("Impossible de créer l'organisation.");
+  if (error) return { error: "Impossible de créer l'organisation." };
 
   revalidatePath("/clients");
   redirect("/clients");
@@ -97,10 +109,15 @@ export async function deleteOrganization(organizationId: string) {
 // ----------------------------------------------------------------------------
 // Contacts
 // ----------------------------------------------------------------------------
-export async function createContact(formData: FormData) {
+export async function createContact(formData: FormData): Promise<{ error?: string } | void> {
   const { supabase, user } = await requireUser();
-  await assertCanCreateContact(supabase, user.id);
-  const parsed = parseContactForm(formData);
+  let parsed: ReturnType<typeof parseContactForm>;
+  try {
+    await assertCanCreateContact(supabase, user.id);
+    parsed = parseContactForm(formData);
+  } catch (err) {
+    return { error: formError(err) };
+  }
 
   const { error } = await supabase.from("contacts").insert({
     user_id: user.id,
@@ -111,7 +128,7 @@ export async function createContact(formData: FormData) {
     notes: parsed.notes || null,
   });
 
-  if (error) throw new Error("Impossible de créer le contact.");
+  if (error) return { error: "Impossible de créer le contact." };
 
   revalidatePath("/clients");
   redirect("/clients");

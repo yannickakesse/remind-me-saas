@@ -711,7 +711,17 @@ export function ActivitiesClientView({
                           ? tr("mois")
                           : activity.compensation.frequency === "hourly"
                           ? "h"
-                          : activity.compensation.frequency}
+                          : activity.compensation.frequency === "daily"
+                          ? tr("jour")
+                          : activity.compensation.frequency === "per_session"
+                          ? tr("séance")
+                          : activity.compensation.frequency === "weekly"
+                          ? tr("semaine")
+                          : activity.compensation.frequency === "biweekly"
+                          ? tr("2 semaines")
+                          : activity.compensation.frequency === "per_project"
+                          ? tr("projet")
+                          : tr("prestation")}
                       </span>
                     ) : null}
 
