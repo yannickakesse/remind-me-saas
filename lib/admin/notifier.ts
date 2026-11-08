@@ -13,6 +13,33 @@ export interface AdminEventData {
 }
 
 /**
+ * E-mail au fondateur (adresses FOUNDER_EMAILS) via Resend, si RESEND_API_KEY est configurée.
+ */
+export async function sendFounderEmail(subject: string, html: string): Promise<boolean> {
+  const key = process.env.RESEND_API_KEY;
+  const to = (process.env.FOUNDER_EMAILS || "").split(",").map((e) => e.trim()).filter(Boolean);
+  if (!key || !to.length) return false;
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from: process.env.EMAIL_FROM || "Remind Me <onboarding@resend.dev>", to, subject, html }),
+    });
+    if (!res.ok) console.warn("[Admin:Notifier] Erreur e-mail fondateur :", res.status);
+    return res.ok;
+  } catch (err) {
+    console.error("[Admin:Notifier] Exception e-mail fondateur:", err);
+    return false;
+  }
+}
+
+/** Message déjà mis en forme (résumé quotidien) : Telegram + e-mail. */
+export async function sendFounderMessage(msg: { subject: string; telegramHtml: string; emailHtml: string }) {
+  const [telegram, email] = await Promise.all([sendTelegramAlert(msg.telegramHtml), sendFounderEmail(msg.subject, msg.emailHtml)]);
+  return { telegram, email };
+}
+
+/**
  * Envoie une notification Telegram au créateur du SaaS
  */
 async function sendTelegramAlert(message: string): Promise<boolean> {
@@ -94,7 +121,7 @@ function escapeHtml(v: unknown): string {
   return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-export async function notifyAdmin(rawEvent: AdminEventData): Promise<{ telegram: boolean; discord: boolean }> {
+export async function notifyAdmin(rawEvent: AdminEventData): Promise<{ telegram: boolean; discord: boolean; email: boolean }> {
   const event: AdminEventData = {
     ...rawEvent,
     email: rawEvent.email === undefined ? undefined : escapeHtml(rawEvent.email),
@@ -166,10 +193,13 @@ export async function notifyAdmin(rawEvent: AdminEventData): Promise<{ telegram:
   }
 
   // Exécution non-bloquante en parallèle
-  const [telegram, discord] = await Promise.all([
+  // Copie par e-mail (même contenu que Telegram) si l'e-mail fondateur est configuré
+  const emailHtml = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6">${telegramMessage.replace(/\n/g, "<br>")}</div>`;
+  const [telegram, discord, email] = await Promise.all([
     sendTelegramAlert(telegramMessage),
     sendDiscordAlert(discordTitle, discordDescription, discordFields),
+    sendFounderEmail(`Remind Me — ${discordTitle.replace(/^\S+\s/, "")}`, emailHtml),
   ]);
 
-  return { telegram, discord };
+  return { telegram, discord, email };
 }
