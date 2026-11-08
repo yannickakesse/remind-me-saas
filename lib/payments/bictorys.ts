@@ -55,7 +55,8 @@ export async function createBictorysCheckoutSession(
   }
 
   const timestamp = Date.now();
-  const merchantReference = `remindme_${userId}_${plan}_${billingCycle}_${timestamp}${intro ? "_intro" : ""}`;
+  // Bictorys limite la référence à ~64 caractères : format compact rm_<userId>_<plan>_<m|y>_<horodatage base 36>[_i]
+  const merchantReference = buildMerchantReference(userId, plan, billingCycle, intro, timestamp);
   const successRedirectUrl = `${baseUrl}/settings?payment=success&plan=${plan}`;
   const errorRedirectUrl = `${baseUrl}/settings?payment=cancelled`;
 
@@ -101,7 +102,8 @@ export async function createBictorysCheckoutSession(
     }
 
     // Récupération de l'URL de redirection (checkoutUrl ou url ou paymentUrl)
-    const checkoutUrl = data?.checkoutUrl || data?.url || data?.paymentUrl || data?.data?.checkoutUrl || data?.data?.url;
+    // Bictorys renvoie le lien dans « link » (CheckoutLinkObject) ; anciens noms gardés par sécurité
+    const checkoutUrl = data?.link || data?.checkoutUrl || data?.url || data?.paymentUrl || data?.data?.link || data?.data?.checkoutUrl || data?.data?.url;
     const chargeId = data?.chargeId || data?.id || data?.data?.id;
 
     if (!checkoutUrl) {
@@ -124,6 +126,21 @@ export async function createBictorysCheckoutSession(
       error: err?.message || "Impossible de joindre la passerelle de paiement Bictorys.",
     };
   }
+}
+
+/** Référence marchande compacte (≤ 64 caractères, limite Bictorys). */
+export function buildMerchantReference(userId: string, plan: PlanType, billingCycle: "monthly" | "yearly", intro: boolean, timestamp: number = Date.now()): string {
+  return `rm_${userId}_${plan}_${billingCycle === "yearly" ? "y" : "m"}_${timestamp.toString(36)}${intro ? "_i" : ""}`;
+}
+
+/**
+ * Lit une référence marchande, nouveau format (rm_…_m|y_…) ou ancien (remindme_…_monthly|yearly_…).
+ */
+export function parseMerchantReference(ref: string): { userId: string; plan: string; billingCycle: "monthly" | "yearly" | "" } | null {
+  const [prefix, userId, plan, cycle] = String(ref || "").split("_");
+  if ((prefix !== "rm" && prefix !== "remindme") || !userId || !plan) return null;
+  const billingCycle = cycle === "m" || cycle === "monthly" ? "monthly" : cycle === "y" || cycle === "yearly" ? "yearly" : "";
+  return { userId, plan, billingCycle };
 }
 
 /**

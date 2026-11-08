@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { verifyBictorysWebhookSecret, expectedAmountXof } from "@/lib/payments/bictorys";
+import { verifyBictorysWebhookSecret, expectedAmountXof, parseMerchantReference } from "@/lib/payments/bictorys";
 import { normalizePlan } from "@/lib/subscriptions/entitlements";
 import { notifyAdmin } from "@/lib/admin/notifier";
 import { computePaidPeriod, isFirstMonthEligible } from "@/lib/subscriptions/pricing";
@@ -35,10 +35,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, status: "ignored" });
     }
 
-    // 3. Référence marchande : remindme_<userId>_<plan>_<cycle>_<timestamp>
-    const [prefix, userId, rawPlan, billingCycle] = merchantReference.split("_");
-    const plan = normalizePlan(rawPlan);
-    if (prefix !== "remindme" || !userId || !UUID_RE.test(userId) || plan === "free") {
+    // 3. Référence marchande : rm_<userId>_<plan>_<m|y>_<horodatage> (ancien format remindme_… accepté)
+    const ref = parseMerchantReference(merchantReference);
+    const userId = ref?.userId ?? "";
+    const billingCycle = ref?.billingCycle ?? "";
+    const plan = normalizePlan(ref?.plan);
+    if (!ref || !userId || !UUID_RE.test(userId) || plan === "free" || !billingCycle) {
       console.warn("[Bictorys Webhook] Référence marchande invalide.");
       return NextResponse.json({ received: true, warning: "Référence non reconnue" });
     }

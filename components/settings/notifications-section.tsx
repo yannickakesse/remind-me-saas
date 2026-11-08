@@ -35,7 +35,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { updateNotificationPrefs } from "@/app/(app)/settings/actions";
-import { urlBase64ToUint8Array, DEFAULT_VAPID_PUBLIC_KEY } from "@/lib/push/client";
+import { subscribeToPushReliably } from "@/lib/push/client";
 import {
   isSoundEnabled,
   setSoundEnabled,
@@ -57,7 +57,6 @@ import type { NotificationPreference } from "@/types/database";
 import { playJourneyVoice } from "@/components/onboarding/journey-voice";
 import { ClosedAppVoiceInfo } from "@/components/settings/closed-app-voice-info";
 
-const VAPID_PUBLIC_KEY = DEFAULT_VAPID_PUBLIC_KEY;
 
 interface NotificationsSectionProps {
   notifPrefs: Record<string, unknown> | null;
@@ -457,19 +456,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
         return;
       }
 
-      let reg: ServiceWorkerRegistration;
-      try {
-        reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-        await navigator.serviceWorker.ready;
-      } catch (swErr: any) {
-        reg = await navigator.serviceWorker.ready;
-      }
-
-      const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-      const subscription = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: convertedVapidKey,
-      });
+      // Clé du serveur, ancien abonnement remplacé, délai maximum, erreurs expliquées (lib/push/client.ts)
+      const subscription = await subscribeToPushReliably();
 
       const rawKeys = subscription.toJSON();
       const response = await fetch("/api/push/subscribe", {

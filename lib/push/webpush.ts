@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 
 // Configuration des clés VAPID par défaut pour le développement et la production
-const VAPID_PUBLIC_KEY =
+export const VAPID_PUBLIC_KEY =
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
   "BE8s3t5tTHgVP9A-V5tKLq4vUCcFNU1m8bhDtFgwil3ORODoMl4Jmbo47rhMaTcNemPJb8c588D7oqj6VqYtVBU";
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;

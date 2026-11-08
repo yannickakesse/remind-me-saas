@@ -4,7 +4,7 @@
  */
 import { pickOffer, isOfferBlockedPath, type OfferContext } from "../lib/subscriptions/offer-rules";
 import { computePaidPeriod, formatUsd, formatXof, PLAN_PRICES_XOF, FIRST_MONTH_PRICE_USD, isFirstMonthEligible, checkoutAmountXof } from "../lib/subscriptions/pricing";
-import { expectedAmountXof } from "../lib/payments/bictorys";
+import { expectedAmountXof, buildMerchantReference, parseMerchantReference } from "../lib/payments/bictorys";
 import { PLAN_ENTITLEMENTS } from "../lib/subscriptions/entitlements";
 
 let ok = 0;
@@ -81,6 +81,14 @@ check("Sans offre : prix normal mensuel", checkoutAmountXof("pro", "monthly", fa
 check("Annuel : jamais de remise du 1er mois", checkoutAmountXof("pro", "yearly", true) === 59000 && checkoutAmountXof("premium", "yearly", true) === 125000);
 check("Webhook : montant attendu réduit seulement si éligible", expectedAmountXof("pro", "monthly", true) === 2600 && expectedAmountXof("pro", "monthly", false) === 5900);
 check("Webhook : périodicité inconnue refusée", expectedAmountXof("pro", "weekly", true) === null && expectedAmountXof("free", "monthly", true) === null);
+
+// ---------------------------------------------------------------- Référence Bictorys (limite ~64 caractères)
+const U = "8f14e45f-ceea-467a-9b2c-3e5a1d2b4c6d";
+const longest = buildMerchantReference(U, "premium", "yearly", true);
+check("Référence Bictorys ≤ 64 caractères (cas le plus long)", longest.length <= 64, longest.length);
+check("Référence relue : utilisateur, forfait, périodicité", JSON.stringify(parseMerchantReference(longest)) === JSON.stringify({ userId: U, plan: "premium", billingCycle: "yearly" }));
+check("Ancien format encore accepté par le webhook", parseMerchantReference(`remindme_${U}_pro_monthly_1700000000000`)?.billingCycle === "monthly");
+check("Référence étrangère refusée", parseMerchantReference("autre_123") === null);
 
 console.log(`\n${ok}/${total} tests réussis`);
 if (ok !== total) process.exit(1);

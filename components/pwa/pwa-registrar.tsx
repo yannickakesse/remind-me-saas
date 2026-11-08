@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { urlBase64ToUint8Array, DEFAULT_VAPID_PUBLIC_KEY } from "@/lib/push/client";
+import { subscribeToPushReliably } from "@/lib/push/client";
 
-const VAPID_PUBLIC_KEY = DEFAULT_VAPID_PUBLIC_KEY;
 
 /**
  * Composant client invisible de haut niveau qui enregistre automatiquement
@@ -24,19 +23,12 @@ export function PwaRegistrar() {
 
         // 2. Si la permission de notification est déjà accordée, synchroniser la souscription avec le serveur
         if ("Notification" in window && Notification.permission === "granted" && "PushManager" in window) {
-          const readyReg = await navigator.serviceWorker.ready;
-          let sub = await readyReg.pushManager.getSubscription();
-
-          if (!sub && VAPID_PUBLIC_KEY) {
-            try {
-              const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-              sub = await readyReg.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: convertedVapidKey,
-              });
-            } catch (subErr) {
-              console.debug("[PwaRegistrar] Subscription creation fallback:", subErr);
-            }
+          // Abonnement avec la clé du serveur ; un ancien abonnement (autre clé) est remplacé automatiquement
+          let sub: PushSubscription | null = null;
+          try {
+            sub = await subscribeToPushReliably();
+          } catch (subErr) {
+            console.debug("[PwaRegistrar] Subscription creation fallback:", subErr);
           }
 
           if (sub) {
