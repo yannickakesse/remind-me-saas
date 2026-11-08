@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isFounder, loadFounderMetrics } from "@/lib/admin/founder-metrics";
 import { buildFounderDigest } from "@/lib/admin/founder-digest";
-import { notifyAdmin, sendFounderMessage } from "@/lib/admin/notifier";
+import { notifyAdmin, sendFounderMessage, lastFounderEmailError } from "@/lib/admin/notifier";
 import { getAppUrl } from "@/lib/auth/url";
 
 async function requireFounder() {
@@ -20,8 +20,9 @@ export async function sendFounderTestAlert(): Promise<{ ok: boolean; message: st
     const user = await requireFounder();
     const r = await notifyAdmin({ type: "test_alert", email: user.email ?? "—" });
     const channels = [r.telegram && "Telegram", r.discord && "Discord", r.email && "e-mail"].filter(Boolean);
+    const emailNote = r.email ? "" : ` E-mail non envoyé : ${lastFounderEmailError ?? "raison inconnue"}`;
     return channels.length
-      ? { ok: true, message: `Alerte de test envoyée : ${channels.join(", ")}.` }
+      ? { ok: true, message: `Alerte de test envoyée : ${channels.join(", ")}.${emailNote}` }
       : { ok: false, message: "Aucun canal n'a répondu : vérifiez TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID ou RESEND_API_KEY sur Vercel." };
   } catch (e: any) {
     return { ok: false, message: e?.message || "Envoi impossible." };
@@ -36,8 +37,9 @@ export async function sendFounderDigestNow(): Promise<{ ok: boolean; message: st
     const digest = buildFounderDigest(metrics, Date.now(), getAppUrl());
     const r = await sendFounderMessage(digest);
     const channels = [r.telegram && "Telegram", r.email && "e-mail"].filter(Boolean);
+    const emailNote = r.email ? "" : ` E-mail non envoyé : ${r.emailError ?? "raison inconnue"}`;
     return channels.length
-      ? { ok: true, message: `Résumé envoyé : ${channels.join(", ")}.` }
+      ? { ok: true, message: `Résumé envoyé : ${channels.join(", ")}.${emailNote}` }
       : { ok: false, message: "Aucun canal n'a répondu : vérifiez la configuration Telegram ou e-mail sur Vercel." };
   } catch (e: any) {
     return { ok: false, message: e?.message || "Envoi impossible." };

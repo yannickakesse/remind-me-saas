@@ -15,19 +15,40 @@ export interface AdminEventData {
 /**
  * E-mail au fondateur (adresses FOUNDER_EMAILS) via Resend, si RESEND_API_KEY est configurée.
  */
+/** Raison du dernier échec d'e-mail fondateur (jamais la clé elle-même) : affichée dans /admin pour le diagnostic. */
+export let lastFounderEmailError: string | null = null;
+
 export async function sendFounderEmail(subject: string, html: string): Promise<boolean> {
-  const key = process.env.RESEND_API_KEY;
+  const key = (process.env.RESEND_API_KEY || "").trim();
   const to = (process.env.FOUNDER_EMAILS || "").split(",").map((e) => e.trim()).filter(Boolean);
-  if (!key || !to.length) return false;
+  if (!key) {
+    lastFounderEmailError = "RESEND_API_KEY absente sur Vercel (ou pas encore redéployée).";
+    return false;
+  }
+  if (!to.length) {
+    lastFounderEmailError = "FOUNDER_EMAILS absente sur Vercel.";
+    return false;
+  }
+  if (!key.startsWith("re_")) {
+    lastFounderEmailError = "RESEND_API_KEY ne ressemble pas à une clé Resend (elle doit commencer par re_).";
+    return false;
+  }
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: process.env.EMAIL_FROM || "Remind Me <onboarding@resend.dev>", to, subject, html }),
+      body: JSON.stringify({ from: (process.env.EMAIL_FROM || "").trim() || "Remind Me <onboarding@resend.dev>", to, subject, html }),
     });
-    if (!res.ok) console.warn("[Admin:Notifier] Erreur e-mail fondateur :", res.status);
-    return res.ok;
-  } catch (err) {
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({} as any));
+      lastFounderEmailError = `Resend a refusé l'envoi (${res.status}) : ${String(body?.message || body?.name || "erreur inconnue").slice(0, 240)}`;
+      console.warn("[Admin:Notifier] Erreur e-mail fondateur :", lastFounderEmailError);
+      return false;
+    }
+    lastFounderEmailError = null;
+    return true;
+  } catch (err: any) {
+    lastFounderEmailError = "Resend injoignable : " + String(err?.message || err).slice(0, 160);
     console.error("[Admin:Notifier] Exception e-mail fondateur:", err);
     return false;
   }
@@ -36,7 +57,7 @@ export async function sendFounderEmail(subject: string, html: string): Promise<b
 /** Message déjà mis en forme (résumé quotidien) : Telegram + e-mail. */
 export async function sendFounderMessage(msg: { subject: string; telegramHtml: string; emailHtml: string }) {
   const [telegram, email] = await Promise.all([sendTelegramAlert(msg.telegramHtml), sendFounderEmail(msg.subject, msg.emailHtml)]);
-  return { telegram, email };
+  return { telegram, email, emailError: email ? null : lastFounderEmailError };
 }
 
 /**
