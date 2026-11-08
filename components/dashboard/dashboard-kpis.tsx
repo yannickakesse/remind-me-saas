@@ -13,6 +13,8 @@ interface DashboardKpisProps {
   expensesPaid: number;
   net: number;
   currency: string;
+  /** « row » : 4 cartes côte à côte sur ordinateur (tableau de bord pleine largeur). */
+  layout?: "stack" | "row";
 }
 
 export function DashboardKpis({
@@ -21,6 +23,7 @@ export function DashboardKpis({
   expensesPaid,
   net,
   currency,
+  layout = "stack",
 }: DashboardKpisProps) {
   const { locale, t , tr } = useLanguage();
   const currentMonth = DateTime.now().setLocale(locale).toFormat("LLLL yyyy");
@@ -61,7 +64,7 @@ export function DashboardKpis({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 w-full min-w-0">
+      <div className={`grid grid-cols-2 gap-2.5 sm:gap-3.5 w-full min-w-0 ${layout === "row" ? "lg:grid-cols-4" : ""}`}>
         {/* 1. Total Reçu (Réalisé) */}
         <StatCard
           label={t("dashboard.total_received")}

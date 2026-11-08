@@ -192,7 +192,7 @@ export default async function DashboardPage() {
         <div className="absolute top-2/3 -right-20 w-80 h-80 rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-3xl pointer-events-none" />
 
         {/* 1. FOCUS DE LA JOURNÉE : Séances & Tâches prioritaires (Desktop 8 cols, Mobile après les finances) */}
-        <div className="lg:col-span-8 order-2">
+        <div className="lg:col-span-12 order-2">
           <TodayFocus
             todayEvents={todayEvents}
             urgentTasks={(urgentTasks ?? []) as any}
@@ -203,8 +203,9 @@ export default async function DashboardPage() {
         </div>
 
         {/* 2. SYNTHÈSE FINANCIÈRE DU MOIS (Desktop 4 cols, Mobile premier bloc après l'en-tête) */}
-        <div className="lg:col-span-4 order-1">
+        <div className="lg:col-span-12 order-1">
           <DashboardKpis
+            layout="row"
             incomeExpected={incomeExpected}
             incomeReceived={incomeReceived}
             expensesPaid={expensesPaid}

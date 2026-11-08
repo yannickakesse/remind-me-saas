@@ -100,18 +100,11 @@ export function StatCard({
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
       <div>
-        <div className="flex items-center justify-between gap-1.5 mb-2">
-          <p className="min-w-0 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider leading-tight text-ink-500 dark:text-ink-400">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <p className="min-w-0 flex-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-wide leading-snug text-ink-500 dark:text-ink-400 [overflow-wrap:normal] [word-break:normal] hyphens-auto">
             {label}
           </p>
           <div className="flex items-center gap-1.5 shrink-0">
-            {badge && (
-              <span
-                className={`hidden sm:inline text-[9px] font-bold px-2 py-0.5 rounded-full border shadow-2xs ${styles.badge}`}
-              >
-                {badge}
-              </span>
-            )}
             {Icon ? (
               <div
                 className={`p-1.5 rounded-xl transition-transform duration-200 group-hover:scale-110 ${styles.iconBg} ${styles.iconText}`}
@@ -123,11 +116,16 @@ export function StatCard({
         </div>
 
         <p
-          className={`text-[15px] leading-snug sm:text-2xl font-mono font-bold tracking-tight tabular-nums break-words ${styles.text}`}
+          className={`text-[15px] leading-snug sm:text-xl xl:text-2xl font-mono font-bold tracking-tight tabular-nums [overflow-wrap:normal] [word-break:normal] ${styles.text}`}
           title={value}
         >
           {value}
         </p>
+        {badge && (
+          <span className={`mt-2 hidden sm:inline-flex text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-2xs ${styles.badge}`}>
+            {badge}
+          </span>
+        )}
       </div>
 
       {(helper || trend) && (
