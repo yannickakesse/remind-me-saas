@@ -22,7 +22,7 @@ export function LandingHero() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(68);
+  const [duration, setDuration] = useState(87);
   const [showControls, setShowControls] = useState(true);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   // Horodatage du geste qui a activé le son : évite que ce même toucher mette la vidéo en pause
@@ -258,9 +258,9 @@ export function LandingHero() {
                 poster="/videos/remindme-ad-poster.jpg"
               >
                 {/* Ordinateur et tablette : 1080p ; téléphone : version 720p plus légère */}
-                <source src="/videos/remindme-ad-1080.mp4" type="video/mp4" media="(min-width: 768px)" />
-                <source src="/videos/remindme-ad-720.mp4" type="video/mp4" />
-                <track kind="subtitles" srcLang="fr" label="Français" src="/videos/remindme-ad.fr.vtt" default />
+                <source src="/videos/remindme-ad-1080.mp4?v=2" type="video/mp4" media="(min-width: 768px)" />
+                <source src="/videos/remindme-ad-720.mp4?v=2" type="video/mp4" />
+                <track kind="subtitles" srcLang="fr" label="Français" src="/videos/remindme-ad.fr.vtt?v=2" default />
                 {tr("Votre navigateur ne prend pas en charge la lecture de vidéos HTML5.")}</video>
 
               {/* Bouton de lecture central visible si en pause */}
@@ -278,7 +278,7 @@ export function LandingHero() {
                     <Play className="w-8 h-8 sm:w-9 sm:h-9 ml-1 fill-white" />
                   </button>
                   <span className="mt-3.5 text-xs sm:text-sm font-medium text-white/90 drop-shadow">
-                    {tr("Découvrir Remind Me en 1 minute")}</span>
+                    {tr("Découvrir Remind Me en vidéo")}</span>
                 </div>
               )}
 
@@ -322,7 +322,7 @@ export function LandingHero() {
                 <input
                   type="range"
                   min="0"
-                  max={duration || 68}
+                  max={duration || 87}
                   step="0.1"
                   value={currentTime}
                   onChange={handleSeek}
