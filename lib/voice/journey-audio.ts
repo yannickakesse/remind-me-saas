@@ -6,7 +6,7 @@
  * Tant qu'un audio n'est pas déposé, sa clé n'est pas dans RECORDED : rien n'est joué (jamais de
  * voix ElevenLabs payante pour l'accompagnement), le texte reste affiché à l'écran.
  */
-export const JOURNEY_AUDIO_VERSION = "2";
+export const JOURNEY_AUDIO_VERSION = "3";
 export const JOURNEY_LANGUAGES = ["fr", "en", "es", "de", "pt"] as const;
 
 /**

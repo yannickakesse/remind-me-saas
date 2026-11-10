@@ -99,7 +99,10 @@ export async function sendNotificationPush(
         template: category || "general",
         delivery_status: failed ? "failed" : "sent",
         idempotency_key: idempotencyKey || null,
-        error_message: pushResult.failed > 0 ? `${pushResult.failed} push failure(s)` : null,
+        error_message:
+          pushResult.failed > 0
+            ? `${pushResult.failed} push failure(s)${pushResult.lastError ? ` — ${pushResult.lastError}` : ""}`
+            : null,
       });
     }
 
@@ -187,7 +190,11 @@ export async function retryFailedPushes(
       );
       ok = res.successful > 0;
       recipient = `${res.successful}/${res.total} device(s)`;
-      if (!ok) errorMessage = res.total === 0 ? "Aucun appareil inscrit" : `${res.failed} push failure(s)`;
+      if (!ok)
+        errorMessage =
+          res.total === 0
+            ? "Aucun appareil inscrit"
+            : `${res.failed} push failure(s)${res.lastError ? ` — ${res.lastError}` : ""}`;
     } catch (err: any) {
       errorMessage = err?.message || "Erreur d'envoi";
     }
