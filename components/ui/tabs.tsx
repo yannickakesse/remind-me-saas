@@ -2,7 +2,8 @@
 
 
 import { useLanguage } from "@/components/i18n/language-provider";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 interface TabItem {
   id: string;
@@ -25,13 +26,28 @@ export function Tabs({ items, defaultTabId }: TabsProps) {
   const { tr } = useLanguage();
   const [activeId, setActiveId] = useState(defaultTabId ?? items[0]?.id ?? "");
 
+  // Un lien vers « ?tab=… » alors que la page est déjà ouverte (ex. « Voir les offres »
+  // depuis l'onglet Notifications) doit bien basculer sur l'onglet demandé.
+  const tabParam = useSearchParams()?.get("tab");
+  useEffect(() => {
+    if (tabParam && items.some((item) => item.id === tabParam)) setActiveId(tabParam);
+  }, [tabParam, items]);
+
+  // L'adresse suit l'onglet choisi : un lien vers un autre onglet change donc toujours l'URL
+  function selectTab(id: string) {
+    setActiveId(id);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", id);
+    window.history.replaceState(window.history.state, "", url);
+  }
+
   function handleKeyDown(e: React.KeyboardEvent, index: number) {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
     e.preventDefault();
     const nextIndex = e.key === "ArrowRight" ? (index + 1) % items.length : (index - 1 + items.length) % items.length;
     const next = items[nextIndex];
     if (next) {
-      setActiveId(next.id);
+      selectTab(next.id);
       document.getElementById(`tab-${next.id}`)?.focus();
     }
   }
@@ -57,7 +73,7 @@ export function Tabs({ items, defaultTabId }: TabsProps) {
                 type="button"
                 aria-selected={isActive}
                 tabIndex={isActive ? 0 : -1}
-                onClick={() => setActiveId(item.id)}
+                onClick={() => selectTab(item.id)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 className={`px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all whitespace-nowrap tap-active cursor-pointer ${
                   isActive

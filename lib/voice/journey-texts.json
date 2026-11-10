@@ -62,11 +62,11 @@
   },
   "texts": {
     "journey_landing": {
-      "fr": "Bienvenue sur Remind Me ! Touchez « Commencer gratuitement » pour créer votre compte en une minute.",
-      "en": "Welcome to Remind Me! Tap “Get Started for Free” to create your account in just one minute.",
-      "es": "¡Bienvenido a Remind Me! Pulse «Empezar gratis» para crear su cuenta en un minuto.",
-      "de": "Willkommen bei Remind Me! Tippen Sie auf „Kostenlos starten“, um Ihr Konto in nur einer Minute zu erstellen.",
-      "pt": "Bem-vindo ao Remind Me! Toque em “Começar gratuitamente” para criar sua conta em um minuto."
+      "fr": "Bienvenue sur Remind Me ! Regardez la vidéo juste en dessous pour découvrir l'univers Remind Me. Puis touchez « Commencer gratuitement » pour créer votre compte en une minute.",
+      "en": "Welcome to Remind Me! Watch the video just below to discover the world of Remind Me. Then tap “Get Started for Free” to create your account in just one minute.",
+      "es": "¡Bienvenido a Remind Me! Mire el vídeo justo debajo para descubrir el universo Remind Me. Luego pulse «Empezar gratis» para crear su cuenta en un minuto.",
+      "de": "Willkommen bei Remind Me! Sehen Sie sich das Video direkt darunter an, um die Welt von Remind Me zu entdecken. Tippen Sie dann auf „Kostenlos starten“, um Ihr Konto in nur einer Minute zu erstellen.",
+      "pt": "Bem-vindo ao Remind Me! Assista ao vídeo logo abaixo para descobrir o universo Remind Me. Depois, toque em “Começar gratuitamente” para criar sua conta em um minuto."
     },
     "journey_register": {
       "fr": "Indiquez votre nom, votre adresse e-mail et choisissez un mot de passe, puis touchez « Créer mon compte ».",

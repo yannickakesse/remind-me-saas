@@ -36,18 +36,24 @@ export function InsightCard({ insight, compact = false }: { insight: Insight; co
       <div className="flex items-start gap-3">
         <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${st.iconColor}`} />
         <div className="min-w-0 flex-1">
-          <p className={`text-[10px] font-extrabold uppercase tracking-wider ${st.iconColor}`}>{tr(st.label)}</p>
+          {/* Niveau (« À surveiller »…) et lien « Voir » sur la même ligne, en tête de carte */}
+          <div className="flex items-center justify-between gap-3">
+            <p className={`text-[10px] font-extrabold uppercase tracking-wider ${st.iconColor}`}>{tr(st.label)}</p>
+            {insight.link && (
+              <Link
+                href={insight.link}
+                className="inline-flex shrink-0 items-center gap-1 rounded-full bg-signal/10 px-2.5 py-1 text-xs font-bold text-signal hover:bg-signal/15"
+              >
+                {tr("Voir")} <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            )}
+          </div>
           <h3 className="mt-0.5 text-sm font-bold text-ink-950 dark:text-white">{text.title}</h3>
           {!compact && <p className="mt-1 text-xs text-ink-700 dark:text-ink-300">{text.detail}</p>}
           {!compact && text.recommendation && (
             <p className="mt-2 rounded-xl bg-canvas-raised/80 dark:bg-white/5 p-2.5 text-xs text-ink-800 dark:text-ink-200">
               <span className="font-bold text-signal">{tr("Conseil :")}</span> {text.recommendation}
             </p>
-          )}
-          {insight.link && (
-            <Link href={insight.link} className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-signal hover:underline">
-              {tr("Voir")} <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
           )}
         </div>
       </div>

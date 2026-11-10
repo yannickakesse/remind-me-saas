@@ -234,6 +234,52 @@ export async function deleteAccount() {
 }
 
 /**
+ * Remise à zéro du compte : efface le CONTENU de l'utilisateur connecté (activités, agenda,
+ * tâches, finances, objectifs, clients, notifications) mais garde le compte lui-même :
+ * connexion, profil, réglages, forfait payé et appareils abonnés aux notifications.
+ * Ne touche QUE les lignes de cet utilisateur (filtre user_id issu de la session serveur).
+ */
+const RESET_TABLES_IN_ORDER = [
+  "notification_logs",
+  "notifications",
+  "daily_summary_validations",
+  "goal_progress_entries",
+  "goal_steps",
+  "goals",
+  "savings_goals",
+  "budgets",
+  "income",
+  "expenses",
+  "scheduled_expenses",
+  "tasks",
+  "calendar_events",
+  "activity_schedules",
+  "activity_compensation",
+  "activities",
+  "contacts",
+  "organizations",
+] as const;
+
+export async function resetAccountData() {
+  const { user } = await requireUser();
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Réinitialisation indisponible pour le moment. Réessayez plus tard.");
+  }
+  const admin = createAdminClient();
+
+  for (const table of RESET_TABLES_IN_ORDER) {
+    const { error } = await admin.from(table as never).delete().eq("user_id", user.id);
+    if (error) {
+      console.error(`[resetAccountData] ${table}:`, error.message);
+      throw new Error("La réinitialisation n'a pas pu aller au bout. Réessayez : rien de ce qui reste n'est perdu.");
+    }
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/dashboard");
+}
+
+/**
  * Changement de forfait SANS paiement.
  * - Retour au forfait gratuit : toujours autorisé (résiliation).
  * - Forfait payant : uniquement si le mode démo est explicitement activé côté serveur

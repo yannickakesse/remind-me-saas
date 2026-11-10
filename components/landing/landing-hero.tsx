@@ -35,15 +35,14 @@ export function LandingHero() {
     video.muted = true;
     setIsMuted(true);
 
-    // « Moins d'animations » demandé par l'utilisateur : pas de lecture automatique (bouton Lecture affiché)
-    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (!reduceMotion) {
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => setIsPlaying(true))
-          .catch(() => setIsPlaying(false));
-      }
+    // La vidéo de présentation démarre toujours seule (muette), même si le téléphone est en
+    // « moins d'animations » / économie d'énergie : c'est le contenu principal de la page.
+    // Si le navigateur refuse quand même (mode économie iOS), elle démarre au premier toucher.
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
     }
 
     const onTimeUpdate = () => {
@@ -90,7 +89,6 @@ export function LandingHero() {
     // Lecture automatique (muette) garantie : relancée dès que la vidéo est visible
     // et au premier défilement / toucher (mode économie d'énergie iOS, onglet en arrière-plan…)
     const ensurePlaying = () => {
-      if (reduceMotion) return;
       if (video.paused && !video.ended) {
         video.play().then(() => setIsPlaying(true)).catch(() => {});
       }
@@ -253,7 +251,7 @@ export function LandingHero() {
                 autoPlay
                 muted={isMuted}
                 loop
-                preload="metadata"
+                preload="auto"
                 className="w-full h-full object-contain bg-white"
                 poster="/videos/remindme-ad-poster.jpg"
               >

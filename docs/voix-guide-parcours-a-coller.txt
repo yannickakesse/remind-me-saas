@@ -1,6 +1,6 @@
 ﻿Parcours d'inscription — Français — fichier : guide-signup-fr.mp3 (10 phrases, 1227 caractères)
 
-Bienvenue sur Remind Me ! Touchez « Commencer gratuitement » pour créer votre compte en une minute.
+Bienvenue sur Remind Me ! Regardez la vidéo juste en dessous pour découvrir l'univers Remind Me. Puis touchez « Commencer gratuitement » pour créer votre compte en une minute.
 <break time="3s" /> <break time="2s" />
 Indiquez votre nom, votre adresse e-mail et choisissez un mot de passe, puis touchez « Créer mon compte ».
 <break time="3s" /> <break time="2s" />

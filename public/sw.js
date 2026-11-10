@@ -231,15 +231,28 @@ self.addEventListener("notificationclick", (event) => {
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
         if ("focus" in client) {
-          client.focus();
-          if (voiceText) {
+          // L'app est déjà ouverte : on l'amène au premier plan ET on l'emmène vers la page
+          // dont parle la notification (offres, finances, tâche…), sauf si elle y est déjà.
+          let alreadyThere = false;
+          try {
+            const current = new URL(client.url);
+            const target = new URL(baseUrl, self.location.origin);
+            alreadyThere = current.pathname === target.pathname && current.search === target.search;
+          } catch {}
+          // Déjà sur la bonne page : lecture vocale sans recharger (la page cible, elle, lit ?speak_voice=1)
+          if (voiceText && (alreadyThere || !("navigate" in client))) {
             client.postMessage({
               type: "REMINDME_TRIGGER_VOICE_SPEAK",
               voice_text: voiceText,
             });
           }
-          // Si l'onglet est déjà ouvert, on ne recharge pas la page pour ne pas couper le flux audio
-          return;
+          if (!alreadyThere && "navigate" in client) {
+            return client
+              .navigate(targetUrl)
+              .then((c) => (c || client).focus())
+              .catch(() => client.focus());
+          }
+          return client.focus();
         }
       }
       if (clients.openWindow) {

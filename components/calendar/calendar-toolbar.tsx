@@ -149,7 +149,8 @@ export function CalendarToolbar({
         </div>
 
         {/* Bouton Exporter / Imprimer PDF A4 */}
-        <div className="relative flex justify-center md:block" ref={dropdownRef}>
+        {/* Téléphone : le bouton passe à la ligne → il occupe toute la ligne et se centre */}
+        <div className="relative flex w-full basis-full justify-center sm:w-auto sm:basis-auto md:block" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setDropdownOpen(!dropdownOpen)}

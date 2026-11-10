@@ -3,14 +3,15 @@
 
 import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
-import { Download, FileSpreadsheet, FileJson, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Download, FileSpreadsheet, FileJson, AlertTriangle, ShieldCheck, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { deleteAccount } from "@/app/(app)/settings/actions";
+import { deleteAccount, resetAccountData } from "@/app/(app)/settings/actions";
 
 export function DataSection() {
   const { tr } = useLanguage();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
 
   return (
     <div className="flex w-full flex-col gap-8">
@@ -105,7 +106,21 @@ export function DataSection() {
         </div>
       </div>
 
-      {/* Section 3: Suppression de compte */}
+      {/* Section 3: Réinitialisation (remise à zéro) du compte */}
+      <div className="rounded-2xl border border-amber-300 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/25 p-5 space-y-3">
+        <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+          <RotateCcw className="w-4 h-4 shrink-0" />
+          <h3 className="text-sm font-bold">{tr("Réinitialiser mon compte")}</h3>
+        </div>
+        <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed font-medium">
+          {tr("Repartez de zéro : vos activités, agenda, tâches, finances, objectifs, clients et notifications sont effacés. Votre compte, votre profil, vos réglages et votre forfait sont conservés. Pensez à télécharger vos données avant.")}</p>
+        <div>
+          <Button variant="secondary" size="sm" onClick={() => setResetOpen(true)} className="font-bold">
+            {tr("Réinitialiser mon compte")}</Button>
+        </div>
+      </div>
+
+      {/* Section 4: Suppression de compte */}
       <div className="rounded-2xl border border-rose-300 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 p-5 space-y-3">
         <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
           <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -118,6 +133,16 @@ export function DataSection() {
             {tr("Supprimer mon compte définitivement")}</Button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={resetOpen}
+        onClose={() => setResetOpen(false)}
+        onConfirm={resetAccountData}
+        title={tr("Réinitialiser votre compte ?")}
+        description={tr("Toutes vos activités, tâches, finances, objectifs, clients et notifications seront effacés définitivement. Votre compte et votre forfait restent actifs. Cette action est irréversible.")}
+        confirmLabel={tr("Oui, tout remettre à zéro")}
+        variant="danger"
+      />
 
       <ConfirmDialog
         open={confirmOpen}

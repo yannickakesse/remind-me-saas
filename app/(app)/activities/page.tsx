@@ -13,13 +13,19 @@ export default async function ActivitiesPage({
   const todayISO = new Date().toISOString().slice(0, 10);
   const renewActivityId = searchParams?.renew;
 
-  const { data: activities } = await supabase
+  const { data: activities, error: activitiesError } = await supabase
     .from("activities")
     .select(
       "id, name, type, color, status, work_mode, start_date, end_date, validity_type, engagement_nature, reminder_preference, organizations(name), activity_compensation(amount, currency, frequency)"
     )
     .eq("user_id", user!.id)
     .order("created_at", { ascending: false });
+
+  // Une erreur de lecture ne doit jamais se déguiser en « aucune activité » : on affiche l'écran d'erreur
+  if (activitiesError) {
+    console.error("[activities] lecture impossible:", activitiesError.message);
+    throw new Error("Impossible de charger vos activités pour le moment. Réessayez dans un instant.");
+  }
 
   // Récupérer les suggestions d'évolution vers une routine en attente
   const { data: rawSuggestions } = await supabase
