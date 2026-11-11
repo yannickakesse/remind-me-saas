@@ -1,0 +1,47 @@
+REMIND ME — PUBLICITÉ DE RÉFÉRENCE — VOIX À GÉNÉRER SUR ELEVENLABS
+Texte de Yannick (version du 10/11), mot pour mot. Seules 3 fautes d'orthographe corrigées :
+  « toute vos activités » → « toutes vos activités »
+  « vous le rappel vocalement » → « vous le rappelle vocalement »
+  « Au fait? » → « Au fait ? »
+=================================================================
+
+Voix : Lauren · Modèle : Eleven Multilingual v2
+Réglages identiques pour les 6 fichiers : Stability 45 % · Similarity 80 % · Style 25 % · Speaker boost activé
+Format : MP3
+
+COMMENT FAIRE (6 fois, une fois par bloc) :
+  1. ElevenLabs → « Text to Speech » → voix Lauren.
+  2. Collez UNIQUEMENT le texte du bloc (les lignes sous le titre).
+  3. « Generate », écoutez. Un mot mal dit ? Regénérez.
+  4. Téléchargez le MP3 et renommez-le exactement comme indiqué.
+  Envoyez-moi les 6 fichiers.
+
+
+=== 1 · rm_pub_1_cible.mp3 ===
+Vous êtes entrepreneur, consultant ou freelance ? Vous avez mille choses à gérer : clients, projets, rendez-vous… et tout repose encore sur votre mémoire ?
+
+Un seul oubli peut vous coûter un rendez-vous, une opportunité ou un paiement.
+
+
+=== 2 · rm_pub_2_assistant.mp3 ===
+Découvrez Remind Me, votre assistant personnel, qui rassemble toutes vos activités, vos tâches, votre agenda et vos rendez-vous sont réunis dans un seul espace et vous prévient au bon moment où que vous soyez et à tout moment.
+
+
+=== 3 · rm_pub_3_rappels.mp3 ===
+Connecté ou pas vous recevez un rappel vocal intelligent et une notification régulière qui vous assiste dans votre organisation professionnelle et personnelle. Plus rien ne vous échappe.
+
+
+=== 4 · rm_pub_4_finances.mp3 ===
+Au fait ? Savez-vous réellement ce qui entre, ce qui sort et ce qu'il vous reste de vos finances ?
+
+Remind Me vous donne une vision claire de vos revenus attendus, de vos encaissements, de votre solde net et de vos dépenses programmées et vous le rappelle vocalement.
+
+
+=== 5 · rm_pub_5_objectifs.mp3 ===
+Et pendant ce temps, vos objectifs avancent étape par étape.
+
+
+=== 6 · rm_pub_6_final.mp3 ===
+Avec Remind Me. Votre travail, votre temps, votre argent… enfin sous contrôle.
+
+Commencez gratuitement !
