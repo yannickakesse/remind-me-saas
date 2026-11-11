@@ -325,14 +325,17 @@ export function playAudioFile(options: {
  * que si elle est de bonne qualité (ou explicitement demandée). Sinon : carillon
  * + événement « voix indisponible » pour proposer de réessayer l'écoute.
  */
-function fallbackSpeak(options: VoiceSpeakOptions, reason: string): Promise<boolean> {
+function fallbackSpeak(options: VoiceSpeakOptions & { standardSrc?: string | null }, reason: string): Promise<boolean> {
   const language = options.language || "fr";
   if (options.silentFailure) {
     currentPlayingPriority = null;
     emitVoiceState();
     return Promise.resolve(false);
   }
-  if (options.allowDeviceVoice || hasNaturalDeviceVoice(language)) {
+  // Son bloqué par le navigateur (iPhone : app ouverte depuis une notification, aucun toucher encore) :
+  // la voix de l'appareil serait bloquée elle aussi, mais EN SILENCE. On affiche donc le bouton « Écouter ».
+  const blockedByBrowser = reason === "autoplay-blocked" || !sharedUnlocked;
+  if (!blockedByBrowser && (options.allowDeviceVoice || hasNaturalDeviceVoice(language))) {
     return speakVoiceReminder(options).finally(emitVoiceState);
   }
   currentPlayingPriority = null;
@@ -346,7 +349,8 @@ function fallbackSpeak(options: VoiceSpeakOptions, reason: string): Promise<bool
           language,
           voiceType: options.voiceType,
           priority,
-          reason,
+          reason: blockedByBrowser ? "autoplay-blocked" : reason,
+          standardSrc: options.standardSrc ?? null,
         },
       })
     );
@@ -528,14 +532,17 @@ export async function playReminderVoice(
     return started;
   };
 
-  if (isPersonalizedVoiceEnabled() && speak.text?.trim()) {
+  if (isPersonalizedVoiceEnabled() && speak.text?.trim() && sharedUnlocked) {
     const ok = await playVoiceReminder({ ...speak, silentFailure: Boolean(src) });
     if (ok || !src) return ok;
     if (await playStandard()) return true;
-    return fallbackSpeak(speak, "standard-unavailable");
+    return fallbackSpeak({ ...speak, standardSrc: src }, "standard-unavailable");
   }
 
   if (await playStandard()) return true;
+  // Le navigateur bloque le son tant qu'on n'a pas touché l'écran : inutile d'appeler ElevenLabs (crédits perdus),
+  // on propose directement « Écouter » (un toucher suffit, puis la voix est jouée).
+  if (!sharedUnlocked) return fallbackSpeak({ ...speak, standardSrc: src }, "autoplay-blocked");
   // Pas d'audio standard (langue non enregistrée, fichiers absents) : voix ElevenLabs puis secours habituel
   return speak.text?.trim() ? playVoiceReminder(speak) : fallbackSpeak(speak, "no-audio");
 }

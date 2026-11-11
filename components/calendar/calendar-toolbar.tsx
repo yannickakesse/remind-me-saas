@@ -95,9 +95,9 @@ export function CalendarToolbar({
   }
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 shadow-2xs relative z-30">
+    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl bg-canvas-raised/98 dark:bg-slate-900/98 backdrop-blur-md border border-ink-200/90 dark:border-ink-800/90 shadow-2xs relative z-30">
       {/* 1. Navigation temporelle (Précédent / Aujourd'hui / Suivant + Titre de la période) */}
-      <div className="flex items-center justify-between sm:justify-start gap-2 w-full md:w-auto">
+      <div className="flex items-center justify-between sm:justify-start gap-2 w-full xl:w-auto">
         <div className="flex items-center gap-1.5 shrink-0">
           <Link
             href={`/calendar?view=${view}&date=${prev}`}
@@ -127,7 +127,7 @@ export function CalendarToolbar({
       </div>
 
       {/* 2. Actions : Sélecteur de vues + Bouton Exporter PDF */}
-      <div className="flex items-center justify-between sm:justify-end gap-2 w-full md:w-auto flex-wrap sm:flex-nowrap pt-2 md:pt-0 border-t md:border-t-0 border-ink-100 dark:border-ink-800">
+      <div className="flex items-center justify-between sm:justify-end gap-2 w-full xl:w-auto flex-wrap sm:flex-nowrap pt-2 xl:pt-0 border-t xl:border-t-0 border-ink-100 dark:border-ink-800 min-w-0">
         {/* Sélecteur de vues (Pills) */}
         <div
           className="flex items-center gap-1 rounded-2xl bg-canvas dark:bg-ink-950 border border-ink-200/90 dark:border-ink-800/90 p-1 flex-1 sm:flex-initial justify-between sm:justify-start"
@@ -150,7 +150,7 @@ export function CalendarToolbar({
 
         {/* Bouton Exporter / Imprimer PDF A4 */}
         {/* Téléphone : le bouton passe à la ligne → il occupe toute la ligne et se centre */}
-        <div className="relative flex w-full basis-full justify-center sm:w-auto sm:basis-auto md:block" ref={dropdownRef}>
+        <div className="relative flex w-full basis-full justify-center sm:w-auto sm:basis-auto sm:shrink-0 xl:block" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -170,7 +170,7 @@ export function CalendarToolbar({
 
           {/* Menu déroulant d'exportation */}
           {dropdownOpen && (
-            <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:right-0 md:translate-x-0 top-full mt-2 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-2 z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0 top-full mt-2 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-2 z-50 text-xs animate-in fade-in slide-in-from-top-2 duration-150">
               <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
                 <span className="font-extrabold text-slate-900 dark:text-white text-[11px] uppercase tracking-wider block">
                   {tr("Exportation PDF A4")}</span>

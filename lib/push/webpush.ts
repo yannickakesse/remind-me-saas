@@ -113,8 +113,10 @@ export async function dispatchWebPush(
         : String(err?.message || err).slice(0, 160);
       console.warn(`[WebPush] Échec d'envoi vers ${sub.endpoint}:`, err?.statusCode || err?.message);
 
-      // Si le service push indique que la souscription n'est plus valide (404 ou 410)
-      if (err?.statusCode === 404 || err?.statusCode === 410) {
+      // Souscription morte : expirée (404 / 410) ou créée avec une ancienne clé VAPID
+      // (Apple : 400 « VapidPkHashMismatch » — elle ne pourra plus jamais recevoir de push)
+      const keyMismatch = /VapidPkHashMismatch/i.test(String(err?.body || ""));
+      if (err?.statusCode === 404 || err?.statusCode === 410 || keyMismatch) {
         result.expiredRemoved++;
         await supabase
           .from("push_subscriptions" as any)
