@@ -135,7 +135,7 @@ export const ACTIVITY_SECTORS: ActivitySector[] = [
     ],
   },
   {
-    key: "community", label: "Associations et vie communautaire", icon: "🫶", context: "votre engagement associatif",
+    key: "community", label: "Associations et vie communautaire", icon: "👥", context: "votre engagement associatif",
     subs: [
       sub("association", "Association et ONG", "activité associative"),
       sub("volunteering", "Bénévolat", "mission de bénévolat"),
