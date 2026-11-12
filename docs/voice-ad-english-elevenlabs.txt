@@ -1,0 +1,38 @@
+REMIND ME — PUBLICITÉ — VERSION ANGLAISE — VOIX À GÉNÉRER SUR ELEVENLABS
+=========================================================================
+
+Traduction fidèle du texte de Yannick (même sens, même ordre, mêmes images).
+Un seul fichier, comme pour la version française.
+
+RÉGLAGES (identiques à la version française)
+  - Voix : Lauren
+  - Modèle : Eleven Multilingual v2
+  - Stability 45 % · Similarity 80 % · Style 25 % · Speaker boost activé
+  - Format : MP3
+  - Ton : le même que la version française (chaleureux, assuré, complice).
+
+COMMENT FAIRE
+  1. ElevenLabs → Text to Speech → voix Lauren.
+  2. Collez TOUT le texte ci-dessous (entre les deux lignes).
+  3. Generate, écoutez, téléchargez.
+  4. Nommez le fichier : voice-ad-en.mp3 — et envoyez-le-moi.
+
+-------------------------------------------------------------------------
+Are you an entrepreneur, a consultant or a freelancer? You have a thousand things to manage: clients, projects, appointments… and it all still relies on your memory?
+
+A single slip can cost you an appointment, an opportunity or a payment.
+
+Meet Remind Me, your personal assistant, which brings all your activities together. Your tasks, your calendar and your appointments are gathered in one place, and Remind Me alerts you at the right moment, wherever you are, at any time.
+
+Online or not, you get a smart voice reminder and regular notifications that support you in organizing your professional and personal life. Nothing slips past you anymore.
+
+By the way, do you really know what comes in, what goes out and what's left of your finances?
+
+Remind Me gives you a clear view of your expected income, your payments received, your net balance and your scheduled expenses, and reminds you out loud.
+
+And meanwhile, your goals move forward, step by step.
+
+With Remind Me, your work, your time, your money… finally under control. Start for free!
+-------------------------------------------------------------------------
+
+À l'écoute, vérifiez surtout : « Remind Me » bien prononcé (comme en français), et « freelancer ».

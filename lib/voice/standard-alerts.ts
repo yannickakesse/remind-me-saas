@@ -152,6 +152,25 @@ export function getStandardAlertSrc(key: StandardAlertKey, language: string): st
 }
 
 /**
+ * Voix « domaine » : courte phrase jouée juste après la phrase de délai d'un rappel d'activité
+ * (« Votre activité commence dans dix minutes. » + « Il s'agit d'une activité liée à votre entreprise. »).
+ * Une phrase par secteur (15), pas une par combinaison secteur × délai.
+ * Fichiers : /public/voice/alerts/domain_<secteur>-<langue>.mp3 — textes : docs/voix-domaines-a-coller.txt
+ *
+ * Ajouter une langue ici UNIQUEMENT quand ses 15 fichiers sont déposés : sinon rien n'est joué
+ * après la phrase de délai (jamais de silence ni d'erreur).
+ */
+const DOMAIN_ALERT_LANGUAGES = new Set<string>([]);
+export const DOMAIN_ALERTS_VERSION = "1";
+
+export function getDomainAlertSrc(sectorKey: string | null | undefined, language: string): string | null {
+  if (!sectorKey || !/^[a-z_]+$/.test(sectorKey)) return null;
+  const lang = (language || "").slice(0, 2).toLowerCase();
+  if (!DOMAIN_ALERT_LANGUAGES.has(lang)) return null;
+  return `/voice/alerts/domain_${sectorKey}-${lang}.mp3?v=${DOMAIN_ALERTS_VERSION}`;
+}
+
+/**
  * Voix personnalisée ElevenLabs (prénom, nom de l'activité, heure) en priorité ?
  * Désactivée par défaut : à activer (NEXT_PUBLIC_VOICE_PERSONALIZED=1 sur Vercel) quand l'abonnement
  * ElevenLabs est actif. Si elle échoue, la voix standard prend automatiquement le relais.

@@ -57,7 +57,8 @@ export const REMINDER_PREFERENCES = [
 export const activityInfoSchema = z.object({
   name: z.string().min(2, "Le nom est requis"),
   description: z.string().optional(),
-  category: z.string().optional(),
+  // Domaine de l'activité (lib/activities/classification.ts) : « secteur », « secteur/type », « other:texte » ou « unspecified »
+  category: z.string().max(120).optional(),
   color: z.string().min(1, "Choisissez une couleur"),
   type: z.enum([
     "salaried_job", "freelance", "contract", "mission", "own_business",

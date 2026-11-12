@@ -22,6 +22,8 @@ interface Unavailable {
   needsTap: boolean;
   /** Voix préenregistrée du rappel (jouée en priorité : immédiate, sans crédit ElevenLabs). */
   standardSrc: string | null;
+  /** Phrase « domaine » enchaînée après (rappel d'activité classée). */
+  domainSrc: string | null;
 }
 
 // Seuls les messages que l'utilisateur attend (rappels, aperçus) déclenchent ce bandeau.
@@ -42,7 +44,7 @@ export function VoiceRetryToast() {
       const d = e?.detail;
       if (!d?.text || !SHOWN_PRIORITIES.has(d.priority)) return;
       const needsTap = d.reason === "autoplay-blocked";
-      setItem({ text: d.text, language: d.language, voiceType: d.voiceType, needsTap, standardSrc: d.standardSrc ?? null });
+      setItem({ text: d.text, language: d.language, voiceType: d.voiceType, needsTap, standardSrc: d.standardSrc ?? null, domainSrc: d.domainSrc ?? null });
       if (timer) clearTimeout(timer);
       // Rappel en attente d'un toucher : on le laisse plus longtemps (la personne vient d'ouvrir l'app)
       timer = setTimeout(() => setItem(null), needsTap ? 90000 : 15000);
@@ -62,7 +64,13 @@ export function VoiceRetryToast() {
     const it = item;
     setItem(null);
     if (it.standardSrc) {
-      playAudioFile({ src: it.standardSrc, priority: "preview", rate }).then((ok) => {
+      const domain = it.domainSrc;
+      playAudioFile({
+        src: it.standardSrc,
+        priority: "preview",
+        rate,
+        onEnd: domain ? () => { playAudioFile({ src: domain, priority: "preview", rate }); } : undefined,
+      }).then((ok) => {
         if (!ok) playVoiceReminder({ text: it.text, language: it.language, voiceType: it.voiceType, priority: "preview", rate });
       });
     } else {

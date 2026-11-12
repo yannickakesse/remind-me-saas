@@ -53,6 +53,10 @@ export interface EveningSummaryVoiceParams {
   userName?: string | null;
   completedActivities?: DailyActivityItem[];
   uncompletedActivities?: DailyActivityItem[];
+  /** Activités reportées aujourd'hui (statut « postponed »). */
+  postponedActivities?: DailyActivityItem[];
+  /** Échéances de demain (activités, tâches, paiements). */
+  tomorrowItems?: DailyActivityItem[];
   language?: VoiceLanguage;
   includeUserName?: boolean;
 }
@@ -71,6 +75,8 @@ export interface IndividualReminderVoiceParams {
   hideAmount?: boolean;
   includeUserName?: boolean;
   customText?: string;
+  /** Domaine de l'activité (activities.category, lib/activities/classification.ts) pour une phrase contextuelle. */
+  activityContext?: string | null;
 }
 
 export interface ActivityCompletedVoiceParams {
@@ -101,6 +107,11 @@ export interface VoiceMessageParams {
   hideAmount?: boolean;
   includeUserName?: boolean;
   customText?: string;
+  /** Domaine de l'activité (activities.category) pour une phrase contextuelle. */
+  activityContext?: string | null;
+  /** Bilan du soir : éléments reportés, échéances de demain. */
+  postponedActivities?: DailyActivityItem[];
+  tomorrowItems?: DailyActivityItem[];
   now?: Date;
 }
 

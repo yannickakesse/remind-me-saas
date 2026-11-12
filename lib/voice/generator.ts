@@ -8,6 +8,79 @@ import type {
   IndividualReminderVoiceParams,
   ActivityCompletedVoiceParams,
 } from "./types";
+import { spokenActivityContext } from "../activities/classification";
+
+/**
+ * Délai avant une activité, dit naturellement (« une heure », « trente minutes », « une quinzaine de minutes »…).
+ * Corrige l'ancien comportement qui disait « dix minutes » pour tout rappel de moins de 35 min.
+ */
+export function spokenDelay(minutes: number | undefined, language: VoiceLanguage = "fr"): string {
+  const m = Math.max(1, Math.round(Number(minutes) || 0));
+  const hours = m % 60 === 0 ? m / 60 : null;
+  const tables: Record<string, Record<number, string>> = {
+    fr: { 5: "cinq minutes", 10: "une dizaine de minutes", 15: "une quinzaine de minutes", 20: "vingt minutes", 30: "trente minutes", 45: "trois quarts d'heure", 60: "une heure", 90: "une heure et demie", 120: "deux heures" },
+    en: { 5: "five minutes", 10: "ten minutes", 15: "fifteen minutes", 20: "twenty minutes", 30: "thirty minutes", 45: "forty-five minutes", 60: "one hour", 90: "an hour and a half", 120: "two hours" },
+    es: { 5: "cinco minutos", 10: "diez minutos", 15: "quince minutos", 20: "veinte minutos", 30: "treinta minutos", 45: "cuarenta y cinco minutos", 60: "una hora", 90: "una hora y media", 120: "dos horas" },
+    de: { 5: "fünf Minuten", 10: "zehn Minuten", 15: "fünfzehn Minuten", 20: "zwanzig Minuten", 30: "dreißig Minuten", 45: "einer Dreiviertelstunde", 60: "einer Stunde", 90: "anderthalb Stunden", 120: "zwei Stunden" },
+    pt: { 5: "cinco minutos", 10: "dez minutos", 15: "quinze minutos", 20: "vinte minutos", 30: "trinta minutos", 45: "quarenta e cinco minutos", 60: "uma hora", 90: "uma hora e meia", 120: "duas horas" },
+  };
+  const table = tables[language] ?? tables.fr!;
+  if (table[m]) return table[m]!;
+  if (hours && hours > 2) {
+    return language === "en" ? `${hours} hours` : language === "es" ? `${hours} horas` : language === "de" ? `${hours} Stunden` : language === "pt" ? `${hours} horas` : `${hours} heures`;
+  }
+  return language === "en" ? `${m} minutes` : language === "es" ? `${m} minutos` : language === "de" ? `${m} Minuten` : language === "pt" ? `${m} minutos` : `${m} minutes`;
+}
+
+/** Variante stable pour un même rappel (pas de hasard : deux envois identiques disent la même phrase). */
+function pickVariant<T>(variants: T[], seed: string): T {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+  return variants[Math.abs(h) % variants.length]!;
+}
+
+const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+/**
+ * Rappel d'activité contextuel (français) selon le domaine choisi :
+ *  « Votre réunion religieuse « Culte du dimanche » commence dans une dizaine de minutes. »
+ *  « Vous avez une activité liée à votre entreprise dans une quinzaine de minutes : « Inventaire ». »
+ * Renvoie null si l'activité n'est pas classée (la phrase habituelle est alors utilisée).
+ */
+export function contextualActivityReminderFr(params: { greeting: string; title: string; leadMinutes: number; activityContext?: string | null; spokenTime?: string }): string | null {
+  const ctx = spokenActivityContext(params.activityContext);
+  if (!ctx.possessive && !ctx.sectorContext) return null;
+  const { greeting, title, leadMinutes, spokenTime } = params;
+  const seed = `${title}:${leadMinutes}`;
+
+  if (leadMinutes <= 2) {
+    return ctx.possessive
+      ? `${greeting} C'est l'heure : ${ctx.possessive} « ${title} » commence maintenant.`
+      : `${greeting} C'est l'heure : votre activité liée à ${ctx.sectorContext}, « ${title} », commence maintenant.`;
+  }
+
+  const delay = spokenDelay(leadMinutes, "fr");
+  const prepare = leadMinutes >= 15 ? " Pensez à vous préparer." : "";
+  const at = spokenTime && leadMinutes >= 30 ? `, à ${spokenTime}` : "";
+
+  if (ctx.possessive) {
+    return pickVariant(
+      [
+        `${greeting} ${capitalize(ctx.possessive)} « ${title} » commence dans ${delay}${at}.${prepare}`,
+        `${greeting} Dans ${delay}, vous avez ${ctx.possessive} « ${title} ».${prepare}`,
+        `${greeting} Petit rappel : ${ctx.possessive} « ${title} » approche, début dans ${delay}.${prepare}`,
+      ],
+      seed
+    );
+  }
+  return pickVariant(
+    [
+      `${greeting} Vous avez une activité liée à ${ctx.sectorContext} dans ${delay} : « ${title} ».${prepare}`,
+      `${greeting} Dans ${delay}, une activité liée à ${ctx.sectorContext} vous attend : « ${title} ».`,
+    ],
+    seed
+  );
+}
 
 /**
  * Extrait le prénom ou renvoie le prénom du profil (ex: "Awa Koné" → "Awa")
@@ -422,6 +495,56 @@ export function generateMiddayCheckinVoiceText(params: MiddayCheckinVoiceParams)
   return `Bonjour. Voici votre point de mi-journée.`;
 }
 
+/** « un élément » / « une activité » / « 3 activités » (accord en genre au singulier). */
+const plural = (n: number, one: string, many: string, feminine = false) => `${n === 1 ? (feminine ? "une" : "un") : n} ${n === 1 ? one : many}`;
+
+/**
+ * Bilan du soir en français : faits, reste à faire, reportés, demain, puis bonne nuit.
+ * Uniquement à partir des données (aucune supposition sur l'humeur de la personne).
+ * Volontairement concis à l'oral : des nombres, et au plus deux noms.
+ */
+export function eveningSummaryFr(p: {
+  salutationName?: string;
+  completed: DailyActivityItem[];
+  remaining: DailyActivityItem[];
+  postponed?: DailyActivityItem[];
+  tomorrow?: DailyActivityItem[];
+}): string {
+  const postponed = p.postponed ?? [];
+  const tomorrow = p.tomorrow ?? [];
+  const parts: string[] = [p.salutationName ? `Bonsoir ${p.salutationName} !` : "Bonsoir !", "Votre journée touche à sa fin."];
+  const done = p.completed.length;
+  const left = p.remaining.length;
+
+  if (done + left + postponed.length === 0) {
+    parts.push("Aucune activité ni tâche n'était prévue aujourd'hui.");
+  } else {
+    if (done > 0 && left === 0) parts.push(done === 1 ? "Vous avez terminé ce qui était prévu aujourd'hui." : `Vous avez terminé les ${done} éléments prévus aujourd'hui.`);
+    else if (done > 0) parts.push(`Vous avez terminé ${plural(done, "élément", "éléments")} aujourd'hui.`);
+    if (left > 0) {
+      const names = p.remaining.slice(0, 2).map((i) => i.title).join(" et ");
+      parts.push(
+        left === 1
+          ? `Il reste ${names} à terminer, à reprendre demain.`
+          : `${left} éléments restent à terminer${left <= 2 ? `, dont ${names}` : ""} ; vous pourrez les reprendre demain.`
+      );
+    }
+    if (postponed.length > 0) parts.push(postponed.length === 1 ? "Une activité a été reportée." : `${postponed.length} activités ont été reportées.`);
+  }
+
+  const tomorrowActivities = tomorrow.filter((i) => i.category === "activity");
+  const tomorrowOthers = tomorrow.length - tomorrowActivities.length;
+  if (tomorrowActivities.length > 0) {
+    const first = tomorrowActivities.find((i) => i.timeStr);
+    const firstAt = first?.timeStr ? `, la première à ${formatSpokenTime(first.timeStr, "fr")}` : "";
+    parts.push(`Demain, vous avez ${plural(tomorrowActivities.length, "activité", "activités", true)} au programme${firstAt}.`);
+  }
+  if (tomorrowOthers > 0) parts.push(`${tomorrowOthers === 1 ? "Une échéance vous attend" : `${tomorrowOthers} échéances vous attendent`} également demain.`);
+
+  parts.push("Prenez maintenant le temps de vous reposer. Je vous souhaite une excellente nuit. À demain !");
+  return parts.join(" ");
+}
+
 /**
  * 🌙 3. BILAN DU SOIR (20h00 - 22h00+)
  *
@@ -432,35 +555,22 @@ export function generateMiddayCheckinVoiceText(params: MiddayCheckinVoiceParams)
  * - Clôture chaleureuse : "Passez une très bonne soirée et à demain !"
  */
 export function generateEveningSummaryVoiceText(params: EveningSummaryVoiceParams): string {
-  const { userName, completedActivities = [], uncompletedActivities = [], language = "fr", includeUserName = true } = params;
+  const { userName, completedActivities = [], uncompletedActivities = [], postponedActivities = [], tomorrowItems = [], language = "fr", includeUserName = true } = params;
   const salutationName = formatSalutationName(userName, language, includeUserName);
 
   const total = completedActivities.length + uncompletedActivities.length;
   if (language === "fr") {
-    const greeting = salutationName ? `Bonsoir ${salutationName}.` : `Bonsoir.`;
-
-    if (total === 0) {
-      return `${greeting} Bilan de fin de journée : aucune activité n'était programmée aujourd'hui. Reposez-vous bien et passez une excellente soirée.`;
-    }
-
-    const allItems = [...completedActivities, ...uncompletedActivities];
-    const activitiesLines = allItems.map((act) => {
-      const timeSpoken = act.timeStr ? formatSpokenTime(act.timeStr, "fr") : "";
-      return timeSpoken ? `${timeSpoken} : ${act.title}` : act.title;
-    });
-
-    const listPart = activitiesLines.join(", ");
-    return `${greeting} Voici le bilan de vos activités prévues aujourd'hui : ${listPart}. Votre journée est-elle terminée ? Vous pouvez marquer l'ensemble de votre journée comme effectué. Bonne soirée et bonne continuation !`;
+    return eveningSummaryFr({ salutationName, completed: completedActivities, remaining: uncompletedActivities, postponed: postponedActivities, tomorrow: tomorrowItems });
   }
 
   if (language === "en") {
     const greeting = salutationName ? `Good evening ${salutationName}.` : `Good evening.`;
     if (total === 0) {
-      return `${greeting} End of day summary: no activities were scheduled today. Have a restful evening!`;
+      return `${greeting} End of day summary: no activities were scheduled today. Get some rest. Good night, see you tomorrow!`;
     }
     const allItems = [...completedActivities, ...uncompletedActivities];
     const listPart = allItems.map((a) => (a.timeStr ? `${a.timeStr}: ${a.title}` : a.title)).join(", ");
-    return `${greeting} Here is the summary of your scheduled activities today: ${listPart}. Is your day finished? You can mark your entire day as completed. Have a wonderful evening!`;
+    return `${greeting} Here is the summary of your scheduled activities today: ${listPart}. Is your day finished? You can mark your entire day as completed. Take some time to rest now. Good night, see you tomorrow!`;
   }
 
   if (language === "es") {
@@ -470,7 +580,7 @@ export function generateEveningSummaryVoiceText(params: EveningSummaryVoiceParam
     }
     const allItems = [...completedActivities, ...uncompletedActivities];
     const listPart = allItems.map((a) => (a.timeStr ? `${a.timeStr}: ${a.title}` : a.title)).join(", ");
-    return `${greeting} Este es el resumen de tus actividades programadas para hoy: ${listPart}. ¿Ha terminado tu jornada? Puedes marcar el día completo como realizado. ¡Buenas noches y mucho éxito!`;
+    return `${greeting} Este es el resumen de tus actividades programadas para hoy: ${listPart}. ¿Ha terminado tu jornada? Puedes marcar el día completo como realizado. Tómate ahora un tiempo para descansar. ¡Buenas noches y hasta mañana!`;
   }
 
   // 4. Version Allemande
@@ -481,7 +591,7 @@ export function generateEveningSummaryVoiceText(params: EveningSummaryVoiceParam
     }
     const allItems = [...completedActivities, ...uncompletedActivities];
     const listPart = allItems.map((a) => (a.timeStr ? `${a.timeStr}: ${a.title}` : a.title)).join(", ");
-    return `${greeting} Hier ist die Übersicht Ihrer heutigen Aktivitäten: ${listPart}. Ist Ihr Arbeitstag beendet? Sie können den gesamten Tag als erledigt markieren. Einen schönen Feierabend!`;
+    return `${greeting} Hier ist die Übersicht Ihrer heutigen Aktivitäten: ${listPart}. Ist Ihr Arbeitstag beendet? Sie können den gesamten Tag als erledigt markieren. Gönnen Sie sich jetzt Ruhe. Gute Nacht und bis morgen!`;
   }
 
   // 5. Version Portugaise
@@ -492,7 +602,7 @@ export function generateEveningSummaryVoiceText(params: EveningSummaryVoiceParam
     }
     const allItems = [...completedActivities, ...uncompletedActivities];
     const listPart = allItems.map((a) => (a.timeStr ? `${a.timeStr}: ${a.title}` : a.title)).join(", ");
-    return `${greeting} Aqui está o resumo das suas atividades de hoje: ${listPart}. Seu dia está finalizado? Você pode marcar todo o dia como concluído. Tenha um excelente descanso!`;
+    return `${greeting} Aqui está o resumo das suas atividades de hoje: ${listPart}. Seu dia está finalizado? Você pode marcar todo o dia como concluído. Aproveite agora para descansar. Boa noite e até amanhã!`;
   }
 
   return `Bonsoir. Voici votre bilan du jour.`;
@@ -576,6 +686,12 @@ export function generateIndividualReminderVoiceText(
       return `${greeting} Attention : votre séance "${activityTitle}"${spokenTime ? ` prévue à ${spokenTime}` : ""} n'est pas encore confirmée.`;
     }
 
+    // Activité classée (domaine / type) : phrase contextuelle et variée
+    if (leadMinutes !== undefined) {
+      const contextual = contextualActivityReminderFr({ greeting, title: activityTitle, leadMinutes, activityContext: params.activityContext, spokenTime });
+      if (contextual) return contextual;
+    }
+
     // Rappel à l'heure exacte (T - 0 min)
     if (leadMinutes !== undefined && leadMinutes <= 2) {
       return `${greeting} C'est l'heure : votre activité "${activityTitle}" commence maintenant. Excellente séance !`;
@@ -583,13 +699,13 @@ export function generateIndividualReminderVoiceText(
 
     // Deuxième rappel : ~10 minutes avant (ou configuré entre 3 et 34 min)
     if (leadMinutes !== undefined && leadMinutes < 35) {
-      return `${greeting} Votre séance avec "${activityTitle}" commence dans dix minutes. Merci de vous préparer. Bon courage et excellente séance !`;
+      return `${greeting} Votre séance avec "${activityTitle}" commence dans ${spokenDelay(leadMinutes, "fr")}. Merci de vous préparer. Bon courage et excellente séance !`;
     }
 
     // Premier rappel : ~60 minutes avant (ou configuré >= 35 min)
     if (leadMinutes && leadMinutes >= 35) {
       const timePart = spokenTime ? `, à ${spokenTime}` : "";
-      return `${greeting} Vous avez une séance avec "${activityTitle}" dans une heure${timePart}. Préparez-vous tranquillement. Bon travail !`;
+      return `${greeting} Vous avez une séance avec "${activityTitle}" dans ${spokenDelay(leadMinutes, "fr")}${timePart}. Préparez-vous tranquillement. Bon travail !`;
     }
 
     // Rappel standard si leadMinutes non précisé
@@ -643,12 +759,12 @@ export function generateIndividualReminderVoiceText(
     }
 
     if (leadMinutes !== undefined && leadMinutes < 35) {
-      return `${greeting} Your session for "${activityTitle}" starts in ten minutes. Please get ready. Good luck and have an excellent session!`;
+      return `${greeting} Your session for "${activityTitle}" starts in ${spokenDelay(leadMinutes, "en")}. Please get ready. Good luck and have an excellent session!`;
     }
 
     if (leadMinutes && leadMinutes >= 35) {
       const timePart = spokenTime ? `, at ${spokenTime}` : "";
-      return `${greeting} You have a session for "${activityTitle}" in one hour${timePart}. Get ready smoothly. Have a great session!`;
+      return `${greeting} You have a session for "${activityTitle}" in ${spokenDelay(leadMinutes, "en")}${timePart}. Get ready smoothly. Have a great session!`;
     }
 
     return `${greeting} Quick reminder: your session for "${activityTitle}" is scheduled today${spokenTime ? ` at ${spokenTime}` : ""}. Have a great session!`;
@@ -697,12 +813,12 @@ export function generateIndividualReminderVoiceText(
     }
 
     if (leadMinutes !== undefined && leadMinutes < 35) {
-      return `${greeting} Tu sesión de "${activityTitle}" comienza en diez minutos. Por favor prepárate. ¡Mucho éxito y excelente sesión!`;
+      return `${greeting} Tu sesión de "${activityTitle}" comienza en ${spokenDelay(leadMinutes, "es")}. Por favor prepárate. ¡Mucho éxito y excelente sesión!`;
     }
 
     if (leadMinutes && leadMinutes >= 35) {
       const timePart = spokenTime ? `, a ${spokenTime}` : "";
-      return `${greeting} Tienes una sesión de "${activityTitle}" en una hora${timePart}. Prepárate con calma. ¡Buen trabajo!`;
+      return `${greeting} Tienes una sesión de "${activityTitle}" en ${spokenDelay(leadMinutes, "es")}${timePart}. Prepárate con calma. ¡Buen trabajo!`;
     }
 
     return `${greeting} Recordatorio: tu sesión de "${activityTitle}" está programada para hoy${spokenTime ? ` a ${spokenTime}` : ""}. ¡Mucho éxito!`;
@@ -751,12 +867,12 @@ export function generateIndividualReminderVoiceText(
     }
 
     if (leadMinutes !== undefined && leadMinutes < 35) {
-      return `${greeting} Ihre Einheit für "${activityTitle}" beginnt in zehn Minuten. Bitte machen Sie sich bereit. Viel Erfolg!`;
+      return `${greeting} Ihre Einheit für "${activityTitle}" beginnt in ${spokenDelay(leadMinutes, "de")}. Bitte machen Sie sich bereit. Viel Erfolg!`;
     }
 
     if (leadMinutes && leadMinutes >= 35) {
       const timePart = spokenTime ? `, um ${spokenTime}` : "";
-      return `${greeting} Sie haben in einer Stunde eine Einheit für "${activityTitle}"${timePart}. Machen Sie sich entspannt bereit!`;
+      return `${greeting} Sie haben in ${spokenDelay(leadMinutes, "de")} eine Einheit für "${activityTitle}"${timePart}. Machen Sie sich entspannt bereit!`;
     }
 
     return `${greeting} Kurze Erinnerung: Ihre Einheit für "${activityTitle}" ist heute geplant${spokenTime ? ` um ${spokenTime}` : ""}. Viel Erfolg!`;
@@ -805,12 +921,12 @@ export function generateIndividualReminderVoiceText(
     }
 
     if (leadMinutes !== undefined && leadMinutes < 35) {
-      return `${greeting} Sua sessão de "${activityTitle}" começa em dez minutos. Por favor, prepare-se. Boa sessão!`;
+      return `${greeting} Sua sessão de "${activityTitle}" começa em ${spokenDelay(leadMinutes, "pt")}. Por favor, prepare-se. Boa sessão!`;
     }
 
     if (leadMinutes && leadMinutes >= 35) {
       const timePart = spokenTime ? `, às ${spokenTime}` : "";
-      return `${greeting} Você tem uma sessão de "${activityTitle}" em uma hora${timePart}. Prepare-se com calma. Bom trabalho!`;
+      return `${greeting} Você tem uma sessão de "${activityTitle}" em ${spokenDelay(leadMinutes, "pt")}${timePart}. Prepare-se com calma. Bom trabalho!`;
     }
 
     return `${greeting} Lembrete: sua sessão de "${activityTitle}" está agendada para hoje${spokenTime ? ` às ${spokenTime}` : ""}. Tenha uma excelente sessão!`;
@@ -924,5 +1040,6 @@ export function generateVoiceMessage(params: VoiceMessageParams): string {
     hideAmount: params.hideAmount,
     includeUserName: params.includeUserName,
     customText: params.customText,
+    activityContext: params.activityContext,
   });
 }

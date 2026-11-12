@@ -16,6 +16,7 @@ import {
 } from "@/lib/voice";
 import { createInternalMessage } from "@/lib/messages/service";
 import { evaluateActivityEvolutionSuggestions } from "@/lib/activities/evolution";
+import { activityContextPhrase, activitySectorKey } from "@/lib/activities/classification";
 import {
   isInQuietHours,
   activitySlotKey,
@@ -749,7 +750,7 @@ export async function evaluateSmartReminders(
       supabase
         .from("calendar_events")
         .select(
-          `id, title, starts_at, ends_at, status, activity_id, activities(id, name, voice_reminder_enabled, reminder_preference, engagement_nature, validity_type, start_date, end_date, status${withLead ? ", reminder_lead_minutes" : ""})`
+          `id, title, starts_at, ends_at, status, activity_id, activities(id, name, category, voice_reminder_enabled, reminder_preference, engagement_nature, validity_type, start_date, end_date, status${withLead ? ", reminder_lead_minutes" : ""})`
         )
         .eq("user_id", userId)
         .neq("status", "cancelled")
@@ -779,7 +780,13 @@ export async function evaluateSmartReminders(
         end_date?: string | null;
         status?: string;
         reminder_lead_minutes?: number | null;
+        category?: string | null;
       } | null;
+      // Domaine de l'activité (classification) : phrase vocale et texte du rappel contextuels
+      const activityContext = actData?.category ?? null;
+      const contextLabel = activityContextPhrase(activityContext);
+      const activityDomain = activitySectorKey(activityContext);
+      const isFrench = !locale || String(locale).startsWith("fr");
 
       // 1. Activité parente inactive, expirée ou archivée -> stopper les rappels de séance
       if (actData?.status && actData.status !== "active") {
@@ -873,6 +880,7 @@ export async function evaluateSmartReminders(
             timeStr: eventStart.toFormat("HH:mm"),
             category: "activity",
             leadMinutes: firstLead,
+            activityContext,
             language: (locale as any) || "fr",
             includeUserName: (prefsData as any)?.voice_include_user_name ?? true,
           });
@@ -885,12 +893,15 @@ export async function evaluateSmartReminders(
             entity_type: "activity",
             entity_id: evt.id,
             title: tr("⏰ Dans {firstLead} min : {title}", { firstLead, title: evt.title }),
-            body: tr("Votre activité « {title} » commence à {v1}. Préparez-vous tranquillement, votre session approche.", { title: evt.title, v1: eventStart.toFormat("HH:mm") }),
+            body: contextLabel && isFrench
+              ? `${contextLabel} « ${evt.title} » commence à ${eventStart.toFormat("HH:mm")}. Pensez à vous préparer.`
+              : tr("Votre activité « {title} » commence à {v1}. Préparez-vous tranquillement, votre session approche.", { title: evt.title, v1: eventStart.toFormat("HH:mm") }),
             metadata: {
               title: evt.title,
               starts_at: evt.starts_at,
               minutes: minutesUntil,
               leadMinutes: firstLead,
+              activity_domain: activityDomain,
               voice_reminder_enabled: voiceReminderEnabled,
               voice_text: voiceText1,
               is_informative: true,
@@ -908,6 +919,7 @@ export async function evaluateSmartReminders(
             timeStr: eventStart.toFormat("HH:mm"),
             category: "activity",
             leadMinutes: secondLead,
+            activityContext,
             language: (locale as any) || "fr",
             includeUserName: (prefsData as any)?.voice_include_user_name ?? true,
           });
@@ -920,12 +932,15 @@ export async function evaluateSmartReminders(
             entity_type: "activity",
             entity_id: evt.id,
             title: tr("⚡ Dans {secondLead} min : {title}", { secondLead, title: evt.title }),
-            body: tr("Votre séance « {title} » débute dans {secondLead} minutes (à {v2}).", { title: evt.title, secondLead, v2: eventStart.toFormat("HH:mm") }),
+            body: contextLabel && isFrench
+              ? `${contextLabel} « ${evt.title} » commence dans ${secondLead} minutes (à ${eventStart.toFormat("HH:mm")}).`
+              : tr("Votre séance « {title} » débute dans {secondLead} minutes (à {v2}).", { title: evt.title, secondLead, v2: eventStart.toFormat("HH:mm") }),
             metadata: {
               title: evt.title,
               starts_at: evt.starts_at,
               minutes: minutesUntil,
               leadMinutes: secondLead,
+              activity_domain: activityDomain,
               voice_reminder_enabled: voiceReminderEnabled,
               voice_text: voiceText2,
               is_informative: true,
@@ -943,6 +958,7 @@ export async function evaluateSmartReminders(
             timeStr: eventStart.toFormat("HH:mm"),
             category: "activity",
             leadMinutes: 0,
+            activityContext,
             language: (locale as any) || "fr",
             includeUserName: (prefsData as any)?.voice_include_user_name ?? true,
           });
@@ -955,7 +971,9 @@ export async function evaluateSmartReminders(
             entity_type: "activity",
             entity_id: evt.id,
             title: tr("🎯 C'est l'heure : {title}", { title: evt.title }),
-            body: tr("Votre activité « {title} » commence maintenant (de {v1} à {v2}).", { title: evt.title, v1: eventStart.toFormat("HH:mm"), v2: eventEnd.toFormat("HH:mm") }),
+            body: contextLabel && isFrench
+              ? `${contextLabel} « ${evt.title} » commence maintenant (de ${eventStart.toFormat("HH:mm")} à ${eventEnd.toFormat("HH:mm")}).`
+              : tr("Votre activité « {title} » commence maintenant (de {v1} à {v2}).", { title: evt.title, v1: eventStart.toFormat("HH:mm"), v2: eventEnd.toFormat("HH:mm") }),
             metadata: {
               title: evt.title,
               starts_at: evt.starts_at,
@@ -1820,16 +1838,42 @@ export async function evaluateSmartReminders(
 
     const completedItems: DailyActivityItem[] = [];
     const uncompletedItems: DailyActivityItem[] = [];
+    const postponedItems: DailyActivityItem[] = [];
 
-    // Events
+    // Events (une séance reportée n'est ni faite ni « en retard » : elle est comptée à part)
     for (const ev of todayEvents ?? []) {
       const item: DailyActivityItem = { id: ev.id, title: ev.title, category: "activity" };
       if (ev.status === "completed") {
         completedItems.push({ ...item, status: "completed" });
+      } else if (ev.status === "postponed") {
+        postponedItems.push({ ...item, status: "pending" });
       } else {
         uncompletedItems.push({ ...item, status: "pending" });
       }
     }
+
+    // Échéances de demain (activités, tâches, paiements attendus, dépenses programmées)
+    const tomorrowStart = userNow.plus({ days: 1 }).startOf("day");
+    const tomorrowISO = tomorrowStart.toISODate()!;
+    const [{ data: tmrEvents }, { data: tmrTasks }, { data: tmrIncomes }, { data: tmrExpenses }] = await Promise.all([
+      supabase
+        .from("calendar_events")
+        .select("id, title, starts_at")
+        .eq("user_id", userId)
+        .eq("status", "planned")
+        .gte("starts_at", tomorrowStart.toISO()!)
+        .lte("starts_at", tomorrowStart.endOf("day").toISO()!)
+        .order("starts_at", { ascending: true }),
+      supabase.from("tasks").select("id, title").eq("user_id", userId).eq("due_date", tomorrowISO).in("status", ["todo", "in_progress"]),
+      supabase.from("income").select("id, label").eq("user_id", userId).eq("due_date", tomorrowISO).eq("received", false),
+      supabase.from("scheduled_expenses").select("id, name").eq("user_id", userId).eq("next_due_date", tomorrowISO).in("status", ["planned", "due"]),
+    ]);
+    const tomorrowItems: DailyActivityItem[] = [
+      ...(tmrEvents ?? []).map((e) => ({ id: e.id, title: e.title, category: "activity" as const, timeStr: DateTime.fromISO(e.starts_at, { zone: userTimezone }).toFormat("HH:mm") })),
+      ...(tmrTasks ?? []).map((t) => ({ id: t.id, title: t.title, category: "task" as const })),
+      ...(tmrIncomes ?? []).map((i) => ({ id: i.id, title: i.label, category: "payment" as const })),
+      ...(tmrExpenses ?? []).map((x) => ({ id: x.id, title: x.name, category: "expense" as const })),
+    ];
 
     // Tasks
     for (const tsk of todayTasks ?? []) {
@@ -1867,18 +1911,36 @@ export async function evaluateSmartReminders(
       userName: profileData?.full_name,
       completedActivities: completedItems,
       uncompletedActivities: uncompletedItems,
+      postponedActivities: postponedItems,
+      tomorrowItems,
       language: voiceLanguage,
+      includeUserName: (prefsData as any)?.voice_include_user_name ?? true,
     });
 
     const titleText = totalCount > 0
       ? tr("🌙 Bilan du soir : {length}/{totalCount} accomplie(s)", { length: completedItems.length, totalCount })
       : tr("🌙 Bilan du soir : Clôture de votre journée");
 
-    const bodyText = totalCount === 0
+    const baseBody = totalCount === 0
       ? tr("Aucune activité n'était programmée aujourd'hui. Reposez-vous bien et préparez sereinement votre journée de demain.")
       : uncompletedItems.length === 0
       ? tr("Toutes vos activités prévues aujourd'hui sont accomplies avec succès. Vous pouvez clore sereinement votre journée.")
       : tr("Il vous reste {length} élément(s) en attente. Prenez un instant pour valider votre bilan de journée.", { length: uncompletedItems.length });
+    // Bilan écrit complet en français (reportés, demain, bonne nuit) ; autres langues : texte habituel
+    const isFrenchSummary = !locale || String(locale).startsWith("fr");
+    const tomorrowActs = tomorrowItems.filter((i) => i.category === "activity").length;
+    const tomorrowOther = tomorrowItems.length - tomorrowActs;
+    const bodyText = isFrenchSummary
+      ? [
+          totalCount === 0 && postponedItems.length === 0
+            ? "Aucune activité ni tâche n'était prévue aujourd'hui."
+            : `Fait : ${completedItems.length} · Reste à faire : ${uncompletedItems.length}${postponedItems.length ? ` · Reporté : ${postponedItems.length}` : ""}.`,
+          tomorrowItems.length
+            ? `Demain : ${tomorrowActs ? `${tomorrowActs} activité(s)` : ""}${tomorrowActs && tomorrowOther ? " et " : ""}${tomorrowOther ? `${tomorrowOther} échéance(s)` : ""}.`
+            : "Rien de prévu demain pour l'instant.",
+          "Bonne nuit et à demain !",
+        ].join(" ")
+      : baseBody;
 
     candidates.push({
       user_id: userId,
@@ -1895,6 +1957,8 @@ export async function evaluateSmartReminders(
         totalCount,
         completedCount: completedItems.length,
         uncompletedCount: uncompletedItems.length,
+        postponedCount: postponedItems.length,
+        tomorrowCount: tomorrowItems.length,
         voice_text: eveningVoiceScript,
         voice_reminder_enabled: true,
         is_daily_summary: true,

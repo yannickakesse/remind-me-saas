@@ -36,6 +36,7 @@ import {
 } from "@/app/(app)/activities/actions";
 import { buttonClasses, Button } from "@/components/ui/button";
 import { ACTIVITY_TYPES } from "@/lib/validation/activities";
+import { activityCategoryLabel, parseActivityCategory } from "@/lib/activities/classification";
 import { useToast } from "@/components/ui/toast";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
@@ -57,6 +58,8 @@ export interface ActivityViewItem {
   engagement_nature?: string | null;
   reminder_preference?: string | null;
   organizationName?: string | null;
+  /** Domaine (lib/activities/classification.ts), null si non classée. */
+  category?: string | null;
   compensation?: {
     amount: number;
     currency: string;
@@ -123,7 +126,8 @@ export function ActivitiesClientView({
       const matchName = a.name.toLowerCase().includes(q);
       const matchOrg = a.organizationName?.toLowerCase().includes(q);
       const matchType = typeLabel(a.type).toLowerCase().includes(q);
-      if (!matchName && !matchOrg && !matchType) return false;
+      const matchDomain = activityCategoryLabel(a.category)?.toLowerCase().includes(q);
+      if (!matchName && !matchOrg && !matchType && !matchDomain) return false;
     }
     if (filterTab === "all") return true;
     return a.status === filterTab;
@@ -696,6 +700,14 @@ export function ActivitiesClientView({
                   </div>
 
                   <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-xs text-ink-600 dark:text-ink-400">
+                    {activityCategoryLabel(activity.category) && activity.category !== "unspecified" ? (
+                      <span className="w-full truncate font-medium text-ink-700 dark:text-ink-300" title={activityCategoryLabel(activity.category) ?? undefined}>
+                        {(() => {
+                          const p = parseActivityCategory(activity.category);
+                          return p.kind === "sector" ? `${p.sector.icon} ${tr(p.sector.label)}${p.sub ? ` · ${tr(p.sub.label)}` : ""}` : `✏️ ${activityCategoryLabel(activity.category)}`;
+                        })()}
+                      </span>
+                    ) : null}
                     {activity.organizationName ? (
                       <span className="inline-flex items-center gap-1.5 font-medium text-ink-800 dark:text-ink-200">
                         <Building2 className="h-3.5 w-3.5 text-ink-400" />

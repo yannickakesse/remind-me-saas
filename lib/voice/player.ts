@@ -4,6 +4,7 @@ import { playNotificationChime } from "@/lib/notifications/sound";
 import {
   resolveStandardAlertKey,
   getStandardAlertSrc,
+  getDomainAlertSrc,
   isPersonalizedVoiceEnabled,
   type ReminderAlertInfo,
 } from "./standard-alerts";
@@ -325,7 +326,7 @@ export function playAudioFile(options: {
  * que si elle est de bonne qualité (ou explicitement demandée). Sinon : carillon
  * + événement « voix indisponible » pour proposer de réessayer l'écoute.
  */
-function fallbackSpeak(options: VoiceSpeakOptions & { standardSrc?: string | null }, reason: string): Promise<boolean> {
+function fallbackSpeak(options: VoiceSpeakOptions & { standardSrc?: string | null; domainSrc?: string | null }, reason: string): Promise<boolean> {
   const language = options.language || "fr";
   if (options.silentFailure) {
     currentPlayingPriority = null;
@@ -351,6 +352,7 @@ function fallbackSpeak(options: VoiceSpeakOptions & { standardSrc?: string | nul
           priority,
           reason: blockedByBrowser ? "autoplay-blocked" : reason,
           standardSrc: options.standardSrc ?? null,
+          domainSrc: options.domainSrc ?? null,
         },
       })
     );
@@ -517,6 +519,8 @@ export async function playReminderVoice(
   const { alert, ...speak } = options;
   const language = speak.language || "fr";
   const src = getStandardAlertSrc(resolveStandardAlertKey(alert), language);
+  // Rappel d'activité classée : phrase « domaine » enchaînée après la phrase de délai (si enregistrée)
+  const domainSrc = alert?.kind?.startsWith("activity_reminder_") ? getDomainAlertSrc(alert?.metadata?.activity_domain, language) : null;
 
   const playStandard = async () => {
     if (!src) return false;
@@ -525,8 +529,14 @@ export async function playReminderVoice(
       priority: speak.priority || "normal",
       rate: speak.rate,
       volume: speak.volume,
-      repeat: speak.repeat,
-      onEnd: speak.onEnd,
+      repeat: domainSrc ? 0 : speak.repeat,
+      onEnd: domainSrc
+        ? () => {
+            playAudioFile({ src: domainSrc, priority: speak.priority || "normal", rate: speak.rate, volume: speak.volume, onEnd: speak.onEnd }).then((ok) => {
+              if (!ok) speak.onEnd?.();
+            });
+          }
+        : speak.onEnd,
     });
     if (started) speak.onStart?.();
     return started;
@@ -536,13 +546,13 @@ export async function playReminderVoice(
     const ok = await playVoiceReminder({ ...speak, silentFailure: Boolean(src) });
     if (ok || !src) return ok;
     if (await playStandard()) return true;
-    return fallbackSpeak({ ...speak, standardSrc: src }, "standard-unavailable");
+    return fallbackSpeak({ ...speak, standardSrc: src, domainSrc }, "standard-unavailable");
   }
 
   if (await playStandard()) return true;
   // Le navigateur bloque le son tant qu'on n'a pas touché l'écran : inutile d'appeler ElevenLabs (crédits perdus),
   // on propose directement « Écouter » (un toucher suffit, puis la voix est jouée).
-  if (!sharedUnlocked) return fallbackSpeak({ ...speak, standardSrc: src }, "autoplay-blocked");
+  if (!sharedUnlocked) return fallbackSpeak({ ...speak, standardSrc: src, domainSrc }, "autoplay-blocked");
   // Pas d'audio standard (langue non enregistrée, fichiers absents) : voix ElevenLabs puis secours habituel
   return speak.text?.trim() ? playVoiceReminder(speak) : fallbackSpeak(speak, "no-audio");
 }

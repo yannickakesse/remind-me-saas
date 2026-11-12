@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, Clock, Plus, Trash2, AlertTriangle, Volume2 } from "lucide-react";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { ActivityCategoryPicker } from "@/components/shared/activity-category-picker";
 import {
   ACTIVITY_TYPES,
   COMPENSATION_FREQUENCIES,
@@ -195,6 +196,13 @@ export function ActivityForm({
       setError(scheduleConflict);
       return;
     }
+    // Domaine obligatoire : c'est lui qui permet au rappel vocal de dire de quelle activité il s'agit
+    const domain = String(new FormData(e.currentTarget).get("category") ?? "").trim();
+    if (!domain || domain === "unspecified") {
+      setError(tr("Choisissez le domaine de l'activité (ou « Autre » en le précisant) : il sert aux rappels vocaux."));
+      document.getElementById("category-picker")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setError(null);
     setSubmitting(true);
 
@@ -244,6 +252,12 @@ export function ActivityForm({
             autoFocus
           />
         </Field>
+
+        <div id="category-picker">
+          <Field label={tr("Domaine de l'activité *")} htmlFor="category">
+            <ActivityCategoryPicker initialValue={initial?.category} />
+          </Field>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label={tr("Type d'activité *")} htmlFor="type">
@@ -644,25 +658,14 @@ export function ActivityForm({
               />
             </Field>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label={tr("Entreprise / Client")} htmlFor="organizationName">
-                <TextInput
-                  id="organizationName"
-                  name="organizationName"
-                  defaultValue={initial?.organizationName}
-                  placeholder={tr("Ex : Acme SARL")}
-                />
-              </Field>
-
-              <Field label={tr("Catégorie métier")} htmlFor="category">
-                <TextInput
-                  id="category"
-                  name="category"
-                  defaultValue={initial?.category}
-                  placeholder={tr("Ex : Tech, Conseil, Formation")}
-                />
-              </Field>
-            </div>
+            <Field label={tr("Entreprise / Client")} htmlFor="organizationName">
+              <TextInput
+                id="organizationName"
+                name="organizationName"
+                defaultValue={initial?.organizationName}
+                placeholder={tr("Ex : Acme SARL")}
+              />
+            </Field>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Field label={tr("Nom du contact")} htmlFor="contactName">

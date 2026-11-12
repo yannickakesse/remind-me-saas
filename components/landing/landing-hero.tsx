@@ -14,8 +14,20 @@ import {
   RotateCcw,
 } from "lucide-react";
 
+/**
+ * Version anglaise de la pub (mêmes images, voix et textes anglais).
+ * Passer à true quand les fichiers remindme-ad-en-1080/720.mp4, remindme-ad-en-poster.jpg et remindme-ad.en.vtt sont déposés.
+ */
+const EN_AD_READY = true;
+const AD_VERSION = "3";
+
 export function LandingHero() {
-  const { tr } = useLanguage();
+  const { tr, locale } = useLanguage();
+  // Anglais pour un site en anglais, français pour toutes les autres langues (en attendant leurs versions)
+  const adLang: "fr" | "en" = EN_AD_READY && String(locale).startsWith("en") ? "en" : "fr";
+  const ad = adLang === "en"
+    ? { v1080: "remindme-ad-en-1080.mp4", v720: "remindme-ad-en-720.mp4", poster: "remindme-ad-en-poster.jpg", vtt: "remindme-ad.en.vtt", label: "English" }
+    : { v1080: "remindme-ad-1080.mp4", v720: "remindme-ad-720.mp4", poster: "remindme-ad-poster.jpg", vtt: "remindme-ad.fr.vtt", label: "Français" };
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -121,7 +133,18 @@ export function LandingHero() {
     };
   }, []);
 
-  // Sous-titres français visibles tant que la vidéo est muette, masqués quand le son est activé
+  // Changement de langue du site : recharge la vidéo dans la bonne langue (les <source> ont changé)
+  const firstLangRef = useRef(adLang);
+  useEffect(() => {
+    if (firstLangRef.current === adLang) return;
+    firstLangRef.current = adLang;
+    const video = videoRef.current;
+    if (!video) return;
+    video.load();
+    video.play().then(() => setIsPlaying(true)).catch(() => {});
+  }, [adLang]);
+
+  // Sous-titres visibles tant que la vidéo est muette, masqués quand le son est activé
   useEffect(() => {
     const track = videoRef.current?.textTracks?.[0];
     if (track) track.mode = isMuted ? "showing" : "hidden";
@@ -253,12 +276,12 @@ export function LandingHero() {
                 loop
                 preload="auto"
                 className="w-full h-full object-contain bg-white"
-                poster="/videos/remindme-ad-poster.jpg?v=3"
+                poster={`/videos/${ad.poster}?v=${AD_VERSION}`}
               >
                 {/* Ordinateur et tablette : 1080p ; téléphone : version 720p plus légère */}
-                <source src="/videos/remindme-ad-1080.mp4?v=3" type="video/mp4" media="(min-width: 768px)" />
-                <source src="/videos/remindme-ad-720.mp4?v=3" type="video/mp4" />
-                <track kind="subtitles" srcLang="fr" label="Français" src="/videos/remindme-ad.fr.vtt?v=3" default />
+                <source src={`/videos/${ad.v1080}?v=${AD_VERSION}`} type="video/mp4" media="(min-width: 768px)" />
+                <source src={`/videos/${ad.v720}?v=${AD_VERSION}`} type="video/mp4" />
+                <track kind="subtitles" srcLang={adLang} label={ad.label} src={`/videos/${ad.vtt}?v=${AD_VERSION}`} default />
                 {tr("Votre navigateur ne prend pas en charge la lecture de vidéos HTML5.")}</video>
 
               {/* Bouton de lecture central visible si en pause */}

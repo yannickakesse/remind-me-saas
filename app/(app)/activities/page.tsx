@@ -16,7 +16,7 @@ export default async function ActivitiesPage({
   const { data: activities, error: activitiesError } = await supabase
     .from("activities")
     .select(
-      "id, name, type, color, status, work_mode, start_date, end_date, validity_type, engagement_nature, reminder_preference, organizations(name), activity_compensation(amount, currency, frequency)"
+      "id, name, type, category, color, status, work_mode, start_date, end_date, validity_type, engagement_nature, reminder_preference, organizations(name), activity_compensation(amount, currency, frequency)"
     )
     .eq("user_id", user!.id)
     .order("created_at", { ascending: false });
@@ -72,6 +72,7 @@ export default async function ActivitiesPage({
       engagement_nature: a.engagement_nature,
       reminder_preference: a.reminder_preference,
       organizationName: org?.name ?? null,
+      category: a.category ?? null,
       compensation: comp
         ? {
             amount: Number(comp.amount),

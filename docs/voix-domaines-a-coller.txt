@@ -1,0 +1,51 @@
+REMIND ME — VOIX « DOMAINE » DES RAPPELS D'ACTIVITÉ — FRANÇAIS (15 fichiers)
+=========================================================================
+
+À quoi elles servent : la voix d'un rappel enchaîne DEUX enregistrements.
+  1. La phrase de délai, DÉJÀ enregistrée (on n'y touche pas) :
+       « Votre activité commence dans dix minutes. »
+  2. La phrase de domaine, À ENREGISTRER (ci-dessous) :
+       « Il s'agit d'une activité liée à votre entreprise. »
+  Résultat entendu : « Votre activité commence dans dix minutes. Il s'agit d'une activité liée à votre entreprise. »
+
+RÉGLAGES — IDENTIQUES AUX VOIX DE RAPPEL EXISTANTES (même voix, sinon on entend deux personnes différentes)
+  - Même voix que les fichiers de public/voice/alerts (ceux qui disent « Votre activité commence dans… »)
+  - Modèle : Eleven Multilingual v2
+  - Stability 45 % · Similarity 80 % · Style 25 % · Speaker boost activé
+  - Format : MP3
+  - Ton : posé, informatif, même débit que la phrase de délai. Pas de pause au début.
+
+COMMENT FAIRE (15 fois)
+  1. ElevenLabs → Text to Speech → la même voix que les rappels.
+  2. Collez uniquement la phrase (après la flèche).
+  3. Generate, écoutez, téléchargez le MP3.
+  4. Renommez-le EXACTEMENT comme indiqué, puis envoyez-moi les 15 fichiers.
+     (Ou déposez-les dans public/voice/alerts/ : je les branche.)
+
+
+domain_business-fr.mp3      → Il s'agit d'une activité liée à votre entreprise.
+domain_services-fr.mp3      → Il s'agit d'une activité liée à vos prestations.
+domain_education-fr.mp3     → Il s'agit d'une activité liée à l'enseignement ou la formation.
+domain_career-fr.mp3        → Il s'agit d'une activité liée à votre travail.
+domain_religion-fr.mp3      → Il s'agit d'une activité liée à votre vie spirituelle.
+domain_health-fr.mp3        → Il s'agit d'une activité liée à votre santé.
+domain_family-fr.mp3        → Il s'agit d'une activité liée à votre vie personnelle.
+domain_admin-fr.mp3         → Il s'agit d'une activité liée à vos démarches.
+domain_community-fr.mp3     → Il s'agit d'une activité liée à votre engagement associatif.
+domain_culture-fr.mp3       → Il s'agit d'une activité liée à vos créations.
+domain_real_estate-fr.mp3   → Il s'agit d'une activité liée à vos projets immobiliers.
+domain_transport-fr.mp3     → Il s'agit d'une activité liée à vos déplacements.
+domain_agriculture-fr.mp3   → Il s'agit d'une activité liée à votre exploitation.
+domain_events-fr.mp3        → Il s'agit d'une activité liée à vos événements.
+domain_misc-fr.mp3          → Il s'agit d'une activité liée à vos projets.
+
+
+Correspondance avec les domaines choisis dans l'application :
+  business = Entrepreneuriat et commerce · services = Services et prestations · education = Éducation et formation
+  career = Emploi et carrière · religion = Religion et spiritualité · health = Santé et bien-être
+  family = Famille et vie personnelle · admin = Administration et démarches · community = Associations et vie communautaire
+  culture = Culture, médias et création · real_estate = Immobilier, construction et habitat · transport = Transport et logistique
+  agriculture = Agriculture et environnement · events = Événements et organisation · misc = Projets personnels et divers
+
+Activité classée « Autre » : seule la phrase de délai est jouée (le texte libre ne peut pas être préenregistré).
+Anglais et autres langues : après validation du système en français.
