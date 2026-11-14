@@ -1,0 +1,28 @@
+VOIX D'ACCUEIL « BON RETOUR » — à générer avec la voix de Lauren (une génération par langue)
+Fichiers attendus dans public/voice/alerts : welcome_morning-<langue>.mp3, welcome_afternoon-<langue>.mp3, welcome_evening-<langue>.mp3
+(Le découpage et le nommage sont faits ensuite automatiquement.)
+
+FRANÇAIS
+Bonjour, bon retour sur Remind Me.
+Bon après-midi, bon retour sur Remind Me.
+Bonsoir, bon retour sur Remind Me.
+
+ENGLISH
+Good morning, welcome back to Remind Me.
+Good afternoon, welcome back to Remind Me.
+Good evening, welcome back to Remind Me.
+
+ESPAÑOL
+Buenos días, bienvenido de nuevo a Remind Me.
+Buenas tardes, bienvenido de nuevo a Remind Me.
+Buenas noches, bienvenido de nuevo a Remind Me.
+
+DEUTSCH
+Guten Morgen, willkommen zurück bei Remind Me.
+Guten Tag, willkommen zurück bei Remind Me.
+Guten Abend, willkommen zurück bei Remind Me.
+
+PORTUGUÊS
+Bom dia, bem-vindo de volta ao Remind Me.
+Boa tarde, bem-vindo de volta ao Remind Me.
+Boa noite, bem-vindo de volta ao Remind Me.

@@ -10,6 +10,7 @@ import {
   getLocalVoiceSettings,
   isVoicePlaying,
 } from "@/lib/voice";
+import { getStandardAlertSrc, welcomeAlertKey, type StandardAlertKey } from "@/lib/voice/standard-alerts";
 import {
   INTRO_VIDEO_CLOSED_EVENT,
   isIntroVideoDue,
@@ -26,15 +27,14 @@ interface DailyWelcomeBannerProps {
 
 const SESSION_STORAGE_KEY = "remindme_session_welcome_shown";
 const VISITED_BEFORE_KEY = "remindme_visited_before";
-
+/** Instant où l'utilisateur a quitté l'application (onglet caché, autre application, onglet fermé). */
+const LEFT_AT_KEY = "remindme_left_at";
 /**
- * Phrase standard enregistrée pour l'accueil : « Bonjour ! Voici votre programme de la journée. » le matin.
- * Plus tard dans la journée, l'accueil reste écrit (une phrase « bilan du soir » n'aurait pas de sens
- * pour quelqu'un qui vient d'arriver).
+ * Absence minimale avant un nouvel accueil : chaque retour dans l'application après au moins
+ * 15 secondes ailleurs est accueilli (message au centre + voix) ; un simple coup d'œil à une
+ * notification ne déclenche rien.
  */
-function greetingKind(): "morning_briefing" | null {
-  return new Date().getHours() < 12 ? "morning_briefing" : null;
-}
+const AWAY_MS = 15_000;
 
 export function DailyWelcomeBanner({
   userName,
@@ -51,6 +51,7 @@ export function DailyWelcomeBanner({
   const [audioPlayed, setAudioPlayed] = useState(false);
   const [voiceTextState, setVoiceTextState] = useState<string>("");
   const dismissedRef = useRef(false);
+  const voiceKeyRef = useRef<StandardAlertKey>("welcome_morning");
   // File des fenêtres : jamais en même temps qu'une autre fenêtre d'accueil
   const slotGranted = usePopupSlot("welcome", mounted);
 
@@ -67,12 +68,14 @@ export function DailyWelcomeBanner({
       return () => window.removeEventListener(INTRO_VIDEO_CLOSED_EVENT, cb);
     };
 
-    // 1. Ne pas afficher si déjà affiché pendant la même session
+    // 1. Déjà accueilli pendant cette session : pas de nouvel accueil au simple rechargement de page,
+    //    SAUF si l'utilisateur était parti ailleurs (autre application, onglet fermé) depuis plus de AWAY_MS.
+    let skipInitial = false;
     try {
-      const alreadyShownThisSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
-      if (alreadyShownThisSession) {
-        return afterIntroVideo(markWelcomeDone);
-      }
+      const shown = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      const leftAt = Number(sessionStorage.getItem(LEFT_AT_KEY) || 0);
+      skipInitial = Boolean(shown) && !(leftAt > 0 && Date.now() - leftAt >= AWAY_MS);
+      sessionStorage.removeItem(LEFT_AT_KEY);
     } catch {}
 
     // 2. Vérifier les conflits avec d'autres fenêtres d'accueil prioritaires
@@ -84,6 +87,12 @@ export function DailyWelcomeBanner({
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     const run = () => {
+    // Nouvel accueil : on repart d'un état propre (accueil précédent effacé, minuteries annulées)
+    timers.forEach(clearTimeout);
+    timers.length = 0;
+    dismissedRef.current = false;
+    setIsFadingOut(false);
+    setMounted(false);
 
     // 3. Calcul de la salutation textuelle selon l'heure locale et le vrai nom d'utilisateur
     const userNow = DateTime.now().setZone(timezone);
@@ -97,6 +106,8 @@ export function DailyWelcomeBanner({
     // Détermination de la langue de synthèse vocale configurée
     const localPrefs = getLocalVoiceSettings();
     const voiceLang = (localPrefs.voice_language || locale || "fr") as string;
+    // Même horloge que le texte (fuseau du profil) : la voix dit toujours le bon moment de la journée
+    voiceKeyRef.current = welcomeAlertKey(hour);
 
     let greeting = "";
     let sub = "";
@@ -405,9 +416,11 @@ export function DailyWelcomeBanner({
 
       // Déclencher la voix si les paramètres de l'utilisateur l'autorisent et aucun rappel n'est en cours
       const localPrefs = getLocalVoiceSettings();
-      if (localPrefs.voice_reminders && spokenText && greetingKind() && !isVoicePlaying()) {
+      const voiceKey = voiceKeyRef.current;
+      const hasRecordedVoice = getStandardAlertSrc(voiceKey, localPrefs.voice_language || voiceLang) !== null;
+      if (localPrefs.voice_reminders && spokenText && hasRecordedVoice && !isVoicePlaying()) {
         playReminderVoice({
-          alert: { kind: greetingKind() ?? "generic" },
+          alert: { kind: voiceKey },
           text: spokenText,
           language: localPrefs.voice_language,
           voiceType: localPrefs.voice_type,
@@ -447,11 +460,31 @@ export function DailyWelcomeBanner({
     }, 3850));
     };
 
-    const cancelWait = afterIntroVideo(run);
+    const cancelWait = afterIntroVideo(skipInitial ? markWelcomeDone : run);
+
+    // 8. Retour dans l'application après être allé ailleurs : nouvel accueil, à chaque fois
+    let hiddenAt = 0;
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        hiddenAt = Date.now();
+        try {
+          sessionStorage.setItem(LEFT_AT_KEY, String(hiddenAt));
+        } catch {}
+        return;
+      }
+      const away = hiddenAt ? Date.now() - hiddenAt : 0;
+      hiddenAt = 0;
+      try {
+        sessionStorage.removeItem(LEFT_AT_KEY);
+      } catch {}
+      if (away >= AWAY_MS && !isIntroVideoDue()) run();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelWait();
       timers.forEach(clearTimeout);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [userName, timezone, hasActivitiesToday, tourCompleted, locale]);
 
@@ -465,10 +498,11 @@ export function DailyWelcomeBanner({
   };
 
   const handleManualSpeak = () => {
-    if (!voiceTextState || !greetingKind()) return;
     const localPrefs = getLocalVoiceSettings();
+    const voiceKey = voiceKeyRef.current;
+    if (!voiceTextState || getStandardAlertSrc(voiceKey, localPrefs.voice_language || locale) === null) return;
     playReminderVoice({
-      alert: { kind: greetingKind() ?? "generic" },
+      alert: { kind: voiceKey },
       text: voiceTextState,
       language: localPrefs.voice_language,
       voiceType: localPrefs.voice_type,

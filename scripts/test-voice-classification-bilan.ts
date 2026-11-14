@@ -20,7 +20,7 @@ import path from "node:path";
 // @ts-ignore — script .mjs (liste des 130 phrases enregistrées)
 import { DOMAIN_LINES_FR } from "./voice-domains-v2.mjs";
 import { spokenDelay, contextualActivityReminderFr, eveningSummaryFr, generateVoiceMessage } from "../lib/voice/generator";
-import { resolveStandardAlertKey, getStandardAlertSrc, getDomainAlertSrc } from "../lib/voice/standard-alerts";
+import { resolveStandardAlertKey, getStandardAlertSrc, getDomainAlertSrc, welcomeAlertKey } from "../lib/voice/standard-alerts";
 
 let passed = 0;
 function test(name: string, fn: () => void) {
@@ -199,6 +199,18 @@ test("voix « domaine » v2 : un fichier français pour chaque clé, et le texte
 });
 
 console.log("\n3. Bilan du soir et bonne nuit");
+
+test("accueil « bon retour » : bon moment de la journée, jamais une phrase inadaptée", () => {
+  assert.equal(welcomeAlertKey(8), "welcome_morning");
+  assert.equal(welcomeAlertKey(14), "welcome_afternoon");
+  assert.equal(welcomeAlertKey(20), "welcome_evening");
+  assert.equal(welcomeAlertKey(2), "welcome_evening");
+  assert.equal(resolveStandardAlertKey({ kind: "welcome_afternoon" }), "welcome_afternoon");
+  // Tant que les voix « bon retour » ne sont pas enregistrées : « Bonjour ! Voici votre programme » le matin, rien ensuite
+  assert.equal(getStandardAlertSrc("welcome_morning", "fr"), "/voice/alerts/morning_briefing-fr.mp3?v=1");
+  assert.equal(getStandardAlertSrc("welcome_afternoon", "fr"), null);
+  assert.equal(getStandardAlertSrc("welcome_evening", "en"), null);
+});
 
 test("journée sans rien de prévu", () => {
   const t = eveningSummaryFr({ salutationName: "Awa", completed: [], remaining: [] });

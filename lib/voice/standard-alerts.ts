@@ -31,6 +31,7 @@ export type StandardAlertKey =
   | "task_in_3d" | "task_in_2d" | "task_tomorrow" | "task_today" | "task_soon" | "task_overdue"
   | "contract_in_7d" | "contract_in_3d" | "contract_in_2d" | "contract_tomorrow" | "contract_expired"
   | "morning_briefing" | "evening_checkin" | "generic"
+  | "welcome_morning" | "welcome_afternoon" | "welcome_evening"
   | "goal_step_today" | "goal_step_overdue" | "goal_deadline_week" | "goal_deadline_tomorrow"
   | "goal_inactive" | "goal_reminder" | "goal_milestone" | "goal_completed";
 
@@ -46,6 +47,19 @@ const GOAL_ALERT_KEYS: StandardAlertKey[] = [
 /** Langues dont les rappels « Mes objectifs » sont enregistrés (ajouter la langue quand ses 8 fichiers sont déposés). */
 const GOAL_ALERT_LANGUAGES = new Set<string>(["fr", "en", "es"]);
 const NOT_YET_RECORDED = new Set<StandardAlertKey>(GOAL_ALERT_KEYS);
+
+/**
+ * Accueil « bon retour » selon le moment de la journée (docs/voix-accueil-a-coller.txt).
+ * Ajouter une langue ici quand ses 3 fichiers welcome_* sont déposés dans /public/voice/alerts.
+ * En attendant : le matin, « Bonjour ! Voici votre programme de la journée. » ; l'après-midi et le soir,
+ * pas de voix (jamais une phrase qui ne correspond pas au moment, jamais de voix robotique).
+ */
+const WELCOME_ALERT_LANGUAGES = new Set<string>([]);
+export function welcomeAlertKey(hour: number): StandardAlertKey {
+  if (hour >= 5 && hour < 12) return "welcome_morning";
+  if (hour >= 12 && hour < 18) return "welcome_afternoon";
+  return "welcome_evening";
+}
 
 /** Ce qu'il faut savoir d'un rappel pour choisir sa phrase (champs d'une notification). */
 export interface ReminderAlertInfo {
@@ -125,6 +139,10 @@ export function resolveStandardAlertKey(info?: ReminderAlertInfo | null): Standa
       return "morning_briefing";
     case "evening_checkin":
       return "evening_checkin";
+    case "welcome_morning":
+    case "welcome_afternoon":
+    case "welcome_evening":
+      return kind as StandardAlertKey;
     case "goal_step_due_today":
       return "goal_step_today";
     case "goal_step_overdue":
@@ -148,6 +166,10 @@ export function getStandardAlertSrc(key: StandardAlertKey, language: string): st
   if (!STANDARD_ALERTS_READY) return null;
   const lang = (language || "").slice(0, 2).toLowerCase();
   if (!(STANDARD_ALERT_LANGUAGES as readonly string[]).includes(lang)) return null;
+  if (key.startsWith("welcome_") && !WELCOME_ALERT_LANGUAGES.has(lang)) {
+    if (key !== "welcome_morning") return null;
+    return `/voice/alerts/morning_briefing-${lang}.mp3?v=${STANDARD_ALERTS_VERSION}`;
+  }
   const file = NOT_YET_RECORDED.has(key) && !GOAL_ALERT_LANGUAGES.has(lang) ? "generic" : key;
   return `/voice/alerts/${file}-${lang}.mp3?v=${STANDARD_ALERTS_VERSION}`;
 }
