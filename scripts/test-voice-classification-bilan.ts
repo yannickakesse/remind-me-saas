@@ -206,10 +206,14 @@ test("accueil « bon retour » : bon moment de la journée, jamais une phrase in
   assert.equal(welcomeAlertKey(20), "welcome_evening");
   assert.equal(welcomeAlertKey(2), "welcome_evening");
   assert.equal(resolveStandardAlertKey({ kind: "welcome_afternoon" }), "welcome_afternoon");
-  // Tant que les voix « bon retour » ne sont pas enregistrées : « Bonjour ! Voici votre programme » le matin, rien ensuite
-  assert.equal(getStandardAlertSrc("welcome_morning", "fr"), "/voice/alerts/morning_briefing-fr.mp3?v=1");
-  assert.equal(getStandardAlertSrc("welcome_afternoon", "fr"), null);
+  // Français enregistré : « Bonjour / Bon après-midi / Bonsoir, bon retour sur Remind Me. »
+  assert.equal(getStandardAlertSrc("welcome_morning", "fr"), "/voice/alerts/welcome_morning-fr.mp3?v=1");
+  assert.equal(getStandardAlertSrc("welcome_afternoon", "fr"), "/voice/alerts/welcome_afternoon-fr.mp3?v=1");
+  assert.equal(getStandardAlertSrc("welcome_evening", "fr"), "/voice/alerts/welcome_evening-fr.mp3?v=1");
+  // Autres langues pas encore enregistrées : « Good morning… programme » le matin, rien ensuite
+  assert.equal(getStandardAlertSrc("welcome_morning", "en"), "/voice/alerts/morning_briefing-en.mp3?v=1");
   assert.equal(getStandardAlertSrc("welcome_evening", "en"), null);
+  for (const k of ["morning", "afternoon", "evening"]) assert.ok(existsSync(path.join(process.cwd(), "public/voice/alerts", `welcome_${k}-fr.mp3`)), k);
 });
 
 test("journée sans rien de prévu", () => {

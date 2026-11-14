@@ -54,7 +54,7 @@ const NOT_YET_RECORDED = new Set<StandardAlertKey>(GOAL_ALERT_KEYS);
  * En attendant : le matin, « Bonjour ! Voici votre programme de la journée. » ; l'après-midi et le soir,
  * pas de voix (jamais une phrase qui ne correspond pas au moment, jamais de voix robotique).
  */
-const WELCOME_ALERT_LANGUAGES = new Set<string>([]);
+const WELCOME_ALERT_LANGUAGES = new Set<string>(["fr"]);
 export function welcomeAlertKey(hour: number): StandardAlertKey {
   if (hour >= 5 && hour < 12) return "welcome_morning";
   if (hour >= 12 && hour < 18) return "welcome_afternoon";
