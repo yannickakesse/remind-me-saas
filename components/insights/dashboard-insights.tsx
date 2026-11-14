@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getTr } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { getUserSubscription } from "@/lib/subscriptions/server";
@@ -20,15 +20,22 @@ export async function DashboardInsights({ userId }: { userId: string }) {
     return counts.total > 0 ? <InsightsLocked counts={counts} /> : null;
   }
   if (relevant.length === 0) return null;
+  const toTreat = counts.urgent + counts.attention;
 
   return (
-    <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 p-4 sm:p-6 shadow-xs backdrop-blur-xl space-y-3">
-      <div className="relative px-10 text-center">
-        <h2 className="inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-[0.12em] text-signal">
-          <Sparkles className="h-4 w-4" /> {tr("Analyses")}
-        </h2>
-        <Link href="/insights" aria-label={tr("Voir")} title={tr("Voir")} className="absolute right-0 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-signal hover:bg-signal/10">
-          <ArrowRight className="h-4 w-4" />
+    <section className="space-y-3 rounded-2xl border border-[#E6E2D9] bg-white p-4 dark:border-[#2A3647] dark:bg-[#1A2332] sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.08em] text-[#214E3B] dark:text-[#7FD1AE]">{tr("Analyses")}</h2>
+          <p className="mt-0.5 text-sm font-semibold text-[#17211D] dark:text-[#F3F1EC]">
+            {toTreat > 0 ? tr("{n} point(s) à traiter", { n: toTreat }) : tr("Rien d'urgent à traiter")}
+          </p>
+        </div>
+        <Link
+          href="/insights"
+          className="inline-flex h-10 shrink-0 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-[#214E3B] hover:bg-[#EEF3EF] dark:text-[#7FD1AE] dark:hover:bg-[#16302A]"
+        >
+          {tr("Tout voir")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>
       <div className="grid gap-2.5 md:grid-cols-3">

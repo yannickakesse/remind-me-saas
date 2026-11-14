@@ -2,13 +2,27 @@ import { DateTime } from "luxon";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { expenseCategoryLabel } from "@/lib/validation/finances";
-import { computeInsights, type Insight, type InsightSnapshot } from "./rules";
+import { computeInsights, buildInsightsOverview, type Insight, type InsightSnapshot, type InsightsOverview } from "./rules";
 
 /**
  * Rassemble les données de l'utilisateur nécessaires aux analyses (lecture seule, droits RLS
  * de l'utilisateur) puis applique les règles. Requêtes bornées dans le temps (≈ 3 mois).
  */
 export async function getUserInsights(supabase: SupabaseClient<Database>, userId: string): Promise<Insight[]> {
+  return computeInsights(await loadInsightSnapshot(supabase, userId));
+}
+
+/** Constats + vue d'ensemble (charge des 7 prochains jours, conseil général) pour la page Analyses. */
+export async function getUserInsightsWithOverview(
+  supabase: SupabaseClient<Database>,
+  userId: string
+): Promise<{ insights: Insight[]; overview: InsightsOverview }> {
+  const snapshot = await loadInsightSnapshot(supabase, userId);
+  const insights = computeInsights(snapshot);
+  return { insights, overview: buildInsightsOverview(snapshot, insights) };
+}
+
+async function loadInsightSnapshot(supabase: SupabaseClient<Database>, userId: string): Promise<InsightSnapshot> {
   const db = supabase as any;
   const { data: profile } = await supabase
     .from("profiles")
@@ -68,5 +82,5 @@ export async function getUserInsights(supabase: SupabaseClient<Database>, userId
     goalSteps: steps.error ? [] : steps.data ?? [],
   };
 
-  return computeInsights(snapshot);
+  return snapshot;
 }

@@ -2,7 +2,7 @@
  * Phase 4 — tests du moteur d'analyse interne (aucune IA externe).
  * Lancer : npx tsx scripts/test-phase4-intelligence.ts
  */
-import { computeInsights, summarizeInsights, type InsightSnapshot } from "../lib/intelligence/rules";
+import { computeInsights, summarizeInsights, computeDayLoads, buildInsightsOverview, type InsightSnapshot } from "../lib/intelligence/rules";
 import type { GoalRow } from "../lib/goals/progress";
 
 let ok = 0;
@@ -53,8 +53,26 @@ const ev = (i: number, day: string, h: number, dur = 1) => ({
   id: `e${i}`, title: "Séance", starts_at: `${day}T${String(h).padStart(2, "0")}:00:00Z`,
   ends_at: `${day}T${String(h + dur).padStart(2, "0")}:00:00Z`, status: "planned", activity_id: "a1", original_starts_at: null, is_exception: false,
 });
-check("4 séances le même jour → journée chargée", has({ ...base, events: [ev(1, "2026-11-20", 8), ev(2, "2026-11-20", 10), ev(3, "2026-11-20", 13), ev(4, "2026-11-20", 16)] }, "overloaded_day"));
-check("9 h de séances → journée chargée", has({ ...base, events: [ev(1, "2026-11-21", 8, 5), ev(2, "2026-11-21", 14, 4)] }, "overloaded_day"));
+check("4 séances courtes et espacées (4 h) → rien à signaler", !has({ ...base, events: [ev(1, "2026-11-20", 8), ev(2, "2026-11-20", 10), ev(3, "2026-11-20", 13), ev(4, "2026-11-20", 16)] }, "overloaded_day"));
+check("9 h de séances → journée chargée (à surveiller, pas urgent)", has({ ...base, events: [ev(1, "2026-11-21", 8, 5), ev(2, "2026-11-21", 14, 4)] }, "overloaded_day", "attention"));
+const overlapDay = { ...base, events: [ev(1, "2026-11-20", 8, 5), ev(2, "2026-11-20", 12, 2)] };
+check("Deux séances qui se chevauchent → urgent", has(overlapDay, "schedule_conflict", "urgent"));
+const conflict = computeInsights(overlapDay).find((i) => i.rule === "schedule_conflict")!;
+check("Chevauchement : horaires exacts (12:00 → 13:00) et nouvel horaire proposé (après 13:00)", conflict.params.from === "12:00" && conflict.params.to === "13:00" && conflict.params.aEnd === "13:00");
+check("Temps occupé : chevauchement compté une fois (8 h → 14 h = 6 h, pas 7 h)", conflict.day!.occupiedMinutes === 360);
+check("Lien vers la journée précise du calendrier", conflict.link === "/calendar?view=day&date=2026-11-20");
+check("Date conservée au format ISO (mise en forme à l'affichage)", conflict.when === "2026-11-20");
+check("Journée de 6 h 30 sans pause → « presque sans pause »", computeInsights({ ...base, events: [ev(1, "2026-11-22", 8, 3), { ...ev(2, "2026-11-22", 11, 3), ends_at: "2026-11-22T14:30:00Z" }] }).some((i) => i.rule === "overloaded_day" && i.params.breakMin === 0));
+check("7 h avec une vraie pause d'1 h → rien", !has({ ...base, events: [ev(1, "2026-11-22", 8, 4), ev(2, "2026-11-22", 13, 3)] }, "overloaded_day"));
+check("Séance déjà terminée aujourd'hui ignorée", computeDayLoads({ ...base, events: [ev(1, "2026-11-18", 6, 2)] })[0]!.count === 0);
+check("Séance après minuit coupée à la fin du jour", computeDayLoads({ ...base, events: [{ ...ev(1, "2026-11-19", 22, 1), ends_at: "2026-11-20T02:00:00Z" }] })[1]!.occupiedMinutes === 120);
+const twoHeavy = { ...base, events: [ev(1, "2026-11-20", 8, 5), ev(2, "2026-11-20", 14, 4), ev(3, "2026-11-21", 8, 5), ev(4, "2026-11-21", 14, 4)] };
+const twoHeavyInsights = computeInsights(twoHeavy);
+check("Plusieurs journées chargées : pas de conseil répété sur chaque carte", twoHeavyInsights.filter((i) => i.rule === "overloaded_day").every((i) => !i.recommendation));
+const ov = buildInsightsOverview(twoHeavy, twoHeavyInsights);
+check("… mais un conseil général dans la vue d'ensemble (18 h au total)", ov.advice !== null && ov.advice.params.totalMin === 1080 && ov.days.length === 7);
+check("Une seule journée chargée : conseil individuel", computeInsights({ ...base, events: [ev(1, "2026-11-21", 8, 5), ev(2, "2026-11-21", 14, 4)] }).find((i) => i.rule === "overloaded_day")!.recommendation !== undefined);
+check("À gravité égale, la journée la plus proche d'abord", twoHeavyInsights.filter((i) => i.rule === "overloaded_day").map((i) => i.when).join() === "2026-11-20,2026-11-21");
 check("Séances annulées non comptées", !has({ ...base, events: [1, 2, 3, 4].map((i) => ({ ...ev(i, "2026-11-20", 6 + i * 2), status: "cancelled" })) }, "overloaded_day"));
 check("Journée hors horizon de 7 jours ignorée", !has({ ...base, events: [1, 2, 3, 4].map((i) => ev(i, "2026-12-10", 6 + i * 2)) }, "overloaded_day"));
 
