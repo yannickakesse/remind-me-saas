@@ -16,7 +16,7 @@ import {
 } from "@/lib/voice";
 import { createInternalMessage } from "@/lib/messages/service";
 import { evaluateActivityEvolutionSuggestions } from "@/lib/activities/evolution";
-import { activityContextPhrase, activitySectorKey } from "@/lib/activities/classification";
+import { activityContextPhrase, activityDomainVoiceKey } from "@/lib/activities/classification";
 import {
   isInQuietHours,
   activitySlotKey,
@@ -785,7 +785,7 @@ export async function evaluateSmartReminders(
       // Domaine de l'activité (classification) : phrase vocale et texte du rappel contextuels
       const activityContext = actData?.category ?? null;
       const contextLabel = activityContextPhrase(activityContext);
-      const activityDomain = activitySectorKey(activityContext);
+      const activityDomain = activityDomainVoiceKey(activityContext);
       const isFrench = !locale || String(locale).startsWith("fr");
 
       // 1. Activité parente inactive, expirée ou archivée -> stopper les rappels de séance

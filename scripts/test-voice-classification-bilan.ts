@@ -12,8 +12,13 @@ import {
   searchActivityCategories,
   spokenActivityContext,
   activitySectorKey,
+  activityDomainVoiceKey,
   domainVoiceSentenceFr,
 } from "../lib/activities/classification";
+import { existsSync } from "node:fs";
+import path from "node:path";
+// @ts-ignore — script .mjs (liste des 130 phrases enregistrées)
+import { DOMAIN_LINES_FR } from "./voice-domains-v2.mjs";
 import { spokenDelay, contextualActivityReminderFr, eveningSummaryFr, generateVoiceMessage } from "../lib/voice/generator";
 import { resolveStandardAlertKey, getStandardAlertSrc, getDomainAlertSrc } from "../lib/voice/standard-alerts";
 
@@ -160,9 +165,37 @@ test("voix « domaine » : une phrase par secteur, rien tant que les fichiers ne
   assert.equal(activitySectorKey("religion/worship"), "religion");
   assert.equal(activitySectorKey("other:Club"), null);
   assert.equal(activitySectorKey(null), null);
-  // Langue pas encore enregistrée → aucun fichier demandé (pas d'erreur 404 jouée)
-  assert.equal(getDomainAlertSrc("business", "fr"), null);
   assert.equal(getDomainAlertSrc("../x", "fr"), null);
+});
+
+test("voix « domaine » v2 : type précis, sinon secteur, sinon « Autre », sinon rien", () => {
+  assert.equal(activityDomainVoiceKey("religion/worship"), "religion__worship");
+  assert.equal(activityDomainVoiceKey("business/marketing"), "business__marketing");
+  assert.equal(activityDomainVoiceKey("religion"), "religion");
+  assert.equal(activityDomainVoiceKey("religion/inconnu"), "religion");
+  assert.equal(activityDomainVoiceKey("other:Club de lecture"), "other");
+  assert.equal(activityDomainVoiceKey("unspecified"), null);
+  assert.equal(activityDomainVoiceKey("ancienne saisie"), null);
+  assert.equal(activityDomainVoiceKey(null), null);
+  assert.equal(getDomainAlertSrc("religion__worship", "fr"), "/voice/alerts/domain_religion__worship-fr.mp3?v=2");
+  assert.equal(getDomainAlertSrc("other", "fr"), "/voice/alerts/domain_other-fr.mp3?v=2");
+  // Langue pas encore enregistrée, ou clé inconnue → aucun fichier demandé (pas d'erreur 404 jouée)
+  assert.equal(getDomainAlertSrc("religion__worship", "en"), null);
+  assert.equal(getDomainAlertSrc("religion__nope", "fr"), null);
+  // Les 4 nouveaux domaines sont choisissables
+  for (const k of ["beauty", "food", "crafts", "finance"]) assert.ok(ACTIVITY_SECTORS.some((s) => s.key === k), k);
+  assert.equal(buildActivityCategory("finance", "tontine"), "finance/tontine");
+});
+
+test("voix « domaine » v2 : un fichier français pour chaque clé, et le texte enregistré correspond", () => {
+  const keys = ["other", ...ACTIVITY_SECTORS.flatMap((s) => [s.key, ...s.subs.map((x) => `${s.key}__${x.key}`)])];
+  const scriptKeys = new Set(DOMAIN_LINES_FR.map(([k]: [string, string]) => k));
+  assert.equal(keys.length, 130);
+  for (const k of keys) {
+    assert.ok(scriptKeys.has(k), `texte manquant : ${k}`);
+    assert.ok(existsSync(path.join(process.cwd(), "public/voice/alerts", `domain_${k}-fr.mp3`)), `fichier manquant : ${k}`);
+  }
+  assert.equal(scriptKeys.size, keys.length);
 });
 
 console.log("\n3. Bilan du soir et bonne nuit");

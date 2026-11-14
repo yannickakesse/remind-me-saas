@@ -1,3 +1,4 @@
+import { ACTIVITY_SECTORS } from "@/lib/activities/classification";
 /**
  * Voix standard des rappels (audios préenregistrés avec ElevenLabs).
  *
@@ -154,20 +155,28 @@ export function getStandardAlertSrc(key: StandardAlertKey, language: string): st
 /**
  * Voix « domaine » : courte phrase jouée juste après la phrase de délai d'un rappel d'activité
  * (« Votre activité commence dans dix minutes. » + « Il s'agit d'une activité liée à votre entreprise. »).
- * Une phrase par secteur (15), pas une par combinaison secteur × délai.
- * Fichiers : /public/voice/alerts/domain_<secteur>-<langue>.mp3 — textes : docs/voix-domaines-a-coller.txt
+ * v2 : une phrase par type d'activité (« Il s'agit d'un culte. »), une par secteur (si le type n'est pas précisé)
+ * et une pour « Autre » — 130 phrases, pas une par combinaison × délai.
+ * Clé : voir activityDomainVoiceKey (lib/activities/classification.ts).
+ * Fichiers : /public/voice/alerts/domain_<clé>-<langue>.mp3 — textes : scripts/voice-domains-v2.mjs
  *
- * Ajouter une langue ici UNIQUEMENT quand ses 15 fichiers sont déposés : sinon rien n'est joué
+ * Ajouter une langue ici UNIQUEMENT quand ses 130 fichiers sont déposés : sinon rien n'est joué
  * après la phrase de délai (jamais de silence ni d'erreur).
  */
-const DOMAIN_ALERT_LANGUAGES = new Set<string>([]);
-export const DOMAIN_ALERTS_VERSION = "1";
+const DOMAIN_ALERT_LANGUAGES = new Set<string>(["fr"]);
+export const DOMAIN_ALERTS_VERSION = "2";
 
-export function getDomainAlertSrc(sectorKey: string | null | undefined, language: string): string | null {
-  if (!sectorKey || !/^[a-z_]+$/.test(sectorKey)) return null;
+/** Clés enregistrées : secteurs, « other », et "secteur__type" pour chaque type d'activité. */
+const DOMAIN_VOICE_KEYS = new Set<string>([
+  "other",
+  ...ACTIVITY_SECTORS.flatMap((s) => [s.key, ...s.subs.map((x) => `${s.key}__${x.key}`)]),
+]);
+
+export function getDomainAlertSrc(domainKey: string | null | undefined, language: string): string | null {
+  if (!domainKey || !DOMAIN_VOICE_KEYS.has(domainKey)) return null;
   const lang = (language || "").slice(0, 2).toLowerCase();
   if (!DOMAIN_ALERT_LANGUAGES.has(lang)) return null;
-  return `/voice/alerts/domain_${sectorKey}-${lang}.mp3?v=${DOMAIN_ALERTS_VERSION}`;
+  return `/voice/alerts/domain_${domainKey}-${lang}.mp3?v=${DOMAIN_ALERTS_VERSION}`;
 }
 
 /**

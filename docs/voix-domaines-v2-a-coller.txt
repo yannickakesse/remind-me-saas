@@ -1,0 +1,271 @@
+REMIND ME — VOIX « DOMAINE » V2 — FRANÇAIS (130 phrases, 3 blocs)
+Collez chaque bloc tel quel dans ElevenLabs (voix Lauren) et générez UN fichier par bloc.
+Le découpage et le nommage des fichiers sont faits ensuite automatiquement.
+
+=============== BLOC 1 (48 phrases, 2183 caractères) ===============
+Il s'agit d'une activité liée à votre entreprise.
+Il s'agit d'une activité liée à vos prestations de services.
+Il s'agit d'une activité liée à l'enseignement ou à la formation.
+Il s'agit d'une activité liée à votre emploi.
+Il s'agit d'une activité liée au domaine de la religion.
+Il s'agit d'une activité liée à votre santé.
+Il s'agit d'une activité liée à votre vie de famille.
+Il s'agit d'une activité liée à vos démarches administratives.
+Il s'agit d'une activité liée à votre association.
+Il s'agit d'une activité liée à la culture et à la création.
+Il s'agit d'une activité liée à l'immobilier.
+Il s'agit d'une activité liée au transport.
+Il s'agit d'une activité liée à l'agriculture.
+Il s'agit d'une activité liée à l'organisation d'un événement.
+Il s'agit d'une activité liée à vos projets personnels.
+Il s'agit d'une activité liée à la beauté et à la mode.
+Il s'agit d'une activité liée à la restauration.
+Il s'agit d'une activité liée à l'artisanat.
+Il s'agit d'une activité liée à vos finances.
+Il s'agit d'une activité que vous avez précisée vous-même.
+Il s'agit de la gestion de votre entreprise.
+Il s'agit d'une activité de vente.
+Il s'agit d'un achat pour votre activité.
+Il s'agit de votre boutique en ligne.
+Il s'agit d'une action de marketing.
+Il s'agit d'un rendez-vous avec un client.
+Il s'agit d'un rendez-vous commercial.
+Il s'agit d'un point sur votre projet.
+Il s'agit d'un rendez-vous sur vos investissements.
+Il s'agit d'une mission de conseil.
+Il s'agit d'une prestation pour un client.
+Il s'agit d'une mission d'assistance administrative.
+Il s'agit d'un travail de comptabilité.
+Il s'agit d'une activité de recrutement.
+Il s'agit d'un rendez-vous juridique.
+Il s'agit d'une mission de traduction.
+Il s'agit d'une mission informatique.
+Il s'agit d'une intervention de dépannage.
+Il s'agit d'une intervention à domicile.
+Il s'agit d'un cours à donner.
+Il s'agit d'un cours particulier.
+Il s'agit d'une formation professionnelle.
+Il s'agit d'une séance de coaching.
+Il s'agit d'une formation en ligne.
+Il s'agit d'un temps d'études ou de révision.
+Il s'agit d'un travail de recherche.
+Il s'agit d'une conférence ou d'un séminaire.
+Il s'agit de votre travail.
+
+=============== BLOC 2 (48 phrases, 1830 caractères) ===============
+Il s'agit d'une réunion de travail.
+Il s'agit d'un rendez-vous professionnel.
+Il s'agit d'un entretien d'embauche.
+Il s'agit de votre recherche d'emploi.
+Il s'agit d'une mission professionnelle.
+Il s'agit d'un déplacement professionnel.
+Il s'agit d'un entretien d'évaluation.
+Il s'agit d'un culte.
+Il s'agit d'un temps de prière.
+Il s'agit d'une réunion religieuse.
+Il s'agit d'une étude biblique ou spirituelle.
+Il s'agit d'une sortie d'évangélisation.
+Il s'agit d'une activité de votre communauté religieuse.
+Il s'agit d'un événement religieux.
+Il s'agit d'un rendez-vous médical.
+Il s'agit d'une séance de soins.
+Il s'agit d'une séance de sport.
+Il s'agit d'un moment de détente.
+Il s'agit d'un rendez-vous de nutrition.
+Il s'agit du suivi de votre santé.
+Il s'agit d'un moment en famille.
+Il s'agit d'un moment à deux.
+Il s'agit d'une activité avec vos enfants.
+Il s'agit d'une tâche à la maison.
+Il s'agit de vos courses.
+Il s'agit d'un rendez-vous personnel.
+Il s'agit d'un moment de loisir.
+Il s'agit de votre développement personnel.
+Il s'agit d'une démarche administrative.
+Il s'agit d'un rendez-vous à la banque.
+Il s'agit d'un rendez-vous d'assurance.
+Il s'agit de vos impôts.
+Il s'agit d'un paiement à effectuer.
+Il s'agit d'un rendez-vous dans une administration.
+Il s'agit d'une activité de votre association.
+Il s'agit d'une mission de bénévolat.
+Il s'agit d'une réunion d'association.
+Il s'agit d'une action sociale.
+Il s'agit d'un événement de votre communauté.
+Il s'agit de la création de contenu.
+Il s'agit d'un tournage ou d'une séance photo.
+Il s'agit d'une séance de musique.
+Il s'agit d'un temps de création artistique.
+Il s'agit d'un événement culturel.
+Il s'agit d'une activité dans les médias.
+Il s'agit d'un rendez-vous immobilier.
+Il s'agit de la gestion de vos biens.
+Il s'agit du suivi d'un chantier.
+
+=============== BLOC 3 (34 phrases, 1242 caractères) ===============
+Il s'agit d'un rendez-vous d'architecture ou de décoration.
+Il s'agit d'un transport.
+Il s'agit d'une livraison.
+Il s'agit d'une opération de logistique.
+Il s'agit d'un voyage.
+Il s'agit d'un travail aux champs.
+Il s'agit d'un travail d'élevage ou de pêche.
+Il s'agit d'une activité de transformation alimentaire.
+Il s'agit d'une action pour l'environnement.
+Il s'agit de l'organisation d'un événement.
+Il s'agit d'un mariage.
+Il s'agit d'un anniversaire.
+Il s'agit d'une cérémonie.
+Il s'agit d'un salon ou d'une exposition.
+Il s'agit d'une rencontre.
+Il s'agit de votre projet personnel.
+Il s'agit d'une activité ponctuelle.
+Il s'agit d'un rendez-vous de coiffure.
+Il s'agit d'un soin de beauté.
+Il s'agit d'un travail de couture.
+Il s'agit d'une activité de mode.
+Il s'agit du service de votre restaurant.
+Il s'agit d'une commande de traiteur.
+Il s'agit d'une préparation de pâtisserie.
+Il s'agit d'une vente de nourriture.
+Il s'agit d'un travail de menuiserie.
+Il s'agit d'une réparation mécanique.
+Il s'agit d'un travail d'électricité.
+Il s'agit d'un travail de plomberie.
+Il s'agit d'une création artisanale.
+Il s'agit de votre tontine.
+Il s'agit de votre épargne.
+Il s'agit d'un remboursement de prêt.
+Il s'agit d'un transfert d'argent.
+
+=============== CORRESPONDANCE (ordre = ordre de découpage) ===============
+  1. domain_business-fr.mp3  →  Il s'agit d'une activité liée à votre entreprise.
+  2. domain_services-fr.mp3  →  Il s'agit d'une activité liée à vos prestations de services.
+  3. domain_education-fr.mp3  →  Il s'agit d'une activité liée à l'enseignement ou à la formation.
+  4. domain_career-fr.mp3  →  Il s'agit d'une activité liée à votre emploi.
+  5. domain_religion-fr.mp3  →  Il s'agit d'une activité liée au domaine de la religion.
+  6. domain_health-fr.mp3  →  Il s'agit d'une activité liée à votre santé.
+  7. domain_family-fr.mp3  →  Il s'agit d'une activité liée à votre vie de famille.
+  8. domain_admin-fr.mp3  →  Il s'agit d'une activité liée à vos démarches administratives.
+  9. domain_community-fr.mp3  →  Il s'agit d'une activité liée à votre association.
+ 10. domain_culture-fr.mp3  →  Il s'agit d'une activité liée à la culture et à la création.
+ 11. domain_real_estate-fr.mp3  →  Il s'agit d'une activité liée à l'immobilier.
+ 12. domain_transport-fr.mp3  →  Il s'agit d'une activité liée au transport.
+ 13. domain_agriculture-fr.mp3  →  Il s'agit d'une activité liée à l'agriculture.
+ 14. domain_events-fr.mp3  →  Il s'agit d'une activité liée à l'organisation d'un événement.
+ 15. domain_misc-fr.mp3  →  Il s'agit d'une activité liée à vos projets personnels.
+ 16. domain_beauty-fr.mp3  →  Il s'agit d'une activité liée à la beauté et à la mode.
+ 17. domain_food-fr.mp3  →  Il s'agit d'une activité liée à la restauration.
+ 18. domain_crafts-fr.mp3  →  Il s'agit d'une activité liée à l'artisanat.
+ 19. domain_finance-fr.mp3  →  Il s'agit d'une activité liée à vos finances.
+ 20. domain_other-fr.mp3  →  Il s'agit d'une activité que vous avez précisée vous-même.
+ 21. domain_business__entrepreneurship-fr.mp3  →  Il s'agit de la gestion de votre entreprise.
+ 22. domain_business__trade-fr.mp3  →  Il s'agit d'une activité de vente.
+ 23. domain_business__purchasing-fr.mp3  →  Il s'agit d'un achat pour votre activité.
+ 24. domain_business__ecommerce-fr.mp3  →  Il s'agit de votre boutique en ligne.
+ 25. domain_business__marketing-fr.mp3  →  Il s'agit d'une action de marketing.
+ 26. domain_business__customer_relations-fr.mp3  →  Il s'agit d'un rendez-vous avec un client.
+ 27. domain_business__business_development-fr.mp3  →  Il s'agit d'un rendez-vous commercial.
+ 28. domain_business__project_management-fr.mp3  →  Il s'agit d'un point sur votre projet.
+ 29. domain_business__investment-fr.mp3  →  Il s'agit d'un rendez-vous sur vos investissements.
+ 30. domain_services__consulting-fr.mp3  →  Il s'agit d'une mission de conseil.
+ 31. domain_services__service-fr.mp3  →  Il s'agit d'une prestation pour un client.
+ 32. domain_services__admin_assistance-fr.mp3  →  Il s'agit d'une mission d'assistance administrative.
+ 33. domain_services__accounting-fr.mp3  →  Il s'agit d'un travail de comptabilité.
+ 34. domain_services__hr-fr.mp3  →  Il s'agit d'une activité de recrutement.
+ 35. domain_services__legal-fr.mp3  →  Il s'agit d'un rendez-vous juridique.
+ 36. domain_services__translation-fr.mp3  →  Il s'agit d'une mission de traduction.
+ 37. domain_services__it-fr.mp3  →  Il s'agit d'une mission informatique.
+ 38. domain_services__maintenance-fr.mp3  →  Il s'agit d'une intervention de dépannage.
+ 39. domain_services__personal_services-fr.mp3  →  Il s'agit d'une intervention à domicile.
+ 40. domain_education__teaching-fr.mp3  →  Il s'agit d'un cours à donner.
+ 41. domain_education__private_lessons-fr.mp3  →  Il s'agit d'un cours particulier.
+ 42. domain_education__professional_training-fr.mp3  →  Il s'agit d'une formation professionnelle.
+ 43. domain_education__coaching-fr.mp3  →  Il s'agit d'une séance de coaching.
+ 44. domain_education__online_training-fr.mp3  →  Il s'agit d'une formation en ligne.
+ 45. domain_education__studies-fr.mp3  →  Il s'agit d'un temps d'études ou de révision.
+ 46. domain_education__research-fr.mp3  →  Il s'agit d'un travail de recherche.
+ 47. domain_education__conference-fr.mp3  →  Il s'agit d'une conférence ou d'un séminaire.
+ 48. domain_career__salaried_work-fr.mp3  →  Il s'agit de votre travail.
+ 49. domain_career__work_meeting-fr.mp3  →  Il s'agit d'une réunion de travail.
+ 50. domain_career__professional_appointment-fr.mp3  →  Il s'agit d'un rendez-vous professionnel.
+ 51. domain_career__job_interview-fr.mp3  →  Il s'agit d'un entretien d'embauche.
+ 52. domain_career__job_search-fr.mp3  →  Il s'agit de votre recherche d'emploi.
+ 53. domain_career__mission-fr.mp3  →  Il s'agit d'une mission professionnelle.
+ 54. domain_career__business_trip-fr.mp3  →  Il s'agit d'un déplacement professionnel.
+ 55. domain_career__career_review-fr.mp3  →  Il s'agit d'un entretien d'évaluation.
+ 56. domain_religion__worship-fr.mp3  →  Il s'agit d'un culte.
+ 57. domain_religion__prayer-fr.mp3  →  Il s'agit d'un temps de prière.
+ 58. domain_religion__religious_meeting-fr.mp3  →  Il s'agit d'une réunion religieuse.
+ 59. domain_religion__spiritual_study-fr.mp3  →  Il s'agit d'une étude biblique ou spirituelle.
+ 60. domain_religion__evangelism-fr.mp3  →  Il s'agit d'une sortie d'évangélisation.
+ 61. domain_religion__religious_community-fr.mp3  →  Il s'agit d'une activité de votre communauté religieuse.
+ 62. domain_religion__religious_event-fr.mp3  →  Il s'agit d'un événement religieux.
+ 63. domain_health__medical_appointment-fr.mp3  →  Il s'agit d'un rendez-vous médical.
+ 64. domain_health__care-fr.mp3  →  Il s'agit d'une séance de soins.
+ 65. domain_health__sport-fr.mp3  →  Il s'agit d'une séance de sport.
+ 66. domain_health__wellbeing-fr.mp3  →  Il s'agit d'un moment de détente.
+ 67. domain_health__nutrition-fr.mp3  →  Il s'agit d'un rendez-vous de nutrition.
+ 68. domain_health__health_tracking-fr.mp3  →  Il s'agit du suivi de votre santé.
+ 69. domain_family__family-fr.mp3  →  Il s'agit d'un moment en famille.
+ 70. domain_family__couple-fr.mp3  →  Il s'agit d'un moment à deux.
+ 71. domain_family__children-fr.mp3  →  Il s'agit d'une activité avec vos enfants.
+ 72. domain_family__household-fr.mp3  →  Il s'agit d'une tâche à la maison.
+ 73. domain_family__shopping-fr.mp3  →  Il s'agit de vos courses.
+ 74. domain_family__personal_appointment-fr.mp3  →  Il s'agit d'un rendez-vous personnel.
+ 75. domain_family__leisure-fr.mp3  →  Il s'agit d'un moment de loisir.
+ 76. domain_family__personal_development-fr.mp3  →  Il s'agit de votre développement personnel.
+ 77. domain_admin__procedures-fr.mp3  →  Il s'agit d'une démarche administrative.
+ 78. domain_admin__bank-fr.mp3  →  Il s'agit d'un rendez-vous à la banque.
+ 79. domain_admin__insurance-fr.mp3  →  Il s'agit d'un rendez-vous d'assurance.
+ 80. domain_admin__taxes-fr.mp3  →  Il s'agit de vos impôts.
+ 81. domain_admin__payments-fr.mp3  →  Il s'agit d'un paiement à effectuer.
+ 82. domain_admin__institutional_appointment-fr.mp3  →  Il s'agit d'un rendez-vous dans une administration.
+ 83. domain_community__association-fr.mp3  →  Il s'agit d'une activité de votre association.
+ 84. domain_community__volunteering-fr.mp3  →  Il s'agit d'une mission de bénévolat.
+ 85. domain_community__association_meeting-fr.mp3  →  Il s'agit d'une réunion d'association.
+ 86. domain_community__social_action-fr.mp3  →  Il s'agit d'une action sociale.
+ 87. domain_community__community_event-fr.mp3  →  Il s'agit d'un événement de votre communauté.
+ 88. domain_culture__content_creation-fr.mp3  →  Il s'agit de la création de contenu.
+ 89. domain_culture__photo_video-fr.mp3  →  Il s'agit d'un tournage ou d'une séance photo.
+ 90. domain_culture__music-fr.mp3  →  Il s'agit d'une séance de musique.
+ 91. domain_culture__art-fr.mp3  →  Il s'agit d'un temps de création artistique.
+ 92. domain_culture__cultural_event-fr.mp3  →  Il s'agit d'un événement culturel.
+ 93. domain_culture__media-fr.mp3  →  Il s'agit d'une activité dans les médias.
+ 94. domain_real_estate__real_estate-fr.mp3  →  Il s'agit d'un rendez-vous immobilier.
+ 95. domain_real_estate__property_management-fr.mp3  →  Il s'agit de la gestion de vos biens.
+ 96. domain_real_estate__construction-fr.mp3  →  Il s'agit du suivi d'un chantier.
+ 97. domain_real_estate__architecture-fr.mp3  →  Il s'agit d'un rendez-vous d'architecture ou de décoration.
+ 98. domain_transport__transport-fr.mp3  →  Il s'agit d'un transport.
+ 99. domain_transport__delivery-fr.mp3  →  Il s'agit d'une livraison.
+100. domain_transport__logistics-fr.mp3  →  Il s'agit d'une opération de logistique.
+101. domain_transport__travel-fr.mp3  →  Il s'agit d'un voyage.
+102. domain_agriculture__farming-fr.mp3  →  Il s'agit d'un travail aux champs.
+103. domain_agriculture__livestock-fr.mp3  →  Il s'agit d'un travail d'élevage ou de pêche.
+104. domain_agriculture__agrifood-fr.mp3  →  Il s'agit d'une activité de transformation alimentaire.
+105. domain_agriculture__environment-fr.mp3  →  Il s'agit d'une action pour l'environnement.
+106. domain_events__event_planning-fr.mp3  →  Il s'agit de l'organisation d'un événement.
+107. domain_events__wedding-fr.mp3  →  Il s'agit d'un mariage.
+108. domain_events__birthday-fr.mp3  →  Il s'agit d'un anniversaire.
+109. domain_events__ceremony-fr.mp3  →  Il s'agit d'une cérémonie.
+110. domain_events__trade_show-fr.mp3  →  Il s'agit d'un salon ou d'une exposition.
+111. domain_events__meetup-fr.mp3  →  Il s'agit d'une rencontre.
+112. domain_misc__personal_project-fr.mp3  →  Il s'agit de votre projet personnel.
+113. domain_misc__one_off-fr.mp3  →  Il s'agit d'une activité ponctuelle.
+114. domain_beauty__hairdressing-fr.mp3  →  Il s'agit d'un rendez-vous de coiffure.
+115. domain_beauty__beauty_care-fr.mp3  →  Il s'agit d'un soin de beauté.
+116. domain_beauty__sewing-fr.mp3  →  Il s'agit d'un travail de couture.
+117. domain_beauty__fashion-fr.mp3  →  Il s'agit d'une activité de mode.
+118. domain_food__restaurant-fr.mp3  →  Il s'agit du service de votre restaurant.
+119. domain_food__catering-fr.mp3  →  Il s'agit d'une commande de traiteur.
+120. domain_food__pastry-fr.mp3  →  Il s'agit d'une préparation de pâtisserie.
+121. domain_food__food_sales-fr.mp3  →  Il s'agit d'une vente de nourriture.
+122. domain_crafts__carpentry-fr.mp3  →  Il s'agit d'un travail de menuiserie.
+123. domain_crafts__mechanics-fr.mp3  →  Il s'agit d'une réparation mécanique.
+124. domain_crafts__electricity-fr.mp3  →  Il s'agit d'un travail d'électricité.
+125. domain_crafts__plumbing-fr.mp3  →  Il s'agit d'un travail de plomberie.
+126. domain_crafts__handcraft-fr.mp3  →  Il s'agit d'une création artisanale.
+127. domain_finance__tontine-fr.mp3  →  Il s'agit de votre tontine.
+128. domain_finance__savings-fr.mp3  →  Il s'agit de votre épargne.
+129. domain_finance__loan-fr.mp3  →  Il s'agit d'un remboursement de prêt.
+130. domain_finance__money_transfer-fr.mp3  →  Il s'agit d'un transfert d'argent.

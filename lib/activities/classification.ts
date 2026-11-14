@@ -194,6 +194,43 @@ export const ACTIVITY_SECTORS: ActivitySector[] = [
     ],
   },
   {
+    key: "beauty", label: "Beauté, couture et mode", icon: "💇", context: "la beauté et la mode",
+    subs: [
+      sub("hairdressing", "Coiffure", "rendez-vous de coiffure"),
+      sub("beauty_care", "Soins de beauté et esthétique", "soin de beauté"),
+      sub("sewing", "Couture", "travail de couture"),
+      sub("fashion", "Mode et stylisme", "activité de mode"),
+    ],
+  },
+  {
+    key: "food", label: "Restauration et alimentation", icon: "🍽️", context: "la restauration",
+    subs: [
+      sub("restaurant", "Restaurant et maquis", "service au restaurant"),
+      sub("catering", "Traiteur", "commande de traiteur"),
+      sub("pastry", "Pâtisserie et boulangerie", "préparation de pâtisserie"),
+      sub("food_sales", "Vente de nourriture", "vente de nourriture"),
+    ],
+  },
+  {
+    key: "crafts", label: "Artisanat et métiers techniques", icon: "🛠️", context: "l'artisanat",
+    subs: [
+      sub("carpentry", "Menuiserie", "travail de menuiserie"),
+      sub("mechanics", "Mécanique", "réparation mécanique"),
+      sub("electricity", "Électricité", "travail d'électricité"),
+      sub("plumbing", "Plomberie", "travail de plomberie"),
+      sub("handcraft", "Création artisanale", "création artisanale"),
+    ],
+  },
+  {
+    key: "finance", label: "Finances personnelles et tontines", icon: "💰", context: "vos finances",
+    subs: [
+      sub("tontine", "Tontine", "tontine"),
+      sub("savings", "Épargne", "épargne"),
+      sub("loan", "Remboursement de prêt", "remboursement de prêt"),
+      sub("money_transfer", "Transfert d'argent", "transfert d'argent"),
+    ],
+  },
+  {
     key: "misc", label: "Projets personnels et divers", icon: "✨", context: "vos projets",
     subs: [
       sub("personal_project", "Projet personnel", "projet personnel"),
@@ -278,6 +315,20 @@ export function spokenActivityContext(value: string | null | undefined): { posse
 export function activitySectorKey(value: string | null | undefined): string | null {
   const p = parseActivityCategory(value);
   return p.kind === "sector" ? p.sector.key : null;
+}
+
+/**
+ * Clé de la voix « domaine » préenregistrée (v2, scripts/voice-domains-v2.mjs) :
+ *  - type précis   → "religion__worship"  (« Il s'agit d'un culte. »)
+ *  - secteur seul  → "religion"           (« Il s'agit d'une activité liée au domaine de la religion. »)
+ *  - « Autre »     → "other"              (« Il s'agit d'une activité que vous avez précisée vous-même. »)
+ *  - non précisé, non classée ou ancienne saisie libre → null (rien n'est ajouté)
+ */
+export function activityDomainVoiceKey(value: string | null | undefined): string | null {
+  const p = parseActivityCategory(value);
+  if (p.kind === "other") return "other";
+  if (p.kind !== "sector") return null;
+  return p.sub ? `${p.sector.key}__${p.sub.key}` : p.sector.key;
 }
 
 /** Phrase de la voix « domaine », enregistrée une fois par secteur (docs/voix-domaines-a-coller.txt). */
