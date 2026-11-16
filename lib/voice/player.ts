@@ -321,6 +321,25 @@ export function playAudioFile(options: {
   });
 }
 
+/** Durée (secondes) du fichier audio en cours de lecture, ou null si inconnue. */
+export function getActiveAudioDuration(): number | null {
+  const d = activeAudioElement?.duration;
+  return d && Number.isFinite(d) ? d : null;
+}
+
+/** Place la lecture en cours à `seconds` (narration d'un guide synchronisée avec ses étapes). */
+export function seekActiveAudio(seconds: number): boolean {
+  const a = activeAudioElement;
+  if (!a || !Number.isFinite(a.duration)) return false;
+  try {
+    a.currentTime = Math.max(0, Math.min(seconds, a.duration - 0.05));
+    if (a.paused) a.play().catch(() => {});
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Comme playAudioFile, mais si le navigateur bloque le son (aucun toucher encore sur la page,
  * cas de toute première visite sur téléphone), la phrase est jouée AU PREMIER TOUCHER / CLIC / TOUCHE,

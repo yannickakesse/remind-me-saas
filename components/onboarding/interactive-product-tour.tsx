@@ -21,6 +21,10 @@ import { getJourneyAudioSrc } from "@/lib/voice/journey-audio";
 import { playJourneyVoice } from "@/components/onboarding/journey-voice";
 import {
   playAudioFile,
+  playAudioFileWhenAllowed,
+  getActiveAudioDuration,
+  seekActiveAudio,
+  getGuideAudioSrc,
   playVoiceReminder,
   stopVoiceReminder,
   getLocalVoiceSettings,
@@ -87,6 +91,28 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   const [isVoiceMuted, setIsVoiceMuted] = useState(false);
   const [isSpeakingStep, setIsSpeakingStep] = useState(false);
   const speechTokenRef = useRef(0);
+  // Guide d'une page : narration enregistrée de la page, les étapes avancent au fil de la voix
+  const [contextSection, setContextSection] = useState<string | null>(null);
+  const runRef = useRef(0);
+  const narrationRef = useRef<{ run: number; starts: number[]; rate: number; timers: ReturnType<typeof setTimeout>[]; playing: boolean } | null>(null);
+  const stopNarration = () => {
+    narrationRef.current?.timers.forEach(clearTimeout);
+    narrationRef.current = null;
+  };
+  /** Programme le passage automatique aux étapes suivantes, à partir de l'étape `from` (voix à son début). */
+  const scheduleNarration = (from: number) => {
+    const n = narrationRef.current;
+    if (!n || !n.starts.length) return;
+    n.timers.forEach(clearTimeout);
+    n.timers = [];
+    for (let j = from + 1; j < n.starts.length; j++) {
+      n.timers.push(
+        setTimeout(() => {
+          if (narrationRef.current === n && n.playing) setCurrentStepIndex(j);
+        }, ((n.starts[j]! - n.starts[from]!) / n.rate) * 1000)
+      );
+    }
+  };
   const tourRef = useRef<HTMLDivElement>(null);
   const scrolledStepRef = useRef<unknown>(null);
 
@@ -122,6 +148,9 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   useEffect(() => {
     function handleStartGlobalTour() {
       speechTokenRef.current++;
+      runRef.current++;
+      stopNarration();
+      setContextSection(null);
       stopVoiceReminder(false);
       setIsSpeakingStep(false);
       if (typeof window !== "undefined") {
@@ -140,6 +169,8 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
     // Écouter les événements de guide contextuel (remindme:start-contextual-tour)
     function handleStartContextualTour(e: any) {
       speechTokenRef.current++;
+      runRef.current++;
+      stopNarration();
       stopVoiceReminder(false);
       setIsSpeakingStep(false);
       if (typeof window !== "undefined") {
@@ -148,6 +179,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       }
       const section = e?.detail?.section || "dashboard";
       const steps = CONTEXTUAL_TOURS[section] || MAIN_TOUR_STEPS;
+      setContextSection(CONTEXTUAL_TOURS[section] ? section : null);
       setCurrentSteps(steps);
       setIsContextual(true);
       setIsActive(true);
@@ -382,6 +414,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       if (typeof window !== "undefined") {
         (window as any).__REMINDME_TOUR_ACTIVE = false;
       }
+      stopNarration();
       stopVoiceReminder(false);
       setIsSpeakingStep(false);
       return;
@@ -400,8 +433,62 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
 
     const prefs = getLocalVoiceSettings();
     if (!prefs.voice_reminders || isVoiceMuted) {
+      stopNarration();
       stopVoiceReminder(false);
       setIsSpeakingStep(false);
+      return;
+    }
+
+    // Guide d'une page (bouton « Guide ») : la narration enregistrée de la page démarre une seule fois,
+    // et chaque étape s'affiche au moment où la voix en parle. Changer d'étape ne coupe pas la voix.
+    const narrationLang = (prefs.voice_language || "fr").slice(0, 2);
+    const guideSrc = isContextual && contextSection ? getGuideAudioSrc(contextSection, narrationLang) : null;
+    if (guideSrc) {
+      if (narrationRef.current?.run === runRef.current) return;
+      const run = runRef.current;
+      const rate = prefs.voice_playback_rate || 1.0;
+      const steps = currentSteps;
+      narrationRef.current = { run, starts: [], rate, timers: [], playing: false };
+      speechTokenRef.current++;
+      stopVoiceReminder(false);
+      setTimeout(async () => {
+        if (runRef.current !== run) return;
+        setIsSpeakingStep(true);
+        const ok = await playAudioFileWhenAllowed(
+          {
+            src: guideSrc,
+            priority: "tour",
+            rate,
+            onEnd: () => {
+              if (narrationRef.current?.run === run) narrationRef.current.playing = false;
+              setIsSpeakingStep(false);
+            },
+          },
+          { waitMs: 30_000, cancel: () => runRef.current !== run }
+        );
+        const n = narrationRef.current;
+        if (!ok || runRef.current !== run || !n) {
+          setIsSpeakingStep(false);
+          return;
+        }
+        n.playing = true;
+        // Répartition de la narration entre les étapes, au prorata de leur texte
+        const plan = () => {
+          const dur = getActiveAudioDuration();
+          if (!dur || narrationRef.current !== n) return false;
+          const w = steps.map((s) => (s.title + " " + s.description).length);
+          const total = w.reduce((a, b) => a + b, 0) || 1;
+          let acc = 0;
+          n.starts = w.map((x) => {
+            const st = (acc / total) * dur;
+            acc += x;
+            return st;
+          });
+          scheduleNarration(0);
+          return true;
+        };
+        if (!plan()) setTimeout(plan, 800);
+      }, 350);
       return;
     }
 
@@ -457,7 +544,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       stopVoiceReminder(false);
       setIsSpeakingStep(false);
     };
-  }, [isActive, currentStep, currentStepIndex, isVoiceMuted, tourSlot]);
+  }, [isActive, currentStep, currentStepIndex, isVoiceMuted, tourSlot, isContextual, contextSection, currentSteps]);
 
   // Arrêt immédiat si la vidéo motion est lancée en cours de tour
   useEffect(() => {
@@ -470,7 +557,18 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
     return () => window.removeEventListener("remindme:video-active", handleVideoActive);
   }, []);
 
+  /** Pendant la narration d'une page : aller à une étape = placer la voix au passage correspondant. */
+  const jumpInNarration = (target: number) => {
+    const n = narrationRef.current;
+    if (!n?.playing || !n.starts.length || target < 0 || target >= n.starts.length) return false;
+    seekActiveAudio(n.starts[target]!);
+    setCurrentStepIndex(target);
+    scheduleNarration(target);
+    return true;
+  };
+
   const handleNext = async () => {
+    if (currentStepIndex < currentSteps.length - 1 && jumpInNarration(currentStepIndex + 1)) return;
     speechTokenRef.current++;
     stopVoiceReminder(false);
     setIsSpeakingStep(false);
@@ -487,6 +585,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
   };
 
   const handlePrev = () => {
+    if (jumpInNarration(currentStepIndex - 1)) return;
     speechTokenRef.current++;
     stopVoiceReminder(false);
     setIsSpeakingStep(false);
