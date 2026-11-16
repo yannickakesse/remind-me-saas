@@ -261,6 +261,7 @@ export function LandingHero() {
             ref={containerRef}
             onMouseMove={handleMouseMove}
             onMouseLeave={() => isPlaying && setShowControls(false)}
+            data-media-player
             className="relative rounded-2xl sm:rounded-3xl border border-ink-200/90 dark:border-ink-800 bg-white shadow-2xl shadow-ink-950/15 overflow-hidden group select-none"
           >
             {/* Conteneur vidéo au ratio 16:9 */}

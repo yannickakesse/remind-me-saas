@@ -71,8 +71,8 @@ export function BudgetsSection({
           const res = await updateBudget(targetId, formData);
           if (res && !res.success) {
             setLocalBudgets(budgets);
-            setError(res.error || "Impossible de modifier le budget.");
-            toast.push(res.error || "Impossible de modifier le budget.", "error");
+            setError(res.error || tr("Impossible de modifier le budget."));
+            toast.push(res.error || tr("Impossible de modifier le budget."), "error");
             return;
           }
           toast.push(tr("Budget mis à jour."), "success");
@@ -80,8 +80,8 @@ export function BudgetsSection({
           const res = await createBudget(formData);
           if (res && !res.success) {
             setLocalBudgets(budgets);
-            setError(res.error || "Impossible de créer le budget.");
-            toast.push(res.error || "Impossible de créer le budget.", "error");
+            setError(res.error || tr("Impossible de créer le budget."));
+            toast.push(res.error || tr("Impossible de créer le budget."), "error");
             return;
           }
           toast.push(tr("Budget créé avec succès."), "success");
@@ -89,7 +89,7 @@ export function BudgetsSection({
         resetForm();
       } catch (err: any) {
         setLocalBudgets(budgets);
-        const msg = err instanceof Error ? err.message : "Erreur lors de l'enregistrement du budget.";
+        const msg = err instanceof Error ? err.message : tr("Erreur lors de l'enregistrement du budget.");
         setError(msg);
         toast.push(msg, "error");
       }
@@ -189,7 +189,7 @@ export function BudgetsSection({
           </div>
 
           {error ? (
-            <p className="text-xs font-semibold text-danger">{error}</p>
+            <p className="text-xs font-semibold text-danger">{tr(error)}</p>
           ) : null}
 
           <div className="flex items-center gap-2 pt-2">

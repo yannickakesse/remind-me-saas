@@ -244,7 +244,7 @@ export function ExpenseForm({
 
       {error ? (
         <p role="alert" className="text-sm font-medium text-danger">
-          {error}
+          {tr(error)}
         </p>
       ) : null}
 

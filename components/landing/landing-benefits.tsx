@@ -9,27 +9,27 @@ export function LandingBenefits() {
   const benefits = [
     {
       icon: Layers,
-      title: "Pluriactivité unifiée",
-      desc: "Conseil, formation, prestations ou créations : regroupez tous vos engagements, devises et clients dans un espace unique sans vous éparpiller.",
-      tag: "Multi-rôles",
+      title: tr("Pluriactivité unifiée"),
+      desc: tr("Conseil, formation, prestations ou créations : regroupez tous vos engagements, devises et clients dans un espace unique sans vous éparpiller."),
+      tag: tr("Multi-rôles"),
     },
     {
       icon: CalendarCheck2,
-      title: "Zéro conflit d’agenda",
-      desc: "Le calendrier intelligent analyse vos engagements en temps réel et prévient automatiquement les chevauchements d'horaires entre vos différentes activités.",
+      title: tr("Zéro conflit d’agenda"),
+      desc: tr("Le calendrier intelligent analyse vos engagements en temps réel et prévient automatiquement les chevauchements d'horaires entre vos différentes activités."),
       tag: "Anticipation",
     },
     {
       icon: Wallet,
-      title: "Trésorerie & rentabilité limpides",
-      desc: "Suivez vos encaissements réels, les sommes attendues et vos charges programmées avec un calcul instantané de votre résultat net.",
-      tag: "Clarté financière",
+      title: tr("Trésorerie & rentabilité limpides"),
+      desc: tr("Suivez vos encaissements réels, les sommes attendues et vos charges programmées avec un calcul instantané de votre résultat net."),
+      tag: tr("Clarté financière"),
     },
     {
       icon: Smartphone,
-      title: "Pensé pour le mobile & PWA",
-      desc: "Une expérience rapide et agréable sur smartphone (iOS ou Android) comme sur ordinateur, avec synchronisation continue et fonctionnement fluide.",
-      tag: "Mobilité totale",
+      title: tr("Pensé pour le mobile & PWA"),
+      desc: tr("Une expérience rapide et agréable sur smartphone (iOS ou Android) comme sur ordinateur, avec synchronisation continue et fonctionnement fluide."),
+      tag: tr("Mobilité totale"),
     },
   ];
 

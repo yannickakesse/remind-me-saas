@@ -1,4 +1,5 @@
 "use server";
+import { msg } from "@/lib/i18n/catalog";
 
 import { revalidatePath } from "next/cache";
 import { DateTime } from "luxon";
@@ -121,7 +122,7 @@ export async function createGoal(input: GoalInput): Promise<ActionResult<{ id: s
     try {
       parsed = goalInputSchema.parse(input);
     } catch (e) {
-      return { ok: false, error: tr(firstIssue(e, "Vérifiez les informations de l'objectif.")) };
+      return { ok: false, error: tr(firstIssue(e, msg("Vérifiez les informations de l'objectif."))) };
     }
 
     const quotaError = await checkPersonalGoalQuota(supabase, user.id);
@@ -156,7 +157,7 @@ export async function updateGoal(goalId: string, input: GoalInput): Promise<Acti
     try {
       parsed = goalInputSchema.parse(input);
     } catch (e) {
-      return { ok: false, error: tr(firstIssue(e, "Vérifiez les informations de l'objectif.")) };
+      return { ok: false, error: tr(firstIssue(e, msg("Vérifiez les informations de l'objectif."))) };
     }
     const { error } = await db.from("goals").update(goalColumns(parsed)).eq("id", goalId).eq("user_id", user.id);
     if (error) return { ok: false, error: tr("Impossible d'enregistrer les modifications.") };
@@ -268,7 +269,7 @@ export async function addGoalStep(goalId: string, input: StepInput): Promise<Act
     try {
       parsed = stepInputSchema.parse(input);
     } catch (e) {
-      return { ok: false, error: tr(firstIssue(e, "Vérifiez l'étape.")) };
+      return { ok: false, error: tr(firstIssue(e, msg("Vérifiez l'étape."))) };
     }
     const { goal, steps } = await loadGoalWithSteps(db, user.id, goalId);
     if (!goal) return { ok: false, error: tr("Objectif introuvable.") };
@@ -292,7 +293,7 @@ export async function updateGoalStep(stepId: string, input: StepInput): Promise<
     try {
       parsed = stepInputSchema.parse(input);
     } catch (e) {
-      return { ok: false, error: tr(firstIssue(e, "Vérifiez l'étape.")) };
+      return { ok: false, error: tr(firstIssue(e, msg("Vérifiez l'étape."))) };
     }
     const { data: step, error } = await db
       .from("goal_steps")

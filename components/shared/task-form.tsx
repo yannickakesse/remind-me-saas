@@ -1,6 +1,7 @@
 "use client";
 
 
+import { msg } from "@/lib/i18n/catalog";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -27,7 +28,7 @@ export function TaskForm({
   activities,
   action,
   initial,
-  submitLabel = "Créer la tâche",
+  submitLabel = msg("Créer la tâche"),
 }: TaskFormProps) {
   const { tr } = useLanguage();
   const router = useRouter();
@@ -52,7 +53,7 @@ export function TaskForm({
         return;
       }
       setSubmitting(false);
-      setError(err instanceof Error ? err.message : "Une erreur est survenue.");
+      setError(err instanceof Error ? err.message : tr("Une erreur est survenue."));
     }
   }
 
@@ -112,7 +113,7 @@ export function TaskForm({
           >
             {TASK_PRIORITIES.map((p) => (
               <option key={p.value} value={p.value}>
-                {p.label}
+                {tr(p.label)}
               </option>
             ))}
           </select>
@@ -131,7 +132,7 @@ export function TaskForm({
               : TASK_STATUSES.filter((s) => s.value === "todo" || s.value === "in_progress")
             ).map((s) => (
               <option key={s.value} value={s.value}>
-                {s.label}
+                {tr(s.label)}
               </option>
             ))}
           </select>
@@ -219,7 +220,7 @@ export function TaskForm({
 
       {error ? (
         <p role="alert" className="text-sm font-medium text-danger">
-          {error}
+          {tr(error)}
         </p>
       ) : null}
 
@@ -232,7 +233,7 @@ export function TaskForm({
         >
           {tr("Annuler")}</button>
         <PrimaryButton type="submit" loading={submitting} disabled={submitting} className="w-auto px-6">
-          {submitting ? "Enregistrement..." : submitLabel}
+          {submitting ? tr("Enregistrement...") : tr(submitLabel)}
         </PrimaryButton>
       </div>
     </form>

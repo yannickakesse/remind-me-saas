@@ -1,4 +1,5 @@
 "use client";
+import { msg } from "@/lib/i18n/catalog";
 
 import { useState, useRef, useEffect } from "react";
 import {
@@ -25,25 +26,25 @@ interface VideoChapter {
 const CHAPTERS: VideoChapter[] = [
   {
     time: 0,
-    label: "Le Défi Multi-Activités",
+    label: msg("Le Défi Multi-Activités"),
     badge: "00:00",
     icon: Layers,
   },
   {
     time: 12,
-    label: "Agenda Unifié & Zéro Conflit",
+    label: msg("Agenda Unifié & Zéro Conflit"),
     badge: "00:12",
     icon: Calendar,
   },
   {
     time: 25,
-    label: "Trésorerie & Encaissements",
+    label: msg("Trésorerie & Encaissements"),
     badge: "00:25",
     icon: Wallet,
   },
   {
     time: 38,
-    label: "Rentabilité & Sérénité",
+    label: msg("Rentabilité & Sérénité"),
     badge: "00:38",
     icon: TrendingUp,
   },
@@ -412,7 +413,7 @@ export function LandingVideoShowcase() {
                 {currentChapter && (
                   <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 text-white text-xs font-bold backdrop-blur-sm border border-white/10">
                     <span className="w-2 h-2 rounded-full bg-signal animate-pulse" />
-                    {currentChapter.label}
+                    {tr(currentChapter.label)}
                   </span>
                 )}
 
@@ -459,10 +460,10 @@ export function LandingVideoShowcase() {
                       isChapterActive ? "text-signal" : "text-ink-500"
                     }`}
                   >
-                    {chap.badge}
+                    {tr(chap.badge)}
                   </span>
                   <p className="text-xs sm:text-sm font-bold text-ink-950 truncate leading-snug">
-                    {chap.label}
+                    {tr(chap.label)}
                   </p>
                 </div>
               </button>

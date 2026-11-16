@@ -7,9 +7,10 @@ import { useEffect, useState } from "react";
  * Les autres attendent qu'elle se ferme, puis s'affichent dans l'ordre de priorité
  * (plus le nombre est petit, plus la fenêtre passe tôt).
  *
- *   0 visite guidée · 1 accueil du jour · 2 invitation aux rappels vocaux · 3 installation de l'app · 4 conseil du robot · 5 offre
+ *  -1 vidéo de présentation · 0 visite guidée · 1 accueil du jour · 2 invitation aux rappels vocaux · 3 installation de l'app · 4 conseil du robot · 5 offre
  */
 export const POPUP_PRIORITY = {
+  intro: -1,
   tour: 0,
   welcome: 1,
   voicePush: 2,

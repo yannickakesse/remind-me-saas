@@ -1,4 +1,5 @@
 "use client";
+import { msg } from "@/lib/i18n/catalog";
 
 
 import { useLanguage } from "@/components/i18n/language-provider";
@@ -45,17 +46,17 @@ interface QuickActionItem {
 }
 
 const QUICK_ACTIONS: QuickActionItem[] = [
-  { id: "expense-quick", title: "Nouvelle dépense", subtitle: "Saisir une dépense ponctuelle", href: "/finances/expenses/new", icon: TrendingDown, iconColor: "text-rose-700", iconBg: "bg-rose-100/70" },
-  { id: "income-new", title: "Nouveau revenu", subtitle: "Saisir un paiement attendu ou reçu", href: "/finances/income/new", icon: TrendingUp, iconColor: "text-emerald-700", iconBg: "bg-emerald-100/70" },
-  { id: "task-new", title: "Nouvelle tâche", subtitle: "Ajouter une tâche à faire", href: "/tasks/new", icon: CheckSquare, iconColor: "text-amber-700", iconBg: "bg-amber-100/70" },
-  { id: "expense-new", title: "Programmer une dépense", subtitle: "Planifier une charge ou facture récurrente", href: "/finances?tab=scheduled&action=new", icon: TrendingDown, iconColor: "text-rose-700", iconBg: "bg-rose-100/70" },
-  { id: "activity-new", title: "Nouvelle activité", subtitle: "Créer une activité et ses horaires", href: "/activities/new", icon: Briefcase, iconColor: "text-indigo-700", iconBg: "bg-indigo-100/70" },
-  { id: "contact-new", title: "Nouveau contact", subtitle: "Ajouter un client ou collaborateur", href: "/clients/contacts/new", icon: User, iconColor: "text-cyan-700", iconBg: "bg-cyan-100/70" },
-  { id: "budgets-view", title: "Gérer les budgets", subtitle: "Consulter les plafonds mensuels", href: "/finances?tab=budgets", icon: Wallet, iconColor: "text-gold-dark", iconBg: "bg-gold-soft" },
-  { id: "savings-view", title: "Objectifs d'épargne", subtitle: "Suivre vos projets et réserves", href: "/finances?tab=savings", icon: PiggyBank, iconColor: "text-gold-dark", iconBg: "bg-gold-soft" },
-  { id: "reports-view", title: "Rapports & Rentabilité", subtitle: "Voir le taux horaire net par activité", href: "/reports", icon: BarChart3, iconColor: "text-gold-dark", iconBg: "bg-gold-soft" },
-  { id: "calendar-view", title: "Ouvrir le calendrier", subtitle: "Voir votre planning du mois", href: "/calendar", icon: Calendar, iconColor: "text-blue-700", iconBg: "bg-blue-100/70" },
-  { id: "settings-view", title: "Paramètres du compte", subtitle: "Profil, devise, sécurité, abonnement", href: "/settings", icon: Settings, iconColor: "text-ink-700", iconBg: "bg-ink-100" },
+  { id: "expense-quick", title: msg("Nouvelle dépense"), subtitle: msg("Saisir une dépense ponctuelle"), href: "/finances/expenses/new", icon: TrendingDown, iconColor: "text-rose-700", iconBg: "bg-rose-100/70" },
+  { id: "income-new", title: "Nouveau revenu", subtitle: msg("Saisir un paiement attendu ou reçu"), href: "/finances/income/new", icon: TrendingUp, iconColor: "text-emerald-700", iconBg: "bg-emerald-100/70" },
+  { id: "task-new", title: msg("Nouvelle tâche"), subtitle: msg("Ajouter une tâche à faire"), href: "/tasks/new", icon: CheckSquare, iconColor: "text-amber-700", iconBg: "bg-amber-100/70" },
+  { id: "expense-new", title: msg("Programmer une dépense"), subtitle: msg("Planifier une charge ou facture récurrente"), href: "/finances?tab=scheduled&action=new", icon: TrendingDown, iconColor: "text-rose-700", iconBg: "bg-rose-100/70" },
+  { id: "activity-new", title: msg("Nouvelle activité"), subtitle: msg("Créer une activité et ses horaires"), href: "/activities/new", icon: Briefcase, iconColor: "text-indigo-700", iconBg: "bg-indigo-100/70" },
+  { id: "contact-new", title: "Nouveau contact", subtitle: msg("Ajouter un client ou collaborateur"), href: "/clients/contacts/new", icon: User, iconColor: "text-cyan-700", iconBg: "bg-cyan-100/70" },
+  { id: "budgets-view", title: msg("Gérer les budgets"), subtitle: msg("Consulter les plafonds mensuels"), href: "/finances?tab=budgets", icon: Wallet, iconColor: "text-gold-dark", iconBg: "bg-gold-soft" },
+  { id: "savings-view", title: msg("Objectifs d'épargne"), subtitle: msg("Suivre vos projets et réserves"), href: "/finances?tab=savings", icon: PiggyBank, iconColor: "text-gold-dark", iconBg: "bg-gold-soft" },
+  { id: "reports-view", title: msg("Rapports & Rentabilité"), subtitle: msg("Voir le taux horaire net par activité"), href: "/reports", icon: BarChart3, iconColor: "text-gold-dark", iconBg: "bg-gold-soft" },
+  { id: "calendar-view", title: msg("Ouvrir le calendrier"), subtitle: msg("Voir votre planning du mois"), href: "/calendar", icon: Calendar, iconColor: "text-blue-700", iconBg: "bg-blue-100/70" },
+  { id: "settings-view", title: msg("Paramètres du compte"), subtitle: msg("Profil, devise, sécurité, abonnement"), href: "/settings", icon: Settings, iconColor: "text-ink-700", iconBg: "bg-ink-100" },
 ];
 
 export function CommandPalette() {
@@ -215,10 +216,10 @@ export function CommandPalette() {
                           {item.color ? (
                             <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                           ) : null}
-                          <span className="text-sm font-medium text-ink-950 truncate">{item.title}</span>
+                          <span className="text-sm font-medium text-ink-950 truncate">{tr(item.title)}</span>
                         </div>
                         {item.subtitle ? (
-                          <span className="text-xs text-ink-500 shrink-0 ml-2">{item.subtitle}</span>
+                          <span className="text-xs text-ink-500 shrink-0 ml-2">{tr(item.subtitle)}</span>
                         ) : null}
                       </button>
                     ))}
@@ -245,8 +246,8 @@ export function CommandPalette() {
                         <Icon className="h-4 w-4" strokeWidth={2} />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold text-ink-950">{action.title}</p>
-                        <p className="text-[10px] text-ink-500 truncate">{action.subtitle}</p>
+                        <p className="text-xs font-semibold text-ink-950">{tr(action.title)}</p>
+                        <p className="text-[10px] text-ink-500 truncate">{tr(action.subtitle)}</p>
                       </div>
                     </button>
                   );

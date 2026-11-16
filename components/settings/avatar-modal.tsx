@@ -62,7 +62,7 @@ export function AvatarModal({
       const result = await optimizeAvatarImage(file, 512, 0.85);
       setOptimizedImage(result);
     } catch (err: any) {
-      setError(err?.message || "Erreur lors de la préparation de votre photo.");
+      setError(err?.message || tr("Erreur lors de la préparation de votre photo."));
       setOptimizedImage(null);
     } finally {
       setProcessing(false);
@@ -81,7 +81,7 @@ export function AvatarModal({
       }
       handleClose();
     } catch (err: any) {
-      setError(err?.message || "Impossible d'enregistrer la photo.");
+      setError(err?.message || tr("Impossible d'enregistrer la photo."));
     } finally {
       setSaving(false);
     }
@@ -249,7 +249,7 @@ export function AvatarModal({
         {/* Error message if any */}
         {error && (
           <div className="p-2.5 rounded-lg border border-danger/30 bg-danger-soft text-xs text-danger font-medium">
-            {error}
+            {tr(error)}
           </div>
         )}
 

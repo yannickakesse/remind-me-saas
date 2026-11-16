@@ -1,28 +1,29 @@
+import { msg } from "@/lib/i18n/catalog";
 import type { NotificationKind } from "@/types/database";
 
 export function notificationKindLabel(kind: NotificationKind): string {
   switch (kind) {
     case "task_reminder":
-      return "Rappel de tâche";
+      return msg("Rappel de tâche");
     case "task_overdue":
-      return "Tâche en retard";
+      return msg("Tâche en retard");
     case "task_due_today":
-      return "Tâche pour aujourd'hui";
+      return msg("Tâche pour aujourd'hui");
     case "finance_overdue":
     case "payment_overdue":
-      return "Paiement en retard";
+      return msg("Paiement en retard");
     case "payment_upcoming":
-      return "Paiement à venir";
+      return msg("Paiement à venir");
     case "payment_due_today":
       return "Paiement attendu";
     case "expense_due_today":
     case "expense_due":
-      return "Dépense à régler";
+      return msg("Dépense à régler");
     case "expense_overdue":
-      return "Dépense en retard";
+      return msg("Dépense en retard");
     case "activity_upcoming":
     case "activity_reminder":
-      return "Session prévue";
+      return msg("Session prévue");
     case "activity_conflict":
       return "Conflit d'agenda";
     default:

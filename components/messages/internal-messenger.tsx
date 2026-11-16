@@ -102,19 +102,19 @@ export function InternalMessenger({
     const isPt = locale === "pt";
     switch (cat) {
       case "financial": {
-        const label = isEn ? "Finance" : isEs ? "Finanzas" : isDe ? "Finanzen" : isPt ? "Finanças" : "Finance";
+        const label = isEn ? "Finance" : isEs ? "Finanzas" : isDe ? "Finanzen" : isPt ? tr("Finanças") : "Finance";
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">{label}</span>;
       }
       case "summary": {
-        const label = isEn ? "Summary" : isEs ? "Resumen" : isDe ? "Übersicht" : isPt ? "Resumo" : "Bilan";
+        const label = isEn ? "Summary" : isEs ? "Resumen" : isDe ? tr("Übersicht") : isPt ? "Resumo" : "Bilan";
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">{label}</span>;
       }
       case "activity": {
-        const label = isEn ? "Session" : isEs ? "Sesión" : isDe ? "Sitzung" : isPt ? "Sessão" : "Séance";
+        const label = isEn ? "Session" : isEs ? "Sesión" : isDe ? "Sitzung" : isPt ? "Sessão" : tr("Séance");
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">{label}</span>;
       }
       default: {
-        const label = isEn ? "System" : isEs ? "Sistema" : isDe ? "System" : isPt ? "Sistema" : "Système";
+        const label = isEn ? "System" : isEs ? "Sistema" : isDe ? "System" : isPt ? "Sistema" : tr("Système");
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">{label}</span>;
       }
     }

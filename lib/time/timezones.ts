@@ -1,3 +1,4 @@
+import { msg } from "@/lib/i18n/catalog";
 export interface TimezoneOption {
   value: string;
   label: string;
@@ -9,50 +10,50 @@ export const TIMEZONE_OPTIONS: TimezoneOption[] = [
   // Afrique de l'Ouest & Centrale (Priorité)
   {
     value: "Africa/Abidjan",
-    label: "Africa/Abidjan — Côte d'Ivoire",
-    region: "Afrique de l'Ouest",
+    label: msg("Africa/Abidjan — Côte d'Ivoire"),
+    region: msg("Afrique de l'Ouest"),
     offset: "GMT+0",
   },
   {
     value: "Africa/Dakar",
-    label: "Africa/Dakar — Sénégal",
-    region: "Afrique de l'Ouest",
+    label: msg("Africa/Dakar — Sénégal"),
+    region: msg("Afrique de l'Ouest"),
     offset: "GMT+0",
   },
   {
     value: "Africa/Bamako",
     label: "Africa/Bamako — Mali",
-    region: "Afrique de l'Ouest",
+    region: msg("Afrique de l'Ouest"),
     offset: "GMT+0",
   },
   {
     value: "Africa/Ouagadougou",
     label: "Africa/Ouagadougou — Burkina Faso",
-    region: "Afrique de l'Ouest",
+    region: msg("Afrique de l'Ouest"),
     offset: "GMT+0",
   },
   {
     value: "Africa/Accra",
     label: "Africa/Accra — Ghana",
-    region: "Afrique de l'Ouest",
+    region: msg("Afrique de l'Ouest"),
     offset: "GMT+0",
   },
   {
     value: "Africa/Lome",
     label: "Africa/Lome — Togo",
-    region: "Afrique de l'Ouest",
+    region: msg("Afrique de l'Ouest"),
     offset: "GMT+0",
   },
   {
     value: "Africa/Cotonou",
-    label: "Africa/Cotonou — Bénin",
-    region: "Afrique de l'Ouest",
+    label: msg("Africa/Cotonou — Bénin"),
+    region: msg("Afrique de l'Ouest"),
     offset: "GMT+1",
   },
   {
     value: "Africa/Lagos",
     label: "Africa/Lagos — Nigeria",
-    region: "Afrique de l'Ouest",
+    region: msg("Afrique de l'Ouest"),
     offset: "GMT+1",
   },
   {
@@ -82,30 +83,30 @@ export const TIMEZONE_OPTIONS: TimezoneOption[] = [
   {
     value: "Africa/Casablanca",
     label: "Africa/Casablanca — Maroc",
-    region: "Afrique du Nord",
+    region: msg("Afrique du Nord"),
     offset: "GMT+1",
   },
   {
     value: "Africa/Tunis",
     label: "Africa/Tunis — Tunisie",
-    region: "Afrique du Nord",
+    region: msg("Afrique du Nord"),
     offset: "GMT+1",
   },
   {
     value: "Africa/Algiers",
-    label: "Africa/Algiers — Algérie",
-    region: "Afrique du Nord",
+    label: msg("Africa/Algiers — Algérie"),
+    region: msg("Afrique du Nord"),
     offset: "GMT+1",
   },
   {
     value: "Africa/Nairobi",
     label: "Africa/Nairobi — Kenya",
-    region: "Afrique de l'Est",
+    region: msg("Afrique de l'Est"),
     offset: "GMT+3",
   },
   {
     value: "Africa/Johannesburg",
-    label: "Africa/Johannesburg — Afrique du Sud",
+    label: msg("Africa/Johannesburg — Afrique du Sud"),
     region: "Afrique Australe",
     offset: "GMT+2",
   },
@@ -125,7 +126,7 @@ export const TIMEZONE_OPTIONS: TimezoneOption[] = [
   },
   {
     value: "Europe/Geneva",
-    label: "Europe/Geneva — Suisse (Genève)",
+    label: msg("Europe/Geneva — Suisse (Genève)"),
     region: "Europe",
     offset: "GMT+1 / GMT+2",
   },
@@ -139,26 +140,26 @@ export const TIMEZONE_OPTIONS: TimezoneOption[] = [
   // Amérique & Outre-mer
   {
     value: "America/Montreal",
-    label: "America/Montreal — Canada (Montréal)",
-    region: "Amérique du Nord",
+    label: msg("America/Montreal — Canada (Montréal)"),
+    region: msg("Amérique du Nord"),
     offset: "GMT-5 / GMT-4",
   },
   {
     value: "America/New_York",
-    label: "America/New_York — États-Unis (New York)",
-    region: "Amérique du Nord",
+    label: msg("America/New_York — États-Unis (New York)"),
+    region: msg("Amérique du Nord"),
     offset: "GMT-5 / GMT-4",
   },
   {
     value: "America/Chicago",
-    label: "America/Chicago — États-Unis (Chicago)",
-    region: "Amérique du Nord",
+    label: msg("America/Chicago — États-Unis (Chicago)"),
+    region: msg("Amérique du Nord"),
     offset: "GMT-6 / GMT-5",
   },
   {
     value: "America/Los_Angeles",
-    label: "America/Los_Angeles — États-Unis (Los Angeles)",
-    region: "Amérique du Nord",
+    label: msg("America/Los_Angeles — États-Unis (Los Angeles)"),
+    region: msg("Amérique du Nord"),
     offset: "GMT-8 / GMT-7",
   },
   {
@@ -176,32 +177,32 @@ export const TIMEZONE_OPTIONS: TimezoneOption[] = [
   {
     value: "America/Cayenne",
     label: "America/Cayenne — Guyane",
-    region: "Amérique du Sud",
+    region: msg("Amérique du Sud"),
     offset: "GMT-3",
   },
 
   // Océan Indien & Moyen-Orient
   {
     value: "Indian/Reunion",
-    label: "Indian/Reunion — La Réunion",
-    region: "Océan Indien",
+    label: msg("Indian/Reunion — La Réunion"),
+    region: msg("Océan Indien"),
     offset: "GMT+4",
   },
   {
     value: "Indian/Mauritius",
-    label: "Indian/Mauritius — Île Maurice",
-    region: "Océan Indien",
+    label: msg("Indian/Mauritius — Île Maurice"),
+    region: msg("Océan Indien"),
     offset: "GMT+4",
   },
   {
     value: "Asia/Dubai",
-    label: "Asia/Dubai — Émirats Arabes Unis (Dubaï)",
+    label: msg("Asia/Dubai — Émirats Arabes Unis (Dubaï)"),
     region: "Moyen-Orient",
     offset: "GMT+4",
   },
   {
     value: "UTC",
-    label: "UTC — Temps Universel Coordonné",
+    label: msg("UTC — Temps Universel Coordonné"),
     region: "Universel",
     offset: "GMT+0",
   },

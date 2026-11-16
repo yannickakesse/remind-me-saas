@@ -1,4 +1,5 @@
 "use client";
+import { msg } from "@/lib/i18n/catalog";
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
@@ -67,15 +68,15 @@ function resolveSectionFromPath(pathname: string): string | null {
 }
 
 const SECTION_LABELS: Record<string, Record<string, string>> = {
-  dashboard: { fr: "Tableau de bord", en: "Dashboard", es: "Panel", de: "Dashboard", pt: "Painel" },
-  activities: { fr: "Activités", en: "Activities", es: "Actividades", de: "Aktivitäten", pt: "Atividades" },
+  dashboard: { fr: msg("Tableau de bord"), en: "Dashboard", es: "Panel", de: "Dashboard", pt: "Painel" },
+  activities: { fr: msg("Activités"), en: "Activities", es: "Actividades", de: "Aktivitäten", pt: "Atividades" },
   calendar: { fr: "Calendrier", en: "Calendar", es: "Calendario", de: "Kalender", pt: "Calendário" },
-  tasks: { fr: "Tâches", en: "Tasks", es: "Tareas", de: "Aufgaben", pt: "Tarefas" },
-  finances: { fr: "Finances", en: "Finances", es: "Finanzas", de: "Finanzen", pt: "Finanças" },
+  tasks: { fr: msg("Tâches"), en: "Tasks", es: "Tareas", de: "Aufgaben", pt: "Tarefas" },
+  finances: { fr: "Finances", en: "Finances", es: "Finanzas", de: "Finanzen", pt: msg("Finanças") },
   reports: { fr: "Rapports", en: "Reports", es: "Informes", de: "Berichte", pt: "Relatórios" },
-  notifications: { fr: "Notifications", en: "Notifications", es: "Notificaciones", de: "Benachrichtigungen", pt: "Notificações" },
+  notifications: { fr: "Notifications", en: "Notifications", es: "Notificaciones", de: "Benachrichtigungen", pt: msg("Notificações") },
   messages: { fr: "Inbox", en: "Inbox", es: "Buzón", de: "Posteingang", pt: "Inbox" },
-  settings: { fr: "Paramètres", en: "Settings", es: "Configuración", de: "Einstellungen", pt: "Configurações" },
+  settings: { fr: msg("Paramètres"), en: "Settings", es: "Configuración", de: "Einstellungen", pt: msg("Configurações") },
   clients: { fr: "Clients", en: "Clients", es: "Clientes", de: "Kunden", pt: "Clientes" },
   goals: { fr: "Mes Objectifs", en: "My Goals", es: "Mis objetivos", de: "Meine Ziele", pt: "Meus objetivos" },
 };

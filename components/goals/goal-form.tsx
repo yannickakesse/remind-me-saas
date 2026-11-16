@@ -291,7 +291,7 @@ export function GoalForm({
       </section>
 
       {error && (
-        <p role="alert" className="rounded-xl border border-danger/30 bg-danger/10 p-3 text-center text-sm font-medium text-danger">{error}</p>
+        <p role="alert" className="rounded-xl border border-danger/30 bg-danger/10 p-3 text-center text-sm font-medium text-danger">{tr(error)}</p>
       )}
 
       <div className="grid grid-cols-2 gap-3">

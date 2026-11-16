@@ -376,6 +376,8 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
 
   // Synchronisation vocale avec l'étape affichée (Objectif 1.A)
   useEffect(() => {
+    // Tant qu'une fenêtre plus prioritaire (vidéo de présentation) occupe l'écran, le guide attend
+    if (isActive && currentStep && !tourSlot) return;
     if (!isActive || !currentStep) {
       if (typeof window !== "undefined") {
         (window as any).__REMINDME_TOUR_ACTIVE = false;
@@ -455,7 +457,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
       stopVoiceReminder(false);
       setIsSpeakingStep(false);
     };
-  }, [isActive, currentStep, currentStepIndex, isVoiceMuted]);
+  }, [isActive, currentStep, currentStepIndex, isVoiceMuted, tourSlot]);
 
   // Arrêt immédiat si la vidéo motion est lancée en cours de tour
   useEffect(() => {
@@ -628,7 +630,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
                 )}
               </div>
               <span className="text-[11px] text-ink-500 dark:text-ink-400 font-medium line-clamp-1">
-                {currentStep.subtitle}
+                {tr(currentStep.subtitle)}
               </span>
             </div>
           </div>
@@ -709,11 +711,11 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
         {/* Corps pédagogique du message (défile à l'intérieur de la fiche si besoin) */}
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-3.5 space-y-3">
           <h3 className="text-base sm:text-lg font-black text-ink-950 dark:text-white tracking-tight leading-snug">
-            {currentStep.title}
+            {tr(currentStep.title)}
           </h3>
 
           <p className="text-xs sm:text-sm text-ink-700 dark:text-ink-200 leading-relaxed">
-            {currentStep.description}
+            {tr(currentStep.description)}
           </p>
 
           {hasDetails && (
@@ -732,7 +734,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
               <Sparkles className="w-3.5 h-3.5 text-signal shrink-0 mt-0.5" />
               <div>
                 <strong className="font-bold text-signal">{t("tour.purpose_title")} : </strong>
-                <span>{currentStep.purpose}</span>
+                <span>{tr(currentStep.purpose)}</span>
               </div>
             </div>
           )}
@@ -749,7 +751,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
                     <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-signal/15 text-signal text-[9px] font-bold shrink-0 mt-0.5">
                       {idx + 1}
                     </span>
-                    <span>{action}</span>
+                    <span>{tr(action)}</span>
                   </li>
                 ))}
               </ul>
@@ -762,7 +764,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
               <Info className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               <div>
                 <strong className="font-bold">{t("tour.interpretation_title")} : </strong>
-                <span>{currentStep.interpretation}</span>
+                <span>{tr(currentStep.interpretation)}</span>
               </div>
             </div>
           )}
@@ -773,7 +775,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
               <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
               <div>
                 <strong className="font-bold">{t("tour.common_mistakes_title")} : </strong>
-                <span>{currentStep.commonMistakes}</span>
+                <span>{tr(currentStep.commonMistakes)}</span>
               </div>
             </div>
           )}
@@ -784,7 +786,7 @@ export function InteractiveProductTour({ initialCompleted = false }: Interactive
               {currentStep.points.map((pt, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-[11px] text-ink-600 dark:text-ink-300">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                  <span>{pt}</span>
+                  <span>{tr(pt)}</span>
                 </li>
               ))}
             </ul>

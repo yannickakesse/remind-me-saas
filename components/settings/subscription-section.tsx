@@ -64,11 +64,11 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
         window.location.href = res.checkoutUrl;
       } else {
         setIsBictorysPending(false);
-        push(res?.error || "Impossible d'initialiser le paiement Bictorys.", "error");
+        push(res?.error || tr("Impossible d'initialiser le paiement Bictorys."), "error");
       }
     } catch (err: any) {
       setIsBictorysPending(false);
-      push(err?.message || "Erreur de connexion avec Bictorys.", "error");
+      push(err?.message || tr("Erreur de connexion avec Bictorys."), "error");
     }
   }
 
@@ -87,10 +87,10 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
             "success"
           );
         } else {
-          push(res?.error || "Une erreur est survenue lors de la mise à niveau.", "error");
+          push(res?.error || tr("Une erreur est survenue lors de la mise à niveau."), "error");
         }
       } catch (err: any) {
-        push(err?.message || "Une erreur est survenue.", "error");
+        push(err?.message || tr("Une erreur est survenue."), "error");
       }
     });
   }

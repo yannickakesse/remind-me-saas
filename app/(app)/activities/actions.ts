@@ -1,4 +1,5 @@
 "use server";
+import { msg } from "@/lib/i18n/catalog";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -124,7 +125,7 @@ export async function createActivity(formData: FormData) {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      return { error: "Non authentifié. Veuillez vous reconnecter." };
+      return { error: msg("Non authentifié. Veuillez vous reconnecter.") };
     }
 
     const parsed = parseActivityFormData(formData);
@@ -133,7 +134,7 @@ export async function createActivity(formData: FormData) {
     try {
       await assertCanCreateActivity(supabase, user.id);
     } catch (quotaError: any) {
-      return { error: quotaError.message || "Limite de votre forfait atteinte." };
+      return { error: quotaError.message || msg("Limite de votre forfait atteinte.") };
     }
 
     // Vérifier l'absence de chevauchement d'horaires AVANT d'insérer en base
@@ -145,7 +146,7 @@ export async function createActivity(formData: FormData) {
           schedules: parsed.schedule.schedules,
         });
       } catch (confError: any) {
-        return { error: confError.message || "Conflit d'horaires détecté." };
+        return { error: confError.message || msg("Conflit d'horaires détecté.") };
       }
     }
 
@@ -184,7 +185,7 @@ export async function createActivity(formData: FormData) {
     }
 
     if (activityError || !activity) {
-      return { error: "Impossible de créer l'activité. " + (activityError?.message || "") };
+      return { error: msg("Impossible de créer l'activité. ") + (activityError?.message || "") };
     }
 
     if (parsed.schedule.schedules.length > 0) {
@@ -201,7 +202,7 @@ export async function createActivity(formData: FormData) {
         }))
       );
       if (schedulesError) {
-        return { error: "L'activité a été créée mais les horaires n'ont pas pu être enregistrés." };
+        return { error: msg("L'activité a été créée mais les horaires n'ont pas pu être enregistrés.") };
       }
     }
 
@@ -215,7 +216,7 @@ export async function createActivity(formData: FormData) {
       payment_terms: parsed.compensation.paymentTerms || null,
     });
     if (compensationError) {
-      return { error: "L'activité a été créée mais la rémunération n'a pas pu être enregistrée." };
+      return { error: msg("L'activité a été créée mais la rémunération n'a pas pu être enregistrée.") };
     }
 
     // Synchronisation immédiate des revenus du mois pour afficher aussitôt le revenu attendu
@@ -239,7 +240,7 @@ export async function createActivity(formData: FormData) {
     return { success: true };
   } catch (err: any) {
     console.error("createActivity error:", err);
-    return { error: err?.message || "Une erreur inattendue est survenue." };
+    return { error: err?.message || msg("Une erreur inattendue est survenue.") };
   }
 }
 
@@ -251,7 +252,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      return { error: "Non authentifié. Veuillez vous reconnecter." };
+      return { error: msg("Non authentifié. Veuillez vous reconnecter.") };
     }
 
     const parsed = parseActivityFormData(formData);
@@ -266,7 +267,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
           excludeActivityId: activityId,
         });
       } catch (confError: any) {
-        return { error: confError.message || "Conflit d'horaires détecté." };
+        return { error: confError.message || msg("Conflit d'horaires détecté.") };
       }
     }
 
@@ -303,7 +304,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
     }
 
     if (activityError) {
-      return { error: "Impossible de modifier l'activité : " + activityError.message };
+      return { error: msg("Impossible de modifier l'activité : ") + activityError.message };
     }
 
     // Horaires : suppression puis réinsertion propre
@@ -322,7 +323,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
         }))
       );
       if (schedulesError) {
-        return { error: "Erreur lors de l'enregistrement des horaires : " + schedulesError.message };
+        return { error: msg("Erreur lors de l'enregistrement des horaires : ") + schedulesError.message };
       }
     }
 
@@ -343,7 +344,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
       );
 
     if (compError) {
-      return { error: "Erreur lors de l'enregistrement de la rémunération : " + compError.message };
+      return { error: msg("Erreur lors de l'enregistrement de la rémunération : ") + compError.message };
     }
 
     // PROPAGATION IMMÉDIATE : Mettre à jour tous les revenus NON ENCAISSÉS de cette activité
@@ -409,7 +410,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
     return { success: true };
   } catch (err: any) {
     console.error("updateActivity error:", err);
-    return { error: err?.message || "Une erreur inattendue est survenue." };
+    return { error: err?.message || msg("Une erreur inattendue est survenue.") };
   }
 }
 
@@ -420,7 +421,7 @@ export async function suspendActivity(activityId: string) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return { error: "Non authentifié." };
+    if (!user) return { error: msg("Non authentifié.") };
 
     await Promise.allSettled([
       adminSupabase
@@ -446,7 +447,7 @@ export async function suspendActivity(activityId: string) {
     revalidatePath("/messages");
     return { success: true };
   } catch (err: any) {
-    return { error: err?.message || "Erreur lors de la suspension de l'activité." };
+    return { error: err?.message || msg("Erreur lors de la suspension de l'activité.") };
   }
 }
 
@@ -457,7 +458,7 @@ export async function resumeActivity(activityId: string) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return { error: "Non authentifié." };
+    if (!user) return { error: msg("Non authentifié.") };
 
     await Promise.allSettled([
       adminSupabase
@@ -483,7 +484,7 @@ export async function resumeActivity(activityId: string) {
     revalidatePath("/messages");
     return { success: true };
   } catch (err: any) {
-    return { error: err?.message || "Erreur lors de la réactivation de l'activité." };
+    return { error: err?.message || msg("Erreur lors de la réactivation de l'activité.") };
   }
 }
 
@@ -494,7 +495,7 @@ export async function archiveActivity(activityId: string) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return { error: "Non authentifié." };
+    if (!user) return { error: msg("Non authentifié.") };
 
     await Promise.allSettled([
       adminSupabase
@@ -518,7 +519,7 @@ export async function archiveActivity(activityId: string) {
     revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
-    return { error: err?.message || "Erreur lors de l'archivage." };
+    return { error: err?.message || msg("Erreur lors de l'archivage.") };
   }
 }
 
@@ -537,7 +538,7 @@ export async function renewActivity(
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return { error: "Non authentifié." };
+    if (!user) return { error: msg("Non authentifié.") };
 
     // 1. Récupérer l'activité existante pour vérifier sa cohérence
     const { data: act, error: fetchErr } = await supabase
@@ -548,12 +549,12 @@ export async function renewActivity(
       .maybeSingle();
 
     if (fetchErr || !act) {
-      return { error: "Activité introuvable." };
+      return { error: msg("Activité introuvable.") };
     }
 
     // 2. Validation stricte de la date de fin
     if (!options?.endDate) {
-      return { error: "Une nouvelle date de fin est obligatoire pour renouveler une activité temporaire." };
+      return { error: msg("Une nouvelle date de fin est obligatoire pour renouveler une activité temporaire.") };
     }
 
     const effectiveStartDate = options.startDate || act.start_date;
@@ -568,7 +569,7 @@ export async function renewActivity(
       try {
         await assertCanCreateActivity(supabase, user.id);
       } catch (quotaErr: any) {
-        return { error: quotaErr.message || "Limite d'activités actives de votre forfait atteinte." };
+        return { error: quotaErr.message || msg("Limite d'activités actives de votre forfait atteinte.") };
       }
     }
 
@@ -625,7 +626,7 @@ export async function renewActivity(
     revalidatePath("/messages");
     return { success: true };
   } catch (err: any) {
-    return { error: err?.message || "Erreur lors du renouvellement de l'activité." };
+    return { error: err?.message || msg("Erreur lors du renouvellement de l'activité.") };
   }
 }
 
@@ -640,7 +641,7 @@ export async function keepActivityExpired(activityId: string, notificationId?: s
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return { error: "Non authentifié." };
+    if (!user) return { error: msg("Non authentifié.") };
 
     const nowIso = new Date().toISOString();
 
@@ -678,7 +679,7 @@ export async function keepActivityExpired(activityId: string, notificationId?: s
     revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
-    return { error: err?.message || "Erreur lors de la confirmation du statut expiré." };
+    return { error: err?.message || msg("Erreur lors de la confirmation du statut expiré.") };
   }
 }
 
@@ -689,7 +690,7 @@ export async function restoreActivity(activityId: string) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return { error: "Non authentifié." };
+    if (!user) return { error: msg("Non authentifié.") };
 
     await Promise.allSettled([
       adminSupabase
@@ -713,7 +714,7 @@ export async function restoreActivity(activityId: string) {
     revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
-    return { error: err?.message || "Erreur lors de la restauration." };
+    return { error: err?.message || msg("Erreur lors de la restauration.") };
   }
 }
 
@@ -724,7 +725,7 @@ export async function deleteActivity(activityId: string) {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      return { error: "Non authentifié. Veuillez vous reconnecter." };
+      return { error: msg("Non authentifié. Veuillez vous reconnecter.") };
     }
 
     const adminSupabase = createAdminClient();
@@ -900,7 +901,7 @@ export async function deleteActivity(activityId: string) {
     return { success: true };
   } catch (err: any) {
     console.error("deleteActivity error:", err);
-    return { error: err?.message || "Une erreur inattendue est survenue lors de la suppression." };
+    return { error: err?.message || msg("Une erreur inattendue est survenue lors de la suppression.") };
   }
 }
 
@@ -920,7 +921,7 @@ export async function acceptEvolutionToRoutine(activityId: string, notificationI
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return { error: "Non authentifié." };
+    if (!user) return { error: msg("Non authentifié.") };
 
     const nowIso = new Date().toISOString();
 
@@ -980,7 +981,7 @@ export async function acceptEvolutionToRoutine(activityId: string, notificationI
     revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
-    return { error: err?.message || "Erreur lors de l'acceptation de l'évolution vers routine." };
+    return { error: err?.message || msg("Erreur lors de l'acceptation de l'évolution vers routine.") };
   }
 }
 
@@ -1002,7 +1003,7 @@ export async function declineEvolutionSuggestion(
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return { error: "Non authentifié." };
+    if (!user) return { error: msg("Non authentifié.") };
 
     const now = DateTime.now();
     const nowIso = now.toISO()!;
@@ -1040,7 +1041,7 @@ export async function declineEvolutionSuggestion(
     revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
-    return { error: err?.message || "Erreur lors du refus de la suggestion." };
+    return { error: err?.message || msg("Erreur lors du refus de la suggestion.") };
   }
 }
 

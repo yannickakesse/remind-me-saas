@@ -1,3 +1,4 @@
+import { msg } from "@/lib/i18n/catalog";
 import { DateTime } from "luxon";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, EngagementNature } from "@/types/database";
@@ -69,12 +70,12 @@ export function checkRoutineEvolutionEligibility(
 
   // 1. Condition de statut : doit être active
   if (activity.status !== "active") {
-    reasons.push("L'activité doit avoir le statut 'active' pour être éligible.");
+    reasons.push(msg("L'activité doit avoir le statut 'active' pour être éligible."));
   }
 
   // 2. Condition de nature : ne doit pas déjà être une routine
   if (activity.engagement_nature === "routine") {
-    reasons.push("L'activité est déjà classée comme routine.");
+    reasons.push(msg("L'activité est déjà classée comme routine."));
   }
 
   // 3. Condition d'ancienneté : au moins 30 jours
@@ -167,7 +168,7 @@ export function checkRoutineEvolutionEligibility(
 
   if (hasIncompleteWeek) {
     reasons.push(
-      "La pratique n'a pas été maintenue de façon continue sur chacune des 4 semaines consécutives (semaine sans séance terminée constatée)."
+      msg("La pratique n'a pas été maintenue de façon continue sur chacune des 4 semaines consécutives (semaine sans séance terminée constatée).")
     );
   }
 

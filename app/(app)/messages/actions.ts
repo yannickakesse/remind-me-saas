@@ -1,4 +1,5 @@
 "use server";
+import { msg } from "@/lib/i18n/catalog";
 
 import { revalidatePath } from "next/cache";
 import {
@@ -27,7 +28,7 @@ export async function executeInboxIncomeReceived(id: string): Promise<{ success:
     return { success: true };
   } catch (err: any) {
     console.error("[executeInboxIncomeReceived] Error:", err?.message || err);
-    return { success: false, error: err?.message || "Erreur lors de l'encaissement" };
+    return { success: false, error: err?.message || msg("Erreur lors de l'encaissement") };
   }
 }
 
@@ -46,7 +47,7 @@ export async function executeInboxExpensePaid(id: string): Promise<{ success: bo
     return { success: true };
   } catch (err: any) {
     console.error("[executeInboxExpensePaid] Error:", err?.message || err);
-    return { success: false, error: err?.message || "Erreur lors du règlement" };
+    return { success: false, error: err?.message || msg("Erreur lors du règlement") };
   }
 }
 
@@ -65,7 +66,7 @@ export async function executeInboxScheduledExpensePaid(id: string): Promise<{ su
     return { success: true };
   } catch (err: any) {
     console.error("[executeInboxScheduledExpensePaid] Error:", err?.message || err);
-    return { success: false, error: err?.message || "Erreur lors du règlement de l'échéance" };
+    return { success: false, error: err?.message || msg("Erreur lors du règlement de l'échéance") };
   }
 }
 
@@ -82,7 +83,7 @@ export async function executeInboxPostponeIncome(id: string, days: number = 7): 
     return { success: true };
   } catch (err: any) {
     console.error("[executeInboxPostponeIncome] Error:", err?.message || err);
-    return { success: false, error: err?.message || "Erreur lors du report" };
+    return { success: false, error: err?.message || msg("Erreur lors du report") };
   }
 }
 
@@ -99,7 +100,7 @@ export async function executeInboxPostponeScheduledExpense(id: string, days: num
     return { success: true };
   } catch (err: any) {
     console.error("[executeInboxPostponeScheduledExpense] Error:", err?.message || err);
-    return { success: false, error: err?.message || "Erreur lors du report" };
+    return { success: false, error: err?.message || msg("Erreur lors du report") };
   }
 }
 
@@ -115,6 +116,6 @@ export async function executeInboxMarkMessageRead(messageId: string): Promise<{ 
     return { success: true };
   } catch (err: any) {
     console.error("[executeInboxMarkMessageRead] Error:", err?.message || err);
-    return { success: false, error: err?.message || "Erreur de marquage comme lu" };
+    return { success: false, error: err?.message || msg("Erreur de marquage comme lu") };
   }
 }

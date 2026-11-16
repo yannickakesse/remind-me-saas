@@ -92,8 +92,8 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
   }
 
   const soundTooltip = soundActive
-    ? (locale === "fr" ? "Sonnerie activée (cliquer pour couper)" : locale === "es" ? "Sonido activado (clic para silenciar)" : locale === "de" ? "Ton aktiv (klicken zum Stummschalten)" : locale === "pt" ? "Som ativado (clique para silenciar)" : "Sound on (click to mute)")
-    : (locale === "fr" ? "Sonnerie coupée (cliquer pour activer)" : locale === "es" ? "Silenciado (clic para activar sonido)" : locale === "de" ? "Stummgeschaltet (klicken zum Aktivieren)" : locale === "pt" ? "Som desativado (clique para ativar)" : "Sound off (click to unmute)");
+    ? (locale === "fr" ? tr("Sonnerie activée (cliquer pour couper)") : locale === "es" ? "Sonido activado (clic para silenciar)" : locale === "de" ? "Ton aktiv (klicken zum Stummschalten)" : locale === "pt" ? "Som ativado (clique para silenciar)" : "Sound on (click to mute)")
+    : (locale === "fr" ? tr("Sonnerie coupée (cliquer pour activer)") : locale === "es" ? "Silenciado (clic para activar sonido)" : locale === "de" ? "Stummgeschaltet (klicken zum Aktivieren)" : locale === "pt" ? "Som desativado (clique para ativar)" : "Sound off (click to unmute)");
   const soundLabel = soundActive
     ? (locale === "fr" ? "Sonnerie" : locale === "es" ? "Sonido" : locale === "de" ? "Ton" : locale === "pt" ? "Som" : "Sound")
     : (locale === "fr" ? "Muet" : locale === "es" ? "Silencio" : locale === "de" ? "Stumm" : locale === "pt" ? "Mudo" : "Mute");

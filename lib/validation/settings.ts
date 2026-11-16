@@ -1,3 +1,4 @@
+import { msg } from "@/lib/i18n/catalog";
 import { z } from "zod";
 
 export const SUPPORTED_LOCALE_CODES = [
@@ -17,9 +18,9 @@ export const SUPPORTED_LOCALE_CODES = [
 
 export const profileFormSchema = z.object({
   fullName: z.string().min(2, "Nom trop court"),
-  countryCode: z.string().length(2, "Sélectionnez un pays"),
-  currencyCode: z.string().length(3, "Sélectionnez une devise"),
-  timezone: z.string().min(1, "Sélectionnez un fuseau horaire"),
+  countryCode: z.string().length(2, msg("Sélectionnez un pays")),
+  currencyCode: z.string().length(3, msg("Sélectionnez une devise")),
+  timezone: z.string().min(1, msg("Sélectionnez un fuseau horaire")),
   locale: z.enum(SUPPORTED_LOCALE_CODES),
   weekStart: z.coerce.number().int().min(0).max(6),
   timeFormat: z.enum(["12h", "24h"]),
@@ -31,11 +32,11 @@ export const passwordChangeSchema = z
     currentPassword: z.string().optional(),
     newPassword: z
       .string()
-      .min(8, "Le mot de passe doit comporter au moins 8 caractères"),
-    confirmPassword: z.string().min(1, "Veuillez confirmer votre mot de passe"),
+      .min(8, msg("Le mot de passe doit comporter au moins 8 caractères")),
+    confirmPassword: z.string().min(1, msg("Veuillez confirmer votre mot de passe")),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Les mots de passe ne correspondent pas",
+    message: msg("Les mots de passe ne correspondent pas"),
     path: ["confirmPassword"],
   });
 export type PasswordChangeInput = z.infer<typeof passwordChangeSchema>;

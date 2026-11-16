@@ -8,39 +8,39 @@ export function LandingComparison() {
   const { tr } = useLanguage();
   const fragmentedTools = [
     {
-      tool: "Calendrier séparé",
-      flaw: "N'a aucune conscience de vos taux horaires ni de vos factures en attente.",
+      tool: tr("Calendrier séparé"),
+      flaw: tr("N'a aucune conscience de vos taux horaires ni de vos factures en attente."),
     },
     {
       tool: "Tableur financier statique",
-      flaw: "Exige des ressaisies manuelles laborieuses et ne prévient jamais d'un impayé.",
+      flaw: tr("Exige des ressaisies manuelles laborieuses et ne prévient jamais d'un impayé."),
     },
     {
-      tool: "Listes de tâches isolées",
-      flaw: "Déconnectées de vos créneaux réels, provoquant une surcharge mentale permanente.",
+      tool: tr("Listes de tâches isolées"),
+      flaw: tr("Déconnectées de vos créneaux réels, provoquant une surcharge mentale permanente."),
     },
     {
-      tool: "Rappels dispersés sur téléphone",
-      flaw: "Alertes répétitives non hiérarchisées qui sonnent pendant vos heures de repos.",
+      tool: tr("Rappels dispersés sur téléphone"),
+      flaw: tr("Alertes répétitives non hiérarchisées qui sonnent pendant vos heures de repos."),
     },
   ];
 
   const unifiedSolutions = [
     {
-      pillar: "Activités reliées",
-      benefit: "Chaque tâche, créneau et paiement est rattaché à son activité et son tarif dédié.",
+      pillar: tr("Activités reliées"),
+      benefit: tr("Chaque tâche, créneau et paiement est rattaché à son activité et son tarif dédié."),
     },
     {
       pillar: "Agenda protecteur",
-      benefit: "Détection préventive des collisions entre engagements pour préserver votre équilibre.",
+      benefit: tr("Détection préventive des collisions entre engagements pour préserver votre équilibre."),
     },
     {
-      pillar: "Trésorerie dynamique",
-      benefit: "Suivi net en temps réel : encaissé, en attente et charges prévues dans une même vue.",
+      pillar: tr("Trésorerie dynamique"),
+      benefit: tr("Suivi net en temps réel : encaissé, en attente et charges prévues dans une même vue."),
     },
     {
       pillar: "Alertes contextuelles",
-      benefit: "Échéancier intelligent (J-7, J-3, J-1) programmé dans le respect de vos heures calmes.",
+      benefit: tr("Échéancier intelligent (J-7, J-3, J-1) programmé dans le respect de vos heures calmes."),
     },
   ];
 

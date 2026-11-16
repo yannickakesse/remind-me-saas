@@ -142,7 +142,7 @@ export default function ResetPasswordPage() {
 
           {formError ? (
             <p role="alert" className="text-sm text-danger">
-              {formError}
+              {tr(formError)}
             </p>
           ) : null}
 

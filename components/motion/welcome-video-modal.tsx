@@ -8,14 +8,26 @@ import { stopVoiceReminder } from "@/lib/voice";
 import { unlockVoiceAudio } from "@/lib/voice/tts";
 import {
   INTRO_VIDEO_CLOSED_EVENT,
+  INTRO_WATCHED_KEY,
   MOTION_MODAL_KEY as STORAGE_KEY,
   isIntroVideoDue,
 } from "@/lib/onboarding/welcome-sequence";
+import { usePopupSlot } from "@/lib/ui/popup-queue";
+
+/** La publicité officielle (même vidéo que la page d'accueil), en français ou en anglais, avec sous-titres. */
+function introVideo(locale: string) {
+  return locale === "fr"
+    ? { src: "/videos/remindme-ad-720.mp4", poster: "/videos/remindme-ad-poster.jpg", vtt: "/videos/remindme-ad.fr.vtt", lang: "fr" }
+    : { src: "/videos/remindme-ad-en-720.mp4", poster: "/videos/remindme-ad-en-poster.jpg", vtt: "/videos/remindme-ad.en.vtt", lang: "en" };
+}
 
 
 export function WelcomeVideoModal() {
-  const { tr } = useLanguage();
+  const { tr, locale } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
+  // Première fenêtre de la file : la visite guidée et l'accueil attendent la fermeture de la vidéo
+  const slot = usePopupSlot("intro", isOpen);
+  const video = introVideo(locale);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -26,13 +38,8 @@ export function WelcomeVideoModal() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    if (isIntroVideoDue()) {
-      // Pause ergonomique de 500ms avant d'afficher le pop-up centré
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
+    // Demande l'écran tout de suite (avant la visite guidée) ; l'affichage suit l'ordre de la file
+    if (isIntroVideoDue()) setIsOpen(true);
   }, []);
 
   // Écoute des demandes manuelles de réouverture (Centre d'aide, Paramètres)
@@ -121,7 +128,7 @@ export function WelcomeVideoModal() {
 
   // Lancement automatique et robuste de la vidéo dès l'ouverture du modal
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !slot) return;
 
     // 1. Couper toute synthèse vocale ou rappel en cours pour éviter toute interférence
     stopVoiceReminder(false);
@@ -173,10 +180,13 @@ export function WelcomeVideoModal() {
         (window as any).__REMINDME_VIDEO_PLAYING = false;
       }
     };
-  }, [isOpen, attachGestureListeners, removeGestureListeners]);
+  }, [isOpen, slot, attachGestureListeners, removeGestureListeners]);
 
   const handleVideoEnded = () => {
     setIsPlaying(false);
+    try {
+      localStorage.setItem(INTRO_WATCHED_KEY, Date.now().toString());
+    } catch {}
     if (typeof window !== "undefined") {
       (window as any).__REMINDME_VIDEO_PLAYING = false;
       window.dispatchEvent(new CustomEvent("remindme:video-closed"));
@@ -213,7 +223,7 @@ export function WelcomeVideoModal() {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !slot) return null;
 
   return (
     <div
@@ -231,7 +241,7 @@ export function WelcomeVideoModal() {
             </span>
             <div>
               <h3 className="text-xs sm:text-sm font-black text-ink-950 dark:text-white">
-                {tr("Découvrez Remind Me en 45 secondes")}</h3>
+                {tr("Découvrez Remind Me en une minute")}</h3>
               <p className="text-[10px] text-ink-500 dark:text-ink-400">{tr("Présentation officielle du SaaS")}</p>
             </div>
           </div>
@@ -252,10 +262,12 @@ export function WelcomeVideoModal() {
             ref={videoRef}
             playsInline
             preload="auto"
+            poster={video.poster}
             onEnded={handleVideoEnded}
-            className="w-full h-full object-contain bg-canvas"
+            className="w-full h-full object-contain bg-black"
           >
-            <source src="/remindme-intro.mp4" type="video/mp4" />
+            <source src={video.src} type="video/mp4" />
+            <track kind="subtitles" src={video.vtt} srcLang={video.lang} label={video.lang === "fr" ? "Français" : "English"} default />
           </video>
 
           {/* Bouton Play si en pause */}
@@ -294,7 +306,7 @@ export function WelcomeVideoModal() {
               className="flex items-center gap-1 hover:text-signal transition-colors cursor-pointer"
             >
               {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              <span>{isPlaying ? "Pause" : "Lecture"}</span>
+              <span>{isPlaying ? tr("Pause") : tr("Lecture")}</span>
             </button>
 
             <button
@@ -315,7 +327,7 @@ export function WelcomeVideoModal() {
         {/* Footer avec bouton Passer (Skip) */}
         <div className="flex items-center justify-between p-4 bg-canvas-raised border-t border-signal/30">
           <p className="text-[11px] text-ink-500 dark:text-ink-400 hidden sm:block">
-            {tr("Cette présentation réapparaîtra tous les 2 à 3 jours.")}</p>
+            {tr("Toujours disponible dans le Centre d'aide.")}</p>
 
           <button
             type="button"

@@ -186,7 +186,7 @@ export function QuickTransactionModal({
 
         const result = await createQuickExpenseAction(formData);
         if (!result.success) {
-          setError(result.error || "Erreur lors de l'enregistrement de la dépense.");
+          setError(result.error || tr("Erreur lors de l'enregistrement de la dépense."));
           setSubmitting(false);
           return;
         }
@@ -218,7 +218,7 @@ export function QuickTransactionModal({
 
         const result = await createQuickIncomeAction(formData);
         if (!result.success) {
-          setError(result.error || "Erreur lors de l'enregistrement du revenu.");
+          setError(result.error || tr("Erreur lors de l'enregistrement du revenu."));
           setSubmitting(false);
           return;
         }
@@ -243,7 +243,7 @@ export function QuickTransactionModal({
 
         const result = await createScheduledExpenseAction(formData);
         if (!result.success) {
-          setError(result.error || "Erreur lors de la programmation de la dépense.");
+          setError(result.error || tr("Erreur lors de la programmation de la dépense."));
           setSubmitting(false);
           return;
         }
@@ -258,7 +258,7 @@ export function QuickTransactionModal({
       router.refresh();
     } catch (err: any) {
       console.error("Erreur soumission transaction rapide :", err);
-      setError(err?.message || "Une erreur inattendue est survenue.");
+      setError(err?.message || tr("Une erreur inattendue est survenue."));
     } finally {
       setSubmitting(false);
     }
@@ -347,7 +347,7 @@ export function QuickTransactionModal({
           {error && (
             <div className="flex items-start gap-2 p-3 rounded-xl bg-danger-soft text-danger text-xs font-semibold">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
+              <span>{tr(error)}</span>
             </div>
           )}
 

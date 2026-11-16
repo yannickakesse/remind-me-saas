@@ -245,7 +245,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
     setTestingVoice(true);
     const sampleText = generateVoiceMessage({
       userName: voiceIncludeUserName ? userFullName : null,
-      activityTitle: voiceLanguage === "en" ? "Meeting with Mr. Kouassi" : voiceLanguage === "es" ? "Reunión con el Sr. Kouassi" : voiceLanguage === "de" ? "Treffen mit Herrn Kouassi" : voiceLanguage === "pt" ? "Reunião com o Sr. Kouassi" : "Réunion avec Monsieur Kouassi",
+      activityTitle: voiceLanguage === "en" ? "Meeting with Mr. Kouassi" : voiceLanguage === "es" ? "Reunión con el Sr. Kouassi" : voiceLanguage === "de" ? "Treffen mit Herrn Kouassi" : voiceLanguage === "pt" ? "Reunião com o Sr. Kouassi" : tr("Réunion avec Monsieur Kouassi"),
       timeStr: "15:00",
       category: "activity",
       language: voiceLanguage,
@@ -380,7 +380,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
       if (data.success) {
         push(tr("Notification In-App créée avec succès ! Vérifiez la cloche ou le centre de notifications."), "success");
       } else {
-        push(data.error || "Impossible de créer la notification in-app.", "error");
+        push(data.error || tr("Impossible de créer la notification in-app."), "error");
       }
     } catch {
       push(tr("Erreur réseau lors du test in-app."), "error");
@@ -406,20 +406,20 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
       } else if (data.status === "NOT_CONFIGURED") {
         setEmailStatusMsg({
           type: "info",
-          text: "Canal e-mail en attente de configuration : ajoutez votre clé RESEND_API_KEY dans vos variables d'environnement.",
+          text: tr("Canal e-mail en attente de configuration : ajoutez votre clé RESEND_API_KEY dans vos variables d'environnement."),
         });
         push(tr("Fournisseur e-mail non configuré (RESEND_API_KEY manquante)."), "info");
       } else {
         setEmailStatusMsg({
           type: "error",
-          text: data.error || "Échec de l'envoi de l'e-mail par le fournisseur.",
+          text: data.error || tr("Échec de l'envoi de l'e-mail par le fournisseur."),
         });
-        push(data.error || "Échec lors de l'envoi de l'e-mail.", "error");
+        push(data.error || tr("Échec lors de l'envoi de l'e-mail."), "error");
       }
     } catch {
       setEmailStatusMsg({
         type: "error",
-        text: "Erreur réseau lors du déclenchement de l'e-mail.",
+        text: tr("Erreur réseau lors du déclenchement de l'e-mail."),
       });
       push(tr("Erreur réseau lors du test d'e-mail."), "error");
     } finally {
@@ -475,13 +475,13 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
             : navigator.userAgent.includes("Safari")
             ? "Safari"
             : "Browser",
-          device_name: isIOS ? "iPhone / iPad" : "Appareil connecté",
+          device_name: isIOS ? "iPhone / iPad" : tr("Appareil connecté"),
         }),
       });
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData?.error || "Impossible d'enregistrer la souscription sur le serveur.");
+        throw new Error(errData?.error || tr("Impossible d'enregistrer la souscription sur le serveur."));
       }
 
       setPushState("active");
@@ -494,8 +494,8 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
     } catch (err: any) {
       console.error("[Push] Erreur activation:", err);
       setPushState("error");
-      setPushErrorMessage(err?.message || "Erreur lors de l'activation du push.");
-      push(err?.message || "Erreur lors de l'activation des notifications push.", "error");
+      setPushErrorMessage(err?.message || tr("Erreur lors de l'activation du push."));
+      push(err?.message || tr("Erreur lors de l'activation des notifications push."), "error");
     }
   }
 
@@ -535,7 +535,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
       if (data.success) {
         push(tr("Notification push de test envoyée avec succès sur votre appareil !"), "success");
       } else {
-        push(data.error || "Impossible d'envoyer la notification de test.", "error");
+        push(data.error || tr("Impossible d'envoyer la notification de test."), "error");
       }
     } catch {
       push(tr("Erreur réseau lors du test de notification."), "error");
@@ -1326,7 +1326,7 @@ export function NotificationsSection({ notifPrefs, notificationPreferences, user
                   <p className="text-xs text-ink-600 italic truncate mt-0.5 font-medium">
                     {voiceSampleText || generateVoiceMessage({
                       userName: voiceIncludeUserName ? userFullName : null,
-                      activityTitle: voiceLanguage === "en" ? "Meeting with Mr. Kouassi" : voiceLanguage === "es" ? "Reunión con el Sr. Kouassi" : voiceLanguage === "de" ? "Treffen mit Herrn Kouassi" : voiceLanguage === "pt" ? "Reunião com o Sr. Kouassi" : "Réunion avec Monsieur Kouassi",
+                      activityTitle: voiceLanguage === "en" ? "Meeting with Mr. Kouassi" : voiceLanguage === "es" ? "Reunión con el Sr. Kouassi" : voiceLanguage === "de" ? "Treffen mit Herrn Kouassi" : voiceLanguage === "pt" ? "Reunião com o Sr. Kouassi" : tr("Réunion avec Monsieur Kouassi"),
                       timeStr: "15:00",
                       category: "activity",
                       language: voiceLanguage,

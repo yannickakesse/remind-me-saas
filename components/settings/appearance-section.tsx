@@ -1,4 +1,5 @@
 "use client";
+import { msg } from "@/lib/i18n/catalog";
 
 import { useTheme, type ThemePreference } from "@/components/theme/theme-provider";
 import { useLanguage } from "@/components/i18n/language-provider";
@@ -6,9 +7,9 @@ import { LanguageSelector } from "@/components/ui/language-selector";
 import { Globe, Check, Sun, Moon, Laptop } from "lucide-react";
 
 const THEME_OPTIONS: { value: ThemePreference; labelKey: string; descKey: string; icon: any }[] = [
-  { value: "light", labelKey: "Clair", descKey: "Toujours le thème clair.", icon: Sun },
-  { value: "dark", labelKey: "Sombre", descKey: "Toujours le thème sombre.", icon: Moon },
-  { value: "system", labelKey: "Système", descKey: "Suit le réglage de votre appareil.", icon: Laptop },
+  { value: "light", labelKey: "Clair", descKey: msg("Toujours le thème clair."), icon: Sun },
+  { value: "dark", labelKey: "Sombre", descKey: msg("Toujours le thème sombre."), icon: Moon },
+  { value: "system", labelKey: msg("Système"), descKey: msg("Suit le réglage de votre appareil."), icon: Laptop },
 ];
 
 export function AppearanceSection() {

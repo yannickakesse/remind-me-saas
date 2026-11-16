@@ -168,7 +168,7 @@ export function MessagesInboxView({
                   ...it,
                   tab: "history",
                   status: "completed",
-                  statusLabel: "Encaissé",
+                  statusLabel: tr("Encaissé"),
                   resolvedDate: new Date().toISOString().slice(0, 10),
                 }
               : it
@@ -180,7 +180,7 @@ export function MessagesInboxView({
           window.dispatchEvent(new CustomEvent("remindme:notifications-updated"));
         }
       } else {
-        toast.push(res.error || "Erreur lors de l'encaissement.", "error");
+        toast.push(res.error || tr("Erreur lors de l'encaissement."), "error");
       }
     } catch {
       toast.push(tr("Une erreur inattendue est survenue."), "error");
@@ -202,7 +202,7 @@ export function MessagesInboxView({
                   ...it,
                   tab: "history",
                   status: "completed",
-                  statusLabel: "Réglée",
+                  statusLabel: tr("Réglée"),
                   resolvedDate: new Date().toISOString().slice(0, 10),
                 }
               : it
@@ -214,7 +214,7 @@ export function MessagesInboxView({
           window.dispatchEvent(new CustomEvent("remindme:notifications-updated"));
         }
       } else {
-        toast.push(res.error || "Erreur lors du règlement.", "error");
+        toast.push(res.error || tr("Erreur lors du règlement."), "error");
       }
     } catch {
       toast.push(tr("Une erreur inattendue est survenue."), "error");
@@ -237,7 +237,7 @@ export function MessagesInboxView({
                   ...it,
                   tab: "history",
                   status: "completed",
-                  statusLabel: "Payée",
+                  statusLabel: tr("Payée"),
                 };
               }
               // Pour une récurrente, l'échéance suivante a été calculée sur le serveur
@@ -248,7 +248,7 @@ export function MessagesInboxView({
                 tab: "pending",
                 dueDate: cur.toISOString().slice(0, 10),
                 status: "pending",
-                statusLabel: "Échéance programmée",
+                statusLabel: tr("Échéance programmée"),
               };
             }
             return it;
@@ -260,7 +260,7 @@ export function MessagesInboxView({
           window.dispatchEvent(new CustomEvent("remindme:notifications-updated"));
         }
       } else {
-        toast.push(res.error || "Erreur lors du règlement.", "error");
+        toast.push(res.error || tr("Erreur lors du règlement."), "error");
       }
     } catch {
       toast.push(tr("Une erreur inattendue est survenue."), "error");
@@ -294,7 +294,7 @@ export function MessagesInboxView({
         );
         toast.push(tr("Échéance reportée de {days} jours.", { days }), "info");
       } else {
-        toast.push(res.error || "Erreur lors du report.", "error");
+        toast.push(res.error || tr("Erreur lors du report."), "error");
       }
     } catch {
       toast.push(tr("Une erreur est survenue lors du report."), "error");
@@ -320,7 +320,7 @@ export function MessagesInboxView({
                 dueDate: newDate,
                 tab: "pending",
                 status: "pending",
-                statusLabel: "Échéance programmée",
+                statusLabel: tr("Échéance programmée"),
               };
             }
             return it;
@@ -328,7 +328,7 @@ export function MessagesInboxView({
         );
         toast.push(tr("Dépense reportée de {days} jours.", { days }), "info");
       } else {
-        toast.push(res.error || "Erreur lors du report.", "error");
+        toast.push(res.error || tr("Erreur lors du report."), "error");
       }
     } catch {
       toast.push(tr("Une erreur est survenue lors du report."), "error");
@@ -358,41 +358,41 @@ export function MessagesInboxView({
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/25">
             <AlertCircle className="w-3 h-3 shrink-0" />
-            <span>{label}</span>
+            <span>{tr(label)}</span>
           </span>
         );
       case "due_today":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
             <Clock className="w-3 h-3 shrink-0" />
-            <span>{label}</span>
+            <span>{tr(label)}</span>
           </span>
         );
       case "completed":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             <CheckCheck className="w-3 h-3 shrink-0" />
-            <span>{label}</span>
+            <span>{tr(label)}</span>
           </span>
         );
       case "cancelled":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-zinc-500/10 text-zinc-500 border border-zinc-500/20">
-            <span>{label}</span>
+            <span>{tr(label)}</span>
           </span>
         );
       case "info":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
             <Sparkles className="w-3 h-3 shrink-0" />
-            <span>{label}</span>
+            <span>{tr(label)}</span>
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
             <Calendar className="w-3 h-3 shrink-0" />
-            <span>{label}</span>
+            <span>{tr(label)}</span>
           </span>
         );
     }
@@ -734,7 +734,7 @@ export function MessagesInboxView({
                   <div className="space-y-1.5 min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="text-sm font-bold text-ink-950 dark:text-white truncate">
-                        {item.title}
+                        {tr(item.title)}
                       </h4>
                       {getStatusBadge(item.status, item.statusLabel)}
                     </div>
@@ -752,7 +752,7 @@ export function MessagesInboxView({
                         </span>
                       )}
 
-                      {item.description && <span>{item.description}</span>}
+                      {item.description && <span>{tr(item.description)}</span>}
 
                       {item.dueDate && (
                         <span className="inline-flex items-center gap-1 font-medium text-ink-600 dark:text-ink-300">
@@ -934,7 +934,7 @@ export function MessagesInboxView({
 
             <div className="space-y-2">
               <h2 className="text-lg font-black text-ink-950 dark:text-white leading-snug">
-                {selectedMessage.title}
+                {tr(selectedMessage.title)}
               </h2>
               <div className="p-4 rounded-2xl bg-canvas dark:bg-ink-950 border border-ink-100 dark:border-ink-800/80 text-sm text-ink-800 dark:text-ink-200 whitespace-pre-line leading-relaxed">
                 {selectedMessage.body || tr("Aucun contenu textuel disponible.")}

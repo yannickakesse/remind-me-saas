@@ -1,15 +1,16 @@
+import { msg } from "@/lib/i18n/catalog";
 import { z } from "zod";
 import { DateTime } from "luxon";
 
 export const scheduledExpenseSchema = z.object({
-  name: z.string().trim().min(1, "Le nom est obligatoire").max(100, "Maximum 100 caractères"),
-  category: z.string().trim().min(1, "La catégorie est obligatoire"),
-  amount: z.coerce.number().positive("Le montant doit être supérieur à 0"),
+  name: z.string().trim().min(1, msg("Le nom est obligatoire")).max(100, msg("Maximum 100 caractères")),
+  category: z.string().trim().min(1, msg("La catégorie est obligatoire")),
+  amount: z.coerce.number().positive(msg("Le montant doit être supérieur à 0")),
   currency: z.string().min(3).max(3),
   frequency: z.enum(["once", "daily", "weekly", "monthly", "quarterly", "yearly"]),
-  startDate: z.string().min(1, "Date de début requise"),
+  startDate: z.string().min(1, msg("Date de début requise")),
   endDate: z.string().optional().nullable(),
-  nextDueDate: z.string().min(1, "Date d'échéance requise"),
+  nextDueDate: z.string().min(1, msg("Date d'échéance requise")),
   status: z.enum(["planned", "due", "paid", "cancelled"]).default("planned"),
   activityId: z.string().uuid().optional().nullable(),
   merchant: z.string().trim().optional().nullable(),
@@ -42,13 +43,13 @@ export function calculateNextOccurrence(currentDueDate: string, frequency: strin
 export function scheduledStatusLabel(status: string): { label: string; variant: "default" | "warning" | "success" | "danger" } {
   switch (status) {
     case "planned":
-      return { label: "Planifiée", variant: "default" };
+      return { label: msg("Planifiée"), variant: "default" };
     case "due":
-      return { label: "Échue (À payer)", variant: "warning" };
+      return { label: msg("Échue (À payer)"), variant: "warning" };
     case "paid":
-      return { label: "Payée", variant: "success" };
+      return { label: msg("Payée"), variant: "success" };
     case "cancelled":
-      return { label: "Annulée", variant: "danger" };
+      return { label: msg("Annulée"), variant: "danger" };
     default:
       return { label: status, variant: "default" };
   }
@@ -56,7 +57,7 @@ export function scheduledStatusLabel(status: string): { label: string; variant: 
 
 export function frequencyLabel(freq: string): string {
   switch (freq) {
-    case "once": return "Une seule fois";
+    case "once": return msg("Une seule fois");
     case "daily": return "Quotidien";
     case "weekly": return "Hebdomadaire";
     case "monthly": return "Mensuel";

@@ -604,7 +604,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
 
       if (res && !res.success) {
         setNotifications(previous);
-        showToast(res.error || "Erreur lors de la validation.", "error");
+        showToast(res.error || tr("Erreur lors de la validation."), "error");
       } else {
         showToast(tr("Élément validé avec succès."), "success");
         if (typeof window !== "undefined") {
@@ -964,45 +964,45 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
 
     if (!isResolved && item.kind === "activity_routine_suggestion") {
       primary = {
-        label: "Passer en routine",
+        label: tr("Passer en routine"),
         icon: Sparkles,
         tone: "primary",
         onClick: () =>
           runQuickAction(item, "actioned", () => acceptEvolutionAction(item.entity_id || "", item.id), "accept_evolution",
-            "Activité passée en routine avec succès !", "Erreur lors du passage en routine."),
+            tr("Activité passée en routine avec succès !"), tr("Erreur lors du passage en routine.")),
       };
       secondary.push({
-        label: "Garder la configuration actuelle",
+        label: tr("Garder la configuration actuelle"),
         icon: X,
         onClick: () =>
           runQuickAction(item, "dismissed", () => declineEvolutionAction(item.entity_id || "", item.id), "decline_evolution",
-            "Choix respecté : configuration actuelle conservée.", "Erreur lors de l'enregistrement de votre choix."),
+            tr("Choix respecté : configuration actuelle conservée."), tr("Erreur lors de l'enregistrement de votre choix.")),
       });
     } else if (!isResolved && (item.kind === "activity_expired" || item.kind === "activity_expiring_soon")) {
       primary = { label: "Renouveler", icon: Sparkles, tone: "primary", onClick: () => openRenewModal(item) };
       secondary.push({
-        label: "Laisser expirée",
+        label: tr("Laisser expirée"),
         icon: X,
         onClick: () =>
           runQuickAction(item, "dismissed", () => keepExpiredAction(item.entity_id || "", item.id), "keep_expired",
-            "Activité maintenue expirée sans renouvellement.", "Erreur lors de l'enregistrement de votre choix.", "info"),
+            tr("Activité maintenue expirée sans renouvellement."), tr("Erreur lors de l'enregistrement de votre choix."), "info"),
       });
     } else if (!isResolved && isDailySummary) {
       primary = {
-        label: "Clôturer la journée",
+        label: tr("Clôturer la journée"),
         icon: Check,
         tone: "positive",
         onClick: () => {
           const summaryDate = (item as any).metadata?.date || new Date().toISOString().split("T")[0];
           runQuickAction(item, "resolved", () => validateDailySummaryAction(summaryDate, item.id), null,
-            "Bilan de la journée validé avec succès !", "Erreur lors de la validation du bilan.");
+            tr("Bilan de la journée validé avec succès !"), tr("Erreur lors de la validation du bilan."));
         },
       };
     } else if (isTask) {
       group = "task";
       if (!isResolved && item.entity_id) {
         primary = { label: t("actions.mark_done"), icon: Check, tone: "positive", onClick: () => handleResolve(item.id, "task", item.entity_id) };
-        secondary.push({ label: "Reporter à demain", icon: Clock, onClick: () => handleTaskPostpone(item.id, item.entity_id, 1) });
+        secondary.push({ label: tr("Reporter à demain"), icon: Clock, onClick: () => handleTaskPostpone(item.id, item.entity_id, 1) });
       }
     } else if (isIncome) {
       group = "income";
@@ -1023,8 +1023,8 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       group = "activity";
       if (!isResolved && !isInformative && item.entity_id) {
         primary = { label: t("actions.mark_completed"), icon: Check, tone: "positive", onClick: () => handleResolve(item.id, "activity", item.entity_id) };
-        secondary.push({ label: "Reporter de 2 heures", icon: Clock, onClick: () => handleEventPostpone(item.id, item.entity_id, 2) });
-        secondary.push({ label: "Signaler comme manquée", icon: X, tone: "danger", onClick: () => handleEventMissed(item.id, item.entity_id) });
+        secondary.push({ label: tr("Reporter de 2 heures"), icon: Clock, onClick: () => handleEventPostpone(item.id, item.entity_id, 2) });
+        secondary.push({ label: tr("Signaler comme manquée"), icon: X, tone: "danger", onClick: () => handleEventMissed(item.id, item.entity_id) });
       }
     }
 
@@ -1032,10 +1032,10 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       secondary.push({ label: "Marquer comme lu", icon: CheckCheck, onClick: () => handleMarkRead(item.id) });
     }
     if (!isResolved && item.status !== "snoozed") {
-      secondary.push({ label: "Me le rappeler dans 24 h", icon: Clock, onClick: () => handleSnooze(item.id, 24) });
+      secondary.push({ label: tr("Me le rappeler dans 24 h"), icon: Clock, onClick: () => handleSnooze(item.id, 24) });
     }
     secondary.push({
-      label: playingId === item.id ? "Arrêter la lecture" : "Écouter",
+      label: playingId === item.id ? tr("Arrêter la lecture") : tr("Écouter"),
       icon: playingId === item.id ? VolumeX : Volume2,
       onClick: () => handleSpeak(item),
     });
@@ -1057,9 +1057,9 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
 
   const GROUP_LABELS: Record<string, [string, string]> = {
     income: ["paiement attendu", "paiements attendus"],
-    expense: ["dépense à régler", "dépenses à régler"],
-    task: ["tâche", "tâches"],
-    activity: ["séance", "séances"],
+    expense: [tr("dépense à régler"), tr("dépenses à régler")],
+    task: [tr("tâche"), tr("tâches")],
+    activity: [tr("séance"), tr("séances")],
   };
 
   // Regroupement par jour (Aujourd'hui / Hier / Plus tôt), puis par type au sein de chaque jour
@@ -1068,7 +1068,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
     const buckets: { key: string; label: string; items: Notification[] }[] = [
       { key: "today", label: "Aujourd'hui", items: [] },
       { key: "yesterday", label: "Hier", items: [] },
-      { key: "earlier", label: "Plus tôt", items: [] },
+      { key: "earlier", label: tr("Plus tôt"), items: [] },
     ];
     for (const n of filtered) {
       const day = DateTime.fromISO(n.created_at, { zone: timezone }).startOf("day");
@@ -1222,7 +1222,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
           {/* Deux vues seulement : à traiter / historique */}
           <div className="inline-flex rounded-full bg-ink-100/80 dark:bg-white/5 p-1">
             {[
-              { key: "active", label: "À traiter", count: activeCount },
+              { key: "active", label: tr("À traiter"), count: activeCount },
               { key: "history", label: "Historique", count: 0 },
             ].map((tab) => (
               <button
@@ -1293,7 +1293,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
 
                     const groupId = `${bucket.key}-${key}`;
                     const expanded = expandedGroups.has(groupId);
-                    const [one, many] = GROUP_LABELS[key] ?? ["élément", "éléments"];
+                    const [one, many] = GROUP_LABELS[key] ?? [tr("élément"), tr("éléments")];
                     const pending = items.filter((n) => !describe(n).isResolved).length;
                     const dots = items.map((n) => describe(n).dot).filter(Boolean) as string[];
                     const topDot = dots.find((d) => d === "bg-danger") ?? dots[0];

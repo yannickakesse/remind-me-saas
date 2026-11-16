@@ -137,8 +137,8 @@ export function FinancesView({
       await setIncomeReceived(id, newStatus);
       toast.push(
         newStatus
-          ? "Revenu encaissé avec succès ! Solde net mis à jour."
-          : "Revenu remis en attente.",
+          ? tr("Revenu encaissé avec succès ! Solde net mis à jour.")
+          : tr("Revenu remis en attente."),
         "success"
       );
     } catch (err) {
@@ -168,8 +168,8 @@ export function FinancesView({
       await setExpensePaid(id, newStatus);
       toast.push(
         newStatus
-          ? "Dépense marquée comme payée ! Solde net actualisé."
-          : "Dépense remise en attente de règlement.",
+          ? tr("Dépense marquée comme payée ! Solde net actualisé.")
+          : tr("Dépense remise en attente de règlement."),
         "success"
       );
     } catch (err) {

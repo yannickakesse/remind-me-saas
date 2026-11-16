@@ -26,7 +26,7 @@ export default function OfflinePage() {
         setIsSuccess(true);
         setStatusMessage(
           locale === "fr"
-            ? "Connexion rétablie ! Redirection..."
+            ? tr("Connexion rétablie ! Redirection...")
             : "Connection restored! Reloading..."
         );
         setTimeout(() => {
@@ -42,7 +42,7 @@ export default function OfflinePage() {
     setIsSuccess(false);
     setStatusMessage(
       locale === "fr"
-        ? "Impossible de joindre le serveur. Vérifiez votre connexion."
+        ? tr("Impossible de joindre le serveur. Vérifiez votre connexion.")
         : "Unable to reach server. Please check your network connection."
     );
   };
@@ -52,7 +52,7 @@ export default function OfflinePage() {
       setIsSuccess(true);
       setStatusMessage(
         locale === "fr"
-          ? "Connexion rétablie ! Chargement en cours..."
+          ? tr("Connexion rétablie ! Chargement en cours...")
           : "Connection restored! Loading..."
       );
       setTimeout(() => {

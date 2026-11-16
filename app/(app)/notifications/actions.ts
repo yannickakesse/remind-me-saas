@@ -1,4 +1,5 @@
 "use server";
+import { msg } from "@/lib/i18n/catalog";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -172,7 +173,7 @@ export async function resolveNotification(
         .maybeSingle();
 
       if (getErr || !exp) {
-        return { success: false, error: "Dépense introuvable" };
+        return { success: false, error: msg("Dépense introuvable") };
       }
 
       if (!exp.paid) {
@@ -195,7 +196,7 @@ export async function resolveNotification(
         .maybeSingle();
 
       if (getErr || !task) {
-        return { success: false, error: "Tâche introuvable" };
+        return { success: false, error: msg("Tâche introuvable") };
       }
 
       if (task.status !== "done") {
@@ -220,7 +221,7 @@ export async function resolveNotification(
         .maybeSingle();
 
       if (!evt) {
-        return { success: false, error: "Séance introuvable." };
+        return { success: false, error: msg("Séance introuvable.") };
       }
 
       if (evt.status !== "completed") {
@@ -243,7 +244,7 @@ export async function resolveNotification(
         .maybeSingle();
 
       if (getErr || !sch) {
-        return { success: false, error: "Dépense programmée introuvable" };
+        return { success: false, error: msg("Dépense programmée introuvable") };
       }
 
       const effectiveDueDate: string = sch.next_due_date || today;
@@ -257,7 +258,7 @@ export async function resolveNotification(
           .from("expenses")
           .select("id, created_at")
           .eq("user_id", user.id)
-          .eq("label", sch.name || "Dépense programmée")
+          .eq("label", sch.name || msg("Dépense programmée"))
           .eq("amount", Number(sch.amount) || 0)
           .order("created_at", { ascending: false })
           .limit(1)
@@ -277,20 +278,20 @@ export async function resolveNotification(
           .eq("user_id", user.id)
           .eq("due_date", effectiveDueDate)
           .eq("amount", Number(sch.amount) || 0)
-          .eq("label", sch.name || "Dépense programmée")
+          .eq("label", sch.name || msg("Dépense programmée"))
           .maybeSingle();
 
         if (!existingExp) {
           const { error: insErr } = await supabase.from("expenses").insert({
             user_id: user.id,
-            label: sch.name || "Dépense programmée",
+            label: sch.name || msg("Dépense programmée"),
             category: sch.category || "other",
             amount: Number(sch.amount) || 0,
             currency: sch.currency || "XOF",
             due_date: effectiveDueDate,
             paid: true,
             activity_id: sch.activity_id || null,
-            notes: "Règlement effectué depuis le centre de notifications",
+            notes: msg("Règlement effectué depuis le centre de notifications"),
           });
 
           if (insErr) return { success: false, error: insErr.message };
@@ -407,7 +408,7 @@ export async function markEventMissedAction(
       .maybeSingle();
 
     if (!evt) {
-      return { success: false, error: "Séance introuvable." };
+      return { success: false, error: msg("Séance introuvable.") };
     }
 
     if (evt.status !== "missed") {
@@ -474,7 +475,7 @@ export async function postponeEventAction(
       .maybeSingle();
 
     if (!evt) {
-      return { success: false, error: "Séance introuvable pour le report." };
+      return { success: false, error: msg("Séance introuvable pour le report.") };
     }
 
     const curStart = new Date(evt.starts_at);
@@ -549,7 +550,7 @@ export async function postponeTaskAction(
       .maybeSingle();
 
     if (getErr || !task) {
-      return { success: false, error: "Tâche introuvable" };
+      return { success: false, error: msg("Tâche introuvable") };
     }
 
     const curDateStr = task.due_date && task.due_date >= today ? task.due_date : today;
@@ -608,7 +609,7 @@ export async function acceptEvolutionAction(
       .maybeSingle();
 
     if (fetchErr || !act) {
-      return { success: false, error: "Activité introuvable." };
+      return { success: false, error: msg("Activité introuvable.") };
     }
 
     const { error: updErr } = await supabase
@@ -621,7 +622,7 @@ export async function acceptEvolutionAction(
       .eq("user_id", user.id);
 
     if (updErr) {
-      return { success: false, error: "Impossible de passer en routine: " + updErr.message };
+      return { success: false, error: msg("Impossible de passer en routine: ") + updErr.message };
     }
 
     if (notificationId) {
@@ -718,7 +719,7 @@ export async function keepExpiredAction(
       .maybeSingle();
 
     if (fetchErr || !act) {
-      return { success: false, error: "Activité introuvable." };
+      return { success: false, error: msg("Activité introuvable.") };
     }
 
     const { error: updErr } = await supabase
@@ -728,7 +729,7 @@ export async function keepExpiredAction(
       .eq("user_id", user.id);
 
     if (updErr) {
-      return { success: false, error: "Impossible de clore l'activité: " + updErr.message };
+      return { success: false, error: msg("Impossible de clore l'activité: ") + updErr.message };
     }
 
     if (notificationId) {
@@ -777,7 +778,7 @@ export async function quickRenewActivityAction(
     const today = nowIso.split("T")[0]!;
 
     if (!newEndDate) {
-      return { success: false, error: "La nouvelle date de fin est obligatoire." };
+      return { success: false, error: msg("La nouvelle date de fin est obligatoire.") };
     }
 
     const { data: act, error: fetchErr } = await supabase
@@ -788,7 +789,7 @@ export async function quickRenewActivityAction(
       .maybeSingle();
 
     if (fetchErr || !act) {
-      return { success: false, error: "Activité introuvable." };
+      return { success: false, error: msg("Activité introuvable.") };
     }
 
     const effectiveStart = act.start_date || today;
@@ -811,7 +812,7 @@ export async function quickRenewActivityAction(
       .eq("user_id", user.id);
 
     if (updErr) {
-      return { success: false, error: "Échec du renouvellement: " + updErr.message };
+      return { success: false, error: msg("Échec du renouvellement: ") + updErr.message };
     }
 
     if (amount !== undefined && amount > 0) {
@@ -963,7 +964,7 @@ export async function validateDailySummaryAction(
     return { success: true };
   } catch (err: any) {
     console.error("[validateDailySummaryAction] Unexpected error:", err);
-    return { success: false, error: err?.message || "Erreur lors de la validation du bilan." };
+    return { success: false, error: err?.message || msg("Erreur lors de la validation du bilan.") };
   }
 }
 

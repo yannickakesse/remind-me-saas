@@ -40,12 +40,12 @@ function AuthErrorContent() {
     messageParam.toLowerCase().includes("invalid");
 
   const title = isAlreadyUsedOrExpired
-    ? "Le lien de confirmation n'est plus valide"
-    : "Lien de confirmation invalide";
+    ? tr("Le lien de confirmation n'est plus valide")
+    : tr("Lien de confirmation invalide");
 
   const description = isAlreadyUsedOrExpired
-    ? "Ce lien de confirmation a peut-être expiré (durée de validité dépassée) ou a déjà été utilisé pour activer votre compte."
-    : "Impossible de valider ce lien de confirmation. Il manque des paramètres ou le lien est corrompu.";
+    ? tr("Ce lien de confirmation a peut-être expiré (durée de validité dépassée) ou a déjà été utilisé pour activer votre compte.")
+    : tr("Impossible de valider ce lien de confirmation. Il manque des paramètres ou le lien est corrompu.");
 
   async function handleResend(e: React.FormEvent) {
     e.preventDefault();
@@ -66,16 +66,16 @@ function AuthErrorContent() {
 
       if (error) {
         if (error.message.toLowerCase().includes("already confirmed") || error.message.toLowerCase().includes("verified")) {
-          setErrorMessage("Cette adresse e-mail est déjà confirmée. Vous pouvez vous connecter directement.");
+          setErrorMessage(tr("Cette adresse e-mail est déjà confirmée. Vous pouvez vous connecter directement."));
         } else {
-          setErrorMessage("Impossible d'envoyer l'e-mail. Vérifiez l'adresse et réessayez.");
+          setErrorMessage(tr("Impossible d'envoyer l'e-mail. Vérifiez l'adresse et réessayez."));
         }
       } else {
         setResendSuccess(true);
         setCooldown(60);
       }
     } catch {
-      setErrorMessage("Une erreur imprévue est survenue. Veuillez réessayer.");
+      setErrorMessage(tr("Une erreur imprévue est survenue. Veuillez réessayer."));
     } finally {
       setLoading(false);
     }
@@ -162,7 +162,7 @@ function AuthErrorContent() {
             />
 
             {errorMessage ? (
-              <p className="text-xs text-danger font-medium">{errorMessage}</p>
+              <p className="text-xs text-danger font-medium">{tr(errorMessage)}</p>
             ) : null}
 
             {resendSuccess ? (

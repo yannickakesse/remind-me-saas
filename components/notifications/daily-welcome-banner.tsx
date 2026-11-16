@@ -1,4 +1,5 @@
 "use client";
+import { msg } from "@/lib/i18n/catalog";
 import { usePopupSlot } from "@/lib/ui/popup-queue";
 
 import { useEffect, useState, useRef } from "react";
@@ -6,6 +7,7 @@ import { DateTime } from "luxon";
 import { Sunrise, Sun, Moon, Sparkles, Volume2, X } from "lucide-react";
 import {
   playReminderVoice,
+  playAudioFileWhenAllowed,
   stopVoiceReminder,
   getLocalVoiceSettings,
   isVoicePlaying,
@@ -42,7 +44,7 @@ export function DailyWelcomeBanner({
   hasActivitiesToday = false,
   tourCompleted = true,
 }: DailyWelcomeBannerProps) {
-  const { locale, t } = useLanguage();
+  const { locale, t, tr } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [greetingText, setGreetingText] = useState("");
@@ -109,105 +111,31 @@ export function DailyWelcomeBanner({
     // Même horloge que le texte (fuseau du profil) : la voix dit toujours le bon moment de la journée
     voiceKeyRef.current = welcomeAlertKey(hour);
 
+    // Textes d'accueil : une seule source française, traduite dans la langue de l'application (12 langues)
+    // Avec ou sans prénom : deux phrases complètes (une traduction ne peut pas « coller » un prénom vide)
+    const p = { name: firstName };
+    const g = (withName: string, without: string) => (firstName ? tr(withName, p) : tr(without));
     let greeting = "";
     let sub = "";
     let icon: "sunrise" | "sun" | "moon" = "sun";
-
     if (hour >= 5 && hour < 12) {
       icon = "sunrise";
-      if (locale === "en") {
-        greeting = `Good morning${nameWithSpace}! Welcome to Remind Me.`;
-        sub = hasActivitiesToday
-          ? "Your reminders and daily schedule are ready."
-          : "Your Remind Me cockpit is ready. Have a wonderful morning.";
-      } else if (locale === "es") {
-        greeting = `¡Buenos días${nameWithSpace}! Bienvenido a Remind Me.`;
-        sub = hasActivitiesToday
-          ? "Sus recordatorios y actividades de hoy están listos."
-          : "Su panel de Remind Me está listo. ¡Que tenga una excelente mañana!";
-      } else if (locale === "de") {
-        greeting = `Guten Morgen${nameWithSpace}! Willkommen bei Remind Me.`;
-        sub = hasActivitiesToday
-          ? "Ihre heutigen Erinnerungen und Ihr Tagesplan sind bereit."
-          : "Ihr Remind Me Cockpit ist bereit. Einen wunderbaren Morgen!";
-      } else if (locale === "pt") {
-        greeting = `Bom dia${nameWithSpace}! Bem-vindo ao Remind Me.`;
-        sub = hasActivitiesToday
-          ? "Seus lembretes e sua programação de hoje estão prontos."
-          : "Seu cockpit Remind Me está pronto. Tenha uma excelente manhã.";
-      } else {
-        greeting = `Bonjour${nameWithSpace} ! Bienvenue sur Remind Me.`;
-        sub = hasActivitiesToday
-          ? "Vos rappels et votre programme du jour sont prêts."
-          : "Votre cockpit Remind Me est prêt. Passez une excellente matinée.";
-      }
+      greeting = g(msg("Bonjour {name} ! Bienvenue sur Remind Me."), msg("Bonjour ! Bienvenue sur Remind Me."));
+      sub = hasActivitiesToday ? tr("Vos rappels et votre programme du jour sont prêts.") : tr("Votre cockpit Remind Me est prêt. Passez une excellente matinée.");
     } else if (hour >= 12 && hour < 18) {
       icon = "sun";
-      if (locale === "en") {
-        greeting = `Good afternoon${nameWithSpace}! Glad to see you on Remind Me.`;
-        sub = hasActivitiesToday
-          ? "Your activities and reminders are synchronized."
-          : "Your multi-activity space is up to date.";
-      } else if (locale === "es") {
-        greeting = `¡Buenas tardes${nameWithSpace}! Un placer tenerle en Remind Me.`;
-        sub = hasActivitiesToday
-          ? "Sus actividades y recordatorios están sincronizados."
-          : "Su espacio multiactividad está al día.";
-      } else if (locale === "de") {
-        greeting = `Guten Tag${nameWithSpace}! Schön, Sie bei Remind Me wiederzusehen.`;
-        sub = hasActivitiesToday
-          ? "Ihre Aktivitäten und Erinnerungen sind synchronisiert."
-          : "Ihr Multi-Aktivitäten-Bereich ist aktuell.";
-      } else if (locale === "pt") {
-        greeting = `Boa tarde${nameWithSpace}! Feliz em ver você no Remind Me.`;
-        sub = hasActivitiesToday
-          ? "Suas atividades e lembretes estão sincronizados."
-          : "Seu espaço multiatividades está atualizado.";
-      } else {
-        greeting = `Bon après-midi${nameWithSpace} ! Heureux de vous retrouver sur Remind Me.`;
-        sub = hasActivitiesToday
-          ? "Vos activités et vos rappels sont synchronisés."
-          : "Votre espace multi-activités est à jour.";
-      }
+      greeting = g(msg("Bon après-midi {name} ! Heureux de vous retrouver sur Remind Me."), msg("Bon après-midi ! Heureux de vous retrouver sur Remind Me."));
+      sub = hasActivitiesToday ? tr("Vos activités et vos rappels sont synchronisés.") : tr("Votre espace multi-activités est à jour.");
     } else if (hour >= 18 && hour < 23) {
       icon = "moon";
-      if (locale === "en") {
-        greeting = `Good evening${nameWithSpace}! Your reminders are ready.`;
-        sub = "Review your achievements and prepare smoothly for tomorrow.";
-      } else if (locale === "es") {
-        greeting = `¡Buenas noches${nameWithSpace}! Sus recordatorios están listos.`;
-        sub = "Revise sus logros y prepare tranquilamente el día de mañana.";
-      } else if (locale === "de") {
-        greeting = `Guten Abend${nameWithSpace}! Ihre Erinnerungen sind bereit.`;
-        sub = "Sehen Sie Ihre Erfolge ein und bereiten Sie den morgigen Tag vor.";
-      } else if (locale === "pt") {
-        greeting = `Boa noite${nameWithSpace}! Seus lembretes estão prontos.`;
-        sub = "Veja suas realizações e prepare o dia de amanhã com tranquilidade.";
-      } else {
-        greeting = `Bonsoir${nameWithSpace} ! Vos rappels sont prêts.`;
-        sub = "Consultez vos réalisations et préparez sereinement votre journée de demain.";
-      }
+      greeting = g(msg("Bonsoir {name} ! Vos rappels sont prêts."), msg("Bonsoir ! Vos rappels sont prêts."));
+      sub = tr("Consultez vos réalisations et préparez sereinement votre journée de demain.");
     } else {
       // Période nocturne (23h00 - 05h00) : formule sobre
       icon = "moon";
-      if (locale === "en") {
-        greeting = `Good evening${nameWithSpace}! Welcome to Remind Me.`;
-        sub = "Your workspace is peacefully synced.";
-      } else if (locale === "es") {
-        greeting = `¡Buenas noches${nameWithSpace}! Bienvenido a Remind Me.`;
-        sub = "Su espacio está sincronizado con total tranquilidad.";
-      } else if (locale === "de") {
-        greeting = `Guten Abend${nameWithSpace}! Willkommen bei Remind Me.`;
-        sub = "Ihr Arbeitsbereich ist ruhig und aktuell synchronisiert.";
-      } else if (locale === "pt") {
-        greeting = `Boa noite${nameWithSpace}! Bem-vindo ao Remind Me.`;
-        sub = "Seu espaço está sincronizado com total tranquilidade.";
-      } else {
-        greeting = `Bonsoir${nameWithSpace} ! Bienvenue sur Remind Me.`;
-        sub = "Votre espace est synchronisé en toute sérénité.";
-      }
+      greeting = g(msg("Bonsoir {name} ! Bienvenue sur Remind Me."), msg("Bonsoir ! Bienvenue sur Remind Me."));
+      sub = tr("Votre espace est synchronisé en toute sérénité.");
     }
-
     setGreetingText(greeting);
     setSubtitleText(sub);
     setGreetingIcon(icon);
@@ -417,30 +345,17 @@ export function DailyWelcomeBanner({
       // Déclencher la voix si les paramètres de l'utilisateur l'autorisent et aucun rappel n'est en cours
       const localPrefs = getLocalVoiceSettings();
       const voiceKey = voiceKeyRef.current;
-      const hasRecordedVoice = getStandardAlertSrc(voiceKey, localPrefs.voice_language || voiceLang) !== null;
-      if (localPrefs.voice_reminders && spokenText && hasRecordedVoice && !isVoicePlaying()) {
-        playReminderVoice({
-          alert: { kind: voiceKey },
-          text: spokenText,
-          language: localPrefs.voice_language,
-          voiceType: localPrefs.voice_type,
-          priority: "greeting",
-          onStart: () => {
-            setAudioPlayed(true);
-          },
-          onEnd: () => {
-            setAudioPlayed(false);
-          },
-          onError: () => {
-            setAudioPlayed(false);
-          },
-        }).then((didPlay) => {
-          if (didPlay) {
-            setAudioPlayed(true);
-          }
-        }).catch(() => {
-          setAudioPlayed(false);
-        });
+      const voiceSrc = getStandardAlertSrc(voiceKey, localPrefs.voice_language || voiceLang);
+      if (localPrefs.voice_reminders && voiceSrc && !isVoicePlaying()) {
+        // Son bloqué (application rouverte depuis l'écran d'accueil, aucun toucher encore) :
+        // la phrase est dite au premier toucher, dans les 20 secondes
+        const greetingAt = Date.now();
+        playAudioFileWhenAllowed(
+          { src: voiceSrc, priority: "greeting", rate: localPrefs.voice_playback_rate || 1, onEnd: () => setAudioPlayed(false) },
+          { waitMs: 20_000, cancel: () => Date.now() - greetingAt > 20_000 }
+        )
+          .then((didPlay) => setAudioPlayed(didPlay))
+          .catch(() => setAudioPlayed(false));
       }
     }, 300));
 

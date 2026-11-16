@@ -1,3 +1,4 @@
+import { msg as i18nMsg } from "@/lib/i18n/catalog";
 import { DateTime } from "luxon";
 import type { InboxItem, InboxStatus, InboxTab } from "@/components/messages/inbox-types";
 import { expenseCategoryLabel } from "@/lib/validation/finances";
@@ -77,16 +78,16 @@ export function buildInboxItems(params: {
     if (inc.received) {
       tab = "history";
       status = "completed";
-      statusLabel = "Encaissé";
+      statusLabel = i18nMsg("Encaissé");
     } else {
       if (inc.due_date < today) {
         tab = "todo";
         status = "overdue";
-        statusLabel = "Paiement en retard";
+        statusLabel = i18nMsg("Paiement en retard");
       } else if (inc.due_date === today) {
         tab = "todo";
         status = "due_today";
-        statusLabel = "Échéance aujourd'hui";
+        statusLabel = i18nMsg("Échéance aujourd'hui");
       } else {
         tab = "pending";
         status = "pending";
@@ -99,7 +100,7 @@ export function buildInboxItems(params: {
       kind: "income",
       tab,
       title: inc.label,
-      description: inc.activity?.name ? `Activité : ${inc.activity.name}` : "Revenu général",
+      description: inc.activity?.name ? `Activité : ${inc.activity.name}` : i18nMsg(i18nMsg("Revenu général")),
       amount: Number(inc.amount),
       currency: inc.currency || "EUR",
       dueDate: inc.due_date,
@@ -117,25 +118,25 @@ export function buildInboxItems(params: {
   for (const exp of expenseList) {
     let tab: InboxTab = "pending";
     let status: InboxStatus = "pending";
-    let statusLabel = "Dépense prévue";
+    let statusLabel = i18nMsg("Dépense prévue");
 
     if (exp.paid) {
       tab = "history";
       status = "completed";
-      statusLabel = "Réglée";
+      statusLabel = i18nMsg("Réglée");
     } else {
       if (exp.due_date < today) {
         tab = "todo";
         status = "overdue";
-        statusLabel = "Dépense en retard";
+        statusLabel = i18nMsg("Dépense en retard");
       } else if (exp.due_date === today) {
         tab = "todo";
         status = "due_today";
-        statusLabel = "À régler aujourd'hui";
+        statusLabel = i18nMsg("À régler aujourd'hui");
       } else {
         tab = "pending";
         status = "pending";
-        statusLabel = "Dépense prévue";
+        statusLabel = i18nMsg("Dépense prévue");
       }
     }
 
@@ -167,25 +168,25 @@ export function buildInboxItems(params: {
   for (const sch of scheduledList) {
     let tab: InboxTab = "pending";
     let status: InboxStatus = "pending";
-    let statusLabel = "Échéance programmée";
+    let statusLabel = i18nMsg("Échéance programmée");
 
     if (sch.status === "paid" || sch.status === "cancelled") {
       tab = "history";
       status = sch.status === "paid" ? "completed" : "cancelled";
-      statusLabel = sch.status === "paid" ? "Payée" : "Annulée";
+      statusLabel = sch.status === "paid" ? i18nMsg(i18nMsg("Payée")) : i18nMsg(i18nMsg("Annulée"));
     } else {
       if (sch.next_due_date < today) {
         tab = "todo";
         status = "overdue";
-        statusLabel = "Échéance dépassée";
+        statusLabel = i18nMsg("Échéance dépassée");
       } else if (sch.next_due_date === today || sch.status === "due") {
         tab = "todo";
         status = "due_today";
-        statusLabel = "À régler aujourd'hui";
+        statusLabel = i18nMsg("À régler aujourd'hui");
       } else {
         tab = "pending";
         status = "pending";
-        statusLabel = "Échéance programmée";
+        statusLabel = i18nMsg("Échéance programmée");
       }
     }
 
@@ -227,13 +228,13 @@ export function buildInboxItems(params: {
 
     let tab: InboxTab = "history";
     let status: InboxStatus = "info";
-    let statusLabel = isFinancial ? "Alerte financière" : isSummary ? "Bilan" : "Message";
+    let statusLabel = isFinancial ? i18nMsg(i18nMsg("Alerte financière")) : isSummary ? "Bilan" : "Message";
 
     // Si message financier non lu, placer dans "À traiter" pour capter l'attention
     if (isFinancial && !msg.is_read) {
       tab = "todo";
       status = "info";
-      statusLabel = "Notification financière";
+      statusLabel = i18nMsg("Notification financière");
     }
 
     items.push({

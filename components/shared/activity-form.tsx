@@ -735,7 +735,7 @@ export function ActivityForm({
 
       {error ? (
         <div role="alert" className="rounded-lg bg-danger/10 border border-danger/20 p-3 text-sm text-danger font-medium">
-          {error}
+          {tr(error)}
         </div>
       ) : null}
 

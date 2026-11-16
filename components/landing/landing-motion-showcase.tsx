@@ -1,4 +1,5 @@
 "use client";
+import { msg } from "@/lib/i18n/catalog";
 
 import { useState, useEffect, useRef } from "react";
 import {
@@ -35,16 +36,16 @@ const SCENES: MotionScene[] = [
   {
     id: "planning",
     badge: "01. Planification Intelligente",
-    title: "Détection & Résolution de Conflits à 0 ms",
-    description: "Vos 4 activités s'alignent automatiquement. Remind Me prévient tout chevauchement d'agenda en temps réel.",
+    title: msg("Détection & Résolution de Conflits à 0 ms"),
+    description: msg("Vos 4 activités s'alignent automatiquement. Remind Me prévient tout chevauchement d'agenda en temps réel."),
     icon: Calendar,
     durationMs: 6500,
   },
   {
     id: "finances",
-    badge: "02. Trésorerie & Encaissements",
-    title: "Suivi des Paiements & Solde Net en Direct",
-    description: "Encaissez vos prestations en 1 clic. Vos revenus attendus se transforment instantanément en trésorerie disponible.",
+    badge: msg("02. Trésorerie & Encaissements"),
+    title: msg("Suivi des Paiements & Solde Net en Direct"),
+    description: msg("Encaissez vos prestations en 1 clic. Vos revenus attendus se transforment instantanément en trésorerie disponible."),
     icon: Wallet,
     durationMs: 6500,
   },
@@ -52,15 +53,15 @@ const SCENES: MotionScene[] = [
     id: "voice",
     badge: "03. Rappels Vocaux IA",
     title: "Notifications Push & Alertes Vocales",
-    description: "Ne ratez plus jamais une facture ou un rendez-vous grâce aux alertes prédictives vocales et multi-canaux.",
+    description: msg("Ne ratez plus jamais une facture ou un rendez-vous grâce aux alertes prédictives vocales et multi-canaux."),
     icon: Volume2,
     durationMs: 6500,
   },
   {
     id: "analytics",
-    badge: "04. Rentabilité Horaire",
-    title: "Courbes & Analytics de Performance Réelle",
-    description: "Visualisez d'un coup d'œil vos revenus vs dépenses et votre taux horaire réel sur l'ensemble de vos projets.",
+    badge: msg("04. Rentabilité Horaire"),
+    title: msg("Courbes & Analytics de Performance Réelle"),
+    description: msg("Visualisez d'un coup d'œil vos revenus vs dépenses et votre taux horaire réel sur l'ensemble de vos projets."),
     icon: BarChart3,
     durationMs: 6500,
   },
@@ -245,13 +246,13 @@ export function LandingMotionShowcase() {
           {/* Scene Header */}
           <div className="max-w-2xl">
             <span className="inline-block px-3 py-1 rounded-full text-[11px] font-extrabold bg-signal-soft text-signal mb-2">
-              {currentScene.badge}
+              {tr(currentScene.badge)}
             </span>
             <h3 className="text-2xl sm:text-3xl font-extrabold text-ink-950 tracking-tight">
-              {currentScene.title}
+              {tr(currentScene.title)}
             </h3>
             <p className="mt-1.5 text-xs sm:text-sm text-ink-600 leading-relaxed">
-              {currentScene.description}
+              {tr(currentScene.description)}
             </p>
           </div>
 

@@ -56,7 +56,7 @@ export default async function HomePage() {
   return (
     <>
       <LandingView user={user} />
-      {!user && <JourneyVoice id="journey_landing" delay={1200} />}
+      {!user && <JourneyVoice id="journey_landing" delay={1200} maxPerDay={2} />}
     </>
   );
 }

@@ -91,7 +91,7 @@ export default async function SettingsPage({ searchParams }: { searchParams?: { 
               />
             ),
           },
-          { id: "security", label: "Sécurité", content: <SecuritySection /> },
+          { id: "security", label: tr("Sécurité"), content: <SecuritySection /> },
           {
             id: "sessions",
             label: "Sessions",
@@ -110,7 +110,7 @@ export default async function SettingsPage({ searchParams }: { searchParams?: { 
               />
             ),
           },
-          { id: "data", label: "Données", content: <DataSection /> },
+          { id: "data", label: tr("Données"), content: <DataSection /> },
         ]}
       />
       </div>

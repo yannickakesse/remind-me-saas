@@ -1,4 +1,5 @@
 "use server";
+import { msg } from "@/lib/i18n/catalog";
 
 import { getTr } from "@/lib/i18n/server";
 import { CHECK_VIOLATION, exceptionalCategory, isExceptionalType } from "@/lib/finances/income-kinds";
@@ -309,7 +310,7 @@ export async function createQuickExpenseAction(
 
     if (error) {
       console.error("Erreur insertion dépense rapide :", error);
-      return { success: false, error: error.message || "Impossible d'enregistrer la dépense." };
+      return { success: false, error: error.message || msg("Impossible d'enregistrer la dépense.") };
     }
 
     if (!isPaid) {
@@ -325,7 +326,7 @@ export async function createQuickExpenseAction(
     return { success: true, id: inserted?.id };
   } catch (err: any) {
     console.error("Erreur validation dépense rapide :", err);
-    return { success: false, error: err?.message || "Erreur de validation de la dépense." };
+    return { success: false, error: err?.message || msg("Erreur de validation de la dépense.") };
   }
 }
 
@@ -408,7 +409,7 @@ export async function createQuickIncomeAction(
     return { success: true, id: inserted?.id };
   } catch (err: any) {
     console.error("Erreur validation revenu rapide :", err);
-    return { success: false, error: err?.message || "Erreur de validation du revenu." };
+    return { success: false, error: err?.message || msg("Erreur de validation du revenu.") };
   }
 }
 
@@ -521,14 +522,14 @@ export async function createBudget(formData: FormData): Promise<{ success: boole
 
     if (error) {
       if (error.code === "23505") {
-        return { success: false, error: "Un budget existe déjà pour cette catégorie et devise." };
+        return { success: false, error: msg("Un budget existe déjà pour cette catégorie et devise.") };
       }
-      return { success: false, error: error.message || "Impossible de créer le budget." };
+      return { success: false, error: error.message || msg("Impossible de créer le budget.") };
     }
     revalidatePath("/finances");
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err?.message || "Erreur lors de la création du budget." };
+    return { success: false, error: err?.message || msg("Erreur lors de la création du budget.") };
   }
 }
 
@@ -551,11 +552,11 @@ export async function updateBudget(id: string, formData: FormData): Promise<{ su
       .eq("id", id)
       .eq("user_id", user.id);
 
-    if (error) return { success: false, error: error.message || "Impossible de mettre à jour le budget." };
+    if (error) return { success: false, error: error.message || msg("Impossible de mettre à jour le budget.") };
     revalidatePath("/finances");
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err?.message || "Erreur lors de la mise à jour du budget." };
+    return { success: false, error: err?.message || msg("Erreur lors de la mise à jour du budget.") };
   }
 }
 
@@ -596,12 +597,12 @@ export async function createSavingsGoal(formData: FormData): Promise<{ success: 
       notes: parsed.notes || null,
     });
 
-    if (error) return { success: false, error: error.message || "Impossible de créer l'objectif d'épargne." };
+    if (error) return { success: false, error: error.message || msg("Impossible de créer l'objectif d'épargne.") };
     revalidatePath("/finances");
     revalidatePath("/dashboard");
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err?.message || "Erreur lors de la création de l'objectif." };
+    return { success: false, error: err?.message || msg("Erreur lors de la création de l'objectif.") };
   }
 }
 
@@ -633,12 +634,12 @@ export async function updateSavingsGoal(id: string, formData: FormData): Promise
       .eq("id", id)
       .eq("user_id", user.id);
 
-    if (error) return { success: false, error: error.message || "Impossible de modifier l'objectif." };
+    if (error) return { success: false, error: error.message || msg("Impossible de modifier l'objectif.") };
     revalidatePath("/finances");
     revalidatePath("/dashboard");
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err?.message || "Erreur lors de la modification de l'objectif." };
+    return { success: false, error: err?.message || msg("Erreur lors de la modification de l'objectif.") };
   }
 }
 
@@ -728,7 +729,7 @@ export async function createScheduledExpenseAction(formData: FormData): Promise<
 
     if (error) {
       console.error("Erreur insertion scheduled_expenses :", error);
-      return { success: false, error: error.message || "Impossible de créer la dépense programmée." };
+      return { success: false, error: error.message || msg("Impossible de créer la dépense programmée.") };
     }
 
     await triggerProactiveReminders(supabase, user.id);
@@ -739,7 +740,7 @@ export async function createScheduledExpenseAction(formData: FormData): Promise<
     revalidatePath("/notifications");
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err?.message || "Erreur lors de la programmation de la dépense." };
+    return { success: false, error: err?.message || msg("Erreur lors de la programmation de la dépense.") };
   }
 }
 
@@ -865,7 +866,7 @@ export async function markScheduledExpensePaidAction(id: string) {
       paid: true,
       paid_at: today,
       activity_id: item.activity_id,
-      notes: item.notes ? `Issu de la dépense programmée : ${item.notes}` : "Issu d'une dépense programmée",
+      notes: item.notes ? `Issu de la dépense programmée : ${item.notes}` : msg("Issu d'une dépense programmée"),
     });
   }
 

@@ -1,4 +1,5 @@
 "use server";
+import { msg } from "@/lib/i18n/catalog";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -19,7 +20,7 @@ async function requireUser() {
 function formError(err: unknown): string {
   const issues = (err as any)?.issues;
   if (Array.isArray(issues) && issues[0]?.message) return String(issues[0].message);
-  return err instanceof Error && err.message ? err.message : "Une erreur est survenue.";
+  return err instanceof Error && err.message ? err.message : msg("Une erreur est survenue.");
 }
 
 function parseOrganizationForm(formData: FormData) {
@@ -64,7 +65,7 @@ export async function createOrganization(formData: FormData): Promise<{ error?: 
     address: parsed.address || null,
   });
 
-  if (error) return { error: "Impossible de créer l'organisation." };
+  if (error) return { error: msg("Impossible de créer l'organisation.") };
 
   revalidatePath("/clients");
   redirect("/clients");
@@ -128,7 +129,7 @@ export async function createContact(formData: FormData): Promise<{ error?: strin
     notes: parsed.notes || null,
   });
 
-  if (error) return { error: "Impossible de créer le contact." };
+  if (error) return { error: msg("Impossible de créer le contact.") };
 
   revalidatePath("/clients");
   redirect("/clients");

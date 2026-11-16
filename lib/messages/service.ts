@@ -1,3 +1,4 @@
+import { msg } from "@/lib/i18n/catalog";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DateTime } from "luxon";
 import type { Database } from "@/types/database";
@@ -49,7 +50,7 @@ export function formatMessageDate(
       if (diffDays === 1) return `Hier à ${timeStr}`;
       if (diffDays === 2) return `Avant-hier à ${timeStr}`;
       if (diffDays >= 3 && diffDays <= 7) return `Il y a ${diffDays} jours`;
-      return messageDT.setLocale("fr").toFormat("dd MMM yyyy à HH:mm");
+      return messageDT.setLocale("fr").toFormat(msg("dd MMM yyyy à HH:mm"));
     }
 
     if (locale === "es") {
@@ -73,7 +74,7 @@ export function formatMessageDate(
       if (diffDays === 1) return `Ontem às ${timeStr}`;
       if (diffDays === 2) return `Anteontem às ${timeStr}`;
       if (diffDays >= 3 && diffDays <= 7) return `Há ${diffDays} dias`;
-      return messageDT.setLocale("pt").toFormat("dd 'de' MMM 'de' yyyy 'às' HH:mm");
+      return messageDT.setLocale("pt").toFormat(msg("dd 'de' MMM 'de' yyyy 'às' HH:mm"));
     }
 
     // Default: English

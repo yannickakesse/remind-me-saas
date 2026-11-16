@@ -1,3 +1,4 @@
+import { msg } from "@/lib/i18n/catalog";
 import { z } from "zod";
 
 // Étapes 1 à 4 du cahier des charges (§7). La création de la première
@@ -8,15 +9,15 @@ export const onboardingStepIdentitySchema = z.object({
 });
 
 export const onboardingStepCountrySchema = z.object({
-  countryCode: z.string().length(2, "Sélectionnez un pays"),
+  countryCode: z.string().length(2, msg("Sélectionnez un pays")),
 });
 
 export const onboardingStepCurrencySchema = z.object({
-  currencyCode: z.string().length(3, "Sélectionnez une devise"),
+  currencyCode: z.string().length(3, msg("Sélectionnez une devise")),
 });
 
 export const onboardingStepTimezoneSchema = z.object({
-  timezone: z.string().min(1, "Sélectionnez un fuseau horaire"),
+  timezone: z.string().min(1, msg("Sélectionnez un fuseau horaire")),
 });
 
 // Étape 5 (§7) : purement indicatif, aide à calibrer le message d'accueil

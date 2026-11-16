@@ -112,8 +112,8 @@ export function SavingsGoalsSection({
           const res = await updateSavingsGoal(targetId, formData);
           if (res && !res.success) {
             setLocalGoals(goals);
-            setError(res.error || "Impossible de modifier l'objectif.");
-            toast.push(res.error || "Impossible de modifier l'objectif.", "error");
+            setError(res.error || tr("Impossible de modifier l'objectif."));
+            toast.push(res.error || tr("Impossible de modifier l'objectif."), "error");
             return;
           }
           toast.push(tr("Objectif d'épargne mis à jour."), "success");
@@ -121,8 +121,8 @@ export function SavingsGoalsSection({
           const res = await createSavingsGoal(formData);
           if (res && !res.success) {
             setLocalGoals(goals);
-            setError(res.error || "Impossible de créer l'objectif d'épargne.");
-            toast.push(res.error || "Impossible de créer l'objectif d'épargne.", "error");
+            setError(res.error || tr("Impossible de créer l'objectif d'épargne."));
+            toast.push(res.error || tr("Impossible de créer l'objectif d'épargne."), "error");
             return;
           }
           toast.push(tr("Objectif d'épargne créé avec succès."), "success");
@@ -130,7 +130,7 @@ export function SavingsGoalsSection({
         resetForm();
       } catch (err: any) {
         setLocalGoals(goals);
-        const msg = err instanceof Error ? err.message : "Erreur lors de l'enregistrement de l'objectif.";
+        const msg = err instanceof Error ? err.message : tr("Erreur lors de l'enregistrement de l'objectif.");
         setError(msg);
         toast.push(msg, "error");
       }
@@ -317,7 +317,7 @@ export function SavingsGoalsSection({
           </div>
 
           {error ? (
-            <p className="text-xs font-medium text-danger">{error}</p>
+            <p className="text-xs font-medium text-danger">{tr(error)}</p>
           ) : null}
 
           <div className="flex items-center gap-2 pt-2">

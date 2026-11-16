@@ -176,13 +176,13 @@ export function ScheduledExpensesSection({
     try {
       const res = await createScheduledExpenseAction(formData);
       if (res && !res.success) {
-        toast.push(res.error || "Erreur lors de la programmation de la dépense.", "error");
+        toast.push(res.error || tr("Erreur lors de la programmation de la dépense."), "error");
         return;
       }
       toast.push(tr("Dépense programmée avec succès."), "success");
       setIsModalOpen(false);
     } catch (err: any) {
-      toast.push(err?.message || "Erreur lors de la programmation de la dépense.", "error");
+      toast.push(err?.message || tr("Erreur lors de la programmation de la dépense."), "error");
     } finally {
       setSubmitting(false);
     }
@@ -225,10 +225,10 @@ export function ScheduledExpensesSection({
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
         {[
           { id: "all", label: "Actives" },
-          { id: "planned", label: "Planifiées" },
-          { id: "due", label: "Échues" },
-          { id: "paid", label: "Payées" },
-          { id: "cancelled", label: "Annulées" },
+          { id: "planned", label: tr("Planifiées") },
+          { id: "due", label: tr("Échues") },
+          { id: "paid", label: tr("Payées") },
+          { id: "cancelled", label: tr("Annulées") },
         ].map((tab) => (
           <button
             key={tab.id}

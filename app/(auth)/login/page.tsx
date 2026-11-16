@@ -1,4 +1,5 @@
 "use client";
+import { msg } from "@/lib/i18n/catalog";
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -17,7 +18,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const isConfirmed = searchParams.get("confirmed") === "true";
   const supabase = createClient();
-  const { t } = useLanguage();
+  const { t, tr } = useLanguage();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,12 +51,12 @@ function LoginForm() {
       window.dispatchEvent(new CustomEvent("remindme:loading-stop"));
       if (error.message.toLowerCase().includes("email not confirmed")) {
         setFormError(
-          "Votre adresse e-mail n'a pas encore été confirmée. Veuillez vérifier votre boîte de réception et cliquer sur le lien reçu."
+          msg("Votre adresse e-mail n'a pas encore été confirmée. Veuillez vérifier votre boîte de réception et cliquer sur le lien reçu.")
         );
       } else if (error.message === "Invalid login credentials" || error.message.toLowerCase().includes("invalid")) {
-        setFormError("Email ou mot de passe incorrect. Vérifiez vos identifiants.");
+        setFormError(msg("Email ou mot de passe incorrect. Vérifiez vos identifiants."));
       } else {
-        setFormError("Une erreur est survenue lors de la connexion. Réessayez dans un instant.");
+        setFormError(msg("Une erreur est survenue lors de la connexion. Réessayez dans un instant."));
       }
       return;
     }
@@ -124,7 +125,7 @@ function LoginForm() {
 
           {formError ? (
             <div role="alert" className="rounded-xl bg-danger-soft p-3 text-xs text-danger font-medium">
-              {formError}
+              {tr(formError)}
             </div>
           ) : null}
 

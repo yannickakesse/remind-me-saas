@@ -1,4 +1,5 @@
 "use client";
+import { msg } from "@/lib/i18n/catalog";
 
 
 import { useLanguage } from "@/components/i18n/language-provider";
@@ -14,14 +15,14 @@ interface OnboardingWizardProps {
   defaultFullName: string;
 }
 
-const STEPS = ["Identité", "Pays", "Devise", "Fuseau horaire", "Vos activités"] as const;
+const STEPS = [msg("Identité"), "Pays", "Devise", "Fuseau horaire", msg("Vos activités")] as const;
 /** Phrase du robot pour chaque étape (même ordre que STEPS). */
 const STEP_VOICES = ["journey_identity", "journey_country", "journey_currency", "journey_timezone", "journey_activity_count"] as const;
 
 const ACTIVITY_COUNT_OPTIONS = [
-  { value: "one", label: "Une seule activité" },
-  { value: "two_to_three", label: "2 à 3 activités" },
-  { value: "four_plus", label: "4 activités ou plus" },
+  { value: "one", label: msg("Une seule activité") },
+  { value: "two_to_three", label: msg("2 à 3 activités") },
+  { value: "four_plus", label: msg("4 activités ou plus") },
 ] as const;
 
 export function OnboardingWizard({
@@ -81,7 +82,7 @@ export function OnboardingWizard({
     } catch (err) {
       setSubmitting(false);
       setError(
-        err instanceof Error ? err.message : "Une erreur est survenue."
+        err instanceof Error ? err.message : tr("Une erreur est survenue.")
       );
     }
   }
@@ -146,7 +147,7 @@ export function OnboardingWizard({
             >
               {countries.map((c) => (
                 <option key={c.code} value={c.code}>
-                  {c.name}
+                  {tr(c.name)}
                 </option>
               ))}
             </select>
@@ -163,7 +164,7 @@ export function OnboardingWizard({
             >
               {currencies.map((c) => (
                 <option key={c.code} value={c.code}>
-                  {c.name} ({c.symbol})
+                  {tr(c.name)} ({c.symbol})
                 </option>
               ))}
             </select>
@@ -180,7 +181,7 @@ export function OnboardingWizard({
             >
               {TIMEZONE_OPTIONS.map((t) => (
                 <option key={t.value} value={t.value}>
-                  {t.label} ({t.offset})
+                  {tr(t.label)} ({t.offset})
                 </option>
               ))}
               {!TIMEZONE_OPTIONS.some((t) => t.value === timezone) && timezone && (
@@ -206,7 +207,7 @@ export function OnboardingWizard({
                   checked={activityCountHint === option.value}
                   onChange={() => setActivityCountHint(option.value)}
                 />
-                {option.label}
+                {tr(option.label)}
               </label>
             ))}
           </fieldset>
@@ -214,7 +215,7 @@ export function OnboardingWizard({
 
         {error ? (
           <p role="alert" className="text-sm text-danger">
-            {error}
+            {tr(error)}
           </p>
         ) : null}
 

@@ -322,6 +322,41 @@ export function playAudioFile(options: {
 }
 
 /**
+ * Comme playAudioFile, mais si le navigateur bloque le son (aucun toucher encore sur la page,
+ * cas de toute première visite sur téléphone), la phrase est jouée AU PREMIER TOUCHER / CLIC / TOUCHE,
+ * pendant `waitMs` au plus. Résout `true` dès que la lecture démarre (tout de suite ou au geste).
+ * `cancel` (facultatif) : renvoie true si la phrase n'est plus d'actualité (page quittée…).
+ */
+export function playAudioFileWhenAllowed(
+  options: Parameters<typeof playAudioFile>[0],
+  { waitMs = 60_000, cancel }: { waitMs?: number; cancel?: () => boolean } = {}
+): Promise<boolean> {
+  return playAudioFile(options).then((started) => {
+    if (started || sharedUnlocked || typeof window === "undefined") return started;
+    return new Promise<boolean>((resolve) => {
+      const events = ["touchend", "click", "keydown"] as const;
+      let done = false;
+      const finish = (v: boolean) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        events.forEach((e) => window.removeEventListener(e, onGesture, true));
+        resolve(v);
+      };
+      // Écouteur sur window (phase de capture) : passe avant le déverrouillage silencieux du lecteur
+      const onGesture = (e: Event) => {
+        if (cancel?.()) return finish(false);
+        // Le premier toucher lance une vidéo : on ne parle pas par-dessus
+        if ((e.target as HTMLElement | null)?.closest?.("video, [data-media-player], [data-sound-toggle]")) return finish(false);
+        playAudioFile(options).then(finish);
+      };
+      const timer = setTimeout(() => finish(false), waitMs);
+      events.forEach((e) => window.addEventListener(e, onGesture, { capture: true, once: true }));
+    });
+  });
+}
+
+/**
  * Secours quand ElevenLabs ne répond pas : on ne passe à la voix de l'appareil
  * que si elle est de bonne qualité (ou explicitement demandée). Sinon : carillon
  * + événement « voix indisponible » pour proposer de réessayer l'écoute.

@@ -5,6 +5,7 @@
  * en WebP / JPEG (512x512 max).
  */
 
+import { msg } from "@/lib/i18n/catalog";
 export interface OptimizeImageResult {
   blob: Blob;
   dataUrl: string;
@@ -15,17 +16,17 @@ export interface OptimizeImageResult {
 
 export const PRESET_AVATARS = [
   { id: "avatar-pro-1", label: "Consultant / Direction", bg: "from-blue-600 to-indigo-800", emoji: "💼" },
-  { id: "avatar-pro-2", label: "Tech & Créatif", bg: "from-emerald-500 to-teal-800", emoji: "⚡" },
+  { id: "avatar-pro-2", label: msg("Tech & Créatif"), bg: "from-emerald-500 to-teal-800", emoji: "⚡" },
   { id: "avatar-pro-3", label: "Entrepreneur & Vision", bg: "from-amber-500 to-orange-700", emoji: "🚀" },
-  { id: "avatar-pro-4", label: "Finance & Stratégie", bg: "from-purple-600 to-violet-900", emoji: "📈" },
+  { id: "avatar-pro-4", label: msg("Finance & Stratégie"), bg: "from-purple-600 to-violet-900", emoji: "📈" },
   { id: "avatar-pro-5", label: "Design & Produit", bg: "from-pink-500 to-rose-700", emoji: "🎨" },
   { id: "avatar-pro-6", label: "International & Projets", bg: "from-cyan-500 to-blue-700", emoji: "🌐" },
   { id: "avatar-pro-7", label: "Freelance & Focus", bg: "from-slate-700 to-slate-950", emoji: "💻" },
-  { id: "avatar-pro-8", label: "Coaching & Énergie", bg: "from-yellow-500 to-amber-600", emoji: "✨" },
+  { id: "avatar-pro-8", label: msg("Coaching & Énergie"), bg: "from-yellow-500 to-amber-600", emoji: "✨" },
   { id: "avatar-pro-9", label: "Commerce & Vente", bg: "from-red-500 to-rose-800", emoji: "🛍️" },
-  { id: "avatar-pro-10", label: "Santé & Bien-être", bg: "from-teal-400 to-emerald-700", emoji: "🌿" },
+  { id: "avatar-pro-10", label: msg("Santé & Bien-être"), bg: "from-teal-400 to-emerald-700", emoji: "🌿" },
   { id: "avatar-pro-11", label: "Conseil & Analyse", bg: "from-indigo-600 to-sky-800", emoji: "🎯" },
-  { id: "avatar-pro-12", label: "Audio & Média", bg: "from-fuchsia-600 to-purple-800", emoji: "🎙️" },
+  { id: "avatar-pro-12", label: msg("Audio & Média"), bg: "from-fuchsia-600 to-purple-800", emoji: "🎙️" },
 ];
 
 /**
@@ -112,7 +113,7 @@ export async function optimizeAvatarImage(
             quality
           );
         } catch (err: any) {
-          reject(new Error(err?.message || "Erreur lors du traitement de l'image."));
+          reject(new Error(err?.message || msg("Erreur lors du traitement de l'image.")));
         }
       };
 

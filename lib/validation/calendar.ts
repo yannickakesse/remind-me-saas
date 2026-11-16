@@ -42,13 +42,13 @@ export function getContrastTextColor(hexColor?: string | null): string {
 }
 
 export const rescheduleSchema = z.object({
-  newStartsAt: z.string().min(1, "Choisissez une nouvelle date et heure."),
+  newStartsAt: z.string().min(1, msg("Choisissez une nouvelle date et heure.")),
 });
 
 export const manualEventSchema = z.object({
-  activityId: z.string().uuid("Choisissez une activité."),
-  title: z.string().min(1, "Le titre est requis."),
-  startsAt: z.string().min(1, "L'heure de début est requise."),
-  endsAt: z.string().min(1, "L'heure de fin est requise."),
+  activityId: z.string().uuid(msg("Choisissez une activité.")),
+  title: z.string().min(1, msg("Le titre est requis.")),
+  startsAt: z.string().min(1, msg("L'heure de début est requise.")),
+  endsAt: z.string().min(1, msg("L'heure de fin est requise.")),
   notes: z.string().optional(),
 });

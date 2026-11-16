@@ -40,7 +40,7 @@ export function ActivityItemActions({
       }
       router.refresh();
     } catch (err: any) {
-      setError(err?.message || "Erreur lors de la suspension.");
+      setError(err?.message || tr("Erreur lors de la suspension."));
       setLoading(false);
     }
   }
@@ -57,7 +57,7 @@ export function ActivityItemActions({
       }
       router.refresh();
     } catch (err: any) {
-      setError(err?.message || "Erreur lors de la réactivation.");
+      setError(err?.message || tr("Erreur lors de la réactivation."));
       setLoading(false);
     }
   }
@@ -74,7 +74,7 @@ export function ActivityItemActions({
       }
       router.refresh();
     } catch (err: any) {
-      setError(err?.message || "Erreur lors de l'archivage.");
+      setError(err?.message || tr("Erreur lors de l'archivage."));
       setLoading(false);
     }
   }
@@ -91,7 +91,7 @@ export function ActivityItemActions({
       }
       router.refresh();
     } catch (err: any) {
-      setError(err?.message || "Erreur lors de la restauration.");
+      setError(err?.message || tr("Erreur lors de la restauration."));
       setLoading(false);
     }
   }
@@ -109,7 +109,7 @@ export function ActivityItemActions({
       }
       router.refresh();
     } catch (err: any) {
-      setError(err?.message || "Erreur lors de la suppression.");
+      setError(err?.message || tr("Erreur lors de la suppression."));
       setLoading(false);
       setShowDeleteConfirm(false);
     }
@@ -140,7 +140,7 @@ export function ActivityItemActions({
           >
             {tr("Annuler")}</Button>
         </div>
-        {error && <span className="text-danger text-xs">{error}</span>}
+        {error && <span className="text-danger text-xs">{tr(error)}</span>}
       </div>
     );
   }
@@ -148,7 +148,7 @@ export function ActivityItemActions({
   if (isArchived) {
     return (
       <div className="flex items-center gap-2">
-        {error && <span className="text-danger text-xs mr-2">{error}</span>}
+        {error && <span className="text-danger text-xs mr-2">{tr(error)}</span>}
         <Link
           href={`/activities/new?duplicate_from=${activityId}`}
           title={tr("Dupliquer cette activité archivée")}
@@ -179,7 +179,7 @@ export function ActivityItemActions({
   if (isSuspended) {
     return (
       <div className="flex items-center gap-2">
-        {error && <span className="text-danger text-xs mr-2">{error}</span>}
+        {error && <span className="text-danger text-xs mr-2">{tr(error)}</span>}
         <button
           type="button"
           onClick={handleResume}
@@ -209,7 +209,7 @@ export function ActivityItemActions({
 
   return (
     <div className="flex flex-col gap-1 w-full sm:w-auto">
-      {error && <span className="text-danger text-xs text-right">{error}</span>}
+      {error && <span className="text-danger text-xs text-right">{tr(error)}</span>}
       <div className="flex items-center justify-end gap-1.5 flex-wrap">
         <Link
           href={`/activities/${activityId}/edit`}

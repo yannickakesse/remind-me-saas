@@ -1,4 +1,5 @@
 "use client";
+import { msg } from "@/lib/i18n/catalog";
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -38,216 +39,216 @@ interface PageGuideInfo {
 
 const PAGE_GUIDES: Record<string, PageGuideInfo> = {
   "/dashboard": {
-    title: "Guide du Tableau de Bord",
-    subtitle: "Votre vue d'ensemble quotidienne",
+    title: msg("Guide du Tableau de Bord"),
+    subtitle: msg("Votre vue d'ensemble quotidienne"),
     icon: Briefcase,
     summary:
-      "Le tableau de bord synthétise toutes vos activités, vos priorités du jour et la santé réelle de votre trésorerie en une seule page.",
+      msg("Le tableau de bord synthétise toutes vos activités, vos priorités du jour et la santé réelle de votre trésorerie en une seule page."),
     tips: [
       {
-        title: "Solde Net Réel",
-        desc: "Correspond exactement aux Revenus Encaissés moins les Dépenses Réellement Payées. Les revenus en attente n'augmentent pas votre solde.",
+        title: msg("Solde Net Réel"),
+        desc: msg("Correspond exactement aux Revenus Encaissés moins les Dépenses Réellement Payées. Les revenus en attente n'augmentent pas votre solde."),
       },
       {
-        title: "Panneau 'Nécessite votre attention'",
-        desc: "Regroupe automatiquement vos factures échues, tâches en retard et alertes de conflits d'horaires.",
+        title: msg("Panneau 'Nécessite votre attention'"),
+        desc: msg("Regroupe automatiquement vos factures échues, tâches en retard et alertes de conflits d'horaires."),
       },
       {
         title: "Actions Rapides",
-        desc: "Permet de créer directement une activité, une tâche ou une dépense sans changer de page.",
+        desc: msg("Permet de créer directement une activité, une tâche ou une dépense sans changer de page."),
       },
     ],
   },
   "/activities": {
-    title: "Guide des Activités",
-    subtitle: "Vos différents métiers et missions",
+    title: msg("Guide des Activités"),
+    subtitle: msg("Vos différents métiers et missions"),
     icon: Briefcase,
     summary:
-      "Une activité représente un travail salarié, un contrat freelance, une entreprise ou un coaching avec sa propre rémunération et fréquence.",
+      msg("Une activité représente un travail salarié, un contrat freelance, une entreprise ou un coaching avec sa propre rémunération et fréquence."),
     tips: [
       {
-        title: "Couleur de Référence",
-        desc: "La couleur choisie lors de la création de l'activité colore automatiquement tous vos créneaux dans le calendrier.",
+        title: msg("Couleur de Référence"),
+        desc: msg("La couleur choisie lors de la création de l'activité colore automatiquement tous vos créneaux dans le calendrier."),
       },
       {
-        title: "Fréquence & Rémunération",
-        desc: "Détermine comment Remind Me anticipe vos paiements attendus (mensuel, par session, par projet, horaire).",
+        title: msg("Fréquence & Rémunération"),
+        desc: msg("Détermine comment Remind Me anticipe vos paiements attendus (mensuel, par session, par projet, horaire)."),
       },
       {
-        title: "Modification du Montant",
-        desc: "Si vous ajustez le prix d'une activité, la nouvelle valeur s'applique aux futurs paiements sans altérer l'historique déjà encaissé.",
+        title: msg("Modification du Montant"),
+        desc: msg("Si vous ajustez le prix d'une activité, la nouvelle valeur s'applique aux futurs paiements sans altérer l'historique déjà encaissé."),
       },
     ],
   },
   "/calendar": {
-    title: "Guide du Calendrier & Planning",
-    subtitle: "4 vues pour maîtriser votre temps",
+    title: msg("Guide du Calendrier & Planning"),
+    subtitle: msg("4 vues pour maîtriser votre temps"),
     icon: Calendar,
     summary:
-      "Retrouvez toutes vos séances d'activités récurrentes, vos rendez-vous et les échéances de vos dépenses programmées.",
+      msg("Retrouvez toutes vos séances d'activités récurrentes, vos rendez-vous et les échéances de vos dépenses programmées."),
     tips: [
       {
-        title: "Détection des Conflits",
-        desc: "Si deux activités se chevauchent dans le même créneau, un badge rouge d'alerte s'affiche instantanément.",
+        title: msg("Détection des Conflits"),
+        desc: msg("Si deux activités se chevauchent dans le même créneau, un badge rouge d'alerte s'affiche instantanément."),
       },
       {
-        title: "Dépenses Programmées dans le Planning",
-        desc: "Vos factures à payer apparaissent sous forme de pastilles ambrées à la date de leur échéance.",
+        title: msg("Dépenses Programmées dans le Planning"),
+        desc: msg("Vos factures à payer apparaissent sous forme de pastilles ambrées à la date de leur échéance."),
       },
       {
         title: "Navigation Rapide",
-        desc: "Basculez entre les vues Mois, Semaine, Jour et Agenda selon votre besoin de granularité.",
+        desc: msg("Basculez entre les vues Mois, Semaine, Jour et Agenda selon votre besoin de granularité."),
       },
     ],
   },
   "/tasks": {
-    title: "Guide des Tâches & Rappels",
-    subtitle: "Gestion agile de vos priorités",
+    title: msg("Guide des Tâches & Rappels"),
+    subtitle: msg("Gestion agile de vos priorités"),
     icon: CheckSquare,
     summary:
-      "Suivez vos tâches par activité et niveau d'urgence. Programmez des rappels sonores pour ne jamais être pris au dépourvu.",
+      msg("Suivez vos tâches par activité et niveau d'urgence. Programmez des rappels sonores pour ne jamais être pris au dépourvu."),
     tips: [
       {
-        title: "Cycle de Vie",
-        desc: "Une tâche commence 'À faire', passe 'En cours' quand vous la débutez, et devient 'Terminée' une fois achevée.",
+        title: msg("Cycle de Vie"),
+        desc: msg("Une tâche commence 'À faire', passe 'En cours' quand vous la débutez, et devient 'Terminée' une fois achevée."),
       },
       {
-        title: "Rappels Sonores Réels",
-        desc: "Définissez un rappel (ex: 15 min avant) : vous entendrez le carillon Remind Me et recevrez une notification au moment exact.",
+        title: msg("Rappels Sonores Réels"),
+        desc: msg("Définissez un rappel (ex: 15 min avant) : vous entendrez le carillon Remind Me et recevrez une notification au moment exact."),
       },
       {
         title: "Bouton Reporter",
-        desc: "Décalez rapidement une tâche à demain ou à la semaine prochaine en 1 clic.",
+        desc: msg("Décalez rapidement une tâche à demain ou à la semaine prochaine en 1 clic."),
       },
     ],
   },
   "/finances": {
-    title: "Guide Financier & Trésorerie",
-    subtitle: "Le modèle financier de Remind Me",
+    title: msg("Guide Financier & Trésorerie"),
+    subtitle: msg("Le modèle financier de Remind Me"),
     icon: Wallet,
     summary:
-      "Un suivi financier ultra-rigoureux qui bannit les approximations : distinguez l'attendu du réel en toute clarté.",
+      msg("Un suivi financier ultra-rigoureux qui bannit les approximations : distinguez l'attendu du réel en toute clarté."),
     tips: [
       {
-        title: "Revenu Attendu vs Encaissé",
-        desc: "Un revenu prévu n'est pas encore acquis. Cliquez sur '✓ Marquer comme encaissé' pour l'ajouter au solde net réel.",
+        title: msg("Revenu Attendu vs Encaissé"),
+        desc: msg("Un revenu prévu n'est pas encore acquis. Cliquez sur '✓ Marquer comme encaissé' pour l'ajouter au solde net réel."),
       },
       {
-        title: "Dépense Programmée vs Payée",
-        desc: "Prévoyez vos loyers et abonnements. Dès qu'une dépense est décaissée, marquez-la comme payée pour l'inscrire à l'historique.",
+        title: msg("Dépense Programmée vs Payée"),
+        desc: msg("Prévoyez vos loyers et abonnements. Dès qu'une dépense est décaissée, marquez-la comme payée pour l'inscrire à l'historique."),
       },
       {
         title: "Budgets Mensuels",
-        desc: "Fixez des plafonds par catégorie. La jauge progresse uniquement au rythme de vos dépenses réellement payées.",
+        desc: msg("Fixez des plafonds par catégorie. La jauge progresse uniquement au rythme de vos dépenses réellement payées."),
       },
       {
-        title: "Épargne & Objectifs",
-        desc: "Mettez de l'argent de côté pour vos projets et suivez votre pourcentage de progression.",
+        title: msg("Épargne & Objectifs"),
+        desc: msg("Mettez de l'argent de côté pour vos projets et suivez votre pourcentage de progression."),
       },
     ],
   },
   "/clients": {
     title: "Guide Clients & Organisations",
-    subtitle: "Votre carnet d'adresses professionnel",
+    subtitle: msg("Votre carnet d'adresses professionnel"),
     icon: Users,
     summary:
-      "Structurez vos relations d'affaires : créez des organisations (entreprises clientes, écoles, institutions) et rattachez-y des contacts.",
+      msg("Structurez vos relations d'affaires : créez des organisations (entreprises clientes, écoles, institutions) et rattachez-y des contacts."),
     tips: [
       {
-        title: "Liaison aux Activités",
-        desc: "Associez vos activités à un client pour regrouper tous les revenus et rapports liés à ce partenaire.",
+        title: msg("Liaison aux Activités"),
+        desc: msg("Associez vos activités à un client pour regrouper tous les revenus et rapports liés à ce partenaire."),
       },
       {
-        title: "Coordonnées Directes",
-        desc: "Numéros de téléphone et emails accessibles en un clic pour vos relances.",
+        title: msg("Coordonnées Directes"),
+        desc: msg("Numéros de téléphone et emails accessibles en un clic pour vos relances."),
       },
     ],
   },
   "/reports": {
-    title: "Guide des Rapports & Rentabilité",
-    subtitle: "Analysez la valeur de votre temps",
+    title: msg("Guide des Rapports & Rentabilité"),
+    subtitle: msg("Analysez la valeur de votre temps"),
     icon: BarChart3,
     summary:
-      "Générez des analyses détaillées basées exclusivement sur vos transactions réelles et évaluez votre rentabilité horaire.",
+      msg("Générez des analyses détaillées basées exclusivement sur vos transactions réelles et évaluez votre rentabilité horaire."),
     tips: [
       {
-        title: "Rentabilité par Heure Investie",
-        desc: "Calcule vos revenus réels divisés par les heures enregistrées dans le calendrier pour identifier vos activités les plus profitables.",
+        title: msg("Rentabilité par Heure Investie"),
+        desc: msg("Calcule vos revenus réels divisés par les heures enregistrées dans le calendrier pour identifier vos activités les plus profitables."),
       },
       {
-        title: "Évolution Mensuelle Réelle",
-        desc: "Graphiques précis mois par mois construits à partir des dates effectives d'encaissement et de paiement.",
+        title: msg("Évolution Mensuelle Réelle"),
+        desc: msg("Graphiques précis mois par mois construits à partir des dates effectives d'encaissement et de paiement."),
       },
       {
         title: "Export CSV Conforme",
-        desc: "Téléchargez l'intégralité de vos écritures comptables avec métadonnées et synthèse certifiée.",
+        desc: msg("Téléchargez l'intégralité de vos écritures comptables avec métadonnées et synthèse certifiée."),
       },
     ],
   },
   "/notifications": {
-    title: "Guide des Notifications & Alertes",
-    subtitle: "Restez informé en temps réel",
+    title: msg("Guide des Notifications & Alertes"),
+    subtitle: msg("Restez informé en temps réel"),
     icon: Bell,
     summary:
-      "Le centre de notifications centralise toutes vos alertes : tâches à échéance, séances du planning, rappels de paiement et factures échues.",
+      msg("Le centre de notifications centralise toutes vos alertes : tâches à échéance, séances du planning, rappels de paiement et factures échues."),
     tips: [
       {
         title: "Alertes Audio & Carillon",
-        desc: "Une notification sonore retentit à l'heure précise configurée pour vos rappels de tâches et rendez-vous.",
+        desc: msg("Une notification sonore retentit à l'heure précise configurée pour vos rappels de tâches et rendez-vous."),
       },
       {
         title: "Actions Directes",
-        desc: "Validez un encaissement ou marquez une tâche comme terminée directement depuis le volet des notifications.",
+        desc: msg("Validez un encaissement ou marquez une tâche comme terminée directement depuis le volet des notifications."),
       },
       {
         title: "Push Mobile",
-        desc: "Activez les notifications push dans vos Paramètres pour recevoir vos alertes même lorsque l'application est en arrière-plan.",
+        desc: msg("Activez les notifications push dans vos Paramètres pour recevoir vos alertes même lorsque l'application est en arrière-plan."),
       },
     ],
   },
   "/settings": {
-    title: "Guide des Paramètres",
+    title: msg("Guide des Paramètres"),
     subtitle: "Personnalisation & Notifications",
     icon: Bell,
     summary:
-      "Gérez vos informations de compte, vos devises par défaut, vos fuseaux horaires et configurez vos canaux de notifications.",
+      msg("Gérez vos informations de compte, vos devises par défaut, vos fuseaux horaires et configurez vos canaux de notifications."),
     tips: [
       {
         title: "Alertes Audio & Push Mobile",
-        desc: "Testez votre sonnerie avec le bouton dédié et activez les notifications push pour vos appareils mobiles.",
+        desc: msg("Testez votre sonnerie avec le bouton dédié et activez les notifications push pour vos appareils mobiles."),
       },
       {
-        title: "Thème & Apparence",
-        desc: "Basculez entre le mode Clair, Sombre ou Système selon votre préférence visuelle.",
+        title: msg("Thème & Apparence"),
+        desc: msg("Basculez entre le mode Clair, Sombre ou Système selon votre préférence visuelle."),
       },
       {
-        title: "Relance du Guide Interactif",
-        desc: "Vous pouvez à tout moment relancer la visite guidée pour vous remémorer les fonctionnalités de l'application.",
+        title: msg("Relance du Guide Interactif"),
+        desc: msg("Vous pouvez à tout moment relancer la visite guidée pour vous remémorer les fonctionnalités de l'application."),
       },
     ],
   },
   "/messages": {
-    title: "Guide de l'Inbox",
-    subtitle: "Votre boîte de traitement financier",
+    title: msg("Guide de l'Inbox"),
+    subtitle: msg("Votre boîte de traitement financier"),
     icon: Inbox,
     summary:
-      "L'Inbox est votre espace d'action prioritaire pour traiter les flux financiers : encaissement des paiements attendus, règlement des dépenses échues, suivi des récurrences et bilans certifiés.",
+      msg("L'Inbox est votre espace d'action prioritaire pour traiter les flux financiers : encaissement des paiements attendus, règlement des dépenses échues, suivi des récurrences et bilans certifiés."),
     tips: [
       {
-        title: "Rôle par rapport aux Notifications",
-        desc: "Le Centre de notifications vous alerte sur toute l'application. L'Inbox est réservée au traitement actif et aux encaissements/règlements financiers.",
+        title: msg("Rôle par rapport aux Notifications"),
+        desc: msg("Le Centre de notifications vous alerte sur toute l'application. L'Inbox est réservée au traitement actif et aux encaissements/règlements financiers."),
       },
       {
-        title: "Les 3 Onglets : À traiter, En attente, Historique",
-        desc: "'À traiter' regroupe ce qui nécessite une décision immédiate. 'En attente' affiche les futures échéances. 'Historique' conserve la trace vérifiable.",
+        title: msg("Les 3 Onglets : À traiter, En attente, Historique"),
+        desc: msg("'À traiter' regroupe ce qui nécessite une décision immédiate. 'En attente' affiche les futures échéances. 'Historique' conserve la trace vérifiable."),
       },
       {
-        title: "Actions Directes en 1 Clic",
-        desc: "Cliquez sur 'Encaisser' ou 'Régler' pour mettre à jour la base réelle et résoudre automatiquement les notifications associées sans doublon.",
+        title: msg("Actions Directes en 1 Clic"),
+        desc: msg("Cliquez sur 'Encaisser' ou 'Régler' pour mettre à jour la base réelle et résoudre automatiquement les notifications associées sans doublon."),
       },
       {
         title: "Report Souple (+7j)",
-        desc: "Si un paiement prend du retard ou si vous différez une dépense, utilisez le bouton '+7j' pour ajuster l'échéance.",
+        desc: msg("Si un paiement prend du retard ou si vous différez une dépense, utilisez le bouton '+7j' pour ajuster l'échéance."),
       },
     ],
   },
@@ -402,11 +403,11 @@ export function HelpCenterButton() {
                     >
                       <span>{t("help.modal_title")}</span>
                       <span className="hidden sm:inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full bg-gold/15 text-gold-dark dark:text-gold-light border border-gold/30">
-                        {currentGuide.title}
+                        {tr(currentGuide.title)}
                       </span>
                     </h2>
                     <p className="text-[11px] sm:text-xs text-ink-500 truncate">
-                      {currentGuide.subtitle}
+                      {tr(currentGuide.subtitle)}
                     </p>
                   </div>
                 </div>
@@ -472,7 +473,7 @@ export function HelpCenterButton() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-2 text-gold-dark dark:text-gold-light font-bold text-sm">
                           <GuideIcon className="h-4 w-4 shrink-0" />
-                          <span>{currentGuide.title}</span>
+                          <span>{tr(currentGuide.title)}</span>
                         </div>
                         <button
                           type="button"
@@ -484,7 +485,7 @@ export function HelpCenterButton() {
                         </button>
                       </div>
                       <p className="text-xs text-ink-700 dark:text-ink-300 leading-relaxed">
-                        {currentGuide.summary}
+                        {tr(currentGuide.summary)}
                       </p>
                     </div>
 
@@ -500,10 +501,10 @@ export function HelpCenterButton() {
                           >
                             <p className="text-xs font-bold text-ink-950 flex items-center gap-2">
                               <CheckCircle2 className="h-3.5 w-3.5 text-positive shrink-0" />
-                              <span>{tip.title}</span>
+                              <span>{tr(tip.title)}</span>
                             </p>
                             <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed pl-5.5">
-                              {tip.desc}
+                              {tr(tip.desc)}
                             </p>
                           </div>
                         ))}

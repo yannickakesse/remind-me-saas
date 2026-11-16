@@ -56,7 +56,7 @@ export default function RegisterPage() {
       const errors: Record<string, string> = {};
       for (const issue of result.error.issues) {
         if (issue.path[0] === "fullName") {
-          errors.lastName = "Le nom est obligatoire (au moins 2 caractères)";
+          errors.lastName = tr("Le nom est obligatoire (au moins 2 caractères)");
         } else {
           errors[issue.path[0] as string] = issue.message;
         }
@@ -83,15 +83,15 @@ export default function RegisterPage() {
     if (error) {
       setFormError(
         error.message.includes("already registered")
-          ? "Un compte existe déjà avec cette adresse e-mail."
-          : "Une erreur est survenue lors de la création du compte. Réessayez dans un instant."
+          ? tr("Un compte existe déjà avec cette adresse e-mail.")
+          : tr("Une erreur est survenue lors de la création du compte. Réessayez dans un instant.")
       );
       return;
     }
 
     // Détection Supabase : Si l'utilisateur existe déjà, identities est vide []
     if (authData?.user && authData.user.identities && authData.user.identities.length === 0) {
-      setFormError("Un compte existe déjà avec cette adresse e-mail. Veuillez vous connecter directement.");
+      setFormError(tr("Un compte existe déjà avec cette adresse e-mail. Veuillez vous connecter directement."));
       return;
     }
 
@@ -395,7 +395,7 @@ export default function RegisterPage() {
 
             {formError ? (
               <div role="alert" className="rounded-xl bg-danger-soft p-3 text-xs text-danger font-medium">
-                {formError}
+                {tr(formError)}
               </div>
             ) : null}
 

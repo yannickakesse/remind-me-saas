@@ -146,14 +146,14 @@ export function ActivitiesClientView({
       if (res && res.error) {
         toastPush(res.error, "error");
       } else {
-        toastPush("Félicitations ! L'activité est désormais enregistrée comme routine.", "success");
+        toastPush(tr("Félicitations ! L'activité est désormais enregistrée comme routine."), "success");
         setActivities((prev) =>
           prev.map((a) => (a.id === activityId ? { ...a, engagement_nature: "routine" } : a))
         );
         setSuggestions((prev) => prev.filter((s) => s.activityId !== activityId && s.id !== suggestionId));
       }
     } catch {
-      toastPush("Erreur lors de la mise à jour de la routine.", "error");
+      toastPush(tr("Erreur lors de la mise à jour de la routine."), "error");
     } finally {
       setEvolutionProcessingId(null);
     }
@@ -167,11 +167,11 @@ export function ActivitiesClientView({
       if (res && res.error) {
         toastPush(res.error, "error");
       } else {
-        toastPush("Choix enregistré : nous respecterons votre décision avec un répit de 30 jours.", "info");
+        toastPush(tr("Choix enregistré : nous respecterons votre décision avec un répit de 30 jours."), "info");
         setSuggestions((prev) => prev.filter((s) => s.activityId !== activityId && s.id !== suggestionId));
       }
     } catch {
-      toastPush("Erreur lors de l'enregistrement de votre choix.", "error");
+      toastPush(tr("Erreur lors de l'enregistrement de votre choix."), "error");
     } finally {
       setEvolutionProcessingId(null);
     }
@@ -190,16 +190,16 @@ export function ActivitiesClientView({
       const res = await deleteActivity(activityId);
       if (res && res.error) {
         setActivities(previousActivities);
-        setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur de suppression" }));
+        setErrorMap((prev) => ({ ...prev, [activityId]: res.error || tr("Erreur de suppression") }));
         setConfirmDeleteId(activityId);
       } else {
-        toastPush("Activité supprimée avec succès.", "success");
+        toastPush(tr("Activité supprimée avec succès."), "success");
       }
     } catch (err: any) {
       setActivities(previousActivities);
       setErrorMap((prev) => ({
         ...prev,
-        [activityId]: err?.message || "Erreur lors de la suppression.",
+        [activityId]: err?.message || tr("Erreur lors de la suppression."),
       }));
       setConfirmDeleteId(activityId);
     } finally {
@@ -221,15 +221,15 @@ export function ActivitiesClientView({
       const res = await suspendActivity(activityId);
       if (res && res.error) {
         setActivities(previousActivities);
-        setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur lors de la suspension" }));
+        setErrorMap((prev) => ({ ...prev, [activityId]: res.error || tr("Erreur lors de la suspension") }));
       } else {
-        toastPush("Activité mise en pause.", "info");
+        toastPush(tr("Activité mise en pause."), "info");
       }
     } catch (err: any) {
       setActivities(previousActivities);
       setErrorMap((prev) => ({
         ...prev,
-        [activityId]: err?.message || "Erreur lors de la suspension.",
+        [activityId]: err?.message || tr("Erreur lors de la suspension."),
       }));
     } finally {
       setSuspendingId(null);
@@ -250,15 +250,15 @@ export function ActivitiesClientView({
       const res = await resumeActivity(activityId);
       if (res && res.error) {
         setActivities(previousActivities);
-        setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur lors de la réactivation" }));
+        setErrorMap((prev) => ({ ...prev, [activityId]: res.error || tr("Erreur lors de la réactivation") }));
       } else {
-        toastPush("Activité réactivée avec succès.", "success");
+        toastPush(tr("Activité réactivée avec succès."), "success");
       }
     } catch (err: any) {
       setActivities(previousActivities);
       setErrorMap((prev) => ({
         ...prev,
-        [activityId]: err?.message || "Erreur lors de la réactivation.",
+        [activityId]: err?.message || tr("Erreur lors de la réactivation."),
       }));
     } finally {
       setResumingId(null);
@@ -281,13 +281,13 @@ export function ActivitiesClientView({
         setActivities(previousActivities);
         setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur d'archivage" }));
       } else {
-        toastPush("Activité archivée (historique financier préservé).", "info");
+        toastPush(tr("Activité archivée (historique financier préservé)."), "info");
       }
     } catch (err: any) {
       setActivities(previousActivities);
       setErrorMap((prev) => ({
         ...prev,
-        [activityId]: err?.message || "Erreur lors de l'archivage.",
+        [activityId]: err?.message || tr("Erreur lors de l'archivage."),
       }));
     } finally {
       setArchivingId(null);
@@ -308,15 +308,15 @@ export function ActivitiesClientView({
       const res = await restoreActivity(activityId);
       if (res && res.error) {
         setActivities(previousActivities);
-        setErrorMap((prev) => ({ ...prev, [activityId]: res.error || "Erreur de restauration" }));
+        setErrorMap((prev) => ({ ...prev, [activityId]: res.error || tr("Erreur de restauration") }));
       } else {
-        toastPush("Activité restaurée.", "success");
+        toastPush(tr("Activité restaurée."), "success");
       }
     } catch (err: any) {
       setActivities(previousActivities);
       setErrorMap((prev) => ({
         ...prev,
-        [activityId]: err?.message || "Erreur lors de la restauration.",
+        [activityId]: err?.message || tr("Erreur lors de la restauration."),
       }));
     } finally {
       setRestoringId(null);
@@ -331,14 +331,14 @@ export function ActivitiesClientView({
       if (res && res.error) {
         toastPush(res.error, "error");
       } else {
-        toastPush("Activité maintenue expirée sans renouvellement.", "info");
+        toastPush(tr("Activité maintenue expirée sans renouvellement."), "info");
         setActivities((prev) =>
           prev.map((a) => (a.id === activityId ? { ...a, status: "expired" } : a))
         );
         setRenewingActivity(null);
       }
     } catch {
-      toastPush("Erreur lors de la confirmation du statut expiré.", "error");
+      toastPush(tr("Erreur lors de la confirmation du statut expiré."), "error");
     } finally {
       setRenewSubmitting(false);
     }
@@ -354,7 +354,7 @@ export function ActivitiesClientView({
     const newAmount = newAmountStr ? Number(newAmountStr) : undefined;
 
     if (!newEndDate) {
-      toastPush("Veuillez sélectionner une nouvelle date de fin.", "error");
+      toastPush(tr("Veuillez sélectionner une nouvelle date de fin."), "error");
       return;
     }
 
@@ -398,7 +398,7 @@ export function ActivitiesClientView({
         setRenewingActivity(null);
       }
     } catch (err: any) {
-      toastPush(err?.message || "Erreur lors du renouvellement.", "error");
+      toastPush(err?.message || tr("Erreur lors du renouvellement."), "error");
     } finally {
       setRenewSubmitting(false);
     }

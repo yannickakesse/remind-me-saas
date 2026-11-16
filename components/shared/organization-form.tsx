@@ -1,6 +1,7 @@
 "use client";
 
 
+import { msg } from "@/lib/i18n/catalog";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -19,7 +20,7 @@ interface OrganizationFormProps {
   submitLabel?: string;
 }
 
-export function OrganizationForm({ action, initial, submitLabel = "Créer l'organisation" }: OrganizationFormProps) {
+export function OrganizationForm({ action, initial, submitLabel = msg("Créer l'organisation") }: OrganizationFormProps) {
   const { tr } = useLanguage();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export function OrganizationForm({ action, initial, submitLabel = "Créer l'orga
         return;
       }
       setSubmitting(false);
-      setError(err instanceof Error ? err.message : "Une erreur est survenue.");
+      setError(err instanceof Error ? err.message : tr("Une erreur est survenue."));
     }
   }
 
@@ -79,7 +80,7 @@ export function OrganizationForm({ action, initial, submitLabel = "Créer l'orga
 
       {error ? (
         <p role="alert" className="text-sm text-danger">
-          {error}
+          {tr(error)}
         </p>
       ) : null}
 
@@ -92,7 +93,7 @@ export function OrganizationForm({ action, initial, submitLabel = "Créer l'orga
         >
           {tr("Annuler")}</button>
         <PrimaryButton type="submit" loading={submitting} disabled={submitting} className="w-auto px-6">
-          {submitting ? "Enregistrement..." : submitLabel}
+          {submitting ? tr("Enregistrement...") : tr(submitLabel)}
         </PrimaryButton>
       </div>
     </form>

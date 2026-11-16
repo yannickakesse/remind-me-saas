@@ -118,10 +118,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   <div className="flex-1 min-w-0 pr-1">
                     {t.title && (
                       <h5 className="font-bold text-xs uppercase tracking-wider mb-1 opacity-90 truncate">
-                        {t.title}
+                        {tr(t.title)}
                       </h5>
                     )}
-                    <p className="text-xs sm:text-sm font-medium leading-relaxed break-words">{t.message}</p>
+                    <p className="text-xs sm:text-sm font-medium leading-relaxed break-words">{tr(t.message)}</p>
                     {t.action && (
                       <div className="mt-2.5 flex items-center gap-2">
                         <button
@@ -135,7 +135,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                           }}
                           className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white/95 dark:bg-ink-900 text-ink-950 dark:text-white border border-black/10 dark:border-white/15 shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer tap-active flex items-center gap-1.5"
                         >
-                          ✓ {t.action.label}
+                          ✓ {tr(t.action.label)}
                         </button>
                       </div>
                     )}

@@ -1,3 +1,4 @@
+import { msg } from "@/lib/i18n/catalog";
 export const DEFAULT_VAPID_PUBLIC_KEY =
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
   "BE8s3t5tTHgVP9A-V5tKLq4vUCcFNU1m8bhDtFgwil3ORODoMl4Jmbo47rhMaTcNemPJb8c588D7oqj6VqYtVBU";
@@ -55,7 +56,7 @@ export async function subscribeToPushReliably(): Promise<PushSubscription> {
     try {
       await navigator.serviceWorker.register("/sw.js", { scope: "/" });
     } catch {}
-    const reg = await withTimeout(navigator.serviceWorker.ready, 15000, "Le service de notifications du navigateur ne répond pas. Rechargez la page puis réessayez.");
+    const reg = await withTimeout(navigator.serviceWorker.ready, 15000, msg("Le service de notifications du navigateur ne répond pas. Rechargez la page puis réessayez."));
     const key = urlBase64ToUint8Array(await fetchServerVapidKey());
 
     const existing = await reg.pushManager.getSubscription();
@@ -66,7 +67,7 @@ export async function subscribeToPushReliably(): Promise<PushSubscription> {
     return await withTimeout(
       reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }),
       20000,
-      "Le navigateur n'a pas répondu à la demande d'abonnement. Réessayez dans un instant."
+      msg("Le navigateur n'a pas répondu à la demande d'abonnement. Réessayez dans un instant.")
     );
   } catch (err: any) {
     const name = err?.name || "";

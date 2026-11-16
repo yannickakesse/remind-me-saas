@@ -14,6 +14,7 @@ interface FieldProps {
 }
 
 export function Field({ label, htmlFor, error, children }: FieldProps) {
+  const { tr } = useLanguage();
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={htmlFor} className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white transition-colors">
@@ -22,7 +23,7 @@ export function Field({ label, htmlFor, error, children }: FieldProps) {
       {children}
       {error ? (
         <p role="alert" className="text-xs font-semibold text-danger">
-          {error}
+          {tr(error)}
         </p>
       ) : null}
     </div>

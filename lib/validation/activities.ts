@@ -1,7 +1,8 @@
+import { msg } from "@/lib/i18n/catalog";
 import { z } from "zod";
 
 export const ACTIVITY_TYPES = [
-  { value: "salaried_job", label: "Emploi salarié" },
+  { value: "salaried_job", label: msg("Emploi salarié") },
   { value: "freelance", label: "Freelance" },
   { value: "contract", label: "Contrat" },
   { value: "mission", label: "Mission" },
@@ -10,14 +11,14 @@ export const ACTIVITY_TYPES = [
   { value: "coaching", label: "Coaching" },
   { value: "consulting", label: "Consultation" },
   { value: "teaching", label: "Cours" },
-  { value: "side_activity", label: "Activité secondaire" },
+  { value: "side_activity", label: msg("Activité secondaire") },
   { value: "other", label: "Autre" },
 ] as const;
 
 export const COMPENSATION_FREQUENCIES = [
   { value: "hourly", label: "Horaire" },
   { value: "daily", label: "Journalier" },
-  { value: "per_session", label: "Par séance" },
+  { value: "per_session", label: msg("Par séance") },
   { value: "weekly", label: "Hebdomadaire" },
   { value: "biweekly", label: "Bihebdomadaire" },
   { value: "monthly", label: "Mensuel" },
@@ -36,30 +37,30 @@ export const WEEKDAYS = [
 ] as const;
 
 export const VALIDITY_TYPES = [
-  { value: "permanent", label: "Permanent (durée indéfinie)" },
-  { value: "temporary", label: "Engagement temporaire (date de fin obligatoire)" },
+  { value: "permanent", label: msg("Permanent (durée indéfinie)") },
+  { value: "temporary", label: msg("Engagement temporaire (date de fin obligatoire)") },
 ] as const;
 
 export const ENGAGEMENT_NATURES = [
-  { value: "routine", label: "Routine ou activité ordinaire" },
+  { value: "routine", label: msg("Routine ou activité ordinaire") },
   { value: "temporary_engagement", label: "Engagement temporaire" },
-  { value: "important", label: "Activité importante (priorité haute)" },
-  { value: "one_time", label: "Activité ponctuelle" },
+  { value: "important", label: msg("Activité importante (priorité haute)") },
+  { value: "one_time", label: msg("Activité ponctuelle") },
 ] as const;
 
 export const REMINDER_PREFERENCES = [
-  { value: "recommended", label: "Recommandation Remind Me (Recommandé)" },
-  { value: "enabled", label: "Recevoir les rappels" },
-  { value: "disabled", label: "Ne pas recevoir de rappels" },
+  { value: "recommended", label: msg("Recommandation Remind Me (Recommandé)") },
+  { value: "enabled", label: msg("Recevoir les rappels") },
+  { value: "disabled", label: msg("Ne pas recevoir de rappels") },
 ] as const;
 
 // ---- Infos générales -------------------------------------------------------
 export const activityInfoSchema = z.object({
-  name: z.string().min(2, "Le nom est requis"),
+  name: z.string().min(2, msg("Le nom est requis")),
   description: z.string().optional(),
   // Domaine de l'activité (lib/activities/classification.ts) : « secteur », « secteur/type », « other:texte » ou « unspecified »
   category: z.string().max(120).optional(),
-  color: z.string().min(1, "Choisissez une couleur"),
+  color: z.string().min(1, msg("Choisissez une couleur")),
   type: z.enum([
     "salaried_job", "freelance", "contract", "mission", "own_business",
     "commerce", "coaching", "consulting", "teaching", "side_activity", "other",
@@ -103,7 +104,7 @@ export const activityScheduleEntrySchema = z
     recurrence: z.enum(["weekly", "biweekly", "custom"]).default("weekly"),
   })
   .refine((data) => data.endTime > data.startTime, {
-    message: "L'heure de fin doit être après l'heure de début",
+    message: msg("L'heure de fin doit être après l'heure de début"),
     path: ["endTime"],
   });
 
@@ -124,7 +125,7 @@ export const activityCompensationSchema = z.object({
     }
     return val;
   }, z.coerce.number().min(0, "Montant invalide")),
-  currency: z.string().length(3, "Sélectionnez une devise"),
+  currency: z.string().length(3, msg("Sélectionnez une devise")),
   frequency: z.enum([
     "hourly", "daily", "per_session", "weekly", "biweekly", "monthly",
     "per_project", "one_time",
@@ -133,7 +134,7 @@ export const activityCompensationSchema = z.object({
     if (val === "" || val === undefined || val === null) return undefined;
     const num = Number(val);
     return isNaN(num) ? undefined : num;
-  }, z.number().min(1, "Le jour doit être compris entre 1 et 31").max(31, "Le jour doit être compris entre 1 et 31").optional()),
+  }, z.number().min(1, msg("Le jour doit être compris entre 1 et 31")).max(31, msg("Le jour doit être compris entre 1 et 31")).optional()),
   paymentTerms: z.string().optional(),
 });
 
@@ -154,7 +155,7 @@ export const activityFormSchema = z
       return true;
     },
     {
-      message: "Une date de fin est obligatoire pour un engagement temporaire.",
+      message: msg("Une date de fin est obligatoire pour un engagement temporaire."),
       path: ["schedule", "endDate"],
     }
   )
@@ -171,7 +172,7 @@ export const activityFormSchema = z
       return true;
     },
     {
-      message: "La date de fin doit être égale ou postérieure à la date de début.",
+      message: msg("La date de fin doit être égale ou postérieure à la date de début."),
       path: ["schedule", "endDate"],
     }
   );
@@ -180,7 +181,7 @@ export type ActivityFormInput = z.infer<typeof activityFormSchema>;
 
 export function activityTypeLabel(type?: string | null): string {
   switch (type) {
-    case "salaried_job": return "Emploi salarié";
+    case "salaried_job": return msg("Emploi salarié");
     case "freelance": return "Freelance";
     case "contract": return "Contrat";
     case "mission": return "Mission";
@@ -189,7 +190,7 @@ export function activityTypeLabel(type?: string | null): string {
     case "coaching": return "Coaching";
     case "consulting": return "Consulting";
     case "teaching": return "Enseignement";
-    case "side_activity": return "Activité secondaire";
+    case "side_activity": return msg("Activité secondaire");
     default: return "Autre";
   }
 }

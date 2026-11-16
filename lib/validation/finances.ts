@@ -42,13 +42,13 @@ export const FINANCE_STATUS_STYLES: Record<FinanceStatus, { border: string; text
 export function financeStatusLabel(status: FinanceStatus, kind: "income" | "expense"): string {
   switch (status) {
     case "received":
-      return "Reçu";
+      return msg("Reçu");
     case "paid":
-      return "Payée";
+      return msg("Payée");
     case "overdue":
-      return "En retard";
+      return msg("En retard");
     case "expected":
-      return "Ce mois-ci (prévu)";
+      return msg("Ce mois-ci (prévu)");
     case "future":
       return "Plus tard";
   }
@@ -77,28 +77,28 @@ export function expenseCategoryLabel(cat?: string | null): string {
 export const PAYMENT_METHODS = [
   { value: "bank_transfer", label: "Virement bancaire" },
   { value: "card", label: "Carte bancaire" },
-  { value: "cash", label: "Espèces" },
+  { value: "cash", label: msg("Espèces") },
   { value: "mobile_money", label: "Mobile Money (Wave, Orange, etc.)" },
-  { value: "check", label: "Chèque" },
+  { value: "check", label: msg("Chèque") },
   { value: "other", label: "Autre moyen" },
 ] as const;
 
 export const SAVINGS_CATEGORIES = [
-  { value: "emergency_fund", label: "Fonds d'urgence / Sécurité" },
+  { value: "emergency_fund", label: msg("Fonds d'urgence / Sécurité") },
   { value: "business", label: "Projet professionnel / Business" },
   { value: "real_estate", label: "Immobilier / Logement" },
-  { value: "car", label: "Véhicule / Transport" },
+  { value: "car", label: msg("Véhicule / Transport") },
   { value: "vacation", label: "Vacances & Voyages" },
-  { value: "education", label: "Formation & Éducation" },
-  { value: "equipment", label: "Matériel informatique & Pro" },
+  { value: "education", label: msg("Formation & Éducation") },
+  { value: "equipment", label: msg("Matériel informatique & Pro") },
   { value: "other", label: "Autre projet" },
 ] as const;
 
 export const incomeFormSchema = z.object({
   activityId: z.string().uuid().optional().or(z.literal("")),
-  label: z.string().min(1, "Le libellé est requis"),
-  amount: z.coerce.number().positive("Le montant doit être strictement positif"),
-  currency: z.string().min(1, "La devise est requise"),
+  label: z.string().min(1, msg("Le libellé est requis")),
+  amount: z.coerce.number().positive(msg("Le montant doit être strictement positif")),
+  currency: z.string().min(1, msg("La devise est requise")),
   incomeType: z
     .enum(["salary", "contract", "freelance", "sales", "coaching", "dividend", "other", "bonus", "windfall", "gift", "refund", "exceptional_other"])
     .default("contract"),
@@ -111,10 +111,10 @@ export const incomeFormSchema = z.object({
 
 export const expenseFormSchema = z.object({
   activityId: z.string().uuid().optional().or(z.literal("")),
-  label: z.string().min(1, "Le libellé est requis"),
+  label: z.string().min(1, msg("Le libellé est requis")),
   category: z.string().default("other"),
-  amount: z.coerce.number().positive("Le montant doit être strictement positif"),
-  currency: z.string().min(1, "La devise est requise"),
+  amount: z.coerce.number().positive(msg("Le montant doit être strictement positif")),
+  currency: z.string().min(1, msg("La devise est requise")),
   expenseType: z.enum(["personal", "business", "mixed"]).default("personal"),
   businessPercentage: z.coerce.number().min(0).max(100).default(100),
   merchant: z.string().optional(),
@@ -124,14 +124,14 @@ export const expenseFormSchema = z.object({
 });
 
 export const budgetFormSchema = z.object({
-  category: z.string().min(1, "La catégorie est requise"),
-  monthlyLimit: z.coerce.number().positive("La limite mensuelle doit être strictement positive"),
-  currency: z.string().min(1, "La devise est requise"),
+  category: z.string().min(1, msg("La catégorie est requise")),
+  monthlyLimit: z.coerce.number().positive(msg("La limite mensuelle doit être strictement positive")),
+  currency: z.string().min(1, msg("La devise est requise")),
   notes: z.string().optional(),
 });
 
 export const savingsGoalFormSchema = z.object({
-  name: z.string().min(1, "Le nom de l'objectif est requis"),
+  name: z.string().min(1, msg("Le nom de l'objectif est requis")),
   category: z.enum([
     "emergency_fund",
     "vacation",
@@ -142,21 +142,21 @@ export const savingsGoalFormSchema = z.object({
     "equipment",
     "other",
   ]).default("other"),
-  targetAmount: z.coerce.number().positive("Le montant cible doit être strictement positif"),
-  currentAmount: z.coerce.number().min(0, "Le montant initial ne peut être négatif").default(0),
-  currency: z.string().min(1, "La devise est requise"),
+  targetAmount: z.coerce.number().positive(msg("Le montant cible doit être strictement positif")),
+  currentAmount: z.coerce.number().min(0, msg("Le montant initial ne peut être négatif")).default(0),
+  currency: z.string().min(1, msg("La devise est requise")),
   deadline: z.string().optional().or(z.literal("")),
   monthlyContribution: z.coerce.number().min(0).optional(),
   notes: z.string().optional(),
 });
 
 export const scheduledExpenseFormSchema = z.object({
-  name: z.string().min(1, "Le nom est requis"),
-  category: z.string().min(1, "La catégorie est requise").default("utilities"),
-  amount: z.coerce.number().positive("Le montant doit être supérieur à 0"),
-  currency: z.string().min(1, "La devise est requise").default("XOF"),
+  name: z.string().min(1, msg("Le nom est requis")),
+  category: z.string().min(1, msg("La catégorie est requise")).default("utilities"),
+  amount: z.coerce.number().positive(msg("Le montant doit être supérieur à 0")),
+  currency: z.string().min(1, msg("La devise est requise")).default("XOF"),
   frequency: z.enum(["once", "daily", "weekly", "monthly", "quarterly", "yearly"]).default("monthly"),
-  nextDueDate: z.string().min(1, "La date d'échéance est requise"),
+  nextDueDate: z.string().min(1, msg("La date d'échéance est requise")),
   activityId: z.string().uuid().optional().or(z.literal("")),
   merchant: z.string().optional(),
   paymentMethod: z.string().optional(),

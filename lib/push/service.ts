@@ -1,3 +1,4 @@
+import { msg } from "@/lib/i18n/catalog";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { dispatchWebPush, type WebPushPayload } from "./webpush";
@@ -166,7 +167,7 @@ export async function retryFailedPushes(
     if (!notif || notif.read_at || ["resolved", "dismissed", "actioned"].includes(String(notif.status))) {
       await (supabaseAdmin as any)
         .from("notification_logs")
-        .update({ attempts: maxAttempts, updated_at: new Date().toISOString(), error_message: "Relance annulée : rappel déjà traité" })
+        .update({ attempts: maxAttempts, updated_at: new Date().toISOString(), error_message: msg("Relance annulée : rappel déjà traité") })
         .eq("id", log.id);
       continue;
     }
@@ -193,7 +194,7 @@ export async function retryFailedPushes(
       if (!ok)
         errorMessage =
           res.total === 0
-            ? "Aucun appareil inscrit"
+            ? msg("Aucun appareil inscrit")
             : `${res.failed} push failure(s)${res.lastError ? ` — ${res.lastError}` : ""}`;
     } catch (err: any) {
       errorMessage = err?.message || "Erreur d'envoi";

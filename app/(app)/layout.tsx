@@ -16,6 +16,7 @@ import { RemindMeLogo } from "@/components/landing/remindme-logo";
 import { PwaRegistrar } from "@/components/pwa/pwa-registrar";
 import { BackgroundPreloader } from "@/components/pwa/background-preloader";
 import { DailyWelcomeBanner } from "@/components/notifications/daily-welcome-banner";
+import { WelcomeVideoModal } from "@/components/motion/welcome-video-modal";
 import { VoicePushPrompt } from "@/components/notifications/voice-push-prompt";
 import { MobileSwipeNavigator } from "@/components/navigation/mobile-swipe-navigator";
 import { OfflineSyncIndicator } from "@/components/offline/offline-sync-indicator";
@@ -118,6 +119,7 @@ export default async function AppLayout({
       <PwaRegistrar />
       <OfflineSyncIndicator />
       <BackgroundPreloader />
+      <WelcomeVideoModal />
       <DailyWelcomeBanner
         userName={profile?.full_name}
         timezone={timezone}

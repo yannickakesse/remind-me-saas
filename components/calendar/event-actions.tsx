@@ -283,7 +283,7 @@ export function EventActions({
 
       {error ? (
         <div role="alert" className="rounded-xl bg-danger-soft p-3 text-xs text-danger font-medium">
-          {error}
+          {tr(error)}
         </div>
       ) : null}
     </div>

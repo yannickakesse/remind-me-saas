@@ -15,6 +15,8 @@ import ts from "typescript";
 
 const ROOT = process.cwd();
 const DRY = process.argv.includes("--dry");
+// --only=en,es,de : ne traduit que ces langues (quota DeepL limité) ; les autres seront faites plus tard
+const ONLY = (process.argv.find((a) => a.startsWith("--only=")) || "").slice(7).split(",").filter(Boolean);
 const CATALOG_DIR = path.join(ROOT, "lib/i18n/catalog");
 
 // Code DeepL par langue de l'app (le hindi n'est pas proposé par DeepL : il reprend l'anglais)
@@ -138,6 +140,7 @@ async function main() {
   let totalChars = 0;
   const plan = {};
   for (const [locale] of Object.entries(TARGETS)) {
+    if (ONLY.length && !ONLY.includes(locale)) continue;
     const catalog = readCatalog(locale);
     // Le français est la langue source : seuls les textes sans accent (souvent anglais) y sont envoyés
     const missing = sources.filter(
@@ -159,7 +162,7 @@ async function main() {
 
   for (const [locale, target] of Object.entries(TARGETS)) {
     const missing = plan[locale];
-    if (!missing.length) continue;
+    if (!missing || !missing.length) continue;
     const catalog = readCatalog(locale);
     for (let i = 0; i < missing.length; i += 40) {
       const batch = missing.slice(i, i + 40);

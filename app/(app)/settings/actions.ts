@@ -1,4 +1,5 @@
 "use server";
+import { msg } from "@/lib/i18n/catalog";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -57,7 +58,7 @@ export async function updateAvatarUrl(url: string | null) {
 
   let safeUrl: string | null = null;
   if (url) {
-    const parsed = z.string().url().refine((val) => /^https?:\/\//i.test(val), "URL non sécurisée").safeParse(url);
+    const parsed = z.string().url().refine((val) => /^https?:\/\//i.test(val), msg("URL non sécurisée")).safeParse(url);
     if (!parsed.success) {
       throw new Error("Format d'URL d'avatar invalide.");
     }
@@ -204,7 +205,7 @@ export async function changePassword(formData: FormData) {
   }
 
   const { error } = await supabase.auth.updateUser({ password: parsed.data.newPassword });
-  if (error) throw new Error(error.message || "Impossible de changer le mot de passe. Réessayez.");
+  if (error) throw new Error(error.message || msg("Impossible de changer le mot de passe. Réessayez."));
 }
 
 export async function signOutEverywhere() {
@@ -290,7 +291,7 @@ export async function updateSubscriptionPlan(newPlan: "free" | "pro" | "premium"
     const { user } = await requireUser();
 
     if (newPlan !== "free" && process.env.ENABLE_PLAN_DEMO !== "true") {
-      return { success: false, error: "Ce forfait s'active uniquement après paiement." };
+      return { success: false, error: msg("Ce forfait s'active uniquement après paiement.") };
     }
 
     // Écriture côté serveur uniquement (les utilisateurs n'ont plus le droit d'écrire cette table)
@@ -317,7 +318,7 @@ export async function updateSubscriptionPlan(newPlan: "free" | "pro" | "premium"
     return { success: true, plan: newPlan };
   } catch (err: any) {
     console.error("[updateSubscriptionPlan] Erreur:", err?.message);
-    return { success: false, error: err?.message || "Impossible de mettre à jour le forfait." };
+    return { success: false, error: err?.message || msg("Impossible de mettre à jour le forfait.") };
   }
 }
 
@@ -355,7 +356,7 @@ export async function initiateBictorysCheckoutAction(params: {
     console.error("[initiateBictorysCheckoutAction] Erreur:", err);
     return {
       success: false,
-      error: err?.message || "Impossible d'initialiser le paiement Bictorys.",
+      error: err?.message || msg("Impossible d'initialiser le paiement Bictorys."),
     };
   }
 }

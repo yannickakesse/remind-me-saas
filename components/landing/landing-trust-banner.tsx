@@ -9,27 +9,27 @@ export function LandingTrustBanner() {
   const pillars = [
     {
       icon: Layers,
-      title: "Pluriactivité unifiée",
-      desc: "Activités permanentes ou temporaires, taux horaires et engagements réunis dans un seul espace.",
-      tag: "Multi-rôles",
+      title: tr("Pluriactivité unifiée"),
+      desc: tr("Activités permanentes ou temporaires, taux horaires et engagements réunis dans un seul espace."),
+      tag: tr("Multi-rôles"),
     },
     {
       icon: CalendarCheck2,
       title: "Calendrier sans collision",
-      desc: "Détection préventive des chevauchements d'horaires entre tous vos engagements professionnels.",
-      tag: "Zéro conflit",
+      desc: tr("Détection préventive des chevauchements d'horaires entre tous vos engagements professionnels."),
+      tag: tr("Zéro conflit"),
     },
     {
       icon: Wallet,
-      title: "Trésorerie en temps réel",
-      desc: "Revenus encaissés, factures en attente et charges programmées avec calcul de rentabilité nette.",
-      tag: "Clarté financière",
+      title: tr("Trésorerie en temps réel"),
+      desc: tr("Revenus encaissés, factures en attente et charges programmées avec calcul de rentabilité nette."),
+      tag: tr("Clarté financière"),
     },
     {
       icon: BellRing,
       title: "Alertes contextuelles",
-      desc: "Rappels étagés (J-7, J-3, J-1, Jour J) configurés selon vos priorités et vos heures calmes.",
-      tag: "Sérénité mentale",
+      desc: tr("Rappels étagés (J-7, J-3, J-1, Jour J) configurés selon vos priorités et vos heures calmes."),
+      tag: tr("Sérénité mentale"),
     },
   ];
 

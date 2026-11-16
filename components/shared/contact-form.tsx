@@ -1,6 +1,7 @@
 "use client";
 
 
+import { msg } from "@/lib/i18n/catalog";
 import { useLanguage } from "@/components/i18n/language-provider";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -24,7 +25,7 @@ export function ContactForm({
   organizations,
   action,
   initial,
-  submitLabel = "Créer le contact",
+  submitLabel = msg("Créer le contact"),
 }: ContactFormProps) {
   const { tr } = useLanguage();
   const router = useRouter();
@@ -50,7 +51,7 @@ export function ContactForm({
         return;
       }
       setSubmitting(false);
-      setError(err instanceof Error ? err.message : "Une erreur est survenue.");
+      setError(err instanceof Error ? err.message : tr("Une erreur est survenue."));
     }
   }
 
@@ -97,7 +98,7 @@ export function ContactForm({
 
       {error ? (
         <p role="alert" className="text-sm text-danger">
-          {error}
+          {tr(error)}
         </p>
       ) : null}
 
@@ -110,7 +111,7 @@ export function ContactForm({
         >
           {tr("Annuler")}</button>
         <PrimaryButton type="submit" loading={submitting} disabled={submitting} className="w-auto px-6">
-          {submitting ? "Enregistrement..." : submitLabel}
+          {submitting ? tr("Enregistrement...") : tr(submitLabel)}
         </PrimaryButton>
       </div>
     </form>
