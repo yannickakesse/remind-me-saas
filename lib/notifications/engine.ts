@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DateTime } from "luxon";
 import type { Database, NotificationPriority, SupportedLocale } from "@/types/database";
-import { t, formatCurrencyLocale, formatDateLocale } from "@/lib/i18n/format";
+import { t, formatCurrencyLocale, formatDayDateLocale, formatShortDayLocale } from "@/lib/i18n/format";
 import { getTrFor } from "@/lib/i18n/catalog";
 import { sendNotificationEmail } from "@/lib/email/service";
 import { sendNotificationPush } from "@/lib/push/service";
@@ -437,7 +437,7 @@ export async function evaluateSmartReminders(
       const daysDiff = Math.floor(dueDT.diff(userNow.startOf("day"), "days").days);
 
       const formattedAmount = formatCurrencyLocale(Number(inc.amount), inc.currency, locale);
-      const formattedDate = formatDateLocale(inc.due_date, locale, userTimezone);
+      const formattedDate = formatDayDateLocale(inc.due_date, locale, userTimezone);
       const activityName = (inc as any).activities?.name || inc.label;
 
       if (daysDiff === 7 || daysDiff === 3 || daysDiff === 2) {
@@ -465,7 +465,7 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "income",
           entity_id: inc.id,
-          title: tr("Paiement prévu dans {daysDiff} jours : {label}", { daysDiff, label: inc.label }),
+          title: tr("Paiement prévu le {day} : {label}", { day: formatShortDayLocale(inc.due_date, locale, userTimezone), label: inc.label }),
           body: bodyText,
           title_key: "notif.payment_upcoming.title",
           body_key: "notif.payment_upcoming.body",
@@ -603,7 +603,7 @@ export async function evaluateSmartReminders(
       const dueDT = DateTime.fromISO(exp.due_date, { zone: userTimezone }).startOf("day");
       const daysDiff = Math.floor(dueDT.diff(userNow.startOf("day"), "days").days);
       const formattedAmount = formatCurrencyLocale(Number(exp.amount), exp.currency, locale);
-      const formattedDate = formatDateLocale(exp.due_date, locale, userTimezone);
+      const formattedDate = formatDayDateLocale(exp.due_date, locale, userTimezone);
 
       if (daysDiff === 7 || daysDiff === 3 || daysDiff === 2 || daysDiff === 1) {
         candidates.push({
@@ -616,7 +616,7 @@ export async function evaluateSmartReminders(
           entity_id: exp.id,
           title: daysDiff === 1
             ? tr("Facture à régler demain : {label}", { label: exp.label })
-            : tr("Facture à régler dans {daysDiff} jours : {label}", { daysDiff, label: exp.label }),
+            : tr("Facture à régler le {day} : {label}", { day: formatShortDayLocale(exp.due_date, locale, userTimezone), label: exp.label }),
           body: tr("Une dépense de {formattedAmount} pour « {label} » arrive à échéance le {formattedDate}.", { formattedAmount, label: exp.label, formattedDate }),
           metadata: { amount: exp.amount, currency: exp.currency, label: exp.label, days: daysDiff },
           link: `/finances?tab=expenses`,
@@ -694,8 +694,8 @@ export async function evaluateSmartReminders(
           entity_id: sch.id,
           title: daysDiff === 1
             ? tr("Facture programmée pour demain : {name}", { name: sch.name })
-            : tr("Facture programmée dans {daysDiff} jours : {name}", { daysDiff, name: sch.name }),
-          body: tr("L'échéance de {formattedAmount} pour « {name} » est prévue le {v2}.", { formattedAmount, name: sch.name, v2: formatDateLocale(sch.next_due_date, locale, userTimezone) }),
+            : tr("Facture programmée le {day} : {name}", { day: formatShortDayLocale(sch.next_due_date, locale, userTimezone), name: sch.name }),
+          body: tr("L'échéance de {formattedAmount} pour « {name} » est prévue le {v2}.", { formattedAmount, name: sch.name, v2: formatDayDateLocale(sch.next_due_date, locale, userTimezone) }),
           metadata: { amount: sch.amount, currency: sch.currency, label: sch.name, frequency: sch.frequency, days: daysDiff },
           link: `/finances?tab=scheduled`,
           scheduled_at: userNow.toISO()!,
@@ -856,7 +856,7 @@ export async function evaluateSmartReminders(
           title: daysAgo >= 1
             ? tr("⚠️ Séance non confirmée ({daysAgo}j de retard) : {title}", { daysAgo, title: evt.title })
             : tr("Séance passée : {title}", { title: evt.title }),
-          body: tr("Votre séance « {title} » du {v1} est terminée. Confirmez sa réalisation.", { title: evt.title, v1: formatDateLocale(eventStart.toISODate()!, locale, userTimezone) }),
+          body: tr("Votre séance « {title} » du {v1} est terminée. Confirmez sa réalisation.", { title: evt.title, v1: formatDayDateLocale(eventStart.toISODate()!, locale, userTimezone) }),
           metadata: {
             title: evt.title,
             starts_at: evt.starts_at,
@@ -1041,8 +1041,8 @@ export async function evaluateSmartReminders(
           status: "unread",
           entity_type: "activity",
           entity_id: evt.id,
-          title: tr("Séance dans {daysDiff} jours : {title}", { daysDiff, title: evt.title }),
-          body: tr("Votre séance « {title} » aura lieu le {v1} à {v2}.", { title: evt.title, v1: formatDateLocale(eventStart.toISODate()!, locale, userTimezone), v2: eventStart.toFormat("HH:mm") }),
+          title: tr("Séance le {day} : {title}", { day: formatShortDayLocale(eventStart.toISODate()!, locale, userTimezone), title: evt.title }),
+          body: tr("Votre séance « {title} » aura lieu le {v1} à {v2}.", { title: evt.title, v1: formatDayDateLocale(eventStart.toISODate()!, locale, userTimezone), v2: eventStart.toFormat("HH:mm") }),
           metadata: { title: evt.title, starts_at: evt.starts_at, days: daysDiff, voice_reminder_enabled: voiceReminderEnabled, voice_text: voiceText },
           link: `/calendar/${evt.id}`,
           scheduled_at: userNow.toISO()!,
@@ -1099,8 +1099,8 @@ export async function evaluateSmartReminders(
           : tr("Activité arrivant à terme : {name}", { name: act.name });
 
         const body = isTempEngagement
-          ? tr("Votre engagement temporaire « {name} » arrive à échéance dans {daysDiff} jour(s) (le {v2}). Vous pouvez le prolonger ou le renouveler.", { name: act.name, daysDiff, v2: formatDateLocale(act.end_date, locale, userTimezone) })
-          : tr("L'activité « {name} » arrive à échéance dans {daysDiff} jour(s) (le {v2}).", { name: act.name, daysDiff, v2: formatDateLocale(act.end_date, locale, userTimezone) });
+          ? tr("Votre engagement temporaire « {name} » arrive à échéance dans {daysDiff} jour(s) (le {v2}). Vous pouvez le prolonger ou le renouveler.", { name: act.name, daysDiff, v2: formatDayDateLocale(act.end_date, locale, userTimezone) })
+          : tr("L'activité « {name} » arrive à échéance dans {daysDiff} jour(s) (le {v2}).", { name: act.name, daysDiff, v2: formatDayDateLocale(act.end_date, locale, userTimezone) });
 
         candidates.push({
           user_id: userId,
@@ -1136,7 +1136,7 @@ export async function evaluateSmartReminders(
           entity_type: "activity",
           entity_id: act.id,
           title: tr("Activité arrivée à expiration : {name}", { name: act.name }),
-          body: tr("L'activité « {name} » est arrivée à expiration le {v1}. Vous pouvez la prolonger ou l'archiver.", { name: act.name, v1: formatDateLocale(act.end_date, locale, userTimezone) }),
+          body: tr("L'activité « {name} » est arrivée à expiration le {v1}. Vous pouvez la prolonger ou l'archiver.", { name: act.name, v1: formatDayDateLocale(act.end_date, locale, userTimezone) }),
           metadata: {
             activityId: act.id,
             name: act.name,
@@ -1203,7 +1203,7 @@ export async function evaluateSmartReminders(
           title: overdueDays === 1
             ? tr("Tâche en retard (1 jour) : {title}", { title: tsk.title })
             : tr("Tâche toujours en retard ({overdueDays}j) : {title}", { overdueDays, title: tsk.title }),
-          body: tr("La tâche « {title} » est en retard depuis le {v1}.", { title: tsk.title, v1: formatDateLocale(tsk.due_date, locale, userTimezone) }),
+          body: tr("La tâche « {title} » est en retard depuis le {v1}.", { title: tsk.title, v1: formatDayDateLocale(tsk.due_date, locale, userTimezone) }),
           metadata: { title: tsk.title, priority: tsk.priority, overdueDays },
           link: `/tasks/${tsk.id}/edit`,
           scheduled_at: userNow.toISO()!,
@@ -1261,8 +1261,8 @@ export async function evaluateSmartReminders(
           entity_id: tsk.id,
           title: daysDiff === 1
             ? tr("Tâche pour demain : {title}", { title: tsk.title })
-            : tr("Tâche dans {daysDiff} jours : {title}", { daysDiff, title: tsk.title }),
-          body: tr("La tâche « {title} » est prévue pour le {v1}.", { title: tsk.title, v1: formatDateLocale(tsk.due_date, locale, userTimezone) }),
+            : tr("Tâche le {day} : {title}", { day: formatShortDayLocale(tsk.due_date, locale, userTimezone), title: tsk.title }),
+          body: tr("La tâche « {title} » est prévue pour le {v1}.", { title: tsk.title, v1: formatDayDateLocale(tsk.due_date, locale, userTimezone) }),
           metadata: { title: tsk.title, priority: tsk.priority, days: daysDiff },
           link: `/tasks/${tsk.id}/edit`,
           scheduled_at: userNow.toISO()!,
@@ -1318,7 +1318,7 @@ export async function evaluateSmartReminders(
             title: tr("Étape en retard : {title}", { title: st.title }),
             body: tr("Cette étape de « {goal} » était prévue le {date}. Vous pouvez la terminer, la décaler ou réorganiser votre programme.", {
               goal: goalTitle(st.goal_id),
-              date: formatDateLocale(st.due_date, locale, userTimezone),
+              date: formatDayDateLocale(st.due_date, locale, userTimezone),
             }),
             metadata: { goal_id: st.goal_id, step_id: st.id },
             link: `/goals/${st.goal_id}`, scheduled_at: userNow.toISO()!,

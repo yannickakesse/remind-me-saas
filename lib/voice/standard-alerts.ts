@@ -31,7 +31,7 @@ export type StandardAlertKey =
   | "task_in_3d" | "task_in_2d" | "task_tomorrow" | "task_today" | "task_soon" | "task_overdue"
   | "contract_in_7d" | "contract_in_3d" | "contract_in_2d" | "contract_tomorrow" | "contract_expired"
   | "morning_briefing" | "evening_checkin" | "generic"
-  | "welcome_morning" | "welcome_afternoon" | "welcome_evening"
+  | "welcome_morning" | "welcome_afternoon" | "welcome_evening" | "welcome_back"
   | "goal_step_today" | "goal_step_overdue" | "goal_deadline_week" | "goal_deadline_tomorrow"
   | "goal_inactive" | "goal_reminder" | "goal_milestone" | "goal_completed";
 
@@ -142,6 +142,7 @@ export function resolveStandardAlertKey(info?: ReminderAlertInfo | null): Standa
     case "welcome_morning":
     case "welcome_afternoon":
     case "welcome_evening":
+    case "welcome_back":
       return kind as StandardAlertKey;
     case "goal_step_due_today":
       return "goal_step_today";
@@ -167,7 +168,7 @@ export function getStandardAlertSrc(key: StandardAlertKey, language: string): st
   const lang = (language || "").slice(0, 2).toLowerCase();
   if (!(STANDARD_ALERT_LANGUAGES as readonly string[]).includes(lang)) return null;
   if (key.startsWith("welcome_") && !WELCOME_ALERT_LANGUAGES.has(lang)) {
-    if (key !== "welcome_morning") return null;
+    if (key !== "welcome_morning") return null; // « Bon retour » et après-midi / soir : pas encore dans cette langue
     return `/voice/alerts/morning_briefing-${lang}.mp3?v=${STANDARD_ALERTS_VERSION}`;
   }
   const file = NOT_YET_RECORDED.has(key) && !GOAL_ALERT_LANGUAGES.has(lang) ? "generic" : key;

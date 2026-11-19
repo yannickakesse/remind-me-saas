@@ -210,6 +210,11 @@ test("accueil « bon retour » : bon moment de la journée, jamais une phrase in
   assert.equal(getStandardAlertSrc("welcome_morning", "fr"), "/voice/alerts/welcome_morning-fr.mp3?v=1");
   assert.equal(getStandardAlertSrc("welcome_afternoon", "fr"), "/voice/alerts/welcome_afternoon-fr.mp3?v=1");
   assert.equal(getStandardAlertSrc("welcome_evening", "fr"), "/voice/alerts/welcome_evening-fr.mp3?v=1");
+  // Retours suivants dans la même période : seulement « Bon retour sur Remind Me. »
+  assert.equal(resolveStandardAlertKey({ kind: "welcome_back" }), "welcome_back");
+  assert.equal(getStandardAlertSrc("welcome_back", "fr"), "/voice/alerts/welcome_back-fr.mp3?v=1");
+  assert.equal(getStandardAlertSrc("welcome_back", "en"), null);
+  assert.ok(existsSync(path.join(process.cwd(), "public/voice/alerts/welcome_back-fr.mp3")));
   // Autres langues pas encore enregistrées : « Good morning… programme » le matin, rien ensuite
   assert.equal(getStandardAlertSrc("welcome_morning", "en"), "/voice/alerts/morning_briefing-en.mp3?v=1");
   assert.equal(getStandardAlertSrc("welcome_evening", "en"), null);

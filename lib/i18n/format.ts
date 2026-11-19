@@ -57,6 +57,22 @@ export function formatDateLocale(
 }
 
 /**
+ * Date avec le jour de la semaine (« mar. 24 nov. 2026 », « Tue, Nov 24, 2026 ») : plus parlante qu'une date seule.
+ */
+export function formatDayDateLocale(dateISO: string, locale: SupportedLocale = "en", timezone = "UTC"): string {
+  const dt = DateTime.fromISO(dateISO, { zone: timezone }).setLocale(locale);
+  if (!dt.isValid) return dateISO;
+  return dt.toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY);
+}
+
+/** Jour + date courts pour un titre (« mar. 24 nov. », « Tue 24 Nov »). */
+export function formatShortDayLocale(dateISO: string, locale: SupportedLocale = "en", timezone = "UTC"): string {
+  const dt = DateTime.fromISO(dateISO, { zone: timezone }).setLocale(locale);
+  if (!dt.isValid) return dateISO;
+  return dt.toFormat("ccc d LLL");
+}
+
+/**
  * Formate une date et heure ISO selon la locale et le fuseau horaire.
  */
 export function formatDateTimeLocale(

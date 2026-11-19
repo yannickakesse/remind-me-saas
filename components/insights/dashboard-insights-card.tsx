@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight, Lightbulb } from "lucide-react";
 import { msg } from "@/lib/i18n/catalog";
 import type { Insight, InsightsOverview } from "@/lib/intelligence/rules";
-import { LevelPill, SURFACE, TEXT_MAIN, TEXT_MUTED, TEXT_SOFT, useInsightFormat } from "./insight-list";
+import { SURFACE, TEXT_MAIN, TEXT_MUTED, TEXT_SOFT, useInsightFormat } from "./insight-list";
 
 type Counts = { urgent: number; attention: number; info: number; total: number };
 
@@ -108,7 +108,7 @@ function WeekChart({ overview }: { overview: InsightsOverview }) {
       <div className="relative" onMouseLeave={() => setActive(null)}>
         {/* Seuil de 8 h (journée chargée) : repère discret */}
         <div className="pointer-events-none absolute inset-x-0 border-t border-dashed border-[#D6D1C6] dark:border-white/15" style={{ top: H + 18 - threshold }}>
-          <span className={`absolute -top-[9px] right-0 bg-white px-1 text-[10px] dark:bg-[#1A2332] ${TEXT_MUTED}`}>8 h</span>
+          <span className={`absolute -top-[9px] left-0 bg-white pr-1 text-[10px] dark:bg-[#1A2332] ${TEXT_MUTED}`}>8 h</span>
         </div>
 
         <div className="grid grid-cols-7 gap-1.5 sm:gap-2" role="list" aria-label={tr("Charge des 7 prochains jours")}>
@@ -176,8 +176,17 @@ function WeekChart({ overview }: { overview: InsightsOverview }) {
 export function DashboardInsightsCard({ insights, overview, counts }: { insights: Insight[]; overview: InsightsOverview; counts: Counts }) {
   const f = useInsightFormat();
   const { tr } = f;
-  const top = insights.filter((i) => i.level !== "insufficient").slice(0, 3);
+  const top = insights.filter((i) => i.level !== "insufficient");
   const toTreat = counts.urgent + counts.attention;
+  // Une seule phrase : le conseil de la semaine, sinon le point le plus important, sinon « semaine équilibrée »
+  const first = top[0];
+  const insight = overview.advice
+    ? tr(overview.advice.text, f.params(overview.advice.params))
+    : first
+      ? f.when(first)
+        ? tr("En priorité : {title} ({when}).", { title: f.text(first).title, when: f.when(first)! })
+        : tr("En priorité : {title}.", { title: f.text(first).title })
+      : tr("Votre semaine est équilibrée : rien ne demande d'attention particulière.");
   return (
     <section className={`space-y-4 rounded-2xl p-4 sm:p-5 ${SURFACE}`}>
       <div className="flex items-center justify-between gap-3">
@@ -187,12 +196,6 @@ export function DashboardInsightsCard({ insights, overview, counts }: { insights
             {toTreat > 0 ? tr("{n} point(s) à traiter", { n: toTreat }) : tr("Rien d'urgent à traiter")}
           </p>
         </div>
-        <Link
-          href="/insights"
-          className="inline-flex h-10 shrink-0 items-center gap-1 rounded-xl px-3 text-sm font-semibold text-[#214E3B] hover:bg-[#EEF3EF] dark:text-[#7FD1AE] dark:hover:bg-[#16302A]"
-        >
-          {tr("Tout voir")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </Link>
       </div>
 
       <div className="grid gap-5 md:grid-cols-[150px_minmax(0,1fr)] md:gap-6">
@@ -200,35 +203,19 @@ export function DashboardInsightsCard({ insights, overview, counts }: { insights
         <WeekChart overview={overview} />
       </div>
 
-      {top.length > 0 && (
-        <ul className="divide-y divide-[#EFECE5] border-t border-[#EFECE5] dark:divide-[#2A3647] dark:border-[#2A3647]">
-          {top.map((i) => {
-            const t = f.text(i);
-            const when = f.when(i);
-            const row = (
-              <div className="flex items-center gap-3 py-2.5">
-                <LevelPill level={i.level} />
-                <div className="min-w-0 flex-1">
-                  <p className={`truncate text-sm font-medium ${TEXT_MAIN}`}>{t.title}</p>
-                  {when && <p className={`truncate text-xs ${TEXT_MUTED}`}>{when}</p>}
-                </div>
-                {i.link && <ChevronRight className={`h-4 w-4 shrink-0 ${TEXT_MUTED}`} aria-hidden="true" />}
-              </div>
-            );
-            return (
-              <li key={i.id}>
-                {i.link ? (
-                  <Link href={i.link} className="-mx-2 block rounded-xl px-2 hover:bg-[#F7F6F2] dark:hover:bg-[#111822]">
-                    {row}
-                  </Link>
-                ) : (
-                  row
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {/* Interprétation en une phrase + accès à l'analyse complète (le détail des points vit sur la page Analyses) */}
+      <div className="flex flex-col gap-3 rounded-xl bg-[#EEF3EF] p-3.5 dark:bg-[#16302A] sm:flex-row sm:items-center sm:gap-4">
+        <p className="flex min-w-0 flex-1 gap-2.5 text-[13px] leading-relaxed text-[#1F3A2E] dark:text-[#E4EFE9]">
+          <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-[#214E3B] dark:text-[#7FD1AE]" aria-hidden="true" />
+          <span>{insight}</span>
+        </p>
+        <Link
+          href="/insights"
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#214E3B] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#1A3F30] dark:bg-[#2F6B52] dark:hover:bg-[#357A5D]"
+        >
+          {tr("Voir l'analyse détaillée")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      </div>
     </section>
   );
 }

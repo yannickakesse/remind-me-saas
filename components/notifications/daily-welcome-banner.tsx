@@ -32,6 +32,11 @@ const VISITED_BEFORE_KEY = "remindme_visited_before";
 /** Instant où l'utilisateur a quitté l'application (onglet caché, autre application, onglet fermé). */
 const LEFT_AT_KEY = "remindme_left_at";
 /**
+ * Période déjà saluée (« 2026-11-19:welcome_evening ») : « Bonjour / Bon après-midi / Bonsoir » une seule fois
+ * par période ; aux retours suivants de la même période, seulement « Bon retour sur Remind Me ».
+ */
+const GREETED_PERIOD_KEY = "remindme_greeted_period";
+/**
  * Absence minimale avant un nouvel accueil : chaque retour dans l'application après au moins
  * 15 secondes ailleurs est accueilli (message au centre + voix) ; un simple coup d'œil à une
  * notification ne déclenche rien.
@@ -109,7 +114,14 @@ export function DailyWelcomeBanner({
     const localPrefs = getLocalVoiceSettings();
     const voiceLang = (localPrefs.voice_language || locale || "fr") as string;
     // Même horloge que le texte (fuseau du profil) : la voix dit toujours le bon moment de la journée
-    voiceKeyRef.current = welcomeAlertKey(hour);
+    const periodKey = welcomeAlertKey(hour);
+    const periodStamp = `${userNow.toISODate()}:${periodKey}`;
+    let firstOfPeriod = true;
+    try {
+      firstOfPeriod = localStorage.getItem(GREETED_PERIOD_KEY) !== periodStamp;
+      localStorage.setItem(GREETED_PERIOD_KEY, periodStamp);
+    } catch {}
+    voiceKeyRef.current = firstOfPeriod ? periodKey : "welcome_back";
 
     // Textes d'accueil : une seule source française, traduite dans la langue de l'application (12 langues)
     // Avec ou sans prénom : deux phrases complètes (une traduction ne peut pas « coller » un prénom vide)
@@ -136,6 +148,9 @@ export function DailyWelcomeBanner({
       greeting = g(msg("Bonsoir {name} ! Bienvenue sur Remind Me."), msg("Bonsoir ! Bienvenue sur Remind Me."));
       sub = tr("Votre espace est synchronisé en toute sérénité.");
     }
+    // Déjà salué pendant cette période : seulement « Bon retour sur Remind Me »
+    if (!firstOfPeriod) greeting = g(msg("Bon retour sur Remind Me, {name} !"), msg("Bon retour sur Remind Me !"));
+
     setGreetingText(greeting);
     setSubtitleText(sub);
     setGreetingIcon(icon);

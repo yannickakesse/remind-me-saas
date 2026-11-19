@@ -1295,8 +1295,6 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
                     const expanded = expandedGroups.has(groupId);
                     const [one, many] = GROUP_LABELS[key] ?? [tr("élément"), tr("éléments")];
                     const pending = items.filter((n) => !describe(n).isResolved).length;
-                    const dots = items.map((n) => describe(n).dot).filter(Boolean) as string[];
-                    const topDot = dots.find((d) => d === "bg-danger") ?? dots[0];
 
                     return (
                       <div key={groupId}>
@@ -1311,24 +1309,26 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
                             })
                           }
                           aria-expanded={expanded}
-                          className="flex w-full items-center gap-3 px-4 py-3.5 text-left rounded-3xl hover:bg-ink-100/40 dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
+                          // Bandeau déroulant (pas un message) : nombre, état, et une flèche bien visible
+                          className="m-2 flex w-[calc(100%-1rem)] items-center gap-3 rounded-2xl border border-[#F0D9A8] bg-[#FBEFD9] px-3.5 py-2.5 text-left transition-colors hover:bg-[#F8E6C4] dark:border-[#F2B84B]/25 dark:bg-[#F2B84B]/10 dark:hover:bg-[#F2B84B]/15 cursor-pointer"
                         >
-                          <span className="relative shrink-0">
-                            {renderCategoryIcon(items[0]!.category, items[0]!.kind, pending === 0)}
-                            {topDot && (
-                              <span className={`absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-canvas-raised dark:ring-ink-900 ${topDot}`} />
-                            )}
+                          <span className="inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-full bg-[#B97A0C] px-2 text-sm font-bold tabular-nums text-white dark:bg-[#BB882A]">
+                            {items.length}
                           </span>
                           <span className="min-w-0 flex-1">
-                            <span className="block text-sm font-semibold text-ink-950 dark:text-white">
-                              {items.length} {items.length > 1 ? many : one}
+                            <span className="block text-sm font-semibold text-[#5C3D06] dark:text-[#F2C46B]">
+                              {items.length > 1 ? many : one}
+                              {pending > 0 && (
+                                <span className="font-medium text-[#8A5A00] dark:text-[#E9C27A]"> · {tr("{n} à traiter", { n: pending })}</span>
+                              )}
                             </span>
-                            <span className="block truncate text-xs text-ink-600 dark:text-ink-400">
-                              {items.map((n) => n.title).slice(0, 2).join(" · ")}
-                              {items.length > 2 ? "…" : ""}
+                            <span className="block text-xs text-[#8A5A00] dark:text-[#E9C27A]">
+                              {expanded ? tr("Toucher pour masquer") : tr("Toucher pour afficher le détail")}
                             </span>
                           </span>
-                          <ChevronDown className={`h-4 w-4 shrink-0 text-ink-400 transition-transform ${expanded ? "rotate-180" : ""}`} />
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/80 text-[#8A5A00] shadow-xs dark:bg-white/10 dark:text-[#F2C46B]">
+                            <ChevronDown className={`h-5 w-5 transition-transform ${expanded ? "rotate-180" : ""}`} strokeWidth={2.5} />
+                          </span>
                         </button>
                         {expanded && (
                           <div className="divide-y divide-ink-200/60 dark:divide-ink-800 border-t border-ink-200/60 dark:border-ink-800">
