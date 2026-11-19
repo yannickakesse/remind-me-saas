@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { SupportedLocale, TranslationKey } from "@/lib/i18n/types";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/types";
@@ -70,12 +70,23 @@ export function LanguageProvider({
         applyDirection(savedLocale);
       } else {
         applyDirection(initialLocale);
+        // Aucune langue choisie sur cet appareil : on adopte celle du téléphone (une seule fois),
+        // enregistrée aussi côté serveur pour que les notifications arrivent dans cette langue
+        const chosenBefore = document.cookie.includes("NEXT_LOCALE=") || localStorage.getItem("remindme_locale_detected");
+        if (!chosenBefore) {
+          localStorage.setItem("remindme_locale_detected", "1");
+          const phone = (navigator.languages?.length ? navigator.languages : [navigator.language])
+            .map((l) => (l || "").slice(0, 2).toLowerCase())
+            .find((l) => SUPPORTED_LOCALES.some((s) => s.code === l)) as SupportedLocale | undefined;
+          if (phone && phone !== initialLocale) setTimeout(() => void setLocaleRef.current?.(phone), 0);
+        }
       }
     } catch {
       applyDirection(initialLocale);
     }
   }, [initialLocale, applyDirection]);
 
+  const setLocaleRef = useRef<((l: SupportedLocale) => Promise<void>) | null>(null);
   const setLocale = async (newLocale: SupportedLocale) => {
     setLocaleState(newLocale);
     applyDirection(newLocale);
@@ -134,6 +145,25 @@ export function LanguageProvider({
     },
     [locale]
   );
+
+  setLocaleRef.current = setLocale;
+
+  // Synchronisation : la langue affichée dans l'application est aussi celle des notifications
+  // (push, e-mails, rappels). Envoyée au serveur une fois par session, ou dès qu'elle change.
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("remindme_locale_synced") === locale) return;
+      fetch("/api/user/locale", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale }),
+      })
+        .then((r) => {
+          if (r.ok) sessionStorage.setItem("remindme_locale_synced", locale);
+        })
+        .catch(() => {});
+    } catch {}
+  }, [locale]);
 
   return (
     <LanguageContext.Provider

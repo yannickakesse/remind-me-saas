@@ -14,13 +14,16 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
+      // Préférences de notification existantes : on AJOUTE la langue, on n'écrase pas le reste
+      const { data: settings } = await supabase.from("user_settings").select("notif_prefs").eq("user_id", user.id).maybeSingle();
+      const currentPrefs = ((settings as any)?.notif_prefs as Record<string, unknown> | null) ?? {};
       await Promise.allSettled([
         supabase
           .from("notification_preferences")
           .upsert({ user_id: user.id, preferred_locale: locale, updated_at: new Date().toISOString() }, { onConflict: "user_id" }),
         supabase
           .from("user_settings")
-          .update({ notif_prefs: { preferred_locale: locale } })
+          .update({ notif_prefs: { ...currentPrefs, preferred_locale: locale } })
           .eq("user_id", user.id),
       ]);
     }

@@ -103,6 +103,24 @@ export function SectionVoiceAssistant() {
   const [tip, setTip] = useState<{ section: string; tip: SectionTip } | null>(null);
   const tipSlot = usePopupSlot("tip", Boolean(tip));
   const tipDoneForPath = useRef<string | null>(null);
+  // La bulle du conseil s'efface en fondu quand la voix a fini (comme l'accueil), ou après le temps de lecture
+  const [tipFading, setTipFading] = useState(false);
+  const tipTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const clearTipTimers = () => {
+    tipTimers.current.forEach(clearTimeout);
+    tipTimers.current = [];
+  };
+  const fadeOutTip = (afterMs: number) => {
+    clearTipTimers();
+    tipTimers.current.push(
+      setTimeout(() => setTipFading(true), afterMs),
+      setTimeout(() => {
+        setTip(null);
+        setTipFading(false);
+      }, afterMs + 600)
+    );
+  };
+  useEffect(() => () => clearTipTimers(), []);
 
   // Recommandation : quelques secondes après la présentation (ou à l'arrivée si elle est déjà connue),
   // une seule par visite de page, jamais pendant que le robot parle.
@@ -115,10 +133,19 @@ export function SectionVoiceAssistant() {
       tipDoneForPath.current = pathname;
       if (!next) return;
       markTipShown(next.id);
+      setTipFading(false);
       setTip({ section, tip: next });
       const prefs = getLocalVoiceSettings();
       const src = getJourneyAudioSrc(next.id, (locale || "fr").slice(0, 2));
-      if (prefs.voice_reminders && src) void playAudioFile({ src, priority: "section", rate: prefs.voice_playback_rate || 1 });
+      // Sans voix : le temps de lire le conseil (au moins 7 s)
+      const readingMs = Math.max(7000, (tr(next.text).length / 14) * 1000);
+      fadeOutTip(readingMs);
+      if (prefs.voice_reminders && src) {
+        void playAudioFile({ src, priority: "section", rate: prefs.voice_playback_rate || 1, onEnd: () => fadeOutTip(1200) }).then((started) => {
+          // La voix joue : la bulle reste jusqu'à la fin de la phrase (puis s'efface 1,2 s après)
+          if (started) clearTipTimers();
+        });
+      }
     }, 6000);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -316,7 +343,11 @@ export function SectionVoiceAssistant() {
       {tip && tipSlot && tip.section === pageSection && !fallback && (
         <div
           role="status"
-          className="fixed right-4 sm:right-6 bottom-[calc(10rem+env(safe-area-inset-bottom,0px))] md:bottom-24 z-40 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-signal/30 bg-canvas-raised/95 dark:bg-slate-900/95 p-4 shadow-xl backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-300 print:hidden"
+          onPointerEnter={clearTipTimers}
+          onPointerLeave={() => fadeOutTip(2500)}
+          className={`fixed right-4 sm:right-6 bottom-[calc(10rem+env(safe-area-inset-bottom,0px))] md:bottom-24 z-40 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-signal/30 bg-canvas-raised/95 dark:bg-slate-900/95 p-4 shadow-xl backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-300 transition-all print:hidden ${
+            tipFading ? "pointer-events-none translate-y-1 opacity-0" : "opacity-100"
+          }`}
         >
           <div className="flex items-start justify-between gap-2">
             <p className="text-[11px] font-extrabold uppercase tracking-wider text-signal">{tr("Conseil de Remind Me")}</p>

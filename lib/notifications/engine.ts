@@ -480,7 +480,7 @@ export async function evaluateSmartReminders(
             voice_reminder_enabled: true,
             voice_text: voiceScript,
           },
-          link: `/finances`,
+          link: `/finances/income/${inc.id}/edit`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `payment:${inc.id}:minus_${daysDiff}_days`,
           email_template: "payment_upcoming",
@@ -507,7 +507,7 @@ export async function evaluateSmartReminders(
             is_financial: true,
             is_informative: true,
           },
-          link: `/finances`,
+          link: `/finances/income/${inc.id}/edit`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `payment:${inc.id}:minus_1_day`,
           email_template: "payment_upcoming",
@@ -548,7 +548,7 @@ export async function evaluateSmartReminders(
             voice_reminder_enabled: true,
             voice_text: voiceScript,
           },
-          link: `/finances`,
+          link: `/finances/income/${inc.id}/edit`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `payment:${inc.id}:due_today_${todayISO}`,
           email_template: "payment_due_today",
@@ -576,7 +576,7 @@ export async function evaluateSmartReminders(
           title_key: "notif.payment_overdue.title",
           body_key: "notif.payment_overdue.body",
           metadata: { amount: inc.amount, currency: inc.currency, label: inc.label, days: overdueDays },
-          link: `/finances`,
+          link: `/finances/income/${inc.id}/edit`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `payment:${inc.id}:overdue_${todayISO}`,
           email_template: "payment_overdue",
@@ -619,7 +619,7 @@ export async function evaluateSmartReminders(
             : tr("Facture à régler le {day} : {label}", { day: formatShortDayLocale(exp.due_date, locale, userTimezone), label: exp.label }),
           body: tr("Une dépense de {formattedAmount} pour « {label} » arrive à échéance le {formattedDate}.", { formattedAmount, label: exp.label, formattedDate }),
           metadata: { amount: exp.amount, currency: exp.currency, label: exp.label, days: daysDiff },
-          link: `/finances?tab=expenses`,
+          link: `/finances/expenses/${exp.id}/edit`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `expense:${exp.id}:minus_${daysDiff}_days`,
           email_template: "expense_due",
@@ -636,7 +636,7 @@ export async function evaluateSmartReminders(
           title: tr("Dépense à régler aujourd'hui : {label}", { label: exp.label }),
           body: tr("La facture « {label} » ({formattedAmount}) doit être réglée aujourd'hui.", { label: exp.label, formattedAmount }),
           metadata: { amount: exp.amount, currency: exp.currency, label: exp.label },
-          link: `/finances?tab=expenses`,
+          link: `/finances/expenses/${exp.id}/edit`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `expense:${exp.id}:due_today_${todayISO}`,
           email_template: "expense_due",
@@ -656,7 +656,7 @@ export async function evaluateSmartReminders(
             : tr("Dépense en retard ({overdueDays}j) : {label}", { overdueDays, label: exp.label }),
           body: tr("La dépense « {label} » ({formattedAmount}) a dépassé son échéance du {formattedDate}.", { label: exp.label, formattedAmount, formattedDate }),
           metadata: { amount: exp.amount, currency: exp.currency, label: exp.label, days: overdueDays },
-          link: `/finances?tab=expenses`,
+          link: `/finances/expenses/${exp.id}/edit`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `expense:${exp.id}:overdue_${todayISO}`,
         });
@@ -1120,7 +1120,7 @@ export async function evaluateSmartReminders(
             engagementNature: act.engagement_nature,
             can_renew: true,
           },
-          link: `/activities`,
+          link: `/activities?renew=${act.id}`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `activity:${act.id}:expiring_in_${daysDiff}_days`,
           email_template: "activity_expiring",
@@ -1143,7 +1143,7 @@ export async function evaluateSmartReminders(
             endDate: act.end_date,
             can_renew: true,
           },
-          link: `/activities`,
+          link: `/activities?renew=${act.id}`,
           scheduled_at: userNow.toISO()!,
           idempotency_key: `activity:${act.id}:expired_${act.end_date}`,
           email_template: "activity_expired",
@@ -1792,7 +1792,15 @@ export async function evaluateSmartReminders(
           voice_text: middayVoiceScript,
           voice_reminder_enabled: true,
         },
-        link: "/dashboard",
+        // Une séance ou tâche en attente : on y va directement ; plusieurs : la journée dans le calendrier
+        link:
+          overdueItems.length === 1
+            ? overdueItems[0]!.category === "task"
+              ? `/tasks/${overdueItems[0]!.id}/edit`
+              : `/calendar/${overdueItems[0]!.id}`
+            : overdueItems.length > 1
+              ? `/calendar?view=day&date=${todayISO}`
+              : "/dashboard",
         scheduled_at: userNow.toISO()!,
         idempotency_key: `routine:midday_checkin:${todayISO}`,
         email_template: overdueItems.length > 0 ? "midday_checkin" : undefined,

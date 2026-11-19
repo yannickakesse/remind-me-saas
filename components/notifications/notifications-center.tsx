@@ -1,5 +1,6 @@
 "use client";
 
+import { notificationHref } from "@/lib/notifications/links";
 import { PageBackground } from "@/components/shared/page-background";
 import { useState, useEffect, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -1141,9 +1142,9 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
                 <Check className="h-3 w-3" /> {item.status === "dismissed" ? tr("Écartée") : tr("Traitée")}
               </span>
             )}
-            {item.link && (
+            {(item.link || item.entity_id) && (
               <Link
-                href={item.link}
+                href={notificationHref(item)}
                 onClick={() => isUnread && handleMarkRead(item.id)}
                 className="inline-flex items-center gap-0.5 text-xs font-medium text-signal hover:underline"
               >
@@ -1281,64 +1282,69 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
               byGroup.get(key)!.push(n);
             }
 
+            // Regroupements (« 17 séances », « 2 tâches ») : des bandeaux déroulants, séparés et centrés ;
+            // les notifications isolées restent ensemble dans une carte, en dessous
+            const groupKeys = order.filter((k) => !k.startsWith("single-") && byGroup.get(k)!.length > 1);
+            const singleKeys = order.filter((k) => !groupKeys.includes(k));
+
             return (
-              <section key={bucket.key} className="space-y-2">
+              <section key={bucket.key} className="space-y-2.5">
                 <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
                   {bucket.label}
                 </h2>
-                <div className="rounded-3xl border border-ink-200/80 dark:border-ink-800 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md shadow-xs divide-y divide-ink-200/70 dark:divide-ink-800">
-                  {order.map((key) => {
-                    const items = byGroup.get(key)!;
-                    if (items.length === 1 || key.startsWith("single-")) return renderRow(items[0]!);
-
-                    const groupId = `${bucket.key}-${key}`;
-                    const expanded = expandedGroups.has(groupId);
-                    const [one, many] = GROUP_LABELS[key] ?? [tr("élément"), tr("éléments")];
-                    const pending = items.filter((n) => !describe(n).isResolved).length;
-
-                    return (
-                      <div key={groupId}>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setExpandedGroups((prev) => {
-                              const next = new Set(prev);
-                              if (next.has(groupId)) next.delete(groupId);
-                              else next.add(groupId);
-                              return next;
-                            })
-                          }
-                          aria-expanded={expanded}
-                          // Bandeau déroulant (pas un message) : nombre, état, et une flèche bien visible
-                          className="m-2 flex w-[calc(100%-1rem)] items-center gap-3 rounded-2xl border border-[#F0D9A8] bg-[#FBEFD9] px-3.5 py-2.5 text-left transition-colors hover:bg-[#F8E6C4] dark:border-[#F2B84B]/25 dark:bg-[#F2B84B]/10 dark:hover:bg-[#F2B84B]/15 cursor-pointer"
-                        >
-                          <span className="inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-full bg-[#B97A0C] px-2 text-sm font-bold tabular-nums text-white dark:bg-[#BB882A]">
+                {groupKeys.map((key) => {
+                  const items = byGroup.get(key)!;
+                  const groupId = `${bucket.key}-${key}`;
+                  const expanded = expandedGroups.has(groupId);
+                  const [one, many] = GROUP_LABELS[key] ?? [tr("élément"), tr("éléments")];
+                  const pending = items.filter((n) => !describe(n).isResolved).length;
+                  return (
+                    <div
+                      key={groupId}
+                      className="overflow-hidden rounded-2xl border border-[#F0D9A8] bg-[#FBEFD9] shadow-xs dark:border-[#F2B84B]/25 dark:bg-[#2A2416]"
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedGroups((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(groupId)) next.delete(groupId);
+                            else next.add(groupId);
+                            return next;
+                          })
+                        }
+                        aria-expanded={expanded}
+                        className="flex w-full flex-col items-center gap-1 px-4 py-3 text-center transition-colors hover:bg-[#F8E6C4] dark:hover:bg-[#F2B84B]/10 cursor-pointer"
+                      >
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[#B97A0C] px-2 text-sm font-bold tabular-nums text-white dark:bg-[#BB882A]">
                             {items.length}
                           </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block text-sm font-semibold text-[#5C3D06] dark:text-[#F2C46B]">
-                              {items.length > 1 ? many : one}
-                              {pending > 0 && (
-                                <span className="font-medium text-[#8A5A00] dark:text-[#E9C27A]"> · {tr("{n} à traiter", { n: pending })}</span>
-                              )}
-                            </span>
-                            <span className="block text-xs text-[#8A5A00] dark:text-[#E9C27A]">
-                              {expanded ? tr("Toucher pour masquer") : tr("Toucher pour afficher le détail")}
-                            </span>
+                          <span className="text-sm font-semibold text-[#5C3D06] dark:text-[#F2C46B]">
+                            {items.length > 1 ? many : one}
+                            {pending > 0 && <span className="font-medium text-[#8A5A00] dark:text-[#E9C27A]"> · {tr("{n} à traiter", { n: pending })}</span>}
                           </span>
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/80 text-[#8A5A00] shadow-xs dark:bg-white/10 dark:text-[#F2C46B]">
-                            <ChevronDown className={`h-5 w-5 transition-transform ${expanded ? "rotate-180" : ""}`} strokeWidth={2.5} />
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#8A5A00] dark:text-[#E9C27A]">
+                          {expanded ? tr("Toucher pour masquer") : tr("Toucher pour afficher le détail")}
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/80 shadow-xs dark:bg-white/10">
+                            <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} strokeWidth={2.5} />
                           </span>
-                        </button>
-                        {expanded && (
-                          <div className="divide-y divide-ink-200/60 dark:divide-ink-800 border-t border-ink-200/60 dark:border-ink-800">
-                            {items.map((n) => renderRow(n, true))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                        </span>
+                      </button>
+                      {expanded && (
+                        <div className="divide-y divide-ink-200/60 border-t border-[#F0D9A8] bg-canvas-raised dark:divide-ink-800 dark:border-[#F2B84B]/25 dark:bg-ink-900">
+                          {items.map((n) => renderRow(n, true))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {singleKeys.length > 0 && (
+                  <div className="rounded-3xl border border-ink-200/80 dark:border-ink-800 bg-canvas-raised/95 dark:bg-ink-900/95 backdrop-blur-md shadow-xs divide-y divide-ink-200/70 dark:divide-ink-800">
+                    {singleKeys.map((key) => renderRow(byGroup.get(key)![0]!))}
+                  </div>
+                )}
               </section>
             );
           })

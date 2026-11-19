@@ -1,5 +1,6 @@
 "use client";
 
+import { notificationHref } from "@/lib/notifications/links";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -167,7 +168,7 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
                 return (
                   <Link
                     key={n.id}
-                    href={n.link || "/notifications"}
+                    href={notificationHref(n)}
                     onClick={() => {
                       setOpen(false);
                       if (isUnread) {

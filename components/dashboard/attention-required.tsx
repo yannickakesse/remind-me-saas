@@ -1,5 +1,6 @@
 "use client";
 
+import { notificationHref } from "@/lib/notifications/links";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -220,7 +221,7 @@ export function AttentionRequired({ notifications }: AttentionRequiredProps) {
 
                 {/* Bouton Détails */}
                 <Link
-                  href={item.link || "/finances"}
+                  href={notificationHref(item)}
                   className="px-3 py-1.5 rounded-xl border border-ink-200/80 dark:border-white/10 text-xs font-medium text-ink-700 dark:text-ink-300 hover:bg-ink-100/80 dark:hover:bg-white/5 transition-colors"
                 >
                   {t("actions.view_item")}
