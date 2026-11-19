@@ -811,7 +811,17 @@ export type ActivityType =
   | "consulting"
   | "teaching"
   | "side_activity"
-  | "other";
+  | "other"
+  // Activités non rémunérées (migration 0032)
+  | "studies"
+  | "course"
+  | "internship"
+  | "training"
+  | "volunteering"
+  | "appointment"
+  | "personal_event"
+  | "sport"
+  | "spiritual";
 
 export type CompensationFrequency =
   | "hourly"

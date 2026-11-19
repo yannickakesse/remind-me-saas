@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import { getTr } from "@/lib/i18n/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -22,6 +23,8 @@ export default async function EditActivityPage({
     { data: compensation },
     { data: currencies },
     { data: allActiveActivities },
+    { data: datedEvents },
+    { data: tzProfile },
   ] = await Promise.all([
     supabase
       .from("activities")
@@ -44,7 +47,24 @@ export default async function EditActivityPage({
       .select("id, name, activity_schedules(weekday, start_time, end_time, variable_hours)")
       .eq("user_id", user.id)
       .eq("status", "active"),
+    // Séances datées à venir (horaires variables) : créées hors des créneaux hebdomadaires
+    supabase
+      .from("calendar_events")
+      .select("starts_at, ends_at")
+      .eq("activity_id", params.id)
+      .eq("user_id", user.id)
+      .is("schedule_id", null)
+      .eq("status", "planned")
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true }),
+    supabase.from("profiles").select("timezone").eq("id", user.id).maybeSingle(),
   ]);
+  const editTz = (tzProfile as any)?.timezone || "UTC";
+  const datedSessions = (datedEvents ?? []).map((e: any) => {
+    const st = DateTime.fromISO(e.starts_at, { zone: editTz });
+    const en = DateTime.fromISO(e.ends_at, { zone: editTz });
+    return { date: st.toISODate()!, startTime: st.toFormat("HH:mm"), endTime: en.toFormat("HH:mm") };
+  });
 
   if (!activity) notFound();
 
@@ -154,7 +174,9 @@ export default async function EditActivityPage({
           reminderPreference: activity.reminder_preference,
           reminderLeadMinutes: (activity as any).reminder_lead_minutes ?? null,
           trackTime: (activity as any).track_time ?? true,
-          variableHours: schedules?.[0]?.variable_hours ?? false,
+          // Horaires variables : indiqué par les créneaux, ou par des séances datées sans créneau hebdomadaire
+          variableHours: schedules?.[0]?.variable_hours ?? ((schedules ?? []).length === 0 && datedSessions.length > 0),
+          sessions: datedSessions,
           schedules: (schedules ?? []).map((s) => ({
             weekday: s.weekday,
             startTime: s.start_time ? s.start_time.slice(0, 5) : "09:00",

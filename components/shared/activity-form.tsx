@@ -9,7 +9,9 @@ import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { ActivityCategoryPicker } from "@/components/shared/activity-category-picker";
 import {
-  ACTIVITY_TYPES,
+  PAID_ACTIVITY_TYPES,
+  UNPAID_ACTIVITY_TYPES,
+  UNPAID_TYPE_VALUES,
   COMPENSATION_FREQUENCIES,
   WEEKDAYS,
   VALIDITY_TYPES,
@@ -58,6 +60,8 @@ interface ActivityFormProps {
     reminderLeadMinutes?: number | null;
     /** Suivi des heures (colonne track_time) : absent = activité créée avant ce choix (suivi actif). */
     trackTime?: boolean;
+    /** Séances datées à venir (horaires variables). */
+    sessions?: { date: string; startTime: string; endTime: string }[];
     variableHours: boolean;
     schedules: ScheduleRow[];
     amount: string;
@@ -70,9 +74,11 @@ interface ActivityFormProps {
   submitLabel?: string;
 }
 
+/** 18 couleurs bien distinctes (lisibles en clair comme en sombre) + une couleur libre. */
 const COLORS = [
-  "#1E3A5F", "#1F7A4D", "#B5751B", "#A32C2C",
-  "#6B4C9A", "#2A6F77", "#7A4A2A", "#4A5568",
+  "#1E3A5F", "#2563EB", "#0EA5E9", "#0F766E", "#1F7A4D", "#65A30D",
+  "#B5751B", "#EA580C", "#A32C2C", "#DB2777", "#C026D3", "#6B4C9A",
+  "#4F46E5", "#2A6F77", "#7A4A2A", "#A16207", "#4A5568", "#111827",
 ];
 
 export function ActivityForm({
@@ -90,7 +96,20 @@ export function ActivityForm({
 
   const [color, setColor] = useState(initial?.color ?? COLORS[0]!);
   // Activité rémunérée ou non (cours, études, bénévolat, activité personnelle…) : la rémunération n'est jamais imposée
-  const [isPaid, setIsPaid] = useState<boolean>(initial ? Number(initial.amount) > 0 : true);
+  const [isPaid, setIsPaidState] = useState<boolean>(initial ? Number(initial.amount) > 0 : true);
+  // Le type proposé suit la rémunération (emploi, mission… / études, stage, bénévolat…)
+  const [activityType, setActivityType] = useState<string>(
+    initial?.type ?? (initial && !(Number(initial.amount) > 0) ? "studies" : "salaried_job")
+  );
+  const setIsPaid = (paid: boolean) => {
+    setIsPaidState(paid);
+    const isUnpaidType = UNPAID_TYPE_VALUES.includes(activityType);
+    if (paid && isUnpaidType && activityType !== "other") setActivityType("salaried_job");
+    if (!paid && !isUnpaidType) setActivityType("studies");
+  };
+  // Horaires variables : séances datées (date + heure), au lieu de jours fixes
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const [sessions, setSessions] = useState<{ date: string; startTime: string; endTime: string }[]>(initial?.sessions ?? []);
   // Choix obligatoire : rappels seulement, ou rappels + suivi des heures. Rien de pré-coché pour une nouvelle activité.
   const [trackTime, setTrackTime] = useState<boolean | null>(initial ? initial.trackTime ?? true : null);
   const [validityType, setValidityType] = useState<ValidityType>(
@@ -209,6 +228,23 @@ export function ActivityForm({
       document.getElementById("category-picker")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
+    // Horaires obligatoires : au moins un créneau (fixes) ou une séance datée (variables)
+    if (!variableHours && schedules.length === 0) {
+      setError(tr("Ajoutez au moins un créneau (jour et heures) : sans horaire, Remind Me ne peut pas vous rappeler cette activité."));
+      document.getElementById("weekly-slots")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (variableHours) {
+      if (sessions.length === 0) {
+        setError(tr("Ajoutez au moins une séance avec sa date et son heure."));
+        document.getElementById("dated-sessions")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      if (sessions.some((x) => !x.date || x.endTime <= x.startTime)) {
+        setError(tr("Chaque séance doit avoir une date, et une heure de fin après l'heure de début."));
+        return;
+      }
+    }
     if (trackTime === null) {
       setError(tr("Choisissez ce que Remind Me doit faire pour cette activité : rappels seulement, ou rappels et suivi des heures."));
       document.getElementById("track-time-choice")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -226,7 +262,10 @@ export function ActivityForm({
     formData.set("reminderLeadMinutes", reminderPreference === "disabled" ? "" : reminderLeadMinutes);
     formData.set("startDate", startDate);
     formData.set("endDate", validityType === "permanent" ? "" : endDate);
-    formData.set("schedulesJson", JSON.stringify(schedules));
+    formData.set("schedulesJson", JSON.stringify(variableHours ? [] : schedules));
+    formData.set("sessionsJson", JSON.stringify(variableHours ? sessions : []));
+    formData.set("variableHours", variableHours ? "on" : "");
+    formData.set("type", activityType);
     formData.set("voiceReminderEnabled", voiceReminderEnabled ? "on" : "off");
 
     try {
@@ -276,12 +315,13 @@ export function ActivityForm({
             <select
               id="type"
               name="type"
-              defaultValue={initial?.type ?? ACTIVITY_TYPES[0].value}
+              value={activityType}
+              onChange={(e) => setActivityType(e.target.value)}
               className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal transition-colors shadow-2xs cursor-pointer"
             >
-              {ACTIVITY_TYPES.map((t) => (
+              {(isPaid ? PAID_ACTIVITY_TYPES : UNPAID_ACTIVITY_TYPES).map((t) => (
                 <option key={t.value} value={t.value}>
-                  {t.label}
+                  {tr(t.label)}
                 </option>
               ))}
             </select>
@@ -296,7 +336,7 @@ export function ActivityForm({
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  aria-label={`Couleur ${c}`}
+                  aria-label={tr("Couleur {c}", { c })}
                   aria-pressed={color === c}
                   className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all hover:scale-110 active:scale-95 shadow-2xs cursor-pointer ${
                     color === c ? "ring-2 ring-offset-2 ring-signal dark:ring-offset-slate-900 scale-105" : ""
@@ -306,200 +346,19 @@ export function ActivityForm({
                   }}
                 />
               ))}
+              {/* Couleur libre : n'importe quelle teinte */}
+              <label
+                title={tr("Autre couleur")}
+                className={`relative h-7 w-7 sm:h-8 sm:w-8 cursor-pointer overflow-hidden rounded-full shadow-2xs transition-all hover:scale-110 ${
+                  !COLORS.includes(color) ? "ring-2 ring-offset-2 ring-signal dark:ring-offset-slate-900 scale-105" : ""
+                }`}
+                style={{ background: !COLORS.includes(color) ? color : "conic-gradient(#ef4444,#f59e0b,#84cc16,#10b981,#06b6d4,#3b82f6,#8b5cf6,#ec4899,#ef4444)" }}
+              >
+                <span className="sr-only">{tr("Autre couleur")}</span>
+                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+              </label>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ---- Validité & Nature de l'engagement ---- */}
-      <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-5">
-        <div>
-          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
-            {tr("Validité & Nature de l'engagement")}</h2>
-          <p className="text-xs text-ink-500 mt-0.5">
-            {tr("Définissez la durée et le niveau de suivi pour adapter les rappels et les séances.")}</p>
-        </div>
-
-        {/* 1. Type de validité : Permanent vs Temporaire */}
-        <div className="flex flex-col gap-2">
-          <label className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">
-            {tr("Durée de validité de l'activité *")}</label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label
-              className={`flex items-start gap-3.5 p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${
-                validityType === "permanent"
-                  ? "border-signal bg-signal/10 dark:bg-signal/15 text-ink-950 dark:text-white ring-1 ring-signal/30 shadow-xs"
-                  : "border-ink-200/90 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-800/40 text-ink-700 dark:text-ink-300 hover:border-ink-300 dark:hover:border-white/20"
-              }`}
-            >
-              <input
-                type="radio"
-                name="validityType"
-                value="permanent"
-                checked={validityType === "permanent"}
-                onChange={() => setValidityType("permanent")}
-                className="mt-1 text-signal focus:ring-signal"
-              />
-              <div>
-                <span className="font-bold text-sm block text-ink-950 dark:text-white">{tr("Permanent")}</span>
-                <span className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed block mt-0.5">
-                  {tr("Durée indéfinie (emploi, routine, activité stable). Pas de date de fin obligatoire.")}</span>
-              </div>
-            </label>
-
-            <label
-              className={`flex items-start gap-3.5 p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${
-                validityType === "temporary"
-                  ? "border-signal bg-signal/10 dark:bg-signal/15 text-ink-950 dark:text-white ring-1 ring-signal/30 shadow-xs"
-                  : "border-ink-200/90 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-800/40 text-ink-700 dark:text-ink-300 hover:border-ink-300 dark:hover:border-white/20"
-              }`}
-            >
-              <input
-                type="radio"
-                name="validityType"
-                value="temporary"
-                checked={validityType === "temporary"}
-                onChange={() => setValidityType("temporary")}
-                className="mt-1 text-signal focus:ring-signal"
-              />
-              <div>
-                <span className="font-bold text-sm block text-ink-950 dark:text-white">{tr("Engagement temporaire")}</span>
-                <span className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed block mt-0.5">
-                  {tr("Mission bornée dans le temps (date de fin obligatoire). Arrête les créneaux futurs à l'échéance.")}</span>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        {/* Dates début et fin */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-          <Field label={tr("Date de début")} htmlFor="startDate">
-            <TextInput
-              id="startDate"
-              name="startDate"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </Field>
-
-          {validityType === "temporary" ? (
-            <Field label={tr("Date de fin * (obligatoire)")} htmlFor="endDate">
-              <TextInput
-                id="endDate"
-                name="endDate"
-                type="date"
-                required
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </Field>
-          ) : (
-            <div className="flex flex-col justify-end pb-2">
-              <p className="text-xs text-ink-400 italic">
-                {tr("Activité permanente : les séances se poursuivent sans interruption.")}</p>
-            </div>
-          )}
-        </div>
-
-        {/* 2. Nature de l'engagement & 3. Préférences de rappel */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-          <Field label={tr("Nature de l'engagement *")} htmlFor="engagementNature">
-            <select
-              id="engagementNature"
-              name="engagementNature"
-              value={engagementNature}
-              onChange={(e) => setEngagementNature(e.target.value as EngagementNature)}
-              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal text-sm shadow-2xs cursor-pointer transition-colors"
-            >
-              {ENGAGEMENT_NATURES.map((n) => (
-                <option key={n.value} value={n.value}>
-                  {n.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label={tr("Préférence de rappel *")} htmlFor="reminderPreference">
-            <select
-              id="reminderPreference"
-              name="reminderPreference"
-              value={reminderPreference}
-              onChange={(e) => setReminderPreference(e.target.value as ReminderPreference)}
-              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal text-sm shadow-2xs cursor-pointer transition-colors"
-            >
-              {REMINDER_PREFERENCES.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label={tr("Rappel avant chaque séance")} htmlFor="reminderLeadMinutes">
-            <select
-              id="reminderLeadMinutes"
-              name="reminderLeadMinutes"
-              value={reminderPreference === "disabled" ? "" : reminderLeadMinutes}
-              disabled={reminderPreference === "disabled"}
-              onChange={(e) => setReminderLeadMinutes(e.target.value)}
-              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal text-sm shadow-2xs cursor-pointer transition-colors disabled:opacity-60"
-            >
-              <option value="">{tr("Délai général (paramètres)")}</option>
-              <option value="15">{tr("15 minutes avant")}</option>
-              <option value="30">{tr("30 minutes avant")}</option>
-              <option value="45">{tr("45 minutes avant")}</option>
-              <option value="60">{tr("1 heure avant")}</option>
-              <option value="90">{tr("1 h 30 avant")}</option>
-              <option value="120">{tr("2 heures avant")}</option>
-            </select>
-          </Field>
-        </div>
-      </section>
-
-      {/* ---- Ce que Remind Me fait pour cette activité (choix obligatoire) ---- */}
-      <section
-        id="track-time-choice"
-        className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-4"
-      >
-        <div>
-          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">{tr("Suivi de l'activité *")}</h2>
-          <p className="mt-1 text-xs text-ink-600 dark:text-ink-400">{tr("Que doit faire Remind Me pour cette activité ?")}</p>
-        </div>
-        <div role="radiogroup" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {[
-            {
-              value: false,
-              title: tr("Me rappeler mes séances"),
-              hint: tr("Des rappels avant chaque séance, rien d'autre. Idéal pour un cours, des études, un rendez-vous, un mariage…"),
-            },
-            {
-              value: true,
-              title: tr("Me rappeler et suivre mes heures"),
-              hint: tr("Après chaque séance, Remind Me vous demande de confirmer qu'elle est terminée : heures travaillées et rentabilité."),
-            },
-          ].map((o) => (
-            <label
-              key={String(o.value)}
-              className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition-colors ${
-                trackTime === o.value
-                  ? "border-signal bg-signal/10 dark:bg-signal/15"
-                  : "border-ink-200/90 dark:border-white/10 hover:bg-ink-100/40 dark:hover:bg-white/[0.03]"
-              }`}
-            >
-              <input
-                type="radio"
-                name="trackTimeChoice"
-                checked={trackTime === o.value}
-                onChange={() => setTrackTime(o.value)}
-                className="mt-1 text-signal focus:ring-signal"
-              />
-              <span>
-                <span className="block text-sm font-semibold text-ink-950 dark:text-white">{o.title}</span>
-                <span className="block text-xs text-ink-600 dark:text-ink-400">{o.hint}</span>
-              </span>
-            </label>
-          ))}
         </div>
       </section>
 
@@ -597,25 +456,236 @@ export function ActivityForm({
         )}
       </section>
 
+      {/* ---- Validité & Nature de l'engagement ---- */}
+      <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-5">
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
+            {isPaid ? tr("Validité & Nature de l'engagement") : tr("Durée de l'activité")}</h2>
+          <p className="text-xs text-ink-500 mt-0.5">
+            {isPaid
+              ? tr("Définissez la durée de votre engagement et son importance.")
+              : tr("L'activité a-t-elle une fin prévue ?")}</p>
+        </div>
+
+        {/* 1. Type de validité : Permanent vs Temporaire */}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">
+            {isPaid ? tr("Durée de validité de l'activité *") : tr("Durée *")}</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label
+              className={`flex items-start gap-3.5 p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${
+                validityType === "permanent"
+                  ? "border-signal bg-signal/10 dark:bg-signal/15 text-ink-950 dark:text-white ring-1 ring-signal/30 shadow-xs"
+                  : "border-ink-200/90 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-800/40 text-ink-700 dark:text-ink-300 hover:border-ink-300 dark:hover:border-white/20"
+              }`}
+            >
+              <input
+                type="radio"
+                name="validityType"
+                value="permanent"
+                checked={validityType === "permanent"}
+                onChange={() => setValidityType("permanent")}
+                className="mt-1 text-signal focus:ring-signal"
+              />
+              <div>
+                <span className="font-bold text-sm block text-ink-950 dark:text-white">{isPaid ? tr("Permanent") : tr("Sans date de fin")}</span>
+                <span className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed block mt-0.5">
+                  {isPaid
+                    ? tr("Durée indéfinie (emploi, routine, activité stable). Pas de date de fin obligatoire.")
+                    : tr("Ex. : sport, chorale, culte ou cours de langue chaque semaine.")}</span>
+              </div>
+            </label>
+
+            <label
+              className={`flex items-start gap-3.5 p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${
+                validityType === "temporary"
+                  ? "border-signal bg-signal/10 dark:bg-signal/15 text-ink-950 dark:text-white ring-1 ring-signal/30 shadow-xs"
+                  : "border-ink-200/90 dark:border-white/10 bg-canvas-raised/80 dark:bg-slate-800/40 text-ink-700 dark:text-ink-300 hover:border-ink-300 dark:hover:border-white/20"
+              }`}
+            >
+              <input
+                type="radio"
+                name="validityType"
+                value="temporary"
+                checked={validityType === "temporary"}
+                onChange={() => setValidityType("temporary")}
+                className="mt-1 text-signal focus:ring-signal"
+              />
+              <div>
+                <span className="font-bold text-sm block text-ink-950 dark:text-white">{isPaid ? tr("Engagement temporaire") : tr("Jusqu'à une date")}</span>
+                <span className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed block mt-0.5">
+                  {isPaid
+                    ? tr("Mission bornée dans le temps (date de fin obligatoire). Arrête les créneaux futurs à l'échéance.")
+                    : tr("Ex. : année scolaire, stage, formation : les séances s'arrêtent à la date de fin.")}</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* Dates début et fin */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          <Field label={tr("Date de début")} htmlFor="startDate">
+            <TextInput
+              id="startDate"
+              name="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </Field>
+
+          {validityType === "temporary" ? (
+            <Field label={tr("Date de fin * (obligatoire)")} htmlFor="endDate">
+              <TextInput
+                id="endDate"
+                name="endDate"
+                type="date"
+                required
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </Field>
+          ) : (
+            <div className="flex flex-col justify-end pb-2">
+              <p className="text-xs text-ink-400 italic">
+                {isPaid ? tr("Activité permanente : les séances se poursuivent sans interruption.") : tr("Les séances se poursuivent sans date de fin.")}</p>
+            </div>
+          )}
+        </div>
+
+        {/* 2. Nature de l'engagement (ou importance d'une activité non rémunérée) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          <Field label={isPaid ? tr("Nature de l'engagement *") : tr("Importance *")} htmlFor="engagementNature">
+            <select
+              id="engagementNature"
+              name="engagementNature"
+              value={engagementNature}
+              onChange={(e) => setEngagementNature(e.target.value as EngagementNature)}
+              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal text-sm shadow-2xs cursor-pointer transition-colors"
+            >
+              {ENGAGEMENT_NATURES.map((n) => (
+                <option key={n.value} value={n.value}>
+                  {tr(n.label)}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+        </div>
+      </section>
+
       {/* ---- Horaires / Créneaux ---- */}
       <section className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-signal" /> {tr("Horaires & Planning (optionnel)")}</h2>
+            <Clock className="w-4 h-4 text-signal" /> {tr("Horaires & Planning *")}</h2>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-ink-700 cursor-pointer">
-          <input
-            type="checkbox"
-            name="variableHours"
-            checked={variableHours}
-            onChange={(e) => setVariableHours(e.target.checked)}
-            className="rounded border-ink-300 text-signal focus:ring-signal"
-          />
-          {tr("Mes horaires varient d'une semaine à l'autre (pas de créneau fixe)")}</label>
+        <div role="radiogroup" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {[
+            { value: false, title: tr("Horaires fixes"), hint: tr("Les mêmes jours chaque semaine : choisissez les jours et les heures.") },
+            { value: true, title: tr("Horaires variables"), hint: tr("Les dates changent : ajoutez chaque séance avec sa date et son heure.") },
+          ].map((o) => (
+            <label
+              key={String(o.value)}
+              className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition-colors ${
+                variableHours === o.value
+                  ? "border-signal bg-signal/10 dark:bg-signal/15"
+                  : "border-ink-200/90 dark:border-white/10 hover:bg-ink-100/40 dark:hover:bg-white/[0.03]"
+              }`}
+            >
+              <input
+                type="radio"
+                name="hoursMode"
+                checked={variableHours === o.value}
+                onChange={() => setVariableHours(o.value)}
+                className="mt-1 text-signal focus:ring-signal"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-ink-950 dark:text-white">{o.title}</span>
+                <span className="block text-xs text-ink-600 dark:text-ink-400">{o.hint}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+
+        {variableHours && (
+          <div id="dated-sessions" className="flex flex-col gap-3 pt-1">
+            {sessions.length === 0 && (
+              <p className="text-xs text-ink-600 dark:text-ink-400">{tr("Ajoutez au moins une séance : Remind Me vous la rappellera le jour venu.")}</p>
+            )}
+            {sessions.map((row, i) => (
+              <div
+                key={i}
+                className={`grid grid-cols-2 gap-3 sm:grid-cols-[1.3fr_1fr_1fr_auto] sm:items-end ${i > 0 ? "border-t border-ink-200/70 dark:border-white/10 pt-4" : ""}`}
+              >
+                <div className="col-span-2 sm:col-span-1 min-w-0">
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="text-xs font-semibold text-ink-600 dark:text-ink-400">{tr("Date")}</label>
+                    <button
+                      type="button"
+                      onClick={() => setSessions((rows) => rows.filter((_, j) => j !== i))}
+                      aria-label={tr("Supprimer cette séance")}
+                      className="sm:hidden -my-1 rounded-lg p-1.5 text-danger hover:bg-danger/10 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <input
+                    type="date"
+                    value={row.date}
+                    min={todayIso}
+                    onChange={(e) => setSessions((rows) => rows.map((r, j) => (j === i ? { ...r, date: e.target.value } : r)))}
+                    className="w-full min-w-0 appearance-none rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2.5 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Début")}</label>
+                  <input
+                    type="time"
+                    value={row.startTime}
+                    onChange={(e) => setSessions((rows) => rows.map((r, j) => (j === i ? { ...r, startTime: e.target.value } : r)))}
+                    className="w-full min-w-0 appearance-none rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2.5 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none text-center"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="text-xs font-semibold text-ink-600 dark:text-ink-400 block mb-1">{tr("Fin")}</label>
+                  <input
+                    type="time"
+                    value={row.endTime}
+                    onChange={(e) => setSessions((rows) => rows.map((r, j) => (j === i ? { ...r, endTime: e.target.value } : r)))}
+                    className="w-full min-w-0 appearance-none rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas dark:bg-slate-900 px-3 py-2.5 text-sm font-medium text-ink-950 dark:text-white focus:border-signal focus:outline-none text-center"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSessions((rows) => rows.filter((_, j) => j !== i))}
+                  aria-label={tr("Supprimer cette séance")}
+                  className="hidden sm:flex h-[42px] w-10 items-center justify-center rounded-xl text-danger hover:bg-danger/10 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() =>
+                setSessions((rows) => [
+                  ...rows,
+                  { date: rows[rows.length - 1]?.date ?? todayIso, startTime: rows[rows.length - 1]?.startTime ?? "09:00", endTime: rows[rows.length - 1]?.endTime ?? "10:00" },
+                ])
+              }
+              className="self-center"
+            >
+              <Plus className="w-4 h-4 mr-1" /> {tr("Ajouter une séance")}
+            </Button>
+          </div>
+        )}
 
         {!variableHours && (
-          <div className="flex flex-col gap-3 pt-1">
+          <div id="weekly-slots" className="flex flex-col gap-3 pt-1">
             {schedules.map((row, i) => (
               // Un créneau = Jour + Début/Fin, sans cadre supplémentaire (séparés par un trait fin)
               <div
@@ -692,6 +762,90 @@ export function ActivityForm({
               <Plus className="w-4 h-4 mr-1" /> {tr("Ajouter un créneau")}</Button>
           </div>
         )}
+      </section>
+
+      {/* ---- Ce que Remind Me fait pour cette activité (choix obligatoire) ---- */}
+      <section
+        id="track-time-choice"
+        className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-4"
+      >
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">{tr("Suivi & rappels *")}</h2>
+          <p className="mt-1 text-xs text-ink-600 dark:text-ink-400">{tr("Que doit faire Remind Me pour cette activité ?")}</p>
+        </div>
+        <div role="radiogroup" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {[
+            {
+              value: false,
+              title: tr("Me rappeler mes séances"),
+              hint: tr("Des rappels avant chaque séance, rien d'autre. Idéal pour un cours, des études, un rendez-vous, un mariage…"),
+            },
+            {
+              value: true,
+              title: tr("Me rappeler et suivre mes heures"),
+              hint: tr("Après chaque séance, Remind Me vous demande de confirmer qu'elle est terminée : heures travaillées et rentabilité."),
+            },
+          ].map((o) => (
+            <label
+              key={String(o.value)}
+              className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition-colors ${
+                trackTime === o.value
+                  ? "border-signal bg-signal/10 dark:bg-signal/15"
+                  : "border-ink-200/90 dark:border-white/10 hover:bg-ink-100/40 dark:hover:bg-white/[0.03]"
+              }`}
+            >
+              <input
+                type="radio"
+                name="trackTimeChoice"
+                checked={trackTime === o.value}
+                onChange={() => setTrackTime(o.value)}
+                className="mt-1 text-signal focus:ring-signal"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-ink-950 dark:text-white">{o.title}</span>
+                <span className="block text-xs text-ink-600 dark:text-ink-400">{o.hint}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+
+        {/* Préférences de rappel : ici, avec le suivi (plus dans la durée de l'engagement) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          <Field label={tr("Préférence de rappel *")} htmlFor="reminderPreference">
+            <select
+              id="reminderPreference"
+              name="reminderPreference"
+              value={reminderPreference}
+              onChange={(e) => setReminderPreference(e.target.value as ReminderPreference)}
+              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal text-sm shadow-2xs cursor-pointer transition-colors"
+            >
+              {REMINDER_PREFERENCES.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {tr(p.label)}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <Field label={tr("Rappel avant chaque séance")} htmlFor="reminderLeadMinutes">
+            <select
+              id="reminderLeadMinutes"
+              name="reminderLeadMinutes"
+              value={reminderPreference === "disabled" ? "" : reminderLeadMinutes}
+              disabled={reminderPreference === "disabled"}
+              onChange={(e) => setReminderLeadMinutes(e.target.value)}
+              className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal text-sm shadow-2xs cursor-pointer transition-colors disabled:opacity-60"
+            >
+              <option value="">{tr("Délai général (paramètres)")}</option>
+              <option value="15">{tr("15 minutes avant")}</option>
+              <option value="30">{tr("30 minutes avant")}</option>
+              <option value="45">{tr("45 minutes avant")}</option>
+              <option value="60">{tr("1 heure avant")}</option>
+              <option value="90">{tr("1 h 30 avant")}</option>
+              <option value="120">{tr("2 heures avant")}</option>
+            </select>
+          </Field>
+        </div>
       </section>
 
       {/* ---- Rappel Vocal Intelligent ---- */}

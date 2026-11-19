@@ -18,6 +18,7 @@ import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist
 import { AttentionRequired } from "@/components/dashboard/attention-required";
 import { TodayFocus } from "@/components/dashboard/today-focus";
 import { DashboardInsights } from "@/components/insights/dashboard-insights";
+import { ProfileStatusPrompt } from "@/components/dashboard/profile-status-prompt";
 import { msg } from "@/lib/i18n/catalog";
 import { requireCurrentUser, getCurrentProfile } from "@/lib/supabase/auth";
 import { ensureIncomeEntries } from "@/lib/finances/sync";
@@ -166,6 +167,9 @@ export default async function DashboardPage() {
       <div className="relative overflow-hidden rounded-3xl border border-ink-200/90 dark:border-ink-800/90 bg-canvas-raised/95 dark:bg-slate-900/95 backdrop-blur-md p-4 sm:p-6 shadow-xs">
         <DashboardHeader userName={profile?.full_name} timezone={timezone} />
       </div>
+
+      {/* Statut (« Vous êtes… ») : demandé une fois aux comptes créés avant cette question (si la colonne existe) */}
+      {profile && "status" in (profile as any) && !(profile as any).status ? <ProfileStatusPrompt /> : null}
 
       {!onboardingComplete ? (
         <div data-tour="dashboard-onboarding">

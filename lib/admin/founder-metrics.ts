@@ -20,6 +20,8 @@ export interface RawProfile {
   full_name: string | null;
   country_code?: string | null;
   onboarding_completed?: boolean | null;
+  /** Statut déclaré (élève, étudiant, salarié…), migration 0032. */
+  status?: string | null;
 }
 export interface RawSubscription {
   user_id: string;
@@ -65,6 +67,8 @@ export interface FounderMetrics {
   recentSignups: FounderUserRow[];
   signupsByDay: { day: string; count: number }[];
   allUsers: FounderUserRow[];
+  /** Répartition des utilisateurs par statut (« unknown » = pas encore renseigné), du plus fréquent au moins fréquent. */
+  statuses: { status: string; count: number }[];
 }
 
 /** Payé réellement (Bictorys), par opposition au mode démo ou à une attribution manuelle. */
@@ -198,6 +202,11 @@ export function computeFounderMetrics(
     recentSignups: rows.slice(0, 15),
     signupsByDay,
     allUsers: rows,
+    statuses: (() => {
+      const counts = new Map<string, number>();
+      for (const p of profiles) counts.set(p.status || "unknown", (counts.get(p.status || "unknown") ?? 0) + 1);
+      return [...counts.entries()].map(([status, count]) => ({ status, count })).sort((a, b) => b.count - a.count);
+    })(),
   };
 }
 
@@ -221,7 +230,11 @@ export async function loadFounderMetrics(admin: any, nowMs: number = Date.now())
   }
 
   const [{ data: profiles }, subsRes, { data: activities }] = await Promise.all([
-    admin.from("profiles").select("id, full_name, country_code, onboarding_completed"),
+    // Avec le statut (migration 0032) ; sans lui si la colonne n'existe pas encore
+    admin
+      .from("profiles")
+      .select("id, full_name, country_code, onboarding_completed, status")
+      .then((r: any) => (r.error ? admin.from("profiles").select("id, full_name, country_code, onboarding_completed") : r)),
     admin
       .from("subscriptions")
       .select("user_id, plan, status, current_period_start, current_period_end, trial_started_at, trial_ends_at, provider, provider_subscription_id"),

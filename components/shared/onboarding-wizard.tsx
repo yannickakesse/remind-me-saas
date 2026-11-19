@@ -1,4 +1,5 @@
 "use client";
+import { USER_STATUSES } from "@/lib/profile/status";
 import { msg } from "@/lib/i18n/catalog";
 
 
@@ -33,6 +34,7 @@ export function OnboardingWizard({
   const { tr } = useLanguage();
   const [step, setStep] = useState(0);
   const [fullName, setFullName] = useState(defaultFullName);
+  const [userStatus, setUserStatus] = useState<string>("");
   const [countryCode, setCountryCode] = useState(countries[0]?.code ?? "CI");
   const [currencyCode, setCurrencyCode] = useState(currencies[0]?.code ?? "XOF");
   const [timezone, setTimezone] = useState(() => {
@@ -55,6 +57,10 @@ export function OnboardingWizard({
       setError(tr("Entrez votre nom complet."));
       return;
     }
+    if (step === 0 && !userStatus) {
+      setError(tr("Choisissez ce qui vous décrit le mieux."));
+      return;
+    }
     setError(null);
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
@@ -72,6 +78,7 @@ export function OnboardingWizard({
 
     const formData = new FormData();
     formData.set("fullName", fullName);
+    formData.set("status", userStatus);
     formData.set("countryCode", countryCode);
     formData.set("currencyCode", currencyCode);
     formData.set("timezone", timezone);
@@ -111,14 +118,33 @@ export function OnboardingWizard({
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {step === 0 ? (
-          <Field label={tr("Comment devons-nous vous appeler ?")} htmlFor="fullName">
-            <TextInput
-              id="fullName"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              autoFocus
-            />
-          </Field>
+          <>
+            <Field label={tr("Comment devons-nous vous appeler ?")} htmlFor="fullName">
+              <TextInput
+                id="fullName"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                autoFocus
+              />
+            </Field>
+            <Field label={tr("Vous êtes…")} htmlFor="userStatus">
+              <select
+                id="userStatus"
+                value={userStatus}
+                onChange={(e) => setUserStatus(e.target.value)}
+                className="w-full rounded-xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised dark:bg-slate-900 px-3.5 py-2.5 text-ink-950 dark:text-white focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
+              >
+                <option value="" disabled>
+                  {tr("Choisissez…")}
+                </option>
+                {USER_STATUSES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {tr(s.label)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </>
         ) : null}
 
         {step === 1 ? (

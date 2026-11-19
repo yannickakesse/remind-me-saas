@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { onboardingSchema } from "@/lib/validation/onboarding";
+import { USER_STATUS_VALUES } from "@/lib/profile/status";
 
 export async function completeOnboarding(formData: FormData) {
   const supabase = createClient();
@@ -29,16 +30,22 @@ export async function completeOnboarding(formData: FormData) {
     throw new Error(parsed.error.issues[0]?.message ?? "Formulaire invalide");
   }
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      full_name: parsed.data.fullName,
-      country_code: parsed.data.countryCode,
-      default_currency: parsed.data.currencyCode,
-      timezone: parsed.data.timezone,
-      onboarding_completed: true,
-    })
-    .eq("id", user.id);
+  const rawStatus = String(formData.get("status") || "");
+  const profileUpdate: Record<string, any> = {
+    full_name: parsed.data.fullName,
+    country_code: parsed.data.countryCode,
+    default_currency: parsed.data.currencyCode,
+    timezone: parsed.data.timezone,
+    onboarding_completed: true,
+  };
+  if (USER_STATUS_VALUES.includes(rawStatus)) profileUpdate.status = rawStatus;
+
+  let { error } = await supabase.from("profiles").update(profileUpdate).eq("id", user.id);
+  // Colonne « status » pas encore créée (migration 0032) : le profil est enregistré sans elle
+  if (error && "status" in profileUpdate && (error.message || "").toLowerCase().includes("status")) {
+    delete profileUpdate.status;
+    ({ error } = await supabase.from("profiles").update(profileUpdate).eq("id", user.id));
+  }
 
   if (error) {
     throw new Error("Impossible d'enregistrer votre profil. Réessayez.");

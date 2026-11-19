@@ -1,5 +1,6 @@
 "use client";
 
+import { userStatusLabel } from "@/lib/profile/status";
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { Users, UserCheck, Activity, Hourglass, Gem, Wallet, Percent, Send, BellRing, Search, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
@@ -187,6 +188,33 @@ export function FounderDashboard({
                 <span>aujourd'hui</span>
               </div>
             </section>
+
+            {/* Qui utilise Remind Me : répartition par statut (« Vous êtes… » de l'inscription) */}
+            {metrics.statuses && metrics.statuses.length > 0 && (
+              <section className="rounded-2xl border border-ink-200/80 dark:border-ink-800 bg-canvas-raised p-5 shadow-xs">
+                <h2 className="text-sm font-bold">Qui utilise Remind Me</h2>
+                <ul className="mt-4 space-y-2.5">
+                  {metrics.statuses.map((s) => {
+                    const pct = metrics.users.total ? Math.round((s.count / metrics.users.total) * 100) : 0;
+                    const label = s.status === "unknown" ? "Pas encore renseigné" : userStatusLabel(s.status) ?? s.status;
+                    return (
+                      <li key={s.status} className="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-3 text-xs">
+                        <span className={`truncate ${s.status === "unknown" ? "text-ink-500" : "font-medium"}`}>{label}</span>
+                        <span className="h-2 overflow-hidden rounded-full bg-ink-100 dark:bg-white/10">
+                          <span
+                            className={`block h-full rounded-full ${s.status === "unknown" ? "bg-ink-300 dark:bg-white/20" : "bg-amber-500"}`}
+                            style={{ width: `${Math.max(2, pct)}%` }}
+                          />
+                        </span>
+                        <span className="tabular-nums text-ink-600 dark:text-ink-300">
+                          {s.count} · {pct} %
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
 
             {/* À surveiller */}
             <section className="grid gap-3 md:grid-cols-3">

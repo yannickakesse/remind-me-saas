@@ -2045,7 +2045,7 @@ export async function evaluateSmartReminders(
   //      (« Yannick, votre séance… ») — même réglage que le prénom dans la voix
   // ==========================================================================
   {
-    const firstName = String(profileData?.full_name || "").trim().split(/s+/)[0] || "";
+    const firstName = String(profileData?.full_name || "").trim().split(/\s+/)[0] || "";
     const includeName = (prefsData as any)?.voice_include_user_name ?? true;
     if (firstName && includeName) {
       for (const c of candidates) c.body = personalizeBody(c.body, firstName, locale);

@@ -20,12 +20,60 @@ import { DateTime } from "luxon";
 const OPTIONAL_ACTIVITY_COLUMNS = ["voice_reminder_enabled", "reminder_lead_minutes", "track_time"] as const;
 function stripMissingOptionalColumn(payload: Record<string, any>, error: { message?: string } | null): boolean {
   const msg = (error?.message || "").toLowerCase();
+  // Nouveaux types d'activité (migration 0032) pas encore acceptés par la base : enregistrée comme « Autre »
+  if (msg.includes("activities_type_check") && payload.type && payload.type !== "other") {
+    payload.type = "other";
+    return true;
+  }
   const col = OPTIONAL_ACTIVITY_COLUMNS.find((c) => msg.includes(c) && c in payload);
   if (!col) return false;
   delete payload[col];
   return true;
 }
 
+
+/**
+ * Horaires variables : chaque séance datée devient une séance du calendrier (avec ses rappels).
+ * Seules les séances à venir sont créées ; les doublons (même début) sont ignorés.
+ */
+async function insertDatedSessions(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  activityId: string,
+  title: string,
+  sessions: { date: string; startTime: string; endTime: string }[]
+) {
+  if (!sessions.length) return null;
+  const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", userId).maybeSingle();
+  const tz = (profile as any)?.timezone || "UTC";
+  const now = DateTime.now();
+  const seen = new Set<string>();
+  const rows = sessions
+    .map((s) => {
+      const start = DateTime.fromISO(`${s.date}T${s.startTime.slice(0, 5)}`, { zone: tz });
+      const end = DateTime.fromISO(`${s.date}T${s.endTime.slice(0, 5)}`, { zone: tz });
+      return { start, end };
+    })
+    .filter(({ start, end }) => start.isValid && end.isValid && end > start && end > now)
+    .filter(({ start }) => {
+      const k = start.toUTC().toISO()!;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .map(({ start, end }) => ({
+      user_id: userId,
+      activity_id: activityId,
+      schedule_id: null,
+      title,
+      starts_at: start.toUTC().toISO()!,
+      ends_at: end.toUTC().toISO()!,
+      status: "planned" as const,
+    }));
+  if (!rows.length) return null;
+  const { error } = await supabase.from("calendar_events").insert(rows as any);
+  return error;
+}
 
 /**
  * Trouve une organisation existante par nom exact pour cet utilisateur,
@@ -203,6 +251,13 @@ export async function createActivity(formData: FormData) {
       );
       if (schedulesError) {
         return { error: msg("L'activité a été créée mais les horaires n'ont pas pu être enregistrés.") };
+      }
+    }
+
+    if (parsed.schedule.variableHours && parsed.schedule.sessions.length > 0) {
+      const sessionsError = await insertDatedSessions(supabase, user.id, activity.id, parsed.info.name, parsed.schedule.sessions);
+      if (sessionsError) {
+        return { error: msg("L'activité a été créée mais ses séances n'ont pas pu être ajoutées au calendrier.") };
       }
     }
 
@@ -395,6 +450,12 @@ export async function updateActivity(activityId: string, formData: FormData) {
         .gte("starts_at", nowIso);
     } catch (calErr) {
       console.warn("updateActivity calendar cleanup warning:", calErr);
+    }
+
+    // Horaires variables : les séances datées du formulaire (déjà retirées ci-dessus) sont recréées
+    if (parsed.schedule.variableHours && parsed.schedule.sessions.length > 0) {
+      const sessionsError = await insertDatedSessions(supabase, user.id, activityId, parsed.info.name, parsed.schedule.sessions);
+      if (sessionsError) console.warn("updateActivity dated sessions warning:", sessionsError);
     }
 
     // Invalider les anciens rappels obsolètes pour recalculer les alertes selon le nouvel horaire

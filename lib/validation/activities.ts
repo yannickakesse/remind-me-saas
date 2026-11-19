@@ -1,19 +1,37 @@
 import { msg } from "@/lib/i18n/catalog";
 import { z } from "zod";
 
-export const ACTIVITY_TYPES = [
+/** Types d'une activité qui rapporte de l'argent. */
+export const PAID_ACTIVITY_TYPES = [
   { value: "salaried_job", label: msg("Emploi salarié") },
-  { value: "freelance", label: "Freelance" },
-  { value: "contract", label: "Contrat" },
-  { value: "mission", label: "Mission" },
-  { value: "own_business", label: "Entreprise personnelle" },
-  { value: "commerce", label: "Commerce" },
-  { value: "coaching", label: "Coaching" },
-  { value: "consulting", label: "Consultation" },
-  { value: "teaching", label: "Cours" },
+  { value: "freelance", label: msg("Freelance") },
+  { value: "contract", label: msg("Contrat") },
+  { value: "mission", label: msg("Mission") },
+  { value: "own_business", label: msg("Entreprise personnelle") },
+  { value: "commerce", label: msg("Commerce") },
+  { value: "coaching", label: msg("Coaching") },
+  { value: "consulting", label: msg("Consultation") },
+  { value: "teaching", label: msg("Cours (je l'enseigne)") },
   { value: "side_activity", label: msg("Activité secondaire") },
-  { value: "other", label: "Autre" },
+  { value: "other", label: msg("Autre") },
 ] as const;
+
+/** Types d'une activité qui ne rapporte pas d'argent (élève, étudiant, vie personnelle…). Migration 0032. */
+export const UNPAID_ACTIVITY_TYPES = [
+  { value: "studies", label: msg("Études, école") },
+  { value: "course", label: msg("Cours (je le suis)") },
+  { value: "training", label: msg("Formation, apprentissage") },
+  { value: "internship", label: msg("Stage") },
+  { value: "volunteering", label: msg("Bénévolat, association") },
+  { value: "spiritual", label: msg("Vie spirituelle (culte, prière…)") },
+  { value: "sport", label: msg("Sport, bien-être") },
+  { value: "appointment", label: msg("Rendez-vous") },
+  { value: "personal_event", label: msg("Événement personnel (mariage, baptême…)") },
+  { value: "other", label: msg("Autre") },
+] as const;
+
+export const ACTIVITY_TYPES = [...PAID_ACTIVITY_TYPES, ...UNPAID_ACTIVITY_TYPES.filter((t) => t.value !== "other")] as const;
+export const UNPAID_TYPE_VALUES: readonly string[] = UNPAID_ACTIVITY_TYPES.map((t) => t.value);
 
 export const COMPENSATION_FREQUENCIES = [
   { value: "hourly", label: "Horaire" },
@@ -64,6 +82,8 @@ export const activityInfoSchema = z.object({
   type: z.enum([
     "salaried_job", "freelance", "contract", "mission", "own_business",
     "commerce", "coaching", "consulting", "teaching", "side_activity", "other",
+    "studies", "course", "internship", "training", "volunteering",
+    "appointment", "personal_event", "sport", "spiritual",
   ]),
   validityType: z.enum(["permanent", "temporary"]).default("permanent"),
   engagementNature: z.enum(["routine", "temporary_engagement", "important", "one_time"]).default("routine"),
@@ -115,11 +135,21 @@ export const activityScheduleEntrySchema = z
     path: ["endTime"],
   });
 
+/** Séance datée (horaires variables) : une date précise, une heure de début et de fin. */
+export const activityDatedSessionSchema = z
+  .object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, msg("Date de séance invalide")),
+    startTime: z.string().regex(/^\d{2}:\d{2}/, msg("Heure invalide")),
+    endTime: z.string().regex(/^\d{2}:\d{2}/, msg("Heure invalide")),
+  })
+  .refine((x) => x.endTime > x.startTime, { message: msg("L'heure de fin doit être après l'heure de début") });
+
 export const activityScheduleSchema = z.object({
   variableHours: z.boolean().default(false),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   schedules: z.array(activityScheduleEntrySchema).default([]),
+  sessions: z.array(activityDatedSessionSchema).default([]),
 });
 
 // ---- Rémunération -------------------------------------------------------
@@ -153,6 +183,14 @@ export const activityFormSchema = z
     schedule: activityScheduleSchema,
     compensation: activityCompensationSchema,
   })
+  .refine(
+    // Horaires obligatoires : au moins un créneau (horaires fixes) ou une séance datée (horaires variables)
+    (data) => (data.schedule.variableHours ? data.schedule.sessions.length > 0 : data.schedule.schedules.length > 0),
+    {
+      message: msg("Ajoutez au moins un créneau (jour et heures) : sans horaire, Remind Me ne peut pas vous rappeler cette activité."),
+      path: ["schedule", "schedules"],
+    }
+  )
   .refine(
     (data) => {
       // Si engagement temporaire, la date de fin est strictement requise
@@ -242,6 +280,13 @@ export function parseActivityFormData(formData: FormData): ActivityFormInput {
       startDate: formData.get("startDate") || undefined,
       endDate: formData.get("endDate") || undefined,
       schedules,
+      sessions: (() => {
+        try {
+          return JSON.parse(String(formData.get("sessionsJson") || "[]"));
+        } catch {
+          return [];
+        }
+      })(),
     },
     compensation: {
       amount: formData.get("amount"),
