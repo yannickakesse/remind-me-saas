@@ -715,7 +715,12 @@ export function ActivitiesClientView({
                       </span>
                     ) : null}
 
-                    {activity.compensation ? (
+                    {activity.compensation && !(Number(activity.compensation.amount) > 0) ? (
+                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-ink-200/80 dark:border-white/10 bg-ink-100/50 dark:bg-white/5 px-2.5 py-0.5 text-xs font-semibold text-ink-700 dark:text-ink-300">
+                        <Wallet className="h-3.5 w-3.5" />
+                        {tr("Sans rémunération")}
+                      </span>
+                    ) : activity.compensation ? (
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap font-mono font-bold text-signal bg-signal/10 dark:bg-signal/20 px-2.5 py-0.5 rounded-lg border border-signal/20">
                         <Wallet className="h-3.5 w-3.5" />
                         {compactAmount(activity.compensation.amount, activity.compensation.currency)}/

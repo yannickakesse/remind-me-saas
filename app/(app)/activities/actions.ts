@@ -351,7 +351,8 @@ export async function updateActivity(activityId: string, formData: FormData) {
     // (le libellé d’origine, ex. « Nom — novembre 2026 », est conservé : plus de code brut type « per_session »)
     // pour que les nouvelles valeurs (ex: 20 000 FCFA au lieu de 375 000 FCFA) soient immédiatement
     // répercutées dans la table income sans aucune valeur résiduelle obsolète.
-    await Promise.allSettled([
+    // Activité passée « sans rémunération » (montant 0) : on ne transforme pas les revenus existants en revenus à 0.
+    if (parsed.compensation.amount > 0) await Promise.allSettled([
       supabase
         .from("income")
         .update({

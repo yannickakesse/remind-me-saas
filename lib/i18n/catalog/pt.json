@@ -3040,5 +3040,12 @@
   "Zéro conflit": "Sem conflitos",
   "Zéro conflit d’agenda": "Sem conflitos de agenda",
   "Zéro doublon : l'action dans l'un synchronise immédiatement l'autre": "Sem duplicatas: uma ação em um deles sincroniza imediatamente o outro",
-  "Zone de danger — Suppression du compte": "Área de risco — Exclusão da conta"
+  "Zone de danger — Suppression du compte": "Área de risco — Exclusão da conta",
+  "Cette activité vous rapporte-t-elle de l'argent ?": "Esta atividade gera dinheiro para você?",
+  "Cours, études, bénévolat, activité personnelle…": "Aulas, estudos, voluntariado, atividade pessoal…",
+  "Non, pas de rémunération": "Não, sem remuneração",
+  "Oui, elle est rémunérée": "Sim, é remunerada",
+  "Remind Me vous rappellera vos séances comme pour toute activité, sans revenu associé. Vous pourrez ajouter une rémunération plus tard.": "O Remind Me vai lembrar você das suas sessões como em qualquer atividade, sem receita associada. Você poderá adicionar uma remuneração mais tarde.",
+  "Salaire, mission, prestation, vente…": "Salário, missão, prestação de serviço, venda…",
+  "Sans rémunération": "Sem remuneração"
 }

@@ -87,6 +87,8 @@ export function ActivityForm({
   const router = useRouter();
 
   const [color, setColor] = useState(initial?.color ?? COLORS[0]!);
+  // Activité rémunérée ou non (cours, études, bénévolat, activité personnelle…) : la rémunération n'est jamais imposée
+  const [isPaid, setIsPaid] = useState<boolean>(initial ? Number(initial.amount) > 0 : true);
   const [validityType, setValidityType] = useState<ValidityType>(
     initial?.validityType ?? (initial?.endDate ? "temporary" : "permanent")
   );
@@ -450,6 +452,48 @@ export function ActivityForm({
         <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">
           {tr("Rémunération")}</h2>
 
+        <fieldset className="flex flex-col gap-2">
+          <legend className="mb-2 text-sm font-semibold text-ink-950 dark:text-white">{tr("Cette activité vous rapporte-t-elle de l'argent ?")}</legend>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {[
+              { value: true, title: tr("Oui, elle est rémunérée"), hint: tr("Salaire, mission, prestation, vente…") },
+              { value: false, title: tr("Non, pas de rémunération"), hint: tr("Cours, études, bénévolat, activité personnelle…") },
+            ].map((o) => (
+              <label
+                key={String(o.value)}
+                className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition-colors ${
+                  isPaid === o.value
+                    ? "border-signal bg-signal/10 dark:bg-signal/15"
+                    : "border-ink-200/90 dark:border-white/10 hover:bg-ink-100/40 dark:hover:bg-white/[0.03]"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="isPaidChoice"
+                  checked={isPaid === o.value}
+                  onChange={() => setIsPaid(o.value)}
+                  className="mt-1 text-signal focus:ring-signal"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-ink-950 dark:text-white">{o.title}</span>
+                  <span className="block text-xs text-ink-600 dark:text-ink-400">{o.hint}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        {!isPaid ? (
+          <>
+            {/* Aucune rémunération : montant 0 (aucun revenu prévu n'est généré) */}
+            <input type="hidden" name="amount" value="0" />
+            <input type="hidden" name="currency" value={initial?.currency ?? defaultCurrency} />
+            <input type="hidden" name="frequency" value={initial?.frequency ?? "monthly"} />
+            <p className="text-xs text-ink-600 dark:text-ink-400">
+              {tr("Remind Me vous rappellera vos séances comme pour toute activité, sans revenu associé. Vous pourrez ajouter une rémunération plus tard.")}
+            </p>
+          </>
+        ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Field label={tr("Montant *")} htmlFor="amount">
             <TextInput
@@ -494,6 +538,7 @@ export function ActivityForm({
             </select>
           </Field>
         </div>
+        )}
       </section>
 
       {/* ---- Horaires / Créneaux ---- */}

@@ -43,6 +43,8 @@ export async function ensureIncomeEntries(
 
   for (const c of compensations) {
     if (!isGenerableFrequency(c.frequency)) continue;
+    // Activité sans rémunération (cours, études, bénévolat…) : aucun revenu prévu à 0
+    if (!(Number(c.amount) > 0)) continue;
 
     const activity = Array.isArray(c.activities) ? c.activities[0] : c.activities;
     if (!activity) continue;
