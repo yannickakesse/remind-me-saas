@@ -69,6 +69,13 @@ export const activityInfoSchema = z.object({
   engagementNature: z.enum(["routine", "temporary_engagement", "important", "one_time"]).default("routine"),
   reminderPreference: z.enum(["enabled", "disabled", "recommended"]).default("recommended"),
   voiceReminderEnabled: z.boolean().default(true),
+  /**
+   * Suivi des heures (choix obligatoire) : true = confirmer chaque séance terminée (heures, rentabilité) ;
+   * false = rappels seulement (cours, rendez-vous, mariage, baptême…).
+   */
+  trackTime: z.enum(["yes", "no"], {
+    errorMap: () => ({ message: msg("Choisissez ce que Remind Me doit faire pour cette activité : rappels seulement, ou rappels et suivi des heures.") }),
+  }).transform((v) => v === "yes"),
   /** Délai du 1er rappel avant chaque séance (minutes) ; vide = délai général des paramètres. */
   reminderLeadMinutes: z.preprocess(
     (v) => (v === "" || v === null || v === undefined ? null : Number(v)),
@@ -215,6 +222,7 @@ export function parseActivityFormData(formData: FormData): ActivityFormInput {
       engagementNature: formData.get("engagementNature") || "routine",
       reminderPreference: formData.get("reminderPreference") || "recommended",
       reminderLeadMinutes: formData.get("reminderLeadMinutes"),
+      trackTime: formData.get("trackTime") || undefined,
       voiceReminderEnabled:
         formData.get("voiceReminderEnabled") === "on" ||
         formData.get("voiceReminderEnabled") === "true" ||
@@ -272,6 +280,7 @@ export function buildActivityPayload(
     reminder_preference: parsed.info.reminderPreference,
     voice_reminder_enabled: parsed.info.voiceReminderEnabled,
     reminder_lead_minutes: parsed.info.reminderLeadMinutes ?? null,
+    track_time: parsed.info.trackTime,
   };
 
   if (options?.userId) payload.user_id = options.userId;

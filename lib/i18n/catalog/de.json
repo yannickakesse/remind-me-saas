@@ -3047,5 +3047,12 @@
   "Zéro conflit": "Keine Konflikte",
   "Zéro conflit d’agenda": "Keine Terminkonflikte",
   "Zéro doublon : l'action dans l'un synchronise immédiatement l'autre": "Keine Doppelungen: Eine Änderung in der einen Anwendung wird sofort in der anderen synchronisiert",
-  "Zone de danger — Suppression du compte": "Gefahrenzone – Löschung des Kontos"
+  "Zone de danger — Suppression du compte": "Gefahrenzone – Löschung des Kontos",
+  "Choisissez ce que Remind Me doit faire pour cette activité : rappels seulement, ou rappels et suivi des heures.": "Wählen Sie, was Remind Me für diese Aktivität tun soll: nur Erinnerungen oder Erinnerungen und Zeiterfassung.",
+  "Suivi de l'activité *": "Erfassung der Aktivität *",
+  "Que doit faire Remind Me pour cette activité ?": "Was soll Remind Me für diese Aktivität tun?",
+  "Me rappeler mes séances": "An meine Termine erinnern",
+  "Des rappels avant chaque séance, rien d'autre. Idéal pour un cours, des études, un rendez-vous, un mariage…": "Erinnerungen vor jedem Termin, sonst nichts. Ideal für einen Kurs, das Studium, einen Termin, eine Hochzeit…",
+  "Me rappeler et suivre mes heures": "Erinnern und meine Stunden erfassen",
+  "Après chaque séance, Remind Me vous demande de confirmer qu'elle est terminée : heures travaillées et rentabilité.": "Nach jedem Termin bittet Remind Me Sie zu bestätigen, dass er beendet ist: geleistete Stunden und Rentabilität."
 }

@@ -17,7 +17,7 @@ import { resolveEntityNotifications, invalidateOutdatedEntityReminders, triggerP
 import { DateTime } from "luxon";
 
 /** Colonnes ajoutées par des migrations récentes : retirées de l'enregistrement si la base ne les a pas encore. */
-const OPTIONAL_ACTIVITY_COLUMNS = ["voice_reminder_enabled", "reminder_lead_minutes"] as const;
+const OPTIONAL_ACTIVITY_COLUMNS = ["voice_reminder_enabled", "reminder_lead_minutes", "track_time"] as const;
 function stripMissingOptionalColumn(payload: Record<string, any>, error: { message?: string } | null): boolean {
   const msg = (error?.message || "").toLowerCase();
   const col = OPTIONAL_ACTIVITY_COLUMNS.find((c) => msg.includes(c) && c in payload);
@@ -240,7 +240,7 @@ export async function createActivity(formData: FormData) {
     return { success: true };
   } catch (err: any) {
     console.error("createActivity error:", err);
-    return { error: err?.message || msg("Une erreur inattendue est survenue.") };
+    return { error: err?.issues?.[0]?.message || err?.message || msg("Une erreur inattendue est survenue.") };
   }
 }
 
@@ -411,7 +411,7 @@ export async function updateActivity(activityId: string, formData: FormData) {
     return { success: true };
   } catch (err: any) {
     console.error("updateActivity error:", err);
-    return { error: err?.message || msg("Une erreur inattendue est survenue.") };
+    return { error: err?.issues?.[0]?.message || err?.message || msg("Une erreur inattendue est survenue.") };
   }
 }
 

@@ -117,6 +117,7 @@ export default async function NewActivityPage({
         engagementNature: (sourceActivity.engagement_nature as any) ?? "routine",
         reminderPreference: (sourceActivity.reminder_preference as any) ?? "recommended",
         reminderLeadMinutes: (sourceActivity as any).reminder_lead_minutes ?? null,
+        trackTime: (sourceActivity as any).track_time ?? true,
         voiceReminderEnabled: sourceActivity.voice_reminder_enabled ?? true,
       }
     : undefined;

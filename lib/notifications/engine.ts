@@ -200,6 +200,33 @@ export function triggerProactiveReminders(
  * - Au plus 2 push individuels ; au-delà, un seul récapitulatif pour ne pas réveiller le téléphone en rafale.
  * - Chaque rappel n'est traité qu'une fois (indicateur retiré, idempotence des push conservée).
  */
+/**
+ * « Yannick, votre séance… » : prénom en tête du texte d'une notification.
+ * Première lettre en minuscule après la virgule (sauf en allemand, où « Ihre » garde sa majuscule).
+ */
+export function personalizeBody(body: string, firstName: string, locale: string): string {
+  const text = (body || "").trim();
+  if (!text || !firstName || text.toLowerCase().startsWith(firstName.toLowerCase())) return body;
+  const first = text.charAt(0);
+  const isLetter = first.toLowerCase() !== first.toUpperCase();
+  const rest = isLetter && !String(locale).startsWith("de") ? first.toLowerCase() + text.slice(1) : text;
+  return `${firstName}, ${rest}`;
+}
+
+/**
+ * Activités « rappels seulement » (migration 0031, track_time = false) : jamais de confirmation de séance.
+ * Avant la migration, la colonne n'existe pas : ensemble vide (comportement habituel).
+ */
+async function remindersOnlyActivityIds(supabase: any, userId: string): Promise<Set<string>> {
+  try {
+    const { data, error } = await supabase.from("activities").select("id").eq("user_id", userId).eq("track_time", false);
+    if (error || !data) return new Set();
+    return new Set((data as { id: string }[]).map((a) => a.id));
+  } catch {
+    return new Set();
+  }
+}
+
 async function flushDeferredPushes(
   supabase: SupabaseClient<Database>,
   userId: string,
@@ -745,20 +772,22 @@ export async function evaluateSmartReminders(
     const past7daysIso = userNow.minus({ days: 7 }).toUTC().toISO()!;
     // Horizon strict de 3 jours max pour les activités futures (règle standard 3 jours)
     const next3daysIso = userNow.plus({ days: 3 }).endOf("day").toUTC().toISO()!;
-    // Délai propre à l'activité (colonne de la migration 0030) : si elle n'existe pas encore, requête sans elle
-    const eventQuery = (withLead: boolean) =>
+    // Colonnes des migrations 0030 (délai propre) et 0031 (suivi des heures) : si elles n'existent pas encore,
+    // la requête est refaite sans elles (le rappel fonctionne avant et après la migration)
+    const eventQuery = (extra: string) =>
       supabase
         .from("calendar_events")
         .select(
-          `id, title, starts_at, ends_at, status, activity_id, activities(id, name, category, voice_reminder_enabled, reminder_preference, engagement_nature, validity_type, start_date, end_date, status${withLead ? ", reminder_lead_minutes" : ""})`
+          `id, title, starts_at, ends_at, status, activity_id, activities(id, name, category, voice_reminder_enabled, reminder_preference, engagement_nature, validity_type, start_date, end_date, status${extra})` as "*"
         )
         .eq("user_id", userId)
         .neq("status", "cancelled")
         .gte("starts_at", past7daysIso)
         .lte("starts_at", next3daysIso)
         .order("starts_at", { ascending: true });
-    let { data: eventList, error: eventErr } = await eventQuery(true);
-    if (eventErr) ({ data: eventList } = await eventQuery(false));
+    let { data: eventList, error: eventErr } = await eventQuery(", reminder_lead_minutes, track_time");
+    if (eventErr) ({ data: eventList, error: eventErr } = await eventQuery(", reminder_lead_minutes"));
+    if (eventErr) ({ data: eventList } = await eventQuery(""));
 
     for (const evt of eventList ?? []) {
       if (
@@ -769,7 +798,7 @@ export async function evaluateSmartReminders(
         activeSnoozeEntityIds.has(evt.id)
       ) continue;
 
-      const actData = evt.activities as {
+      const actData = (evt as any).activities as {
         id?: string;
         name?: string;
         voice_reminder_enabled?: boolean;
@@ -780,6 +809,7 @@ export async function evaluateSmartReminders(
         end_date?: string | null;
         status?: string;
         reminder_lead_minutes?: number | null;
+        track_time?: boolean;
         category?: string | null;
       } | null;
       // Domaine de l'activité (classification) : phrase vocale et texte du rappel contextuels
@@ -842,6 +872,9 @@ export async function evaluateSmartReminders(
         language: (locale as any) || "fr",
         includeUserName: (prefsData as any)?.voice_include_user_name ?? true,
       });
+
+      // Activité « rappels seulement » (élève, rendez-vous, mariage…) : aucune demande de confirmation
+      if (isPast && evt.status === "planned" && actData?.track_time === false) continue;
 
       if (isPast && evt.status === "planned") {
         const daysAgo = Math.max(0, Math.floor(userNow.diff(eventStart, "days").days));
@@ -1531,7 +1564,7 @@ export async function evaluateSmartReminders(
         .eq("due_date", todayISO),
       supabase
         .from("calendar_events")
-        .select("id, title, starts_at, status")
+        .select("id, title, starts_at, status, activity_id")
         .eq("user_id", userId)
         .neq("status", "cancelled")
         .gte("starts_at", userNow.startOf("day").toISO()!)
@@ -1671,7 +1704,7 @@ export async function evaluateSmartReminders(
         .eq("due_date", todayISO),
       supabase
         .from("calendar_events")
-        .select("id, title, starts_at, status")
+        .select("id, title, starts_at, status, activity_id")
         .eq("user_id", userId)
         .neq("status", "cancelled")
         .gte("starts_at", userNow.startOf("day").toISO()!)
@@ -1692,6 +1725,8 @@ export async function evaluateSmartReminders(
     const upcomingItems: DailyActivityItem[] = [];
     const overdueItems: DailyActivityItem[] = [];
     const currentHourStr = userNow.toFormat("HH:mm");
+    // Activités « rappels seulement » : une séance passée n'est jamais « en attente de vérification »
+    const remindersOnly = await remindersOnlyActivityIds(supabase, userId);
 
     // Events
     for (const ev of todayEvents ?? []) {
@@ -1706,7 +1741,8 @@ export async function evaluateSmartReminders(
       if (ev.status === "completed") {
         completedItems.push({ ...item, status: "completed" });
       } else if (timeStr < currentHourStr) {
-        overdueItems.push({ ...item, status: "overdue" });
+        if (remindersOnly.has((ev as any).activity_id)) completedItems.push({ ...item, status: "completed" });
+        else overdueItems.push({ ...item, status: "overdue" });
       } else {
         upcomingItems.push({ ...item, status: "pending" });
       }
@@ -1827,7 +1863,7 @@ export async function evaluateSmartReminders(
         .eq("due_date", todayISO),
       supabase
         .from("calendar_events")
-        .select("id, title, starts_at, status")
+        .select("id, title, starts_at, status, activity_id")
         .eq("user_id", userId)
         .neq("status", "cancelled")
         .gte("starts_at", userNow.startOf("day").toISO()!)
@@ -1847,6 +1883,7 @@ export async function evaluateSmartReminders(
     const completedItems: DailyActivityItem[] = [];
     const uncompletedItems: DailyActivityItem[] = [];
     const postponedItems: DailyActivityItem[] = [];
+    const remindersOnlyEvening = await remindersOnlyActivityIds(supabase, userId);
 
     // Events (une séance reportée n'est ni faite ni « en retard » : elle est comptée à part)
     for (const ev of todayEvents ?? []) {
@@ -1855,6 +1892,9 @@ export async function evaluateSmartReminders(
         completedItems.push({ ...item, status: "completed" });
       } else if (ev.status === "postponed") {
         postponedItems.push({ ...item, status: "pending" });
+      } else if (remindersOnlyEvening.has((ev as any).activity_id)) {
+        // Rappels seulement : la séance a eu lieu, rien à confirmer
+        completedItems.push({ ...item, status: "completed" });
       } else {
         uncompletedItems.push({ ...item, status: "pending" });
       }
@@ -1997,6 +2037,18 @@ export async function evaluateSmartReminders(
           if (DIGEST_KINDS.has(candidates[i]!.kind)) candidates.splice(i, 1);
         }
       }
+    }
+  }
+
+  // ==========================================================================
+  // 8.95 MESSAGE PERSONNEL : le prénom de l'utilisateur en tête du texte
+  //      (« Yannick, votre séance… ») — même réglage que le prénom dans la voix
+  // ==========================================================================
+  {
+    const firstName = String(profileData?.full_name || "").trim().split(/s+/)[0] || "";
+    const includeName = (prefsData as any)?.voice_include_user_name ?? true;
+    if (firstName && includeName) {
+      for (const c of candidates) c.body = personalizeBody(c.body, firstName, locale);
     }
   }
 

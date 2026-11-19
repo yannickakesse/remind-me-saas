@@ -3047,5 +3047,12 @@
   "Oui, elle est rémunérée": "Sim, é remunerada",
   "Remind Me vous rappellera vos séances comme pour toute activité, sans revenu associé. Vous pourrez ajouter une rémunération plus tard.": "O Remind Me vai lembrar você das suas sessões como em qualquer atividade, sem receita associada. Você poderá adicionar uma remuneração mais tarde.",
   "Salaire, mission, prestation, vente…": "Salário, missão, prestação de serviço, venda…",
-  "Sans rémunération": "Sem remuneração"
+  "Sans rémunération": "Sem remuneração",
+  "Choisissez ce que Remind Me doit faire pour cette activité : rappels seulement, ou rappels et suivi des heures.": "Escolha o que o Remind Me deve fazer com esta atividade: apenas lembretes, ou lembretes e acompanhamento de horas.",
+  "Suivi de l'activité *": "Acompanhamento da atividade *",
+  "Que doit faire Remind Me pour cette activité ?": "O que o Remind Me deve fazer com esta atividade?",
+  "Me rappeler mes séances": "Lembrar-me das minhas sessões",
+  "Des rappels avant chaque séance, rien d'autre. Idéal pour un cours, des études, un rendez-vous, un mariage…": "Lembretes antes de cada sessão, nada mais. Ideal para uma aula, estudos, uma consulta, um casamento…",
+  "Me rappeler et suivre mes heures": "Lembrar-me e acompanhar as minhas horas",
+  "Après chaque séance, Remind Me vous demande de confirmer qu'elle est terminée : heures travaillées et rentabilité.": "Após cada sessão, o Remind Me pede que você confirme que terminou: horas trabalhadas e rentabilidade."
 }

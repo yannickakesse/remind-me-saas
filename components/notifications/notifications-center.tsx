@@ -33,6 +33,7 @@ import {
   SlidersHorizontal,
   MoreHorizontal,
   ChevronDown,
+  Eye,
 } from "lucide-react";
 import { playReminderVoice, stopVoiceReminder, getLocalVoiceSettings } from "@/lib/voice";
 import type { Notification, NotificationPriority } from "@/types/database";
@@ -961,7 +962,8 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
 
     let primary: RowAction | null = null;
     const secondary: RowAction[] = [];
-    let group: "income" | "expense" | "task" | "activity" | "other" = "other";
+    let group: "income" | "expense" | "scheduled" | "task" | "activity" | "goal" | "other" = "other";
+    const isGoal = item.category === "goal" || item.kind.startsWith("goal_") || item.entity_type === "goal" || item.entity_type === "goal_step";
 
     if (!isResolved && item.kind === "activity_routine_suggestion") {
       primary = {
@@ -1010,8 +1012,10 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       if (!isResolved && item.entity_id) {
         primary = { label: t("actions.mark_received"), icon: Check, tone: "positive", onClick: () => handleResolve(item.id, "income", item.entity_id) };
       }
+    } else if (isGoal) {
+      group = "goal";
     } else if (isExpense || isScheduledExpense) {
-      group = "expense";
+      group = isScheduledExpense ? "scheduled" : "expense";
       if (!isResolved && item.entity_id) {
         primary = {
           label: t("actions.mark_paid"),
@@ -1057,10 +1061,12 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
   };
 
   const GROUP_LABELS: Record<string, [string, string]> = {
-    income: ["paiement attendu", "paiements attendus"],
-    expense: [tr("dépense à régler"), tr("dépenses à régler")],
-    task: [tr("tâche"), tr("tâches")],
-    activity: [tr("séance"), tr("séances")],
+    income: [tr("Paiement attendu"), tr("Paiements attendus")],
+    expense: [tr("Dépense à régler"), tr("Dépenses à régler")],
+    scheduled: [tr("Facture programmée"), tr("Factures programmées")],
+    task: [tr("Tâche"), tr("Tâches")],
+    activity: [tr("Séance"), tr("Séances")],
+    goal: [tr("Objectif"), tr("Objectifs")],
   };
 
   // Regroupement par jour (Aujourd'hui / Hier / Plus tôt), puis par type au sein de chaque jour
@@ -1096,9 +1102,13 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
       >
         <span className="relative shrink-0">
           {renderCategoryIcon(item.category, item.kind, isResolved)}
-          {dot && (
+          {isResolved ? (
+            <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#16936A] ring-2 ring-canvas-raised dark:bg-[#3FA87C] dark:ring-ink-900">
+              <Check className="h-2.5 w-2.5 text-white" strokeWidth={3.5} />
+            </span>
+          ) : dot ? (
             <span className={`absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-canvas-raised dark:ring-ink-900 ${dot}`} />
-          )}
+          ) : null}
         </span>
 
         <div className="min-w-0 flex-1">
@@ -1106,7 +1116,7 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
             <p
               className={`text-sm leading-snug break-words ${
                 isResolved
-                  ? "line-through decoration-ink-300 text-ink-600 dark:text-ink-400"
+                  ? "text-ink-600 dark:text-ink-400"
                   : isUnread
                   ? "font-semibold text-ink-950 dark:text-white"
                   : "font-medium text-ink-900 dark:text-ink-100"
@@ -1114,8 +1124,19 @@ export function NotificationsCenter({ initialNotifications, timezone, activities
             >
               {item.title}
             </p>
-            <span className="shrink-0 pt-0.5 text-[11px] text-ink-400 whitespace-nowrap">
-              {DateTime.fromISO(item.created_at, { zone: timezone }).setLocale(locale).toRelative({ style: "short" })}
+            <span className="flex shrink-0 flex-col items-end gap-1 pt-0.5">
+              <span className="text-[11px] text-ink-400 whitespace-nowrap">
+                {DateTime.fromISO(item.created_at, { zone: timezone }).setLocale(locale).toRelative({ style: "short" })}
+              </span>
+              {isResolved ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#E7F4EE] px-2 py-0.5 text-[10px] font-semibold text-[#0F7A52] dark:bg-[#3FA87C]/15 dark:text-[#7FD1AE]">
+                  <Check className="h-3 w-3" strokeWidth={3} /> {tr("Validé")}
+                </span>
+              ) : !isUnread ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#E8F0F6] px-2 py-0.5 text-[10px] font-semibold text-[#1E5A8A] dark:bg-[#8EC5EC]/15 dark:text-[#8EC5EC]">
+                  <Eye className="h-3 w-3" /> {tr("Vu")}
+                </span>
+              ) : null}
             </span>
           </div>
 

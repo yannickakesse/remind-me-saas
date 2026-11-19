@@ -56,6 +56,8 @@ interface ActivityFormProps {
     engagementNature?: EngagementNature;
     reminderPreference?: ReminderPreference;
     reminderLeadMinutes?: number | null;
+    /** Suivi des heures (colonne track_time) : absent = activité créée avant ce choix (suivi actif). */
+    trackTime?: boolean;
     variableHours: boolean;
     schedules: ScheduleRow[];
     amount: string;
@@ -89,6 +91,8 @@ export function ActivityForm({
   const [color, setColor] = useState(initial?.color ?? COLORS[0]!);
   // Activité rémunérée ou non (cours, études, bénévolat, activité personnelle…) : la rémunération n'est jamais imposée
   const [isPaid, setIsPaid] = useState<boolean>(initial ? Number(initial.amount) > 0 : true);
+  // Choix obligatoire : rappels seulement, ou rappels + suivi des heures. Rien de pré-coché pour une nouvelle activité.
+  const [trackTime, setTrackTime] = useState<boolean | null>(initial ? initial.trackTime ?? true : null);
   const [validityType, setValidityType] = useState<ValidityType>(
     initial?.validityType ?? (initial?.endDate ? "temporary" : "permanent")
   );
@@ -205,10 +209,16 @@ export function ActivityForm({
       document.getElementById("category-picker")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
+    if (trackTime === null) {
+      setError(tr("Choisissez ce que Remind Me doit faire pour cette activité : rappels seulement, ou rappels et suivi des heures."));
+      document.getElementById("track-time-choice")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setError(null);
     setSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
+    formData.set("trackTime", trackTime ? "yes" : "no");
     formData.set("color", color);
     formData.set("validityType", validityType);
     formData.set("engagementNature", engagementNature);
@@ -444,6 +454,52 @@ export function ActivityForm({
               <option value="120">{tr("2 heures avant")}</option>
             </select>
           </Field>
+        </div>
+      </section>
+
+      {/* ---- Ce que Remind Me fait pour cette activité (choix obligatoire) ---- */}
+      <section
+        id="track-time-choice"
+        className="rounded-3xl border border-ink-200/90 dark:border-white/10 bg-canvas-raised/95 dark:bg-slate-900/90 backdrop-blur-xl p-5 sm:p-7 shadow-xs flex flex-col gap-4"
+      >
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-950 dark:text-white">{tr("Suivi de l'activité *")}</h2>
+          <p className="mt-1 text-xs text-ink-600 dark:text-ink-400">{tr("Que doit faire Remind Me pour cette activité ?")}</p>
+        </div>
+        <div role="radiogroup" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {[
+            {
+              value: false,
+              title: tr("Me rappeler mes séances"),
+              hint: tr("Des rappels avant chaque séance, rien d'autre. Idéal pour un cours, des études, un rendez-vous, un mariage…"),
+            },
+            {
+              value: true,
+              title: tr("Me rappeler et suivre mes heures"),
+              hint: tr("Après chaque séance, Remind Me vous demande de confirmer qu'elle est terminée : heures travaillées et rentabilité."),
+            },
+          ].map((o) => (
+            <label
+              key={String(o.value)}
+              className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition-colors ${
+                trackTime === o.value
+                  ? "border-signal bg-signal/10 dark:bg-signal/15"
+                  : "border-ink-200/90 dark:border-white/10 hover:bg-ink-100/40 dark:hover:bg-white/[0.03]"
+              }`}
+            >
+              <input
+                type="radio"
+                name="trackTimeChoice"
+                checked={trackTime === o.value}
+                onChange={() => setTrackTime(o.value)}
+                className="mt-1 text-signal focus:ring-signal"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-ink-950 dark:text-white">{o.title}</span>
+                <span className="block text-xs text-ink-600 dark:text-ink-400">{o.hint}</span>
+              </span>
+            </label>
+          ))}
         </div>
       </section>
 

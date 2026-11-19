@@ -3047,5 +3047,12 @@
   "Zéro conflit": "Sin conflictos",
   "Zéro conflit d’agenda": "Sin conflictos de agenda",
   "Zéro doublon : l'action dans l'un synchronise immédiatement l'autre": "Sin duplicados: cualquier acción realizada en una de ellas se sincroniza inmediatamente con la otra",
-  "Zone de danger — Suppression du compte": "Zona de peligro — Eliminación de la cuenta"
+  "Zone de danger — Suppression du compte": "Zona de peligro — Eliminación de la cuenta",
+  "Choisissez ce que Remind Me doit faire pour cette activité : rappels seulement, ou rappels et suivi des heures.": "Elija lo que Remind Me debe hacer con esta actividad: solo recordatorios, o recordatorios y seguimiento de horas.",
+  "Suivi de l'activité *": "Seguimiento de la actividad *",
+  "Que doit faire Remind Me pour cette activité ?": "¿Qué debe hacer Remind Me con esta actividad?",
+  "Me rappeler mes séances": "Recordarme mis sesiones",
+  "Des rappels avant chaque séance, rien d'autre. Idéal pour un cours, des études, un rendez-vous, un mariage…": "Recordatorios antes de cada sesión, nada más. Ideal para una clase, estudios, una cita, una boda…",
+  "Me rappeler et suivre mes heures": "Recordarme y seguir mis horas",
+  "Après chaque séance, Remind Me vous demande de confirmer qu'elle est terminée : heures travaillées et rentabilité.": "Después de cada sesión, Remind Me le pide que confirme que ha terminado: horas trabajadas y rentabilidad."
 }

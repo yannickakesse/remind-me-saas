@@ -3047,5 +3047,12 @@
   "Zéro conflit": "Zero conflict",
   "Zéro conflit d’agenda": "No scheduling conflicts",
   "Zéro doublon : l'action dans l'un synchronise immédiatement l'autre": "No duplicates: an action in one immediately syncs with the other",
-  "Zone de danger — Suppression du compte": "Warning: Account Deletion"
+  "Zone de danger — Suppression du compte": "Warning: Account Deletion",
+  "Choisissez ce que Remind Me doit faire pour cette activité : rappels seulement, ou rappels et suivi des heures.": "Choose what Remind Me should do for this activity: reminders only, or reminders and time tracking.",
+  "Suivi de l'activité *": "Activity tracking *",
+  "Que doit faire Remind Me pour cette activité ?": "What should Remind Me do for this activity?",
+  "Me rappeler mes séances": "Remind me of my sessions",
+  "Des rappels avant chaque séance, rien d'autre. Idéal pour un cours, des études, un rendez-vous, un mariage…": "Reminders before each session, nothing else. Ideal for a class, studies, an appointment, a wedding…",
+  "Me rappeler et suivre mes heures": "Remind me and track my hours",
+  "Après chaque séance, Remind Me vous demande de confirmer qu'elle est terminée : heures travaillées et rentabilité.": "After each session, Remind Me asks you to confirm it is finished: hours worked and profitability."
 }
