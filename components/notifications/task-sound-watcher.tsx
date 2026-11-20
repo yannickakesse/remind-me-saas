@@ -42,6 +42,11 @@ function saveStoredAlertedIds(set: Set<string>) {
   } catch {}
 }
 
+/** Événement diffusé après chaque sondage des notifications (écouté par la cloche). */
+export const NOTIFICATIONS_POLLED_EVENT = "remindme:notifications-polled";
+const POLL_EVAL_KEY = "remindme_last_poll_eval";
+const POLL_EVAL_EVERY_MS = 60 * 1000;
+
 export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
   const { push } = useToast();
   const { tr } = useLanguage();
@@ -296,11 +301,29 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
     }
 
     async function checkReminders() {
+      // Économie de calcul serveur : aucun appel quand l'onglet est caché ou l'écran verrouillé.
+      // Au retour sur la page, une vérification part aussitôt (voir visibilitychange plus bas).
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
       try {
-        const res = await fetch("/api/notifications/poll", { cache: "no-store" });
+        // Le moteur de rappels (coûteux) ne tourne qu'une fois par minute, tous onglets confondus.
+        let evalParam = "";
+        try {
+          const lastEval = Number(localStorage.getItem(POLL_EVAL_KEY) || 0);
+          if (Date.now() - lastEval >= POLL_EVAL_EVERY_MS) {
+            localStorage.setItem(POLL_EVAL_KEY, String(Date.now()));
+            evalParam = "?eval=1";
+          }
+        } catch {
+          evalParam = "?eval=1";
+        }
+        const res = await fetch(`/api/notifications/poll${evalParam}`, { cache: "no-store" });
         if (!res.ok) return;
 
         const data = await res.json();
+        // La cloche de notifications réutilise ce résultat au lieu de sonder le serveur elle-même.
+        if (typeof window !== "undefined" && data?.success) {
+          window.dispatchEvent(new CustomEvent(NOTIFICATIONS_POLLED_EVENT, { detail: { unread: data.unread || [], count: data.count || 0 } }));
+        }
         const unreadList: Array<{
           id: string;
           title: string;
@@ -449,12 +472,17 @@ export function TaskSoundWatcher({ userId }: TaskSoundWatcherProps) {
 
     // Premier appel rapide après 1.2s
     const timeout = setTimeout(checkReminders, 1200);
-    // Polling toutes les 30s
+    // Sondage toutes les 30 s (sauté quand la page est cachée), et aussitôt au retour sur la page
     const interval = setInterval(checkReminders, 30000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") checkReminders();
+    };
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
       clearTimeout(timeout);
       clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [userId, push, tr]);
 

@@ -8,6 +8,7 @@ import { Bell, CheckCircle2, AlertCircle, Wallet, Clock, Pin, ArrowRight, Volume
 import { isSoundEnabled, setSoundEnabled, testChimeSound } from "@/lib/notifications/sound";
 import { useLanguage } from "@/components/i18n/language-provider";
 import type { Notification } from "@/types/database";
+import { NOTIFICATIONS_POLLED_EVENT } from "@/components/notifications/task-sound-watcher";
 
 interface NotificationBellProps {
   notifications: Notification[];
@@ -37,27 +38,17 @@ export function NotificationBell({ notifications: initialNotifications, unreadCo
     return () => window.removeEventListener("remindme_sound_pref_changed", handlePrefChange);
   }, []);
 
-  // Polling automatique toutes les 25 secondes pour rafraîchir les alertes en direct
+  // Mise à jour en direct : la cloche reprend le résultat du sondage fait par TaskSoundWatcher
+  // (un seul appel serveur toutes les 30 s, et seulement quand la page est visible).
   useEffect(() => {
-    let isMounted = true;
-    async function fetchLatest() {
-      try {
-        const res = await fetch("/api/notifications/poll");
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted && data.success) {
-            setItems(data.unread || []);
-            setCount(data.count || 0);
-          }
-        }
-      } catch (_) {}
+    function onPolled(e: Event) {
+      const detail = (e as CustomEvent<{ unread: Notification[]; count: number }>).detail;
+      if (!detail) return;
+      setItems(detail.unread);
+      setCount(detail.count);
     }
-
-    const interval = setInterval(fetchLatest, 25000);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
+    window.addEventListener(NOTIFICATIONS_POLLED_EVENT, onPolled);
+    return () => window.removeEventListener(NOTIFICATIONS_POLLED_EVENT, onPolled);
   }, []);
 
   function toggleSound() {

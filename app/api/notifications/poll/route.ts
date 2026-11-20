@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 const lastPollEvalByUser = new Map<string, number>();
 const POLL_EVAL_COOLDOWN_MS = 25 * 1000; // 25 secondes de cooldown par utilisateur
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = createClient();
     const {
@@ -49,7 +49,9 @@ export async function GET() {
     // Évaluation dynamique proactive des rappels à chaque cycle de polling (cooldown de 25s par utilisateur)
     const nowTimestamp = Date.now();
     const lastEval = lastPollEvalByUser.get(user.id) || 0;
-    if (nowTimestamp - lastEval > POLL_EVAL_COOLDOWN_MS) {
+    // Le navigateur demande l'évaluation au plus une fois par minute (?eval=1) : c'est la partie coûteuse.
+    const wantsEval = new URL(request.url).searchParams.get("eval") === "1";
+    if (wantsEval && nowTimestamp - lastEval > POLL_EVAL_COOLDOWN_MS) {
       lastPollEvalByUser.set(user.id, nowTimestamp);
       try {
         await evaluateSmartReminders(supabase, user.id, timezone);

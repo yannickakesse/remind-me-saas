@@ -21,9 +21,11 @@ export function FloatingMessagesButton({
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
 
-  // Vérification périodique du compteur non lu (toutes les 60 secondes)
+  // Vérification périodique du compteur non lu : toutes les 5 minutes, seulement page visible
+  // (et aussitôt au retour sur la page), pour ne pas faire travailler le serveur pour rien.
   useEffect(() => {
     async function checkCount() {
+      if (document.visibilityState === "hidden") return;
       try {
         const res = await fetch("/api/messages", { cache: "no-store" });
         if (res.ok) {
@@ -36,13 +38,18 @@ export function FloatingMessagesButton({
     }
 
     checkCount();
-    const interval = setInterval(checkCount, 60000);
+    const interval = setInterval(checkCount, 5 * 60 * 1000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") checkCount();
+    };
+    document.addEventListener("visibilitychange", onVisible);
 
     const handleMessagesRead = () => setUnreadCount(0);
     window.addEventListener("remindme:messages-read", handleMessagesRead);
 
     return () => {
       clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("remindme:messages-read", handleMessagesRead);
     };
   }, []);
