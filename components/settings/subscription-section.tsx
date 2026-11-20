@@ -23,9 +23,11 @@ export interface SubscriptionSectionProps {
   trial?: { daysLeft: number; endsAt: string } | null;
   /** Offre de bienvenue : premier mois réduit (le compte n'a encore jamais payé). */
   firstMonthOffer?: boolean;
+  /** Application mobile (stores) : ni prix ni paiement affichés, règle Apple / Google. */
+  nativeApp?: boolean;
 }
 
-export function SubscriptionSection({ subscription, plan, status, demoEnabled = false, trial = null, firstMonthOffer = false }: SubscriptionSectionProps) {
+export function SubscriptionSection({ subscription, plan, status, demoEnabled = false, trial = null, firstMonthOffer = false, nativeApp = false }: SubscriptionSectionProps) {
   const { tr, locale } = useLanguage();
   const { push } = useToast();
   const initialPlan = normalizePlan(plan ?? subscription?.plan);
@@ -93,6 +95,33 @@ export function SubscriptionSection({ subscription, plan, status, demoEnabled = 
         push(err?.message || tr("Une erreur est survenue."), "error");
       }
     });
+  }
+
+  // Application mobile : Apple et Google interdisent d'y vendre un abonnement hors de leur
+  // propre système de paiement. On affiche seulement le forfait en cours, sans prix ni lien.
+  if (nativeApp) {
+    return (
+      <div className="w-full space-y-4">
+        <h2 className="text-xl font-bold tracking-tight text-ink-950 flex items-center gap-2">
+          <Zap className="w-5 h-5 text-signal" />
+          {tr("Votre forfait")}
+        </h2>
+        <div className="rounded-2xl border border-ink-200 dark:border-ink-800 bg-canvas-raised p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">{tr("Forfait actuel")}</p>
+          <p className="mt-1 text-lg font-bold text-ink-950">{tr(PLAN_ENTITLEMENTS[activePlan].planName)}</p>
+          {trial && (
+            <p className="mt-2 text-sm text-signal font-semibold">
+              {trial.daysLeft > 1
+                ? tr("Essai Pro gratuit : encore {n} jours", { n: trial.daysLeft })
+                : tr("Essai Pro gratuit : dernier jour")}
+            </p>
+          )}
+          <p className="mt-3 text-sm text-ink-600 dark:text-ink-400">
+            {tr("La gestion du forfait n'est pas disponible dans l'application mobile.")}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

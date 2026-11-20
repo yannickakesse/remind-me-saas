@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Remind Me</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0B0F17; color: #E6E8EE; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    body { display: flex; align-items: center; justify-content: center; }
+    img { width: 96px; height: 96px; border-radius: 22px; }
+  </style>
+</head>
+<body>
+  <!-- Page de secours : l'application charge normalement https://tryremind-me.vercel.app (voir capacitor.config.json). -->
+  <img src="icon.png" alt="Remind Me" />
+  <script>location.replace("https://tryremind-me.vercel.app/login");</script>
+</body>
+</html>

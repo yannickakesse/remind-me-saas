@@ -12,9 +12,19 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "i18n:wrap": "node scripts/i18n-wrap.mjs",
-    "i18n:translate": "node scripts/i18n-translate.mjs"
+    "i18n:translate": "node scripts/i18n-translate.mjs",
+    "mobile:sync": "cap sync",
+    "mobile:assets": "capacitor-assets generate --assetPath resources --iconBackgroundColor \"#0B0F17\" --iconBackgroundColorDark \"#0B0F17\" --splashBackgroundColor \"#0B0F17\" --splashBackgroundColorDark \"#0B0F17\" --android --ios",
+    "mobile:android": "cap open android",
+    "mobile:ios": "cap open ios"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/ios": "^8.6.2",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4",
     "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "2.45.4",
     "@tanstack/react-query": "^5.56.2",
@@ -29,6 +39,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.2",
     "@types/luxon": "^3.4.2",
     "@types/node": "^20.14.15",
     "@types/react": "^18.3.5",

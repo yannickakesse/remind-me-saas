@@ -35,6 +35,8 @@ import { Suspense } from "react";
 import { getUserSubscription, getFirstMonthOfferEligible } from "@/lib/subscriptions/server";
 import { OfferSheet, type PlanInfo } from "@/components/subscriptions/offer-sheet";
 import { PlanBadge } from "@/components/subscriptions/plan-badge";
+import { headers } from "next/headers";
+import { isNativeAppUserAgent } from "@/lib/native-app";
 
 export default async function AppLayout({
   children,
@@ -129,7 +131,8 @@ export default async function AppLayout({
       <VoicePushPrompt />
       {tourCompleted && (
         <Suspense fallback={null}>
-          <OfferSheet info={planInfo} />
+          {/* Pas de fenêtre d'offres (prix) dans l'application mobile : règle Apple / Google. */}
+          {!isNativeAppUserAgent(headers().get("user-agent")) && <OfferSheet info={planInfo} />}
         </Suspense>
       )}
       <NotificationSyncTrigger />

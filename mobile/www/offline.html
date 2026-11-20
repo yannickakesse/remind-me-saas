@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Remind Me : hors connexion</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0B0F17; color: #E6E8EE; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; box-sizing: border-box; gap: 16px; }
+    img { width: 88px; height: 88px; border-radius: 20px; }
+    h1 { font-size: 20px; margin: 8px 0 0; }
+    p { font-size: 15px; line-height: 1.5; color: #A9AFBC; max-width: 320px; margin: 0; }
+    button { margin-top: 8px; background: #F39C12; color: #0B0F17; border: 0; border-radius: 999px; padding: 14px 28px; font-size: 16px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="icon.png" alt="" />
+    <h1 id="t">Pas de connexion Internet</h1>
+    <p id="d">Remind Me a besoin d'Internet pour afficher vos activités. Vérifiez votre connexion puis réessayez.</p>
+    <button id="b" type="button">Réessayer</button>
+  </main>
+  <script>
+    var en = !/^fr/i.test(navigator.language || "fr");
+    if (en) {
+      document.documentElement.lang = "en";
+      document.getElementById("t").textContent = "No Internet connection";
+      document.getElementById("d").textContent = "Remind Me needs the Internet to show your activities. Check your connection and try again.";
+      document.getElementById("b").textContent = "Try again";
+    }
+    document.getElementById("b").addEventListener("click", function () {
+      location.replace("https://tryremind-me.vercel.app/login");
+    });
+  </script>
+</body>
+</html>

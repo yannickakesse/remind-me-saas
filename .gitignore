@@ -35,3 +35,6 @@ yarn-error.log*
 .vercel
 *.pdf
 scripts/test-pdf-scratch.ts
+
+# Applications mobiles compilées
+/mobile/dist/

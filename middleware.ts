@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { isNativeAppUserAgent } from "@/lib/native-app";
 
-const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/auth", "/fondateur"];
+const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/auth", "/fondateur", "/confidentialite", "/suppression-compte"];
 const RECOVERY_ROUTE = "/reset-password";
 
 export async function middleware(request: NextRequest) {
@@ -25,7 +26,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // 1. Accès direct 0ms pour la page d'accueil publique (aucun appel auth bloquant)
+  //    Dans l'application mobile, pas de page vitrine (elle affiche les prix) : direction la connexion,
+  //    qui renvoie elle-même vers le tableau de bord si l'utilisateur est déjà connecté.
   if (pathname === "/") {
+    if (isNativeAppUserAgent(request.headers.get("user-agent"))) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
     return NextResponse.next();
   }
 

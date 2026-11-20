@@ -59,7 +59,11 @@ export function LandingFooter() {
         </div>
 
         <div className="mt-6 pt-5 border-t border-ink-200/60 dark:border-ink-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-ink-500">
-          <span>&copy; {new Date().getFullYear()} Remind Me</span>
+          <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span>&copy; {new Date().getFullYear()} Remind Me</span>
+            <Link href="/confidentialite" className="hover:text-ink-950 dark:hover:text-white transition-colors">{tr("Confidentialité")}</Link>
+            <Link href="/suppression-compte" className="hover:text-ink-950 dark:hover:text-white transition-colors">{tr("Supprimer mon compte")}</Link>
+          </span>
           <Link href="/fondateur" className="hover:text-ink-950 dark:hover:text-white transition-colors">
             {tr("Fondé par")}{" "}<strong className="font-semibold text-ink-700 dark:text-ink-300">{FOUNDER.name}</strong>
             {" · "}{tr("Fondateur de Speak Pro Academy")}

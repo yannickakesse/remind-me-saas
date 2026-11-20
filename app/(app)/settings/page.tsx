@@ -13,11 +13,14 @@ import { getUserSubscription, getFirstMonthOfferEligible } from "@/lib/subscript
 import { DataSection } from "@/components/settings/data-section";
 import { SectionGuideTrigger } from "@/components/onboarding/section-guide-trigger";
 import type { NotificationPreference } from "@/types/database";
+import { headers } from "next/headers";
+import { isNativeAppUserAgent } from "@/lib/native-app";
 
 export default async function SettingsPage({ searchParams }: { searchParams?: { tab?: string } }) {
   const tr = await getTr();
   const user = await requireCurrentUser();
   const supabase = createClient();
+  const nativeApp = isNativeAppUserAgent(headers().get("user-agent"));
 
   const [
     { data: profile },
@@ -103,6 +106,7 @@ export default async function SettingsPage({ searchParams }: { searchParams?: { 
             content: (
               <SubscriptionSection
                 plan={subscription.paidPlan}
+                nativeApp={nativeApp}
                 demoEnabled={process.env.ENABLE_PLAN_DEMO === "true"}
                 status={subscription.status}
                 firstMonthOffer={firstMonthOffer}

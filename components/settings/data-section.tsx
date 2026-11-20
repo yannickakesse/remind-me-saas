@@ -134,6 +134,10 @@ export function DataSection() {
         </div>
       </div>
 
+      <p className="text-xs text-ink-500 text-center">
+        <a href="/confidentialite" className="underline hover:text-signal">{tr("Politique de confidentialité")}</a>
+      </p>
+
       <ConfirmDialog
         open={resetOpen}
         onClose={() => setResetOpen(false)}
